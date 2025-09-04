@@ -3,6 +3,7 @@ package gokord
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/logger"
 	"math"
 	"net/http"
 	"regexp"
@@ -24,9 +25,7 @@ type Session struct {
 
 	MFA bool
 
-	// Debug for printing JSON request/responses
-	Debug    bool // Deprecated, will be removed.
-	LogLevel int
+	LogLevel logger.Level
 
 	// Should the session reconnect the websocket on errors.
 	ShouldReconnectOnError bool
@@ -1824,7 +1823,7 @@ type GuildEmbed struct {
 	ChannelID string `json:"channel_id,omitempty"`
 }
 
-// A GuildAuditLog stores data for a guild audit log.
+// A GuildAuditLog stores data for a guild audit Log.
 // https://discord.com/developers/docs/resources/audit-log#audit-log-object-audit-log-structure
 type GuildAuditLog struct {
 	Webhooks        []*Webhook       `json:"webhooks,omitempty"`

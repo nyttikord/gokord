@@ -9,8 +9,6 @@ import (
 	_ "image/jpeg" // For JPEG decoding
 	_ "image/png"  // For PNG decoding
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -23,7 +21,7 @@ import (
 // All error constants
 var (
 	ErrJSONUnmarshal           = errors.New("json unmarshal")
-	ErrStatusOffline           = errors.New("You can't set your Status to offline")
+	ErrStatusOffline           = errors.New("you can't set your Status to offline")
 	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
 	ErrPruneDaysBounds         = errors.New("the number of days should be more than or equal to 1")
 	ErrGuildNoIcon             = errors.New("guild does not have an icon set")
@@ -136,7 +134,7 @@ func WithHeader(key, value string) RequestOption {
 	}
 }
 
-// WithAuditLogReason changes audit log reason associated with the request.
+// WithAuditLogReason changes audit Log reason associated with the request.
 func WithAuditLogReason(reason string) RequestOption {
 	return WithHeader("X-Audit-Log-Reason", reason)
 }
@@ -184,10 +182,8 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 
 // RequestWithLockedBucket makes a request using a bucket that's already been locked
 func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int, options ...RequestOption) (response []byte, err error) {
-	if s.Debug {
-		log.Printf("API REQUEST %8s :: %s\n", method, urlStr)
-		log.Printf("API REQUEST  PAYLOAD :: [%s]\n", string(b))
-	}
+	s.LogDebug("API REQUEST %8s :: %s\n", method, urlStr)
+	s.LogDebug("API REQUEST  PAYLOAD :: [%s]\n", string(b))
 
 	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
 	if err != nil {
@@ -216,10 +212,8 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 	}
 	req = cfg.Request
 
-	if s.Debug {
-		for k, v := range req.Header {
-			log.Printf("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
-		}
+	for k, v := range req.Header {
+		s.LogDebug("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
 	}
 
 	resp, err := cfg.Client.Do(req)
@@ -228,9 +222,8 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		return
 	}
 	defer func() {
-		err2 := resp.Body.Close()
-		if s.Debug && err2 != nil {
-			log.Println("error closing resp body")
+		if err = resp.Body.Close(); err != nil {
+			s.LogDebug("error closing resp body: %v", err)
 		}
 	}()
 
@@ -239,19 +232,16 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		return
 	}
 
-	response, err = ioutil.ReadAll(resp.Body)
+	response, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return
 	}
 
-	if s.Debug {
-
-		log.Printf("API RESPONSE  STATUS :: %s\n", resp.Status)
-		for k, v := range resp.Header {
-			log.Printf("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
-		}
-		log.Printf("API RESPONSE    BODY :: [%s]\n\n\n", response)
+	s.LogDebug("API RESPONSE  STATUS :: %s\n", resp.Status)
+	for k, v := range resp.Header {
+		s.LogDebug("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
 	}
+	s.LogDebug("API RESPONSE    BODY :: [%s]\n\n\n", response)
 
 	switch resp.StatusCode {
 	case http.StatusOK:
@@ -261,7 +251,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		// Retry sending request if possible
 		if sequence < cfg.MaxRestRetries {
 
-			s.log(LogInformational, "%s Failed (%s), Retrying...", urlStr, resp.Status)
+			s.LogInfo("%s Failed (%s), Retrying...", urlStr, resp.Status)
 			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1, options...)
 		} else {
 			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
@@ -270,12 +260,12 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		rl := TooManyRequests{}
 		err = Unmarshal(response, &rl)
 		if err != nil {
-			s.log(LogError, "rate limit unmarshal error, %s", err)
+			s.LogError("rate limit unmarshal error, %s", err)
 			return
 		}
 
 		if cfg.ShouldRetryOnRateLimit {
-			s.log(LogInformational, "Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
+			s.LogInfo("Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
 			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
@@ -288,7 +278,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		}
 	case http.StatusUnauthorized:
 		if strings.Index(s.Token, "Bot ") != 0 {
-			s.log(LogInformational, "%s", ErrUnauthorized.Error())
+			s.LogInfo("%s", ErrUnauthorized.Error())
 			err = ErrUnauthorized
 		}
 		fallthrough
@@ -1346,11 +1336,11 @@ func (s *Session) GuildEmbedEdit(guildID string, data *GuildEmbed, options ...Re
 	return
 }
 
-// GuildAuditLog returns the audit log for a Guild.
+// GuildAuditLog returns the audit Log for a Guild.
 // guildID     : The ID of a Guild.
-// userID      : If provided the log will be filtered for the given ID.
-// beforeID    : If provided all log entries returned will be before the given ID.
-// actionType  : If provided the log will be filtered for the given Action Type.
+// userID      : If provided the Log will be filtered for the given ID.
+// beforeID    : If provided all Log entries returned will be before the given ID.
+// actionType  : If provided the Log will be filtered for the given Action Type.
 // limit       : The number messages that can be returned. (default 50, min 1, max 100)
 func (s *Session) GuildAuditLog(guildID, userID, beforeID string, actionType, limit int, options ...RequestOption) (st *GuildAuditLog, err error) {
 
