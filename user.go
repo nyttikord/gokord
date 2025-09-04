@@ -106,6 +106,9 @@ type User struct {
 
 	// Data for the user's collectibles
 	Collectibles *UserCollectibles `json:"collectibles"`
+
+	// User's primary guild (tag)
+	PrimaryGuild *UserPrimaryGuild `json:"primary_guild"`
 }
 
 // String returns a unique identifier of the form username#discriminator
@@ -203,4 +206,21 @@ type Nameplate struct {
 	Label string `json:"label"`
 	// Background color of the nameplate
 	Palette UserNameplatePalette `json:"palette"`
+}
+
+type UserPrimaryGuild struct {
+	// ID of the User's primary guild
+	GuildID string `json:"identity_guild_id"`
+	// Whether the user is displaying the primary guild's server tag.
+	// This can be null if the system clears the identity, e.g. the server no longer supports tags.
+	// This will be false if the user manually removes their tag.
+	Enabled *bool `json:"identity_enabled"`
+	// Text of the User's server tag. Limited to 4 characters
+	Tag *string `json:"tag"`
+	// Server tag badge hash
+	Badge *string `json:"badge"`
+}
+
+func (upg *UserPrimaryGuild) IsEnabled() bool {
+	return upg.Enabled != nil && *upg.Enabled
 }
