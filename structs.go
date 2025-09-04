@@ -864,7 +864,7 @@ type Guild struct {
 	// The application id of the guild if bot created.
 	ApplicationID string `json:"application_id"`
 
-	// Whether or not the Server Widget is enabled
+	// Whether the Server Widget is enabled
 	WidgetEnabled bool `json:"widget_enabled"`
 
 	// The Channel ID for the Server Widget
@@ -1340,6 +1340,7 @@ const (
 	GuildFeatureVerified                              GuildFeature = "VERIFIED"
 	GuildFeatureVipRegions                            GuildFeature = "VIP_REGIONS"
 	GuildFeatureWelcomeScreenEnabled                  GuildFeature = "WELCOME_SCREEN_ENABLED"
+	GuildFeatureEnhancedRoleColors                    GuildFeature = "ENHANCED_ROLE_COLORS"
 )
 
 // A GuildParams stores all the data needed to update discord guild settings
@@ -1385,7 +1386,12 @@ type Role struct {
 	Hoist bool `json:"hoist"`
 
 	// The hex color of this role.
+	//
+	// Deprecated: use Role.Colors
 	Color int `json:"color"`
+
+	// The role's colors
+	Colors RoleColors `json:"colors"`
 
 	// The position of this role in the guild's role hierarchy.
 	Position int `json:"position"`
@@ -1489,6 +1495,16 @@ type VoiceState struct {
 	SelfVideo               bool       `json:"self_video"`
 	Suppress                bool       `json:"suppress"`
 	RequestToSpeakTimestamp *time.Time `json:"request_to_speak_timestamp"`
+}
+
+// RoleColors stores colors of the Role
+type RoleColors struct {
+	// Primary color for the role
+	PrimaryColor int `json:"primary_color"`
+	// Secondary color for the role, this will make the role a gradient between the other provided colors
+	SecondaryColor *int `json:"secondary_color"`
+	// Tertiary color for the role, this will turn the gradient into a holographic style
+	TertiaryColor *int `json:"tertiary_color"`
 }
 
 // A Presence stores the online, offline, or idle and game status of Guild members.
