@@ -124,16 +124,13 @@ func (s *Session) Open() error {
 	// Now we send either an Op 2 Identity if this is a brand new
 	// connection or Op 6 Resume if we are resuming an existing connection.
 	if s.sessionID == "" && sequence == 0 {
-
 		// Send Op 2 Identity Packet
 		err = s.identify()
 		if err != nil {
 			err = fmt.Errorf("error sending identify packet to gateway, %s, %s", s.gateway, err)
 			return err
 		}
-
 	} else {
-
 		// Send Op 6 Resume Packet
 		p := resumePacket{}
 		p.Op = 6
@@ -149,7 +146,6 @@ func (s *Session) Open() error {
 			err = fmt.Errorf("error sending gateway resume packet, %s, %s", s.gateway, err)
 			return err
 		}
-
 	}
 
 	// A basic state is a hard requirement for Voice.
@@ -236,13 +232,10 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan interface{}) {
 		}
 
 		select {
-
 		case <-listening:
 			return
-
 		default:
 			s.onEvent(messageType, message)
-
 		}
 	}
 }
@@ -270,7 +263,6 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // is still connected.  If you do not send these heartbeats Discord will
 // disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}, heartbeatIntervalMsec time.Duration) {
-
 	s.LogDebug("called")
 
 	if listening == nil || wsConn == nil {
@@ -768,7 +760,6 @@ func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err 
 
 // onVoiceStateUpdate handles Voice State Update events on the data websocket.
 func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
-
 	// If we don't have a connection for the channel, don't bother
 	if st.ChannelID == "" {
 		return
@@ -801,7 +792,6 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 // to a voice channel.  In that case, need to re-establish connection to
 // the new region endpoint.
 func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
-
 	s.LogDebug("called")
 
 	s.RLock()
@@ -856,7 +846,6 @@ func (s *Session) identify() error {
 	// can be deprecated and their usage moved to the Session.Identify
 	// struct
 	if s.ShardCount > 1 {
-
 		if s.ShardID >= s.ShardCount {
 			return ErrWSShardBounds
 		}
