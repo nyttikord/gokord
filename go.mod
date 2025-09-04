@@ -1,4 +1,4 @@
-module github.com/bwmarrin/discordgo
+module github.com/nyttikord/gokord
 
 go 1.24
 
