@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"github.com/nyttikord/gokord/logger"
 	"net/http"
 	"runtime"
 	"time"
@@ -22,7 +23,6 @@ const VERSION = "0.30.0+v" + APIVersion
 //
 //	e.g. "Bearer ..."
 func New(token string) (s *Session, err error) {
-
 	// Create an empty Session interface.
 	s = &Session{
 		State:                              NewState(),
@@ -40,6 +40,7 @@ func New(token string) (s *Session, err error) {
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           new(int64),
 		LastHeartbeatAck:                   time.Now().UTC(),
+		LogLevel:                           logger.LevelInfo,
 	}
 
 	// Initialize the Identify Package with defaults

@@ -702,7 +702,7 @@ func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *Voi
 	s.RUnlock()
 
 	if voice == nil {
-		voice = &VoiceConnection{}
+		voice = &VoiceConnection{LogLevel: s.LogLevel}
 		s.Lock()
 		s.VoiceConnections[gID] = voice
 		s.Unlock()
