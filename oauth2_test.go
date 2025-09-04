@@ -1,4 +1,4 @@
-package discordgo_test
+package gokord_test
 
 import (
 	"log"
@@ -16,14 +16,14 @@ func ExampleApplication() {
 	}
 
 	// Create a new Discordgo session
-	dg, err := discordgo.New(Token)
+	dg, err := gokord.New(Token)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
 	// Create an new Application
-	ap := &discordgo.Application{}
+	ap := &gokord.Application{}
 	ap.Name = "TestApp"
 	ap.Description = "TestDesc"
 	ap, err = dg.ApplicationCreate(ap)

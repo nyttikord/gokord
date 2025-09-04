@@ -36,32 +36,32 @@ func init() {
 }
 
 func main() {
-	s, _ := discordgo.New("Bot " + *token)
+	s, _ := gokord.New("Bot " + *token)
 
-	_, err := s.ApplicationRoleConnectionMetadataUpdate(*appID, []*discordgo.ApplicationRoleConnectionMetadata{
+	_, err := s.ApplicationRoleConnectionMetadataUpdate(*appID, []*gokord.ApplicationRoleConnectionMetadata{
 		{
-			Type:                     discordgo.ApplicationRoleConnectionMetadataIntegerGreaterThanOrEqual,
+			Type:                     gokord.ApplicationRoleConnectionMetadataIntegerGreaterThanOrEqual,
 			Key:                      "loc",
 			Name:                     "Lines of Code",
-			NameLocalizations:        map[discordgo.Locale]string{},
+			NameLocalizations:        map[gokord.Locale]string{},
 			Description:              "Total lines of code written",
-			DescriptionLocalizations: map[discordgo.Locale]string{},
+			DescriptionLocalizations: map[gokord.Locale]string{},
 		},
 		{
-			Type:                     discordgo.ApplicationRoleConnectionMetadataBooleanEqual,
+			Type:                     gokord.ApplicationRoleConnectionMetadataBooleanEqual,
 			Key:                      "gopher",
 			Name:                     "Gopher",
-			NameLocalizations:        map[discordgo.Locale]string{},
+			NameLocalizations:        map[gokord.Locale]string{},
 			Description:              "Writes in Go",
-			DescriptionLocalizations: map[discordgo.Locale]string{},
+			DescriptionLocalizations: map[gokord.Locale]string{},
 		},
 		{
-			Type:                     discordgo.ApplicationRoleConnectionMetadataDatetimeGreaterThanOrEqual,
+			Type:                     gokord.ApplicationRoleConnectionMetadataDatetimeGreaterThanOrEqual,
 			Key:                      "first_line",
 			Name:                     "First line written",
-			NameLocalizations:        map[discordgo.Locale]string{},
+			NameLocalizations:        map[gokord.Locale]string{},
 			Description:              "Days since the first line of code",
-			DescriptionLocalizations: map[discordgo.Locale]string{},
+			DescriptionLocalizations: map[gokord.Locale]string{},
 		},
 	})
 	if err != nil {
@@ -91,7 +91,7 @@ func main() {
 		}
 
 		// Construct a temporary session with user's OAuth2 access_token.
-		ts, _ := discordgo.New("Bearer " + tokens.AccessToken)
+		ts, _ := gokord.New("Bearer " + tokens.AccessToken)
 
 		// Retrive the user data.
 		u, err := ts.User("@me")
@@ -109,7 +109,7 @@ func main() {
 		}
 
 		// And submit it back to discord.
-		_, err = ts.UserApplicationRoleConnectionUpdate(*appID, &discordgo.ApplicationRoleConnection{
+		_, err = ts.UserApplicationRoleConnectionUpdate(*appID, &gokord.ApplicationRoleConnection{
 			PlatformName:     "Discord Gophers",
 			PlatformUsername: u.Username,
 			Metadata:         metadata,

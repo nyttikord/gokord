@@ -68,7 +68,7 @@ the only documentation available. Go reference (below) presents that information
 Below is a list of examples and other projects using DiscordGo.  Please submit 
 an issue if you would like your project added or removed from this list. 
 
-- [DiscordGo Examples](https://github.com/nyttikord/gokord/tree/main/examples) - A collection of example programs written with DiscordGo
+- [Gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with Gokord (really outdated)
 
 <!--
 ## Troubleshooting

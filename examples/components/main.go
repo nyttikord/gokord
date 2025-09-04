@@ -19,13 +19,13 @@ var (
 	AppID    = flag.String("app", "", "Application ID")
 )
 
-var s *discordgo.Session
+var s *gokord.Session
 
 func init() { flag.Parse() }
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = gokord.New("Bot " + *BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -34,38 +34,38 @@ func init() {
 // Important note: call every command in order it's placed in the example.
 
 var (
-	componentsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"fd_no": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+	componentsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
+		"fd_no": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
-					Flags:   discordgo.MessageFlagsEphemeral,
-					Components: []discordgo.MessageComponent{
-						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+					Flags:   gokord.MessageFlagsEphemeral,
+					Components: []gokord.MessageComponent{
+						gokord.ActionsRow{
+							Components: []gokord.MessageComponent{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#buttons",
 								},
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -77,30 +77,30 @@ var (
 				panic(err)
 			}
 		},
-		"fd_yes": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"fd_yes": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
-					Flags: discordgo.MessageFlagsEphemeral,
-					Components: []discordgo.MessageComponent{
-						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+					Flags: gokord.MessageFlagsEphemeral,
+					Components: []gokord.MessageComponent{
+						gokord.ActionsRow{
+							Components: []gokord.MessageComponent{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -112,25 +112,25 @@ var (
 				panic(err)
 			}
 		},
-		"select": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			var response *discordgo.InteractionResponse
+		"select": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			var response *gokord.InteractionResponse
 
 			data := i.MessageComponentData()
 			switch data.Values[0] {
 			case "go":
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+				response = &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: "This is the way.",
-						Flags:   discordgo.MessageFlagsEphemeral,
+						Flags:   gokord.MessageFlagsEphemeral,
 					},
 				}
 			default:
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+				response = &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: "It is not the way to go.",
-						Flags:   discordgo.MessageFlagsEphemeral,
+						Flags:   gokord.MessageFlagsEphemeral,
 					},
 				}
 			}
@@ -139,77 +139,77 @@ var (
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "Anyways, now when you know how to use single select menus, let's see how multi select menus work. " +
 					"Try calling `/selects multi` command.",
-				Flags: discordgo.MessageFlagsEphemeral,
+				Flags: gokord.MessageFlagsEphemeral,
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"stackoverflow_tags": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"stackoverflow_tags": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			data := i.MessageComponentData()
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
 
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
-					Flags:   discordgo.MessageFlagsEphemeral,
+					Flags:   gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "But wait, there is more! You can also auto populate the select menu. Try executing `/selects auto-populated`.",
-				Flags:   discordgo.MessageFlagsEphemeral,
+				Flags:   gokord.MessageFlagsEphemeral,
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"channel_select": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"channel_select": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
 						"If you want to know more, check out the links below",
-					Components: []discordgo.MessageComponent{
-						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+					Components: []gokord.MessageComponent{
+						gokord.ActionsRow{
+							Components: []gokord.MessageComponent{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#select-menus",
 								},
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								discordgo.Button{
-									Emoji: &discordgo.ComponentEmoji{
+								gokord.Button{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: discordgo.LinkButton,
+									Style: gokord.LinkButton,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
 						},
 					},
 
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -217,52 +217,52 @@ var (
 			}
 		},
 	}
-	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"buttons": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
+		"buttons": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Are you comfortable with buttons and other message components?",
-					Flags:   discordgo.MessageFlagsEphemeral,
+					Flags:   gokord.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
-					Components: []discordgo.MessageComponent{
+					Components: []gokord.MessageComponent{
 						// ActionRow is a container of all buttons within the same row.
-						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.Button{
+						gokord.ActionsRow{
+							Components: []gokord.MessageComponent{
+								gokord.Button{
 									// Label is what the user will see on the button.
 									Label: "Yes",
 									// Style provides coloring of the button. There are not so many styles tho.
-									Style: discordgo.SuccessButton,
+									Style: gokord.SuccessButton,
 									// Disabled allows bot to disable some buttons for users.
 									Disabled: false,
 									// CustomID is a thing telling Discord which data to send when this button will be pressed.
 									CustomID: "fd_yes",
 								},
-								discordgo.Button{
+								gokord.Button{
 									Label:    "No",
-									Style:    discordgo.DangerButton,
+									Style:    gokord.DangerButton,
 									Disabled: false,
 									CustomID: "fd_no",
 								},
-								discordgo.Button{
+								gokord.Button{
 									Label:    "I don't know",
-									Style:    discordgo.LinkButton,
+									Style:    gokord.LinkButton,
 									Disabled: false,
 									// Link buttons don't require CustomID and do not trigger the gateway/HTTP event
 									URL: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-									Emoji: &discordgo.ComponentEmoji{
+									Emoji: &gokord.ComponentEmoji{
 										Name: "🤷",
 									},
 								},
 							},
 						},
 						// The message may have multiple actions rows.
-						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.Button{
+						gokord.ActionsRow{
+							Components: []gokord.MessageComponent{
+								gokord.Button{
 									Label:    "Discord Developers server",
-									Style:    discordgo.LinkButton,
+									Style:    gokord.LinkButton,
 									Disabled: false,
 									URL:      "https://discord.gg/discord-developers",
 								},
@@ -275,29 +275,29 @@ var (
 				panic(err)
 			}
 		},
-		"selects": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			var response *discordgo.InteractionResponse
+		"selects": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			var response *gokord.InteractionResponse
 			switch i.ApplicationCommandData().Options[0].Name {
 			case "single":
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+				response = &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-						Components: []discordgo.MessageComponent{
-							discordgo.ActionsRow{
-								Components: []discordgo.MessageComponent{
-									discordgo.SelectMenu{
+						Flags:   gokord.MessageFlagsEphemeral,
+						Components: []gokord.MessageComponent{
+							gokord.ActionsRow{
+								Components: []gokord.MessageComponent{
+									gokord.SelectMenu{
 										// Select menu, as other components, must have a customID, so we set it to this value.
 										CustomID:    "select",
 										Placeholder: "Choose your favorite programming language 👇",
-										Options: []discordgo.SelectMenuOption{
+										Options: []gokord.SelectMenuOption{
 											{
 												Label: "Go",
 												// As with components, this things must have their own unique "id" to identify which is which.
 												// In this case such id is Value field.
 												Value: "go",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🦦",
 												},
 												// You can also make it a default option, but in this case we won't.
@@ -307,7 +307,7 @@ var (
 											{
 												Label: "JS",
 												Value: "js",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🟨",
 												},
 												Description: "JavaScript programming language",
@@ -315,7 +315,7 @@ var (
 											{
 												Label: "Python",
 												Value: "py",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🐍",
 												},
 												Description: "Python programming language",
@@ -329,30 +329,30 @@ var (
 				}
 			case "multi":
 				minValues := 1
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+				response = &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
-						Flags: discordgo.MessageFlagsEphemeral,
-						Components: []discordgo.MessageComponent{
-							discordgo.ActionsRow{
-								Components: []discordgo.MessageComponent{
-									discordgo.SelectMenu{
+						Flags: gokord.MessageFlagsEphemeral,
+						Components: []gokord.MessageComponent{
+							gokord.ActionsRow{
+								Components: []gokord.MessageComponent{
+									gokord.SelectMenu{
 										CustomID:    "stackoverflow_tags",
 										Placeholder: "Select tags to search on StackOverflow",
 										// This is where confusion comes from. If you don't specify these things you will get single item select.
 										// These fields control the minimum and maximum amount of selected items.
 										MinValues: &minValues,
 										MaxValues: 3,
-										Options: []discordgo.SelectMenuOption{
+										Options: []gokord.SelectMenuOption{
 											{
 												Label:       "Go",
 												Description: "Simple yet powerful programming language",
 												Value:       "go",
 												// Default works the same for multi-select menus.
 												Default: false,
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🦦",
 												},
 											},
@@ -360,7 +360,7 @@ var (
 												Label:       "JS",
 												Description: "Multiparadigm OOP language",
 												Value:       "javascript",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🟨",
 												},
 											},
@@ -368,7 +368,7 @@ var (
 												Label:       "Python",
 												Description: "OOP prototyping programming language",
 												Value:       "python",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🐍",
 												},
 											},
@@ -376,7 +376,7 @@ var (
 												Label:       "Web",
 												Description: "Web related technologies",
 												Value:       "web",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "🌐",
 												},
 											},
@@ -384,7 +384,7 @@ var (
 												Label:       "Desktop",
 												Description: "Desktop applications",
 												Value:       "desktop",
-												Emoji: &discordgo.ComponentEmoji{
+												Emoji: &gokord.ComponentEmoji{
 													Name: "💻",
 												},
 											},
@@ -396,20 +396,20 @@ var (
 					},
 				}
 			case "auto-populated":
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+				response = &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
-						Flags: discordgo.MessageFlagsEphemeral,
-						Components: []discordgo.MessageComponent{
-							discordgo.ActionsRow{
-								Components: []discordgo.MessageComponent{
-									discordgo.SelectMenu{
-										MenuType:     discordgo.ChannelSelectMenu,
+						Flags: gokord.MessageFlagsEphemeral,
+						Components: []gokord.MessageComponent{
+							gokord.ActionsRow{
+								Components: []gokord.MessageComponent{
+									gokord.SelectMenu{
+										MenuType:     gokord.ChannelSelectMenu,
 										CustomID:     "channel_select",
 										Placeholder:  "Pick your favorite channel!",
-										ChannelTypes: []discordgo.ChannelType{discordgo.ChannelTypeGuildText},
+										ChannelTypes: []gokord.ChannelType{gokord.ChannelTypeGuildText},
 									},
 								},
 							},
@@ -426,24 +426,24 @@ var (
 )
 
 func main() {
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		log.Println("Bot is up!")
 	})
 	// Components are part of interactions, so we register InteractionCreate handler
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
 		switch i.Type {
-		case discordgo.InteractionApplicationCommand:
+		case gokord.InteractionApplicationCommand:
 			if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
 				h(s, i)
 			}
-		case discordgo.InteractionMessageComponent:
+		case gokord.InteractionMessageComponent:
 
 			if h, ok := componentsHandlers[i.MessageComponentData().CustomID]; ok {
 				h(s, i)
 			}
 		}
 	})
-	_, err := s.ApplicationCommandCreate(*AppID, *GuildID, &discordgo.ApplicationCommand{
+	_, err := s.ApplicationCommandCreate(*AppID, *GuildID, &gokord.ApplicationCommand{
 		Name:        "buttons",
 		Description: "Test the buttons if you got courage",
 	})
@@ -451,21 +451,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
 	}
-	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &discordgo.ApplicationCommand{
+	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &gokord.ApplicationCommand{
 		Name: "selects",
-		Options: []*discordgo.ApplicationCommandOption{
+		Options: []*gokord.ApplicationCommandOption{
 			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Type:        gokord.ApplicationCommandOptionSubCommand,
 				Name:        "multi",
 				Description: "Multi-item select menu",
 			},
 			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Type:        gokord.ApplicationCommandOptionSubCommand,
 				Name:        "single",
 				Description: "Single-item select menu",
 			},
 			{
-				Type:        discordgo.ApplicationCommandOptionSubCommand,
+				Type:        gokord.ApplicationCommandOptionSubCommand,
 				Name:        "auto-populated",
 				Description: "Automatically populated select menu, which lets you pick a member, channel or role",
 			},

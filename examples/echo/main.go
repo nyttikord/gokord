@@ -10,9 +10,9 @@ import (
 	"github.com/nyttikord/gokord"
 )
 
-type optionMap = map[string]*discordgo.ApplicationCommandInteractionDataOption
+type optionMap = map[string]*gokord.ApplicationCommandInteractionDataOption
 
-func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) (om optionMap) {
+func parseOptions(options []*gokord.ApplicationCommandInteractionDataOption) (om optionMap) {
 	om = make(optionMap)
 	for _, opt := range options {
 		om[opt.Name] = opt
@@ -20,14 +20,14 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	return
 }
 
-func interactionAuthor(i *discordgo.Interaction) *discordgo.User {
+func interactionAuthor(i *gokord.Interaction) *gokord.User {
 	if i.Member != nil {
 		return i.Member.User
 	}
 	return i.User
 }
 
-func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optionMap) {
+func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) {
 	builder := new(strings.Builder)
 	if v, ok := opts["author"]; ok && v.BoolValue() {
 		author := interactionAuthor(i.Interaction)
@@ -35,9 +35,9 @@ func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optio
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
+	err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+		Type: gokord.InteractionResponseChannelMessageWithSource,
+		Data: &gokord.InteractionResponseData{
 			Content: builder.String(),
 		},
 	})
@@ -47,21 +47,21 @@ func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optio
 	}
 }
 
-var commands = []*discordgo.ApplicationCommand{
+var commands = []*gokord.ApplicationCommand{
 	{
 		Name:        "echo",
 		Description: "Say something through a bot",
-		Options: []*discordgo.ApplicationCommandOption{
+		Options: []*gokord.ApplicationCommandOption{
 			{
 				Name:        "message",
 				Description: "Contents of the message",
-				Type:        discordgo.ApplicationCommandOptionString,
+				Type:        gokord.ApplicationCommandOptionString,
 				Required:    true,
 			},
 			{
 				Name:        "author",
 				Description: "Whether to prepend message's author",
-				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Type:        gokord.ApplicationCommandOptionBoolean,
 			},
 		},
 	},
@@ -79,10 +79,10 @@ func main() {
 		log.Fatal("application id is not set")
 	}
 
-	session, _ := discordgo.New("Bot " + *Token)
+	session, _ := gokord.New("Bot " + *Token)
 
-	session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if i.Type != discordgo.InteractionApplicationCommand {
+	session.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
+		if i.Type != gokord.InteractionApplicationCommand {
 			return
 		}
 
@@ -94,7 +94,7 @@ func main() {
 		handleEcho(s, i, parseOptions(data.Options))
 	})
 
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	session.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 

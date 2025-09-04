@@ -19,13 +19,13 @@ var (
 	Cleanup  = flag.Bool("cleanup", true, "Cleanup of commands")
 )
 
-var s *discordgo.Session
+var s *gokord.Session
 
 func init() { flag.Parse() }
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = gokord.New("Bot " + *BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -42,39 +42,39 @@ func searchLink(message, format, sep string) string {
 }
 
 var (
-	commands = []discordgo.ApplicationCommand{
+	commands = []gokord.ApplicationCommand{
 		{
 			Name: "rickroll-em",
-			Type: discordgo.UserApplicationCommand,
+			Type: gokord.UserApplicationCommand,
 		},
 		{
 			Name: "google-it",
-			Type: discordgo.MessageApplicationCommand,
+			Type: gokord.MessageApplicationCommand,
 		},
 		{
 			Name: "stackoverflow-it",
-			Type: discordgo.MessageApplicationCommand,
+			Type: gokord.MessageApplicationCommand,
 		},
 		{
 			Name: "godoc-it",
-			Type: discordgo.MessageApplicationCommand,
+			Type: gokord.MessageApplicationCommand,
 		},
 		{
 			Name: "discordjs-it",
-			Type: discordgo.MessageApplicationCommand,
+			Type: gokord.MessageApplicationCommand,
 		},
 		{
 			Name: "discordpy-it",
-			Type: discordgo.MessageApplicationCommand,
+			Type: gokord.MessageApplicationCommand,
 		},
 	}
-	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"rickroll-em": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
+		"rickroll-em": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Operation rickroll has begun",
-					Flags:   discordgo.MessageFlagsEphemeral,
+					Flags:   gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -85,9 +85,9 @@ var (
 				i.ApplicationCommandData().TargetID,
 			)
 			if err != nil {
-				_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
-					Flags:   discordgo.MessageFlagsEphemeral,
+					Flags:   gokord.MessageFlagsEphemeral,
 				})
 				if err != nil {
 					panic(err)
@@ -101,70 +101,70 @@ var (
 				panic(err)
 			}
 		},
-		"google-it": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"google-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://google.com/search?q=%s", "+"),
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"stackoverflow-it": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"stackoverflow-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://stackoverflow.com/search?q=%s", "+"),
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"godoc-it": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"godoc-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://pkg.go.dev/search?q=%s", "+"),
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"discordjs-it": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"discordjs-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
 				panic(err)
 			}
 		},
-		"discordpy-it": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"discordpy-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags: gokord.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -175,11 +175,11 @@ var (
 )
 
 func main() {
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		log.Println("Bot is up!")
 	})
 
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
 		if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
 			h(s, i)
 		}

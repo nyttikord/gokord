@@ -20,13 +20,13 @@ var (
 	RemoveCommands = flag.Bool("rmcmd", true, "Remove all commands after shutdowning or not")
 )
 
-var s *discordgo.Session
+var s *gokord.Session
 
 func init() { flag.Parse() }
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = gokord.New("Bot " + *BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -35,9 +35,9 @@ func init() {
 var (
 	integerOptionMinValue          = 1.0
 	dmPermission                   = false
-	defaultMemberPermissions int64 = discordgo.PermissionManageGuild
+	defaultMemberPermissions int64 = gokord.PermissionManageGuild
 
-	commands = []*discordgo.ApplicationCommand{
+	commands = []*gokord.ApplicationCommand{
 		{
 			Name: "basic-command",
 			// All commands and options must have a description
@@ -58,35 +58,35 @@ var (
 		{
 			Name:        "localized-command",
 			Description: "Localized command. Description and name may vary depending on the Language setting",
-			NameLocalizations: &map[discordgo.Locale]string{
-				discordgo.ChineseCN: "本地化的命令",
+			NameLocalizations: &map[gokord.Locale]string{
+				gokord.ChineseCN: "本地化的命令",
 			},
-			DescriptionLocalizations: &map[discordgo.Locale]string{
-				discordgo.ChineseCN: "这是一个本地化的命令",
+			DescriptionLocalizations: &map[gokord.Locale]string{
+				gokord.ChineseCN: "这是一个本地化的命令",
 			},
-			Options: []*discordgo.ApplicationCommandOption{
+			Options: []*gokord.ApplicationCommandOption{
 				{
 					Name:        "localized-option",
 					Description: "Localized option. Description and name may vary depending on the Language setting",
-					NameLocalizations: map[discordgo.Locale]string{
-						discordgo.ChineseCN: "一个本地化的选项",
+					NameLocalizations: map[gokord.Locale]string{
+						gokord.ChineseCN: "一个本地化的选项",
 					},
-					DescriptionLocalizations: map[discordgo.Locale]string{
-						discordgo.ChineseCN: "这是一个本地化的选项",
+					DescriptionLocalizations: map[gokord.Locale]string{
+						gokord.ChineseCN: "这是一个本地化的选项",
 					},
-					Type: discordgo.ApplicationCommandOptionInteger,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
+					Type: gokord.ApplicationCommandOptionInteger,
+					Choices: []*gokord.ApplicationCommandOptionChoice{
 						{
 							Name: "First",
-							NameLocalizations: map[discordgo.Locale]string{
-								discordgo.ChineseCN: "一的",
+							NameLocalizations: map[gokord.Locale]string{
+								gokord.ChineseCN: "一的",
 							},
 							Value: 1,
 						},
 						{
 							Name: "Second",
-							NameLocalizations: map[discordgo.Locale]string{
-								discordgo.ChineseCN: "二的",
+							NameLocalizations: map[gokord.Locale]string{
+								gokord.ChineseCN: "二的",
 							},
 							Value: 2,
 						},
@@ -97,16 +97,16 @@ var (
 		{
 			Name:        "options",
 			Description: "Command for demonstrating options",
-			Options: []*discordgo.ApplicationCommandOption{
+			Options: []*gokord.ApplicationCommandOption{
 
 				{
-					Type:        discordgo.ApplicationCommandOptionString,
+					Type:        gokord.ApplicationCommandOptionString,
 					Name:        "string-option",
 					Description: "String option",
 					Required:    true,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionInteger,
+					Type:        gokord.ApplicationCommandOptionInteger,
 					Name:        "integer-option",
 					Description: "Integer option",
 					MinValue:    &integerOptionMinValue,
@@ -114,14 +114,14 @@ var (
 					Required:    true,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionNumber,
+					Type:        gokord.ApplicationCommandOptionNumber,
 					Name:        "number-option",
 					Description: "Float option",
 					MaxValue:    10.1,
 					Required:    true,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Type:        gokord.ApplicationCommandOptionBoolean,
 					Name:        "bool-option",
 					Description: "Boolean option",
 					Required:    true,
@@ -132,24 +132,24 @@ var (
 				// The same concept applies to Discord's Slash-commands API
 
 				{
-					Type:        discordgo.ApplicationCommandOptionChannel,
+					Type:        gokord.ApplicationCommandOptionChannel,
 					Name:        "channel-option",
 					Description: "Channel option",
 					// Channel type mask
-					ChannelTypes: []discordgo.ChannelType{
-						discordgo.ChannelTypeGuildText,
-						discordgo.ChannelTypeGuildVoice,
+					ChannelTypes: []gokord.ChannelType{
+						gokord.ChannelTypeGuildText,
+						gokord.ChannelTypeGuildVoice,
 					},
 					Required: false,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionUser,
+					Type:        gokord.ApplicationCommandOptionUser,
 					Name:        "user-option",
 					Description: "User option",
 					Required:    false,
 				},
 				{
-					Type:        discordgo.ApplicationCommandOptionRole,
+					Type:        gokord.ApplicationCommandOptionRole,
 					Name:        "role-option",
 					Description: "Role option",
 					Required:    false,
@@ -159,7 +159,7 @@ var (
 		{
 			Name:        "subcommands",
 			Description: "Subcommands and command groups example",
-			Options: []*discordgo.ApplicationCommandOption{
+			Options: []*gokord.ApplicationCommandOption{
 				// When a command has subcommands/subcommand groups
 				// It must not have top-level options, they aren't accesible in the UI
 				// in this case (at least not yet), so if a command has
@@ -169,17 +169,17 @@ var (
 				{
 					Name:        "subcommand-group",
 					Description: "Subcommands group",
-					Options: []*discordgo.ApplicationCommandOption{
+					Options: []*gokord.ApplicationCommandOption{
 						// Also, subcommand groups aren't capable of
 						// containing options, by the name of them, you can see
 						// they can only contain subcommands
 						{
 							Name:        "nested-subcommand",
 							Description: "Nested subcommand",
-							Type:        discordgo.ApplicationCommandOptionSubCommand,
+							Type:        gokord.ApplicationCommandOptionSubCommand,
 						},
 					},
-					Type: discordgo.ApplicationCommandOptionSubCommandGroup,
+					Type: gokord.ApplicationCommandOptionSubCommandGroup,
 				},
 				// Also, you can create both subcommand groups and subcommands
 				// in the command at the same time. But, there's some limits to
@@ -189,19 +189,19 @@ var (
 				{
 					Name:        "subcommand",
 					Description: "Top-level subcommand",
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Type:        gokord.ApplicationCommandOptionSubCommand,
 				},
 			},
 		},
 		{
 			Name:        "responses",
 			Description: "Interaction responses testing initiative",
-			Options: []*discordgo.ApplicationCommandOption{
+			Options: []*gokord.ApplicationCommandOption{
 				{
 					Name:        "resp-type",
 					Description: "Response type",
-					Type:        discordgo.ApplicationCommandOptionInteger,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
+					Type:        gokord.ApplicationCommandOptionInteger,
+					Choices: []*gokord.ApplicationCommandOptionChoice{
 						{
 							Name:  "Channel message with source",
 							Value: 4,
@@ -221,21 +221,21 @@ var (
 		},
 	}
 
-	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"basic-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+	commandHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
+		"basic-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command",
 				},
 			})
 		},
-		"basic-command-with-files": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+		"basic-command-with-files": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
-					Files: []*discordgo.File{
+					Files: []*gokord.File{
 						{
 							ContentType: "text/plain",
 							Name:        "test.txt",
@@ -245,17 +245,17 @@ var (
 				},
 			})
 		},
-		"localized-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			responses := map[discordgo.Locale]string{
-				discordgo.ChineseCN: "你好！ 这是一个本地化的命令",
+		"localized-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
+			responses := map[gokord.Locale]string{
+				gokord.ChineseCN: "你好！ 这是一个本地化的命令",
 			}
 			response := "Hi! This is a localized message"
 			if r, ok := responses[i.Locale]; ok {
 				response = r
 			}
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: response,
 				},
 			})
@@ -263,12 +263,12 @@ var (
 				panic(err)
 			}
 		},
-		"options": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"options": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			// Access options in the order provided by the user.
 			options := i.ApplicationCommandData().Options
 
 			// Or convert the slice into a map
-			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+			optionMap := make(map[string]*gokord.ApplicationCommandInteractionDataOption, len(options))
 			for _, opt := range options {
 				optionMap[opt.Name] = opt
 			}
@@ -318,10 +318,10 @@ var (
 				msgformat += "> role-option: <@&%s>\n"
 			}
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
 				// Ignore type for now, they will be discussed in "responses"
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: fmt.Sprintf(
 						msgformat,
 						margs...,
@@ -329,14 +329,14 @@ var (
 				},
 			})
 		},
-		"permission-overview": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"permission-overview": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			perms, err := s.ApplicationCommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
 
-			var restError *discordgo.RESTError
-			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discordgo.ErrCodeUnknownApplicationCommandPermissions {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
+			var restError *gokord.RESTError
+			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == gokord.ErrCodeUnknownApplicationCommandPermissions {
+				s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseChannelMessageWithSource,
+					Data: &gokord.InteractionResponseData{
 						Content: ":x: No permission overwrites",
 					},
 				})
@@ -361,17 +361,17 @@ var (
 				}
 
 				switch o.Type {
-				case discordgo.ApplicationCommandPermissionTypeUser:
+				case gokord.ApplicationCommandPermissionTypeUser:
 					users += fmt.Sprintf(format, emoji, "<@!"+o.ID+">")
-				case discordgo.ApplicationCommandPermissionTypeChannel:
-					allChannels, _ := discordgo.GuildAllChannelsID(i.GuildID)
+				case gokord.ApplicationCommandPermissionTypeChannel:
+					allChannels, _ := gokord.GuildAllChannelsID(i.GuildID)
 
 					if o.ID == allChannels {
 						channels += fmt.Sprintf(format, emoji, "All channels")
 					} else {
 						channels += fmt.Sprintf(format, emoji, "<#"+o.ID+">")
 					}
-				case discordgo.ApplicationCommandPermissionTypeRole:
+				case gokord.ApplicationCommandPermissionTypeRole:
 					if o.ID == i.GuildID {
 						roles += fmt.Sprintf(format, emoji, "@everyone")
 					} else {
@@ -380,14 +380,14 @@ var (
 				}
 			}
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Embeds: []*discordgo.MessageEmbed{
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
+					Embeds: []*gokord.MessageEmbed{
 						{
 							Title:       "Permissions overview",
 							Description: "Overview of permissions for this command",
-							Fields: []*discordgo.MessageEmbedField{
+							Fields: []*gokord.MessageEmbedField{
 								{
 									Name:  "Users",
 									Value: users,
@@ -403,11 +403,11 @@ var (
 							},
 						},
 					},
-					AllowedMentions: &discordgo.MessageAllowedMentions{},
+					AllowedMentions: &gokord.MessageAllowedMentions{},
 				},
 			})
 		},
-		"subcommands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"subcommands": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			options := i.ApplicationCommandData().Options
 			content := ""
 
@@ -427,14 +427,14 @@ var (
 				}
 			}
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					Content: content,
 				},
 			})
 		},
-		"responses": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"responses": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			// Responses to a command are very important.
 			// First of all, because you need to react to the interaction
 			// by sending the response in 3 seconds after receiving, otherwise
@@ -445,32 +445,32 @@ var (
 			// As you can see, the response type names used here are pretty self-explanatory,
 			// but for those who want more information see the official documentation
 			switch i.ApplicationCommandData().Options[0].IntValue() {
-			case int64(discordgo.InteractionResponseChannelMessageWithSource):
+			case int64(gokord.InteractionResponseChannelMessageWithSource):
 				content =
 					"You just responded to an interaction, sent a message and showed the original one. " +
 						"Congratulations!"
 				content +=
 					"\nAlso... you can edit your response, wait 5 seconds and this message will be changed"
 			default:
-				err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
+				err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+					Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 						Content: "Something went wrong",
 					})
 				}
 				return
 			}
 
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
-				Data: &discordgo.InteractionResponseData{
+			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
+				Data: &gokord.InteractionResponseData{
 					Content: content,
 				},
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -479,11 +479,11 @@ var (
 				content := content + "\n\nWell, now you know how to create and edit responses. " +
 					"But you still don't know how to delete them... so... wait 10 seconds and this " +
 					"message will be deleted."
-				_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+				_, err = s.InteractionResponseEdit(i.Interaction, &gokord.WebhookEdit{
 					Content: &content,
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 						Content: "Something went wrong",
 					})
 					return
@@ -492,26 +492,26 @@ var (
 				s.InteractionResponseDelete(i.Interaction)
 			})
 		},
-		"followups": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"followups": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			// Followup messages are basically regular messages (you can create as many of them as you wish)
 			// but work as they are created by webhooks and their functionality
 			// is for handling additional messages after sending a response.
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+				Type: gokord.InteractionResponseChannelMessageWithSource,
+				Data: &gokord.InteractionResponseData{
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
-					Flags:   discordgo.MessageFlagsEphemeral,
+					Flags:   gokord.MessageFlagsEphemeral,
 					Content: "Surprise!",
 				},
 			})
-			msg, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			msg, err := s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "Followup message has been created, after 5 seconds it will be edited",
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -519,7 +519,7 @@ var (
 			time.Sleep(time.Second * 5)
 
 			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-			s.FollowupMessageEdit(i.Interaction, msg.ID, &discordgo.WebhookEdit{
+			s.FollowupMessageEdit(i.Interaction, msg.ID, &gokord.WebhookEdit{
 				Content: &content,
 			})
 
@@ -527,7 +527,7 @@ var (
 
 			s.FollowupMessageDelete(i.Interaction, msg.ID)
 
-			s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+			s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 					"take a unicorn :unicorn: as reward!\n" +
 					"Also, as bonus... look at the original interaction response :D",
@@ -537,7 +537,7 @@ var (
 )
 
 func init() {
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
 		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 			h(s, i)
 		}
@@ -545,7 +545,7 @@ func init() {
 }
 
 func main() {
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
 	err := s.Open()
@@ -554,7 +554,7 @@ func main() {
 	}
 
 	log.Println("Adding commands...")
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	registeredCommands := make([]*gokord.ApplicationCommand, len(commands))
 	for i, v := range commands {
 		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
 		if err != nil {

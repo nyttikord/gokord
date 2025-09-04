@@ -21,23 +21,23 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	session, _ := discordgo.New("Bot " + *BotToken)
-	session.Identify.Intents |= discordgo.IntentAutoModerationExecution
-	session.Identify.Intents |= discordgo.IntentMessageContent
+	session, _ := gokord.New("Bot " + *BotToken)
+	session.Identify.Intents |= gokord.IntentAutoModerationExecution
+	session.Identify.Intents |= gokord.IntentMessageContent
 
 	enabled := true
-	rule, err := session.AutoModerationRuleCreate(*GuildID, &discordgo.AutoModerationRule{
+	rule, err := session.AutoModerationRuleCreate(*GuildID, &gokord.AutoModerationRule{
 		Name:        "Auto Moderation example",
-		EventType:   discordgo.AutoModerationEventMessageSend,
-		TriggerType: discordgo.AutoModerationEventTriggerKeyword,
-		TriggerMetadata: &discordgo.AutoModerationTriggerMetadata{
+		EventType:   gokord.AutoModerationEventMessageSend,
+		TriggerType: gokord.AutoModerationEventTriggerKeyword,
+		TriggerMetadata: &gokord.AutoModerationTriggerMetadata{
 			KeywordFilter: []string{"*cat*"},
 			RegexPatterns: []string{"(c|b)at"},
 		},
 
 		Enabled: &enabled,
-		Actions: []discordgo.AutoModerationAction{
-			{Type: discordgo.AutoModerationRuleActionBlockMessage},
+		Actions: []gokord.AutoModerationAction{
+			{Type: gokord.AutoModerationRuleActionBlockMessage},
 		},
 	})
 	if err != nil {
@@ -47,14 +47,14 @@ func main() {
 	fmt.Println("Successfully created the rule")
 	defer session.AutoModerationRuleDelete(*GuildID, rule.ID)
 
-	session.AddHandlerOnce(func(s *discordgo.Session, e *discordgo.AutoModerationActionExecution) {
-		_, err = session.AutoModerationRuleEdit(*GuildID, rule.ID, &discordgo.AutoModerationRule{
-			TriggerMetadata: &discordgo.AutoModerationTriggerMetadata{
+	session.AddHandlerOnce(func(s *gokord.Session, e *gokord.AutoModerationActionExecution) {
+		_, err = session.AutoModerationRuleEdit(*GuildID, rule.ID, &gokord.AutoModerationRule{
+			TriggerMetadata: &gokord.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
 			},
-			Actions: []discordgo.AutoModerationAction{
-				{Type: discordgo.AutoModerationRuleActionTimeout, Metadata: &discordgo.AutoModerationActionMetadata{Duration: 60}},
-				{Type: discordgo.AutoModerationRuleActionSendAlertMessage, Metadata: &discordgo.AutoModerationActionMetadata{
+			Actions: []gokord.AutoModerationAction{
+				{Type: gokord.AutoModerationRuleActionTimeout, Metadata: &gokord.AutoModerationActionMetadata{Duration: 60}},
+				{Type: gokord.AutoModerationRuleActionSendAlertMessage, Metadata: &gokord.AutoModerationActionMetadata{
 					ChannelID: e.ChannelID,
 				}},
 			},
@@ -71,14 +71,14 @@ func main() {
 
 		var counter int
 		var counterMutex sync.Mutex
-		session.AddHandler(func(s *discordgo.Session, e *discordgo.AutoModerationActionExecution) {
+		session.AddHandler(func(s *gokord.Session, e *gokord.AutoModerationActionExecution) {
 			action := "unknown"
 			switch e.Action.Type {
-			case discordgo.AutoModerationRuleActionBlockMessage:
+			case gokord.AutoModerationRuleActionBlockMessage:
 				action = "block message"
-			case discordgo.AutoModerationRuleActionSendAlertMessage:
+			case gokord.AutoModerationRuleActionSendAlertMessage:
 				action = "send alert message into <#" + e.Action.Metadata.ChannelID + ">"
-			case discordgo.AutoModerationRuleActionTimeout:
+			case gokord.AutoModerationRuleActionTimeout:
 				action = "timeout"
 			}
 

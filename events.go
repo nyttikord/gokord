@@ -1,4 +1,4 @@
-package discordgo
+package gokord
 
 import (
 	"encoding/json"
