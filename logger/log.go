@@ -31,8 +31,10 @@ func (l Level) String() string {
 }
 
 // Log logs and formats a message at the given level.
-func Log(level Level, format string, args ...any) {
-	pc, file, line, _ := runtime.Caller(2)
+//
+// Caller is the number of calls before this one (e.g., 0 if you want to log this call, 1 to log the call before...)
+func Log(level Level, caller int, format string, args ...any) {
+	pc, file, line, _ := runtime.Caller(caller + 1)
 
 	files := strings.Split(file, "/")
 	file = files[len(files)-1]
