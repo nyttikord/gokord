@@ -5,19 +5,21 @@ Gokord is a hard fork of [DiscordGo](https://github.com/bwmarrin/discordgo) beca
 - the code base does not follow Go recommendations (and it has many spelling mistakes in its docs)
 - [maintainers do not want to upgrade Go and libraries used to a newer version fixing 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528)
 
+Check the [ROADMAP](/ROADMAP.md) for more information.
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/nyttikord/gokord.svg)](https://pkg.go.dev/github.com/nyttikord/gokord) [![CI](https://github.com/nyttikord/gokord/actions/workflows/ci.yml/badge.svg)](https://github.com/nyttikord/gokord/actions/workflows/ci.yml)
 
 <img align="right" alt="DiscordGo logo" src="docs/img/discordgo.svg" width="400">
 
 Gokord is a [Go](https://golang.org/) package that provides low level 
-bindings to the [Discord](https://discord.com/) chat client API. DiscordGo 
+bindings to the [Discord](https://discord.com/) chat client API. Gokord 
 has nearly complete support for all the Discord API endpoints, websocket
 interface, and voice interface.
 
 <!--
-If you would like to help the Discordgo package please use 
+If you would like to help the Gokord package please use 
 [this link](https://discord.com/oauth2/authorize?client_id=173113690092994561&scope=bot)
-to add the official DiscordGo test bot **dgo** to your server. This provides 
+to add the official Gokord test bot **dgo** to your server. This provides 
 indispensable help to this project.
 -->
 
@@ -57,7 +59,7 @@ See Documentation and Examples below for more detailed information.
 **NOTICE**: This library and the Discord API are unfinished.
 Because of that there may be major changes to the library in the future.
 
-The DiscordGo code is fairly well documented at this point and is currently
+The Gokord code is fairly well documented at this point and is currently
 the only documentation available. Go reference (below) presents that information in a nice format.
 
 - [![Go Reference](https://pkg.go.dev/badge/github.com/nyttikord/gokord.svg)](https://pkg.go.dev/github.com/nyttikord/gokord)
