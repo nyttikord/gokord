@@ -1,95 +1,55 @@
 package gokord
 
 import (
-	"fmt"
-	"log"
-	"runtime"
-	"strings"
+	"github.com/nyttikord/gokord/logger"
 )
 
-const (
-
-	// LogError level is used for critical errors that could lead to data loss
-	// or panic that would not be returned to a calling function.
-	LogError int = iota
-
-	// LogWarning level is used for very abnormal events and errors that are
-	// also returned to a calling function.
-	LogWarning
-
-	// LogInformational level is used for normal non-error activity
-	LogInformational
-
-	// LogDebug level is for very detailed non-error activity.  This is
-	// very spammy and will impact performance.
-	LogDebug
-)
-
-// Logger can be used to replace the standard logging for discordgo
-var Logger func(msgL, caller int, format string, a ...interface{})
-
-// msglog provides package wide logging consistency for discordgo
-// the format, a...  portion this command follows that of fmt.Printf
-//
-//	msgL   : LogLevel of the message
-//	caller : 1 + the number of callers away from the message source
-//	format : Printf style message format
-//	a ...  : comma separated list of values to pass
-func msglog(msgL, caller int, format string, a ...interface{}) {
-
-	if Logger != nil {
-		Logger(msgL, caller, format, a...)
-	} else {
-
-		pc, file, line, _ := runtime.Caller(caller)
-
-		files := strings.Split(file, "/")
-		file = files[len(files)-1]
-
-		name := runtime.FuncForPC(pc).Name()
-		fns := strings.Split(name, ".")
-		name = fns[len(fns)-1]
-
-		msg := fmt.Sprintf(format, a...)
-
-		log.Printf("[DG%d] %s:%d:%s() %s\n", msgL, file, line, name, msg)
-	}
-}
-
-// helper function that wraps msglog for the Session struct
-// This adds a check to insure the message is only logged
-// if the session log level is equal or higher than the
-// message log level
-func (s *Session) log(msgL int, format string, a ...interface{}) {
-
-	if msgL > s.LogLevel {
+// Log the message if level is equal to or greater than Session.LogLevel
+func (s *Session) Log(level logger.Level, format string, args ...any) {
+	if level < s.LogLevel {
 		return
 	}
 
-	msglog(msgL, 2, format, a...)
+	logger.Log(level, format, args...)
 }
 
-// helper function that wraps msglog for the VoiceConnection struct
-// This adds a check to insure the message is only logged
-// if the voice connection log level is equal or higher than the
-// message log level
-func (v *VoiceConnection) log(msgL int, format string, a ...interface{}) {
+func (s *Session) LogError(format string, args ...any) {
+	s.Log(logger.LevelError, format, args...)
+}
 
-	if msgL > v.LogLevel {
+func (s *Session) LogWarn(format string, args ...any) {
+	s.Log(logger.LevelWarn, format, args...)
+}
+
+func (s *Session) LogInfo(format string, args ...any) {
+	s.Log(logger.LevelInfo, format, args...)
+}
+
+func (s *Session) LogDebug(format string, args ...any) {
+	s.Log(logger.LevelDebug, format, args...)
+}
+
+// Log the message if level is equal to or greater than VoiceConnection.LogLevel
+func (v *VoiceConnection) Log(level logger.Level, format string, args ...any) {
+	if level < v.LogLevel {
 		return
 	}
 
-	msglog(msgL, 2, format, a...)
+	logger.Log(level, format, args...)
 }
 
-// printJSON is a helper function to display JSON data in an easy to read format.
-/* NOT USED ATM
-func printJSON(body []byte) {
-	var prettyJSON bytes.Buffer
-	error := json.Indent(&prettyJSON, body, "", "\t")
-	if error != nil {
-		log.Print("JSON parse error: ", error)
-	}
-	log.Println(string(prettyJSON.Bytes()))
+func (v *VoiceConnection) LogError(format string, args ...any) {
+	v.Log(logger.LevelError, format, args...)
 }
-*/
+
+func (v *VoiceConnection) LogWarn(format string, args ...any) {
+	v.Log(logger.LevelWarn, format, args...)
+}
+
+func (v *VoiceConnection) LogInfo(format string, args ...any) {
+	v.Log(logger.LevelInfo, format, args...)
+}
+
+func (v *VoiceConnection) LogDebug(format string, args ...any) {
+	v.Log(logger.LevelDebug, format, args...)
+}
