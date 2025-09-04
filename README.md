@@ -9,8 +9,6 @@ Check the [ROADMAP](/ROADMAP.md) for more information.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/nyttikord/gokord.svg)](https://pkg.go.dev/github.com/nyttikord/gokord) [![CI](https://github.com/nyttikord/gokord/actions/workflows/ci.yml/badge.svg)](https://github.com/nyttikord/gokord/actions/workflows/ci.yml)
 
-<img align="right" alt="DiscordGo logo" src="docs/img/discordgo.svg" width="400">
-
 Gokord is a [Go](https://golang.org/) package that provides low level 
 bindings to the [Discord](https://discord.com/) chat client API. Gokord 
 has nearly complete support for all the Discord API endpoints, websocket
