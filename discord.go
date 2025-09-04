@@ -9,7 +9,9 @@ import (
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
-const VERSION = "0.29.0"
+//
+// APIVersion is appended after the version.
+const VERSION = "0.30.0+v" + APIVersion
 
 // New creates a new Discord session with provided token.
 // If the token is for a bot, it must be prefixed with "Bot "
