@@ -123,7 +123,7 @@ func (s *Session) AddHandler(handler interface{}) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		s.log(LogError, "Invalid handler type, handler will never be called")
+		s.LogError("Invalid handler type, handler will never be called")
 		return func() {}
 	}
 
@@ -137,7 +137,7 @@ func (s *Session) AddHandlerOnce(handler interface{}) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		s.log(LogError, "Invalid handler type, handler will never be called")
+		s.LogError("Invalid handler type, handler will never be called")
 		return func() {}
 	}
 
@@ -237,7 +237,7 @@ func (s *Session) onInterface(i interface{}) {
 	}
 	err := s.State.OnInterface(s, i)
 	if err != nil {
-		s.log(LogDebug, "error dispatching internal event, %s", err)
+		s.LogDebug("error dispatching internal event, %s", err)
 	}
 }
 
