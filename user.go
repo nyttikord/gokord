@@ -100,6 +100,12 @@ type User struct {
 	// The flags on a user's account.
 	// Only available when the request is authorized via a Bearer token.
 	Flags int `json:"flags"`
+
+	// Data for the user's avatar decoration
+	AvatarDecorationData *UserAvatarDecoration `json:"avatar_decoration_data"`
+
+	// Data for the user's collectibles
+	Collectibles *UserCollectibles `json:"collectibles"`
 }
 
 // String returns a unique identifier of the form username#discriminator
@@ -159,4 +165,42 @@ func (u *User) DisplayName() string {
 		return u.GlobalName
 	}
 	return u.Username
+}
+
+type UserAvatarDecoration struct {
+	// Avatar decoration hash
+	Asset string `json:"asset"`
+	// ID of the avatar decoration's SKU
+	SkuID string `json:"sku_id"`
+}
+
+type UserCollectibles struct {
+	Nameplate *Nameplate `json:"nameplate"`
+}
+
+type UserNameplatePalette string
+
+const (
+	UserNameplatePaletteCrimson   = "crimson"
+	UserNameplatePaletteBerry     = "berry"
+	UserNameplatePaletteSky       = "sky"
+	UserNameplatePaletteTeal      = "teal"
+	UserNameplatePaletteForest    = "forest"
+	UserNameplatePaletteBubbleGum = "bubble_gum"
+	UserNameplatePaletteViolet    = "violet"
+	UserNameplatePaletteCobalt    = "cobalt"
+	UserNameplatePaletteClover    = "clover"
+	UserNameplatePaletteLemon     = "lemon"
+	UserNameplatePaletteWhite     = "white"
+)
+
+type Nameplate struct {
+	// ID of the nameplate SKU
+	SkuID string `json:"sku_id"`
+	// Path to the nameplate asset
+	Asset string `json:"asset"`
+	// Label of this nameplate. Currently unused
+	Label string `json:"label"`
+	// Background color of the nameplate
+	Palette UserNameplatePalette `json:"palette"`
 }
