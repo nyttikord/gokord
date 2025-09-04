@@ -69,8 +69,7 @@ type VoiceSpeakingUpdateHandler func(vc *VoiceConnection, vs *VoiceSpeakingUpdat
 // once finished sending audio.
 // b : Send true if speaking, false if not.
 func (v *VoiceConnection) Speaking(b bool) (err error) {
-
-	v.Log(logger.LevelDebug, "called (%t)", b)
+	v.LogDebug("called (%t)", b)
 
 	type voiceSpeakingData struct {
 		Speaking bool `json:"speaking"`
@@ -107,8 +106,7 @@ func (v *VoiceConnection) Speaking(b bool) (err error) {
 // ChangeChannel sends Discord a request to change channels within a Guild
 // !!! NOTE !!! This function may be removed in favour of just using ChannelVoiceJoin
 func (v *VoiceConnection) ChangeChannel(channelID string, mute, deaf bool) (err error) {
-
-	v.LogInfo("called")
+	v.LogDebug("called")
 
 	data := voiceChannelJoinOp{4, voiceChannelJoinData{&v.GuildID, &channelID, mute, deaf}}
 	v.session.wsMutex.Lock()
