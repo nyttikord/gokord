@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// VERSION of DiscordGo, follows Semantic Versioning. (http://semver.org/)
+// VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
 const VERSION = "0.29.0"
 
 // New creates a new Discord session with provided token.
@@ -33,9 +33,9 @@ func New(token string) (s *Session, err error) {
 		ShardID:                            0,
 		ShardCount:                         1,
 		MaxRestRetries:                     3,
-		Client:                             &http.Client{Timeout: (20 * time.Second)},
+		Client:                             &http.Client{Timeout: 20 * time.Second},
 		Dialer:                             websocket.DefaultDialer,
-		UserAgent:                          "DiscordBot (https://github.com/bwmarrin/discordgo, v" + VERSION + ")",
+		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           new(int64),
 		LastHeartbeatAck:                   time.Now().UTC(),
 	}
