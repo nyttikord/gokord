@@ -2,7 +2,6 @@ package components
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/emoji"
 )
@@ -40,56 +39,11 @@ type UnmarshalableMessageComponent struct {
 	MessageComponent
 }
 
-// UnmarshalJSON is a helper function to unmarshal MessageComponent object.
-func (umc *UnmarshalableMessageComponent) UnmarshalJSON(src []byte) error {
-	var v struct {
+func toJson(m MessageComponent) ([]byte, error) {
+	return json.Marshal(struct {
+		MessageComponent
 		Type ComponentType `json:"type"`
-	}
-	err := json.Unmarshal(src, &v)
-	if err != nil {
-		return err
-	}
-
-	switch v.Type {
-	case ActionsRowComponent:
-		umc.MessageComponent = &ActionsRow{}
-	case ButtonComponent:
-		umc.MessageComponent = &Button{}
-	case SelectMenuComponent, ChannelSelectMenuComponent, UserSelectMenuComponent,
-		RoleSelectMenuComponent, MentionableSelectMenuComponent:
-		umc.MessageComponent = &SelectMenu{}
-	case TextInputComponent:
-		umc.MessageComponent = &TextInput{}
-	case SectionComponent:
-		umc.MessageComponent = &Section{}
-	case TextDisplayComponent:
-		umc.MessageComponent = &TextDisplay{}
-	case ThumbnailComponent:
-		umc.MessageComponent = &Thumbnail{}
-	case MediaGalleryComponent:
-		umc.MessageComponent = &MediaGallery{}
-	case FileComponentType:
-		umc.MessageComponent = &FileComponent{}
-	case SeparatorComponent:
-		umc.MessageComponent = &Separator{}
-	case ContainerComponent:
-		umc.MessageComponent = &Container{}
-	case LabelComponent:
-		umc.MessageComponent = &Label{}
-	default:
-		return fmt.Errorf("unknown component type: %d", v.Type)
-	}
-	return json.Unmarshal(src, umc.MessageComponent)
-}
-
-// MessageComponentFromJSON is a helper function for unmarshaling message components
-func MessageComponentFromJSON(b []byte) (MessageComponent, error) {
-	var u UnmarshalableMessageComponent
-	err := u.UnmarshalJSON(b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal into MessageComponent: %w", err)
-	}
-	return u.MessageComponent, nil
+	}{m, m.Type()})
 }
 
 // ActionsRow is a top-level container component for displaying a row of interactive components.
@@ -103,15 +57,7 @@ type ActionsRow struct {
 
 // MarshalJSON is a method for marshaling ActionsRow to a JSON object.
 func (r *ActionsRow) MarshalJSON() ([]byte, error) {
-	type actionsRow ActionsRow
-
-	return json.Marshal(struct {
-		actionsRow
-		Type ComponentType `json:"type"`
-	}{
-		actionsRow: actionsRow(*r),
-		Type:       r.Type(),
-	})
+	return toJson(r)
 }
 
 // UnmarshalJSON is a helper function to unmarshal Actions Row.
@@ -177,19 +123,10 @@ type Button struct {
 
 // MarshalJSON is a method for marshaling Button to a JSON object.
 func (b Button) MarshalJSON() ([]byte, error) {
-	type button Button
-
 	if b.Style == 0 {
 		b.Style = PrimaryButton
 	}
-
-	return json.Marshal(struct {
-		button
-		Type ComponentType `json:"type"`
-	}{
-		button: button(b),
-		Type:   b.Type(),
-	})
+	return toJson(b)
 }
 
 // Type is a method to get the type of a component.
@@ -278,15 +215,7 @@ func (s SelectMenu) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling SelectMenu to a JSON object.
 func (s SelectMenu) MarshalJSON() ([]byte, error) {
-	type selectMenu SelectMenu
-
-	return json.Marshal(struct {
-		selectMenu
-		Type ComponentType `json:"type"`
-	}{
-		selectMenu: selectMenu(s),
-		Type:       s.Type(),
-	})
+	return toJson(s)
 }
 
 // TextInput represents text input component.
@@ -311,15 +240,7 @@ func (TextInput) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling TextInput to a JSON object.
 func (m TextInput) MarshalJSON() ([]byte, error) {
-	type inputText TextInput
-
-	return json.Marshal(struct {
-		inputText
-		Type ComponentType `json:"type"`
-	}{
-		inputText: inputText(m),
-		Type:      m.Type(),
-	})
+	return toJson(m)
 }
 
 // TextInputStyle is style of text in TextInput component.
@@ -373,15 +294,7 @@ func (*Section) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling Section to a JSON object.
 func (s *Section) MarshalJSON() ([]byte, error) {
-	type section Section
-
-	return json.Marshal(struct {
-		section
-		Type ComponentType `json:"type"`
-	}{
-		section: section(*s),
-		Type:    s.Type(),
-	})
+	return toJson(s)
 }
 
 // TextDisplay is a top-level component that allows you to add markdown-formatted text to the message.
@@ -396,15 +309,7 @@ func (TextDisplay) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling TextDisplay to a JSON object.
 func (t TextDisplay) MarshalJSON() ([]byte, error) {
-	type textDisplay TextDisplay
-
-	return json.Marshal(struct {
-		textDisplay
-		Type ComponentType `json:"type"`
-	}{
-		textDisplay: textDisplay(t),
-		Type:        t.Type(),
-	})
+	return toJson(t)
 }
 
 // Thumbnail component can be used as an accessory for a section component.
@@ -423,15 +328,7 @@ func (Thumbnail) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling Thumbnail to a JSON object.
 func (t Thumbnail) MarshalJSON() ([]byte, error) {
-	type thumbnail Thumbnail
-
-	return json.Marshal(struct {
-		thumbnail
-		Type ComponentType `json:"type"`
-	}{
-		thumbnail: thumbnail(t),
-		Type:      t.Type(),
-	})
+	return toJson(t)
 }
 
 // MediaGallery is a top-level component allows you to group images, videos or gifs into a gallery grid.
@@ -449,15 +346,7 @@ func (MediaGallery) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling MediaGallery to a JSON object.
 func (m MediaGallery) MarshalJSON() ([]byte, error) {
-	type mediaGallery MediaGallery
-
-	return json.Marshal(struct {
-		mediaGallery
-		Type ComponentType `json:"type"`
-	}{
-		mediaGallery: mediaGallery(m),
-		Type:         m.Type(),
-	})
+	return toJson(m)
 }
 
 // MediaGalleryItem represents an item used in MediaGallery.
@@ -482,15 +371,7 @@ func (FileComponent) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling FileComponent to a JSON object.
 func (f FileComponent) MarshalJSON() ([]byte, error) {
-	type fileComponent FileComponent
-
-	return json.Marshal(struct {
-		fileComponent
-		Type ComponentType `json:"type"`
-	}{
-		fileComponent: fileComponent(f),
-		Type:          f.Type(),
-	})
+	return toJson(f)
 }
 
 // SeparatorSpacingSize represents spacing size around the separator.
@@ -518,15 +399,7 @@ func (Separator) Type() ComponentType {
 
 // MarshalJSON is a method for marshaling Separator to a JSON object.
 func (s Separator) MarshalJSON() ([]byte, error) {
-	type separator Separator
-
-	return json.Marshal(struct {
-		separator
-		Type ComponentType `json:"type"`
-	}{
-		separator: separator(s),
-		Type:      s.Type(),
-	})
+	return toJson(s)
 }
 
 // Container is a top-level layout component.
@@ -569,15 +442,7 @@ func (c *Container) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON is a method for marshaling Container to a JSON object.
 func (c *Container) MarshalJSON() ([]byte, error) {
-	type container Container
-
-	return json.Marshal(struct {
-		container
-		Type ComponentType `json:"type"`
-	}{
-		container: container(*c),
-		Type:      c.Type(),
-	})
+	return toJson(c)
 }
 
 // UnfurledMediaItem represents an unfurled media item.
@@ -642,13 +507,5 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON is a method for marshaling Label to a JSON object.
 func (l *Label) MarshalJSON() ([]byte, error) {
-	type label Label
-
-	return json.Marshal(struct {
-		label
-		Type ComponentType `json:"type"`
-	}{
-		label: label(*l),
-		Type:  l.Type(),
-	})
+	return toJson(l)
 }
