@@ -153,7 +153,7 @@ type Message struct {
 	StickerItems []*user.StickerItem `json:"sticker_items"`
 
 	// A poll object.
-	Poll *gokord.Poll `json:"poll"`
+	Poll *Poll `json:"poll"`
 }
 
 // UnmarshalJSON is a helper function to unmarshal the Message.
