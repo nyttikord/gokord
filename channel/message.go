@@ -3,6 +3,7 @@ package channel
 import (
 	"encoding/json"
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"io"
 	"regexp"
@@ -150,7 +151,7 @@ type Message struct {
 	Thread *Channel `json:"thread,omitempty"`
 
 	// An array of StickerItem objects, representing sent stickers, if there were any.
-	StickerItems []*user.StickerItem `json:"sticker_items"`
+	StickerItems []*emoji.StickerItem `json:"sticker_items"`
 
 	// A poll object.
 	Poll *Poll `json:"poll"`
@@ -176,15 +177,15 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 }
 
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
-func (m *Message) GetCustomEmojis() []*user.Emoji {
-	var toReturn []*user.Emoji
-	emojis := user.EmojiRegex.FindAllString(m.Content, -1)
+func (m *Message) GetCustomEmojis() []*emoji.Emoji {
+	var toReturn []*emoji.Emoji
+	emojis := emoji.EmojiRegex.FindAllString(m.Content, -1)
 	if len(emojis) < 1 {
 		return toReturn
 	}
 	for _, em := range emojis {
 		parts := strings.Split(em, ":")
-		toReturn = append(toReturn, &user.Emoji{
+		toReturn = append(toReturn, &emoji.Emoji{
 			ID:       parts[2][:len(parts[2])-1],
 			Name:     parts[1],
 			Animated: strings.HasPrefix(em, "<a:"),
@@ -260,9 +261,9 @@ const (
 
 // MessageReactions holds a reactions object for a message.
 type MessageReactions struct {
-	Count int         `json:"count"`
-	Me    bool        `json:"me"`
-	Emoji *user.Emoji `json:"emoji"`
+	Count int          `json:"count"`
+	Me    bool         `json:"me"`
+	Emoji *emoji.Emoji `json:"emoji"`
 }
 
 // MessageActivity is sent with Rich Presence-related chat embeds
@@ -442,9 +443,9 @@ type MessageInteractionMetadata struct {
 
 // MessageReaction stores the data for a message reaction.
 type MessageReaction struct {
-	UserID    string     `json:"user_id"`
-	MessageID string     `json:"message_id"`
-	Emoji     user.Emoji `json:"emoji"`
-	ChannelID string     `json:"channel_id"`
-	GuildID   string     `json:"guild_id,omitempty"`
+	UserID    string      `json:"user_id"`
+	MessageID string      `json:"message_id"`
+	Emoji     emoji.Emoji `json:"emoji"`
+	ChannelID string      `json:"channel_id"`
+	GuildID   string      `json:"guild_id,omitempty"`
 }

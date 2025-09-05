@@ -1,6 +1,8 @@
 package guild
 
-import "github.com/nyttikord/gokord/user"
+import (
+	"github.com/nyttikord/gokord/emoji"
+)
 
 // OnboardingMode defines the criteria used to satisfy constraints that are required for enabling onboarding.
 // https://discord.com/developers/docs/resources/guild#guild-onboarding-object-onboarding-mode
@@ -86,7 +88,7 @@ type OnboardingPromptOption struct {
 	// Emoji of the option.
 	// NOTE: when creating or updating a prompt option
 	// EmojiID, EmojiName and EmojiAnimated should be used instead.
-	Emoji *user.Emoji `json:"emoji,omitempty"`
+	Emoji *emoji.Emoji `json:"emoji,omitempty"`
 
 	// Title of the option.
 	Title string `json:"title"`

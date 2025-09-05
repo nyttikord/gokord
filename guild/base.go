@@ -3,6 +3,7 @@ package guild
 import (
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"time"
 )
@@ -178,10 +179,10 @@ type Guild struct {
 	Roles []*Role `json:"roles"`
 
 	// A list of the custom emojis present in the guild.
-	Emojis []*user.Emoji `json:"emojis"`
+	Emojis []*emoji.Emoji `json:"emojis"`
 
 	// A list of the custom stickers present in the guild.
-	Stickers []*user.Sticker `json:"stickers"`
+	Stickers []*emoji.Sticker `json:"stickers"`
 
 	// A list of the members in the guild.
 	// This field is only present in GUILD_CREATE events and websocket
@@ -321,7 +322,7 @@ type Preview struct {
 	DiscoverySplash string `json:"discovery_splash"`
 
 	// A list of the custom emojis present in the guild.
-	Emojis []*user.Emoji `json:"emojis"`
+	Emojis []*emoji.Emoji `json:"emojis"`
 
 	// The list of enabled guild features
 	Features []string `json:"features"`

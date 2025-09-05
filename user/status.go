@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord/emoji"
 	"time"
 )
 
@@ -64,7 +65,7 @@ type Activity struct {
 	State         string       `json:"state,omitempty"`
 	Details       string       `json:"details,omitempty"`
 	Timestamps    TimeStamps   `json:"timestamps,omitempty"`
-	Emoji         Emoji        `json:"emoji,omitempty"`
+	Emoji         emoji.Emoji  `json:"emoji,omitempty"`
 	Party         Party        `json:"party,omitempty"`
 	Assets        Assets       `json:"assets,omitempty"`
 	Secrets       Secrets      `json:"secrets,omitempty"`
@@ -83,7 +84,7 @@ func (activity *Activity) UnmarshalJSON(b []byte) error {
 		State         string       `json:"state,omitempty"`
 		Details       string       `json:"details,omitempty"`
 		Timestamps    TimeStamps   `json:"timestamps,omitempty"`
-		Emoji         Emoji        `json:"emoji,omitempty"`
+		Emoji         emoji.Emoji  `json:"emoji,omitempty"`
 		Party         Party        `json:"party,omitempty"`
 		Assets        Assets       `json:"assets,omitempty"`
 		Secrets       Secrets      `json:"secrets,omitempty"`

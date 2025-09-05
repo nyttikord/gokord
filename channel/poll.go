@@ -1,6 +1,9 @@
 package channel
 
-import "time"
+import (
+	"github.com/nyttikord/gokord/emoji"
+	"time"
+)
 
 // PollLayoutType represents the layout of a poll.
 type PollLayoutType int
@@ -12,8 +15,8 @@ const (
 
 // PollMedia contains common data used by question and answers.
 type PollMedia struct {
-	Text  string          `json:"text,omitempty"`
-	Emoji *ComponentEmoji `json:"emoji,omitempty"` // TODO: rename the type
+	Text  string           `json:"text,omitempty"`
+	Emoji *emoji.Component `json:"emoji,omitempty"` // TODO: rename the type
 }
 
 // PollAnswer represents a single answer in a poll.
