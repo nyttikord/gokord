@@ -6,8 +6,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// InstallParams represents application's installation parameters
-// for default in-app oauth2 authorization link.
+// InstallParams represents application's installation parameters for default in-app oauth2 authorization link.
 type InstallParams struct {
 	Scopes      []string `json:"scopes"`
 	Permissions int64    `json:"permissions,string"`
@@ -18,7 +17,7 @@ type IntegrationTypeConfig struct {
 	OAuth2InstallParams *InstallParams `json:"oauth2_install_params,omitempty"`
 }
 
-// Application stores values for a Discord Application
+// Application stores values for a Discord application
 type Application struct {
 	ID                     string                                       `json:"id,omitempty"`
 	Name                   string                                       `json:"name"`
