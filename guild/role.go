@@ -2,6 +2,7 @@ package guild
 
 import (
 	"fmt"
+
 	"github.com/nyttikord/gokord/discord"
 )
 
@@ -11,65 +12,64 @@ type RoleFlags int
 
 // Block containing known RoleFlags values.
 const (
-	// RoleFlagInPrompt indicates whether the Role is selectable by members in an onboarding prompt.
+	// RoleFlagInPrompt indicates whether the Role is selectable by members in an OnboardingPrompt.
 	RoleFlagInPrompt RoleFlags = 1 << 0
 )
 
-// A Role stores information about Discord guild member roles.
+// A Role stores information about Discord Guild user.Member roles.
 type Role struct {
-	// The ID of the role.
+	// The ID of the Role.
 	ID string `json:"id"`
 
-	// The name of the role.
+	// The Name of the Role.
 	Name string `json:"name"`
 
-	// Whether this role is managed by an integration, and
-	// thus cannot be manually added to, or taken from, members.
+	// Whether this Role is managed by a types.Integration, and thus cannot be manually added to, or taken from, members.
 	Managed bool `json:"managed"`
 
-	// Whether this role is mentionable.
+	// Whether this Role is Mentionable.
 	Mentionable bool `json:"mentionable"`
 
-	// Whether this role is hoisted (shows up separately in member list).
+	// Whether this Role is hoisted (shows up separately in member list).
 	Hoist bool `json:"hoist"`
 
-	// The hex color of this role.
+	// The hex Color of this Role.
 	//
 	// Deprecated: use Role.Colors
 	Color int `json:"color"`
 
-	// The role's colors
+	// The Role's Colors
 	Colors RoleColors `json:"colors"`
 
-	// The position of this role in the guild's role hierarchy.
+	// The Position of this Role in the Guild's role hierarchy.
 	Position int `json:"position"`
 
-	// The permissions of the role on the guild (doesn't include channel overrides).
-	// This is a combination of bit masks; the presence of a certain permission can
-	// be checked by performing a bitwise AND between this int and the permission.
+	// The Permissions of the role on the Guild (doesn't include channel overrides).
+	// This is a combination of bit masks;
+	// the presence of a certain permission can be checked by performing a bitwise AND between this int and the permission.
 	Permissions int64 `json:"permissions,string"`
 
-	// The hash of the role icon. Use Role.IconURL to retrieve the icon's URL.
+	// The hash of the Role Icon. Use Role.IconURL to retrieve the icon's URL.
 	Icon string `json:"icon"`
 
-	// The emoji assigned to this role.
+	// The UnicodeEmoji assigned to this Role.
 	UnicodeEmoji string `json:"unicode_emoji"`
 
-	// The flags of the role, which describe its extra features.
-	// This is a combination of bit masks; the presence of a certain flag can
-	// be checked by performing a bitwise AND between this int and the flag.
+	// The Flags of the Role, which describe its extra features.
+	// This is a combination of bit masks;
+	// the presence of a certain flag can be checked by performing a bitwise AND between this int and the flag.
 	Flags RoleFlags `json:"flags"`
 }
 
-// Mention returns a string which mentions the role
+// Mention returns a string which mentions the Role.
 func (r *Role) Mention() string {
 	return fmt.Sprintf("<@&%s>", r.ID)
 }
 
-// IconURL returns the URL of the role's icon.
+// IconURL returns the URL of the Role's icon.
 //
-//	size:    The size of the desired role icon as a power of two
-//	         Image size can be any power of two between 16 and 4096.
+// size is the size of the desired icon image as a power of two.
+// It can be any power of two between 16 and 4096.
 func (r *Role) IconURL(size string) string {
 	if r.Icon == "" {
 		return ""
@@ -85,25 +85,27 @@ func (r *Role) IconURL(size string) string {
 
 // RoleParams represents the parameters needed to create or update a Role
 type RoleParams struct {
-	// The role's name
+	// The Role's Name
 	Name string `json:"name,omitempty"`
-	// The color the role should have (as a decimal, not hex)
+	// The Color the Role should have (as a decimal, not hex)
 	Color *int `json:"color,omitempty"`
-	// Whether to display the role's users separately
+	// Whether to display the Role's users separately
 	Hoist *bool `json:"hoist,omitempty"`
-	// The overall permissions number of the role
+	// The overall Permissions number of the Role
 	Permissions *int64 `json:"permissions,omitempty,string"`
-	// Whether this role is mentionable
+	// Whether this Role is Mentionable
 	Mentionable *bool `json:"mentionable,omitempty"`
-	// The role's unicode emoji.
-	// NOTE: can only be set if the guild has the ROLE_ICONS feature.
+	// The Role's UnicodeEmoji.
+	//
+	// Note: can only be set if the guild has the FeatureRoleIcons feature.
 	UnicodeEmoji *string `json:"unicode_emoji,omitempty"`
-	// The role's icon image encoded in base64.
-	// NOTE: can only be set if the guild has the ROLE_ICONS feature.
+	// The Role's Icon image encoded in base64.
+	//
+	// Note: can only be set if the guild has the FeatureRoleIcons feature.
 	Icon *string `json:"icon,omitempty"`
 }
 
-// Roles are a collection of Role
+// Roles are a collection of Role.
 type Roles []*Role
 
 func (r Roles) Len() int {
@@ -118,17 +120,17 @@ func (r Roles) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
 }
 
-// RoleColors stores colors of the Role
+// RoleColors stores colors of the Role.
 type RoleColors struct {
-	// Primary color for the role
+	// PrimaryColor for the Role.
 	PrimaryColor int `json:"primary_color"`
-	// Secondary color for the role, this will make the role a gradient between the other provided colors
+	// SecondaryColor for the Role, this will make the role a gradient between the other provided colors.
 	SecondaryColor *int `json:"secondary_color"`
-	// Tertiary color for the role, this will turn the gradient into a holographic style
+	// TertiaryColor for the Role, this will turn the gradient into a holographic style.
 	TertiaryColor *int `json:"tertiary_color"`
 }
 
-// A GuildedRole stores data for guild roles.
+// A GuildedRole stores data for Guild Role.
 type GuildedRole struct {
 	Role    *Role  `json:"role"`
 	GuildID string `json:"guild_id"`

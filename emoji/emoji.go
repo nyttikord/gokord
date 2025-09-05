@@ -1,3 +1,4 @@
+// Package emoji contains every thing related to emoji and stickers.
 package emoji
 
 import (

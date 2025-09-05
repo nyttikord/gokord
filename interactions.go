@@ -145,7 +145,7 @@ type Interaction struct {
 
 	// The user's discord client locale.
 	Locale discord.Locale `json:"locale"`
-	// The guild's locale. This defaults to EnglishUS
+	// The guild's locale. This defaults to LocaleEnglishUS
 	// NOTE: this field is only filled when the interaction was invoked in a guild.
 	GuildLocale *discord.Locale `json:"guild_locale"`
 

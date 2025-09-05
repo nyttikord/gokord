@@ -61,34 +61,34 @@ var (
 			Name:        "localized-command",
 			Description: "Localized command. Description and name may vary depending on the Language setting",
 			NameLocalizations: &map[discord.Locale]string{
-				discord.ChineseCN: "本地化的命令",
+				discord.LocaleChineseCN: "本地化的命令",
 			},
 			DescriptionLocalizations: &map[discord.Locale]string{
-				discord.ChineseCN: "这是一个本地化的命令",
+				discord.LocaleChineseCN: "这是一个本地化的命令",
 			},
 			Options: []*gokord.ApplicationCommandOption{
 				{
 					Name:        "localized-option",
 					Description: "Localized option. Description and name may vary depending on the Language setting",
 					NameLocalizations: map[discord.Locale]string{
-						discord.ChineseCN: "一个本地化的选项",
+						discord.LocaleChineseCN: "一个本地化的选项",
 					},
 					DescriptionLocalizations: map[discord.Locale]string{
-						discord.ChineseCN: "这是一个本地化的选项",
+						discord.LocaleChineseCN: "这是一个本地化的选项",
 					},
 					Type: gokord.ApplicationCommandOptionInteger,
 					Choices: []*gokord.ApplicationCommandOptionChoice{
 						{
 							Name: "First",
 							NameLocalizations: map[discord.Locale]string{
-								discord.ChineseCN: "一的",
+								discord.LocaleChineseCN: "一的",
 							},
 							Value: 1,
 						},
 						{
 							Name: "Second",
 							NameLocalizations: map[discord.Locale]string{
-								discord.ChineseCN: "二的",
+								discord.LocaleChineseCN: "二的",
 							},
 							Value: 2,
 						},
@@ -249,7 +249,7 @@ var (
 		},
 		"localized-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			responses := map[discord.Locale]string{
-				discord.ChineseCN: "你好！ 这是一个本地化的命令",
+				discord.LocaleChineseCN: "你好！ 这是一个本地化的命令",
 			}
 			response := "Hi! This is a localized message"
 			if r, ok := responses[i.Locale]; ok {

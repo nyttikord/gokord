@@ -8,76 +8,76 @@ func (l Locale) String() string {
 	if name, ok := Locales[l]; ok {
 		return name
 	}
-	return Unknown.String()
+	return LocaleUnknown.String()
 }
 
 const (
-	EnglishUS    Locale = "en-US"
-	EnglishGB    Locale = "en-GB"
-	Bulgarian    Locale = "bg"
-	ChineseCN    Locale = "zh-CN"
-	ChineseTW    Locale = "zh-TW"
-	Croatian     Locale = "hr"
-	Czech        Locale = "cs"
-	Danish       Locale = "da"
-	Dutch        Locale = "nl"
-	Finnish      Locale = "fi"
-	French       Locale = "fr"
-	German       Locale = "de"
-	Greek        Locale = "el"
-	Hindi        Locale = "hi"
-	Hungarian    Locale = "hu"
-	Italian      Locale = "it"
-	Japanese     Locale = "ja"
-	Korean       Locale = "ko"
-	Lithuanian   Locale = "lt"
-	Norwegian    Locale = "no"
-	Polish       Locale = "pl"
-	PortugueseBR Locale = "pt-BR"
-	Romanian     Locale = "ro"
-	Russian      Locale = "ru"
-	SpanishES    Locale = "es-ES"
-	SpanishLATAM Locale = "es-419"
-	Swedish      Locale = "sv-SE"
-	Thai         Locale = "th"
-	Turkish      Locale = "tr"
-	Ukrainian    Locale = "uk"
-	Vietnamese   Locale = "vi"
-	Unknown      Locale = ""
+	LocaleEnglishUS    Locale = "en-US"
+	LocaleEnglishGB    Locale = "en-GB"
+	LocaleBulgarian    Locale = "bg"
+	LocaleChineseCN    Locale = "zh-CN"
+	LocaleChineseTW    Locale = "zh-TW"
+	LocaleCroatian     Locale = "hr"
+	LocaleCzech        Locale = "cs"
+	LocaleDanish       Locale = "da"
+	LocaleDutch        Locale = "nl"
+	LocaleFinnish      Locale = "fi"
+	LocaleFrench       Locale = "fr"
+	LocaleGerman       Locale = "de"
+	LocaleGreek        Locale = "el"
+	LocaleHindi        Locale = "hi"
+	LocaleHungarian    Locale = "hu"
+	LocaleItalian      Locale = "it"
+	LocaleJapanese     Locale = "ja"
+	LocaleKorean       Locale = "ko"
+	LocaleLithuanian   Locale = "lt"
+	LocaleNorwegian    Locale = "no"
+	LocalePolish       Locale = "pl"
+	LocalePortugueseBR Locale = "pt-BR"
+	LocaleRomanian     Locale = "ro"
+	LocaleRussian      Locale = "ru"
+	LocaleSpanishES    Locale = "es-ES"
+	LocaleSpanishLATAM Locale = "es-419"
+	LocaleSwedish      Locale = "sv-SE"
+	LocaleThai         Locale = "th"
+	LocaleTurkish      Locale = "tr"
+	LocaleUkrainian    Locale = "uk"
+	LocaleVietnamese   Locale = "vi"
+	LocaleUnknown      Locale = ""
 )
 
 // Locales is a map of all the languages codes to their names.
 var Locales = map[Locale]string{
-	EnglishUS:    "English (United States)",
-	EnglishGB:    "English (Great Britain)",
-	Bulgarian:    "Bulgarian",
-	ChineseCN:    "Chinese (China)",
-	ChineseTW:    "Chinese (Taiwan)",
-	Croatian:     "Croatian",
-	Czech:        "Czech",
-	Danish:       "Danish",
-	Dutch:        "Dutch",
-	Finnish:      "Finnish",
-	French:       "French",
-	German:       "German",
-	Greek:        "Greek",
-	Hindi:        "Hindi",
-	Hungarian:    "Hungarian",
-	Italian:      "Italian",
-	Japanese:     "Japanese",
-	Korean:       "Korean",
-	Lithuanian:   "Lithuanian",
-	Norwegian:    "Norwegian",
-	Polish:       "Polish",
-	PortugueseBR: "Portuguese (Brazil)",
-	Romanian:     "Romanian",
-	Russian:      "Russian",
-	SpanishES:    "Spanish (Spain)",
-	SpanishLATAM: "Spanish (LATAM)",
-	Swedish:      "Swedish",
-	Thai:         "Thai",
-	Turkish:      "Turkish",
-	Ukrainian:    "Ukrainian",
-	Vietnamese:   "Vietnamese",
-	Unknown:      "unknown",
+	LocaleEnglishUS:    "English (United States)",
+	LocaleEnglishGB:    "English (Great Britain)",
+	LocaleBulgarian:    "LocaleBulgarian",
+	LocaleChineseCN:    "Chinese (China)",
+	LocaleChineseTW:    "Chinese (Taiwan)",
+	LocaleCroatian:     "LocaleCroatian",
+	LocaleCzech:        "LocaleCzech",
+	LocaleDanish:       "LocaleDanish",
+	LocaleDutch:        "LocaleDutch",
+	LocaleFinnish:      "LocaleFinnish",
+	LocaleFrench:       "LocaleFrench",
+	LocaleGerman:       "LocaleGerman",
+	LocaleGreek:        "LocaleGreek",
+	LocaleHindi:        "LocaleHindi",
+	LocaleHungarian:    "LocaleHungarian",
+	LocaleItalian:      "LocaleItalian",
+	LocaleJapanese:     "LocaleJapanese",
+	LocaleKorean:       "LocaleKorean",
+	LocaleLithuanian:   "LocaleLithuanian",
+	LocaleNorwegian:    "LocaleNorwegian",
+	LocalePolish:       "LocalePolish",
+	LocalePortugueseBR: "Portuguese (Brazil)",
+	LocaleRomanian:     "LocaleRomanian",
+	LocaleRussian:      "LocaleRussian",
+	LocaleSpanishES:    "Spanish (Spain)",
+	LocaleSpanishLATAM: "Spanish (LATAM)",
+	LocaleSwedish:      "LocaleSwedish",
+	LocaleThai:         "LocaleThai",
+	LocaleTurkish:      "LocaleTurkish",
+	LocaleUkrainian:    "LocaleUkrainian",
+	LocaleVietnamese:   "LocaleVietnamese",
+	LocaleUnknown:      "unknown",
 }

@@ -1,18 +1,20 @@
+// Package guild contains every data structures linked to guilds like... Guild or ScheduledEvent.
+// It also has helping functions not using gokord.Session.
 package guild
 
 import (
+	"time"
+
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
-	"time"
 )
 
-// VerificationLevel type definition
+// VerificationLevel of the Guild
 type VerificationLevel int
 
-// Constants for VerificationLevel levels from 0 to 4 inclusive
 const (
 	VerificationLevelNone     VerificationLevel = 0
 	VerificationLevelLow      VerificationLevel = 1
@@ -21,40 +23,37 @@ const (
 	VerificationLevelVeryHigh VerificationLevel = 4
 )
 
-// ExplicitContentFilterLevel type definition
+// ExplicitContentFilterLevel of the Guild
 type ExplicitContentFilterLevel int
 
-// Constants for ExplicitContentFilterLevel levels from 0 to 2 inclusive
 const (
 	ExplicitContentFilterDisabled            ExplicitContentFilterLevel = 0
 	ExplicitContentFilterMembersWithoutRoles ExplicitContentFilterLevel = 1
 	ExplicitContentFilterAllMembers          ExplicitContentFilterLevel = 2
 )
 
-// GuildNSFWLevel type definition
-type GuildNSFWLevel int
+// NSFWLevel of the Guild
+type NSFWLevel int
 
-// Constants for GuildNSFWLevel levels from 0 to 3 inclusive
 const (
-	NSFWLevelDefault       GuildNSFWLevel = 0
-	NSFWLevelExplicit      GuildNSFWLevel = 1
-	NSFWLevelSafe          GuildNSFWLevel = 2
-	NSFWLevelAgeRestricted GuildNSFWLevel = 3
+	NSFWLevelDefault       NSFWLevel = 0
+	NSFWLevelExplicit      NSFWLevel = 1
+	NSFWLevelSafe          NSFWLevel = 2
+	NSFWLevelAgeRestricted NSFWLevel = 3
 )
 
-// MfaLevel type definition
+// MfaLevel of the Guild
 type MfaLevel int
 
-// Constants for MfaLevel levels from 0 to 1 inclusive
 const (
 	MfaLevelNone     MfaLevel = 0
 	MfaLevelElevated MfaLevel = 1
 )
 
-// PremiumTier type definition
+// PremiumTier of the Guild.
+// Is the level of boosts.
 type PremiumTier int
 
-// Constants for PremiumTier levels from 0 to 3 inclusive
 const (
 	PremiumTierNone PremiumTier = 0
 	PremiumTier1    PremiumTier = 1
@@ -62,21 +61,19 @@ const (
 	PremiumTier3    PremiumTier = 3
 )
 
-// MessageNotifications is the notification level for a guild
+// MessageNotifications is the notification level for a guild.
 // https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level
 type MessageNotifications int
 
-// Block containing known MessageNotifications values
 const (
 	MessageNotificationsAllMessages  MessageNotifications = 0
 	MessageNotificationsOnlyMentions MessageNotifications = 1
 )
 
-// SystemChannelFlag is the type of flags in the system channel (see SystemChannelFlag* consts)
+// SystemChannelFlag is the type of flags in the system channel.
 // https://discord.com/developers/docs/resources/guild#guild-object-system-channel-flags
 type SystemChannelFlag int
 
-// Block containing known SystemChannelFlag values
 const (
 	SystemChannelFlagsSuppressJoinNotifications          SystemChannelFlag = 1 << 0
 	SystemChannelFlagsSuppressPremium                    SystemChannelFlag = 1 << 1
@@ -84,10 +81,9 @@ const (
 	SystemChannelFlagsSuppressJoinNotificationReplies    SystemChannelFlag = 1 << 3
 )
 
-// Feature indicates the presence of a feature in a guild
+// Feature indicates the presence of a feature in a guild.
 type Feature string
 
-// Constants for Feature
 const (
 	FeatureAnimatedBanner                        Feature = "ANIMATED_BANNER"
 	FeatureAnimatedIcon                          Feature = "ANIMATED_ICON"
@@ -121,274 +117,294 @@ const (
 	FeatureEnhancedRoleColors                    Feature = "ENHANCED_ROLE_COLORS"
 )
 
-// A Guild holds all data related to a specific Discord Guild.  Guilds are also
-// sometimes referred to as Servers in the Discord client.
+// A Guild holds all data related to a specific Discord Guild.
+// Guilds are also sometimes referred to as Servers in the Discord client.
 type Guild struct {
-	// The ID of the guild.
+	// The ID of the Guild.
 	ID string `json:"id"`
 
-	// The name of the guild. (2–100 characters)
+	// The Name of the Guild. (2–100 characters)
 	Name string `json:"name"`
 
-	// The hash of the guild's icon. Use Session.GuildIcon
-	// to retrieve the icon itself.
+	// The hash of the Guild's icon.
+	// Use Guild.IconURL to retrieve the icon itself.
 	Icon string `json:"icon"`
 
-	// The voice region of the guild.
+	// The voice Region of the Guild.
 	Region string `json:"region"`
 
-	// The ID of the AFK voice channel.
+	// The ID of the AFK voice channel.Channel.
 	AfkChannelID string `json:"afk_channel_id"`
 
-	// The user ID of the owner of the guild.
+	// The user.User ID of the owner of the Guild.
 	OwnerID string `json:"owner_id"`
 
-	// If we are the owner of the guild
+	// If we are the owner of the Guild
 	Owner bool `json:"owner"`
 
-	// The time at which the current user joined the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// The time at which the current user.User joined the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	JoinedAt time.Time `json:"joined_at"`
 
-	// The hash of the guild's discovery splash.
+	// The hash of the Guild's DiscoverySplash.
 	DiscoverySplash string `json:"discovery_splash"`
 
-	// The hash of the guild's splash.
+	// The hash of the Guild's Splash.
 	Splash string `json:"splash"`
 
-	// The timeout, in seconds, before a user is considered AFK in voice.
+	// The timeout, in seconds, before a user.User is considered AFK in voice.
 	AfkTimeout int `json:"afk_timeout"`
 
-	// The number of members in the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// The number of Members in the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	MemberCount int `json:"member_count"`
 
-	// The verification level required for the guild.
+	// The VerificationLevel required for the Guild.
 	VerificationLevel VerificationLevel `json:"verification_level"`
 
-	// Whether the guild is considered large. This is
-	// determined by a member threshold in the identify packet,
-	// and is currently hard-coded at 250 members in the library.
+	// Whether the Guild is considered large.
+	//
+	// This is determined by a member threshold in the identify packet, and is currently hard-coded at 250 members in
+	// the library.
 	Large bool `json:"large"`
 
-	// The default message notification setting for the guild.
+	// The DefaultMessageNotifications setting for the Guild.
 	DefaultMessageNotifications MessageNotifications `json:"default_message_notifications"`
 
-	// A list of roles in the guild.
+	// A list of Roles in the Guild.
 	Roles []*Role `json:"roles"`
 
-	// A list of the custom emojis present in the guild.
+	// A list of the custom Emojis present in the Guild.
 	Emojis []*emoji.Emoji `json:"emojis"`
 
-	// A list of the custom stickers present in the guild.
+	// A list of the custom Stickers present in the Guild.
 	Stickers []*emoji.Sticker `json:"stickers"`
 
-	// A list of the members in the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// A list of the Members in the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	Members []*user.Member `json:"members"`
 
-	// A list of partial presence objects for members in the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// A list of partial Presences for members in the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	Presences []*status.Presence `json:"presences"`
 
-	// The maximum number of presences for the guild (the default value, currently 25000, is in effect when null is returned)
+	// The maximum number of Presences for the Guild (the default value, currently 25000, is in effect when null is returned)
 	MaxPresences int `json:"max_presences"`
 
-	// The maximum number of members for the guild
+	// The maximum number of Members for the Guild
 	MaxMembers int `json:"max_members"`
 
-	// A list of channels in the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// A list of Channels in the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	Channels []*channel.Channel `json:"channels"`
 
-	// A list of all active threads in the guild that current user has permission to view
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events and thus is only present in state-cached guilds.
+	// A list of all active Threads in the Guild that current user.User has permission to view.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events and thus is only present in
+	// state-cached guilds.
 	Threads []*channel.Channel `json:"threads"`
 
-	// A list of voice states for the guild.
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// A list of VoiceStates for the Guild.
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	VoiceStates []*user.VoiceState `json:"voice_states"`
 
-	// Whether this guild is currently unavailable (most likely due to outage).
-	// This field is only present in GUILD_CREATE events and websocket
-	// update events, and thus is only present in state-cached guilds.
+	// Whether this Guild is currently unavailable (most likely due to outage).
+	//
+	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
+	// state-cached guilds.
 	Unavailable bool `json:"unavailable"`
 
-	// The explicit content filter level
+	// The ExplicitContentFilter of the Guild.
 	ExplicitContentFilter ExplicitContentFilterLevel `json:"explicit_content_filter"`
 
-	// The NSFW Level of the guild
-	NSFWLevel GuildNSFWLevel `json:"nsfw_level"`
+	// The NSFWLevel of the Guild.
+	NSFWLevel NSFWLevel `json:"nsfw_level"`
 
-	// The list of enabled guild features
+	// The list of enabled Guild Features.
 	Features []Feature `json:"features"`
 
-	// Required MFA level for the guild
+	// Required MfaLevel for the Guild.
 	MfaLevel MfaLevel `json:"mfa_level"`
 
-	// The application id of the guild if bot created.
+	// The application.Application ID of the Guild if bot created.
 	ApplicationID string `json:"application_id"`
 
 	// Whether the Server Widget is enabled
 	WidgetEnabled bool `json:"widget_enabled"`
 
-	// The Channel ID for the Server Widget
+	// The channel.Channel ID for the Server Widget
 	WidgetChannelID string `json:"widget_channel_id"`
 
-	// The Channel ID to which system messages are sent (eg join and leave messages)
+	// The channel.Channel ID to which system messages are sent (e.g., join and leave messages)
 	SystemChannelID string `json:"system_channel_id"`
 
-	// The System channel flags
+	// The SystemChannelFlags for the Guild.
 	SystemChannelFlags SystemChannelFlag `json:"system_channel_flags"`
 
-	// The ID of the rules channel ID, used for rules.
+	// The ID of the rules channel.Channel.
 	RulesChannelID string `json:"rules_channel_id"`
 
-	// the vanity url code for the guild
+	// The VanityURLCode for the Guild.
 	VanityURLCode string `json:"vanity_url_code"`
 
-	// the description for the guild
+	// The Description for the Guild.
 	Description string `json:"description"`
 
-	// The hash of the guild's banner
+	// The hash of the Guild's Banner.
+	// Use Guild.BannerURL to retrieve the banner itself.
 	Banner string `json:"banner"`
 
-	// The premium tier of the guild
+	// The PremiumTier of the Guild.
 	PremiumTier PremiumTier `json:"premium_tier"`
 
-	// The total number of users currently boosting this server
+	// The total number of users currently boosting this server.
 	PremiumSubscriptionCount int `json:"premium_subscription_count"`
 
-	// The preferred locale of a guild with the "PUBLIC" feature; used in server discovery and notices from Discord; defaults to "en-US"
-	PreferredLocale string `json:"preferred_locale"`
+	// The preferred locale of a guild with the "PUBLIC" feature;
+	// used in server discovery and notices from Discord;
+	// defaults to discord.LocaleEnglishUS.
+	PreferredLocale discord.Locale `json:"preferred_locale"`
 
-	// The id of the channel where admins and moderators of guilds with the "PUBLIC" feature receive notices from Discord
+	// The ID of the channel.Channel where admins and moderators of guilds with the "PUBLIC" feature receive notices
+	// from Discord.
 	PublicUpdatesChannelID string `json:"public_updates_channel_id"`
 
-	// The maximum amount of users in a video channel
+	// The maximum amount of users in a video channel.Channel.
 	MaxVideoChannelUsers int `json:"max_video_channel_users"`
 
-	// Approximate number of members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
+	// Approximate number of Members in this Guild.
+	//
+	// Note: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximateMemberCount int `json:"approximate_member_count"`
 
-	// Approximate number of non-offline members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
+	// Approximate number of non-offline Members in this Guild.
+	//
+	// Note: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 
-	// Permissions of our user
+	// Permissions of our user.User.
 	Permissions int64 `json:"permissions,string"`
 
-	// Stage instances in the guild
+	// StageInstances in the Guild.
 	StageInstances []*channel.StageInstance `json:"stage_instances"`
 }
 
-// IconURL returns a URL to the guild's icon.
+// IconURL returns a URL to the Guild.Icon.
 //
-//	size:    The size of the desired icon image as a power of two
-//	         Image size can be any power of two between 16 and 4096.
+// size is the size of the desired icon image as a power of two.
+// It can be any power of two between 16 and 4096.
 func (g *Guild) IconURL(size string) string {
 	return discord.IconURL(g.Icon, discord.EndpointGuildIcon(g.ID, g.Icon), discord.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
-// BannerURL returns a URL to the guild's banner.
+// BannerURL returns a URL to the Guild.Banner.
 //
-//	size:    The size of the desired banner image as a power of two
-//	         Image size can be any power of two between 16 and 4096.
+// size is the size of the desired icon image as a power of two.
+// It can be any power of two between 16 and 4096.
 func (g *Guild) BannerURL(size string) string {
 	return discord.BannerURL(g.Banner, discord.EndpointGuildBanner(g.ID, g.Banner), discord.EndpointGuildBannerAnimated(g.ID, g.Banner), size)
 }
 
-// A Preview holds data related to a specific public Discord Guild, even if the user is not in the guild.
+// A Preview holds data related to a specific public Discord Guild, even if the user.User is not in the Guild.
 type Preview struct {
-	// The ID of the guild.
+	// The ID of the Guild.
 	ID string `json:"id"`
 
-	// The name of the guild. (2–100 characters)
+	// The Name of the Guild. (2–100 characters)
 	Name string `json:"name"`
 
-	// The hash of the guild's icon. Use Session.GuildIcon
-	// to retrieve the icon itself.
+	// The hash of the Guild's Icon.
+	//
+	// Use Preview.IconURL to retrieve the icon itself.
 	Icon string `json:"icon"`
 
-	// The hash of the guild's splash.
+	// The hash of the Guild's Splash.
 	Splash string `json:"splash"`
 
-	// The hash of the guild's discovery splash.
+	// The hash of the Guild's DiscoverySplash.
 	DiscoverySplash string `json:"discovery_splash"`
 
-	// A list of the custom emojis present in the guild.
+	// A list of the custom emojis present in the Guild.
 	Emojis []*emoji.Emoji `json:"emojis"`
 
-	// The list of enabled guild features
+	// The list of enabled Guild Features
 	Features []string `json:"features"`
 
-	// Approximate number of members in this guild
-	// NOTE: this field is only filled when using GuildWithCounts
+	// Approximate number of members in this Guild.
+	//
+	// NOTE: this field is only filled when using gokord.Session.GuildWithCounts.
 	ApproximateMemberCount int `json:"approximate_member_count"`
 
-	// Approximate number of non-offline members in this guild
-	// NOTE: this field is only filled when using GuildWithCounts
+	// Approximate number of non-offline members in this Guild.
+	//
+	// NOTE: this field is only filled when using GuildWithCounts.
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 
-	// the description for the guild
+	// The Description for the Guild.
 	Description string `json:"description"`
 }
 
-// IconURL returns a URL to the guild's icon.
+// IconURL returns a URL to the Preview.Icon.
 //
-//	size:    The size of the desired icon image as a power of two
-//	         Image size can be any power of two between 16 and 4096.
+// size is the size of the desired icon image as a power of two.
+// It can be any power of two between 16 and 4096.
 func (g *Preview) IconURL(size string) string {
 	return discord.IconURL(g.Icon, discord.EndpointGuildIcon(g.ID, g.Icon), discord.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
-// A Template represents a replicable template for guild creation
+// A Template represents a replicable template for Guild creation.
 type Template struct {
-	// The unique code for the guild template
+	// The unique Code for the Guild Template.
 	Code string `json:"code"`
 
-	// The name of the template
+	// The Name of the Template.
 	Name string `json:"name,omitempty"`
 
-	// The description for the template
+	// The Description for the Template.
 	Description *string `json:"description,omitempty"`
 
-	// The number of times this template has been used
+	// The number of times this Template has been used.
 	UsageCount int `json:"usage_count"`
 
-	// The ID of the user who created the template
+	// The ID of the user.User who created the Template.
 	CreatorID string `json:"creator_id"`
 
-	// The user who created the template
+	// The user.User who created the Template.
 	Creator *user.User `json:"creator"`
 
-	// The timestamp of when the template was created
+	// The timestamp of when the Template was created.
 	CreatedAt time.Time `json:"created_at"`
 
-	// The timestamp of when the template was last synced
+	// The timestamp of when the Template was last synced.
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// The ID of the guild the template was based on
+	// The ID of the Guild the Template was based on.
 	SourceGuildID string `json:"source_guild_id"`
 
-	// The guild 'snapshot' this template contains
+	// The Guild 'snapshot' this Template contains.
 	SerializedSourceGuild *Guild `json:"serialized_source_guild"`
 
-	// Whether the template has unsynced changes
+	// Whether the Template has unsynced changes.
 	IsDirty bool `json:"is_dirty"`
 }
 
 // TemplateParams stores the data needed to create or update a Template.
 type TemplateParams struct {
-	// The name of the template (1-100 characters)
+	// The Name of the Template (1-100 characters)
 	Name string `json:"name,omitempty"`
-	// The description of the template (0-120 characters)
+	// The Description of the Template (0-120 characters)
 	Description string `json:"description,omitempty"`
 }
 
@@ -401,16 +417,18 @@ type UserGuild struct {
 	Permissions int64     `json:"permissions,string"`
 	Features    []Feature `json:"features"`
 
-	// Approximate number of members in this guild.
+	// Approximate number of members in this Guild.
+	//
 	// NOTE: this field is only filled when withCounts is true.
 	ApproximateMemberCount int `json:"approximate_member_count"`
 
-	// Approximate number of non-offline members in this guild.
+	// Approximate number of non-offline members in this Guild.
+	//
 	// NOTE: this field is only filled when withCounts is true.
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 }
 
-// A Params stores all the data needed to update discord guild settings
+// A Params stores all the data needed to update discord Guild settings
 type Params struct {
 	Name                        string             `json:"name,omitempty"`
 	Region                      string             `json:"region,omitempty"`
@@ -434,7 +452,7 @@ type Params struct {
 	PremiumProgressBarEnabled   *bool              `json:"premium_progress_bar_enabled,omitempty"`
 }
 
-// A Embed stores data for a guild embed.
+// Embed stores data for a Guild embed.
 type Embed struct {
 	Enabled   *bool  `json:"enabled,omitempty"`
 	ChannelID string `json:"channel_id,omitempty"`

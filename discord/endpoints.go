@@ -1,3 +1,4 @@
+// Package discord contains every static things used in the Discord API.
 package discord
 
 import "strconv"
