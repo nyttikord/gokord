@@ -1,6 +1,7 @@
 package guild
 
 import (
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 	"time"
@@ -201,12 +202,12 @@ type Guild struct {
 	// A list of channels in the guild.
 	// This field is only present in GUILD_CREATE events and websocket
 	// update events, and thus is only present in state-cached guilds.
-	Channels []*Channel `json:"channels"`
+	Channels []*channel.Channel `json:"channels"`
 
 	// A list of all active threads in the guild that current user has permission to view
 	// This field is only present in GUILD_CREATE events and websocket
 	// update events and thus is only present in state-cached guilds.
-	Threads []*Channel `json:"threads"`
+	Threads []*channel.Channel `json:"threads"`
 
 	// A list of voice states for the guild.
 	// This field is only present in GUILD_CREATE events and websocket
@@ -282,7 +283,7 @@ type Guild struct {
 	Permissions int64 `json:"permissions,string"`
 
 	// Stage instances in the guild
-	StageInstances []*StageInstance `json:"stage_instances"`
+	StageInstances []*channel.StageInstance `json:"stage_instances"`
 }
 
 // IconURL returns a URL to the guild's icon.
