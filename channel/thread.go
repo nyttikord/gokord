@@ -2,6 +2,7 @@ package channel
 
 import (
 	"github.com/nyttikord/gokord/user"
+	"github.com/nyttikord/gokord/user/status"
 	"time"
 )
 
@@ -58,6 +59,6 @@ type ThreadsList struct {
 // AddedThreadMember holds information about the user who was added to the thread
 type AddedThreadMember struct {
 	*ThreadMember
-	Member   *user.Member   `json:"member"`
-	Presence *user.Presence `json:"presence"`
+	Member   *user.Member     `json:"member"`
+	Presence *status.Presence `json:"presence"`
 }

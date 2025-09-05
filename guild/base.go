@@ -5,6 +5,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
+	"github.com/nyttikord/gokord/user/status"
 	"time"
 )
 
@@ -192,7 +193,7 @@ type Guild struct {
 	// A list of partial presence objects for members in the guild.
 	// This field is only present in GUILD_CREATE events and websocket
 	// update events, and thus is only present in state-cached guilds.
-	Presences []*user.Presence `json:"presences"`
+	Presences []*status.Presence `json:"presences"`
 
 	// The maximum number of presences for the guild (the default value, currently 25000, is in effect when null is returned)
 	MaxPresences int `json:"max_presences"`

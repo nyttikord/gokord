@@ -1,13 +1,14 @@
-package user
+package status
 
 import (
 	"encoding/json"
 	"github.com/nyttikord/gokord/emoji"
+	"github.com/nyttikord/gokord/user"
 	"time"
 )
 
-// ClientStatus stores the online, offline, idle, or dnd status of each device of a Guild member.
-type ClientStatus struct {
+// Client stores the online, offline, idle, or dnd status of each device of a Guild member.
+type Client struct {
 	Desktop Status `json:"desktop"`
 	Mobile  Status `json:"mobile"`
 	Web     Status `json:"web"`
@@ -18,11 +19,11 @@ type Status string
 
 // Constants for Status with the different current available status
 const (
-	StatusOnline       Status = "online"
-	StatusIdle         Status = "idle"
-	StatusDoNotDisturb Status = "dnd"
-	StatusInvisible    Status = "invisible"
-	StatusOffline      Status = "offline"
+	Online       Status = "online"
+	Idle         Status = "idle"
+	DoNotDisturb Status = "dnd"
+	Invisible    Status = "invisible"
+	Offline      Status = "offline"
 )
 
 // A TimeStamps struct contains start and end times used in the rich presence "playing .." Game
@@ -119,7 +120,7 @@ type Party struct {
 	Size []int  `json:"size,omitempty"`
 }
 
-// Secrets defines the Secrets field for the Activity struct
+// Secrets define the Secrets field for the Activity struct
 // https://discord.com/developers/docs/topics/gateway#activity-object
 type Secrets struct {
 	Join     string `json:"join,omitempty"`
@@ -143,9 +144,9 @@ const (
 
 // A Presence stores the online, offline, or idle and game status of Guild members.
 type Presence struct {
-	User         *User        `json:"user"`
-	Status       Status       `json:"status"`
-	Activities   []*Activity  `json:"activities"`
-	Since        *int         `json:"since"`
-	ClientStatus ClientStatus `json:"client_status"`
+	User         *user.User  `json:"user"`
+	Status       Status      `json:"status"`
+	Activities   []*Activity `json:"activities"`
+	Since        *int        `json:"since"`
+	ClientStatus Client      `json:"client_status"`
 }
