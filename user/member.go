@@ -1,6 +1,9 @@
 package user
 
-import "time"
+import (
+	"github.com/nyttikord/gokord/endpoints"
+	"time"
+)
 
 // MemberFlags represent flags of a guild member.
 // https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
@@ -81,8 +84,8 @@ func (m *Member) AvatarURL(size string) string {
 		return m.User.AvatarURL(size)
 	}
 	// The default/empty avatar case should be handled by the above condition
-	return avatarURL(m.Avatar, "", EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
-		EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
+	return avatarURL(m.Avatar, "", endpoints.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
+		endpoints.EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
 
 }
 
@@ -96,8 +99,8 @@ func (m *Member) BannerURL(size string) string {
 	}
 	return bannerURL(
 		m.Banner,
-		EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
-		EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
+		endpoints.EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
+		endpoints.EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
 		size,
 	)
 }

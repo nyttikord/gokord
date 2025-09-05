@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/endpoints"
 	"strconv"
 )
 
@@ -137,9 +137,9 @@ func (u *User) Mention() string {
 func (u *User) AvatarURL(size string) string {
 	return avatarURL(
 		u.Avatar,
-		gokord.EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
-		gokord.EndpointUserAvatar(u.ID, u.Avatar),
-		gokord.EndpointUserAvatarAnimated(u.ID, u.Avatar),
+		endpoints.EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
+		endpoints.EndpointUserAvatar(u.ID, u.Avatar),
+		endpoints.EndpointUserAvatarAnimated(u.ID, u.Avatar),
 		size,
 	)
 }
@@ -149,7 +149,7 @@ func (u *User) AvatarURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (u *User) BannerURL(size string) string {
-	return bannerURL(u.Banner, gokord.EndpointUserBanner(u.ID, u.Banner), gokord.EndpointUserBannerAnimated(u.ID, u.Banner), size)
+	return bannerURL(u.Banner, endpoints.EndpointUserBanner(u.ID, u.Banner), endpoints.EndpointUserBannerAnimated(u.ID, u.Banner), size)
 }
 
 // DefaultAvatarIndex returns the index of the user's default avatar.

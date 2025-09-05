@@ -3,6 +3,7 @@ package gokord
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/endpoints"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user"
 	"math"
@@ -957,7 +958,7 @@ type GuildPreview struct {
 //	size:    The size of the desired icon image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *GuildPreview) IconURL(size string) string {
-	return iconURL(g.Icon, EndpointGuildIcon(g.ID, g.Icon), EndpointGuildIconAnimated(g.ID, g.Icon), size)
+	return iconURL(g.Icon, endpoints.EndpointGuildIcon(g.ID, g.Icon), endpoints.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
 // GuildScheduledEvent is a representation of a scheduled event in a guild. Only for retrieval of the data.
@@ -1277,7 +1278,7 @@ const (
 //	size:    The size of the desired icon image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *Guild) IconURL(size string) string {
-	return iconURL(g.Icon, EndpointGuildIcon(g.ID, g.Icon), EndpointGuildIconAnimated(g.ID, g.Icon), size)
+	return iconURL(g.Icon, endpoints.EndpointGuildIcon(g.ID, g.Icon), endpoints.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
 // BannerURL returns a URL to the guild's banner.
@@ -1285,7 +1286,7 @@ func (g *Guild) IconURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *Guild) BannerURL(size string) string {
-	return bannerURL(g.Banner, EndpointGuildBanner(g.ID, g.Banner), EndpointGuildBannerAnimated(g.ID, g.Banner), size)
+	return bannerURL(g.Banner, endpoints.EndpointGuildBanner(g.ID, g.Banner), endpoints.EndpointGuildBannerAnimated(g.ID, g.Banner), size)
 }
 
 // A UserGuild holds a brief version of a Guild
@@ -1437,7 +1438,7 @@ func (r *Role) IconURL(size string) string {
 		return ""
 	}
 
-	URL := EndpointRoleIcon(r.ID, r.Icon)
+	URL := endpoints.EndpointRoleIcon(r.ID, r.Icon)
 
 	if size != "" {
 		return URL + "?size=" + size

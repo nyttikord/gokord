@@ -1,4 +1,4 @@
-package gokord
+package endpoints
 
 import "strconv"
 
