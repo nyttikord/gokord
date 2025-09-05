@@ -29,15 +29,27 @@ const (
 	TypeLabel                 Type = 18
 )
 
-// Message is a base interface for all message components.
-type Message interface {
+type Component interface {
 	json.Marshaler
 	Type() Type
 }
 
-func toJson(m Message) ([]byte, error) {
+// Message is a base interface for all message components.
+type Message interface {
+	json.Marshaler
+	Type() Type
+	message()
+}
+
+type Modal interface {
+	json.Marshaler
+	Type() Type
+	modal()
+}
+
+func toJson(m Component) ([]byte, error) {
 	return json.Marshal(struct {
-		Message
+		Component
 		Type Type `json:"type"`
 	}{m, m.Type()})
 }
@@ -60,6 +72,8 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 func (r *ActionsRow) Type() Type {
 	return TypeActionsRow
 }
+
+func (r *ActionsRow) message() {}
 
 // ButtonStyle is style of button.
 type ButtonStyle uint
@@ -108,6 +122,8 @@ func (b Button) MarshalJSON() ([]byte, error) {
 func (Button) Type() Type {
 	return TypeButton
 }
+
+func (b Button) message() {}
 
 // SelectMenuOption represents an option for a select menu.
 type SelectMenuOption struct {
@@ -193,6 +209,10 @@ func (s SelectMenu) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
+func (s SelectMenu) message() {}
+
+func (s SelectMenu) modal() {} // for StringSelectMenu
+
 // TextInput represents text input component.
 type TextInput struct {
 	CustomID    string         `json:"custom_id"`
@@ -217,6 +237,8 @@ func (TextInput) Type() Type {
 func (m TextInput) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
+
+func (TextInput) modal() {}
 
 // TextInputStyle is style of text in TextInput component.
 type TextInputStyle uint
@@ -247,6 +269,8 @@ func (s *Section) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
+func (*Section) message() {}
+
 // TextDisplay is a top-level component that allows you to add markdown-formatted text to the message.
 type TextDisplay struct {
 	Content string `json:"content"`
@@ -261,6 +285,8 @@ func (TextDisplay) Type() Type {
 func (t TextDisplay) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
+
+func (TextDisplay) message() {}
 
 // Thumbnail component can be used as an accessory for a section component.
 type Thumbnail struct {
@@ -281,6 +307,8 @@ func (t Thumbnail) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
 
+func (Thumbnail) message() {}
+
 // MediaGallery is a top-level component allows you to group images, videos or gifs into a gallery grid.
 type MediaGallery struct {
 	// Unique identifier for the component; auto populated through increment if not provided.
@@ -298,6 +326,8 @@ func (MediaGallery) Type() Type {
 func (m MediaGallery) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
+
+func (MediaGallery) message() {}
 
 // MediaGalleryItem represents an item used in MediaGallery.
 type MediaGalleryItem struct {
@@ -323,6 +353,8 @@ func (FileComponent) Type() Type {
 func (f FileComponent) MarshalJSON() ([]byte, error) {
 	return toJson(f)
 }
+
+func (FileComponent) message() {}
 
 // SeparatorSpacingSize represents spacing size around the separator.
 type SeparatorSpacingSize uint
@@ -352,6 +384,8 @@ func (s Separator) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
+func (Separator) message() {}
+
 // Container is a top-level layout component.
 // Containers are visually distinct from surrounding components and have an optional customizable color bar (similar to embeds).
 type Container struct {
@@ -371,6 +405,8 @@ func (*Container) Type() Type {
 func (c *Container) MarshalJSON() ([]byte, error) {
 	return toJson(c)
 }
+
+func (*Container) message() {}
 
 // UnfurledMediaItem represents an unfurled media item.
 type UnfurledMediaItem struct {
@@ -416,3 +452,5 @@ func (*Label) Type() Type {
 func (l *Label) MarshalJSON() ([]byte, error) {
 	return toJson(l)
 }
+
+func (*Label) modal() {}
