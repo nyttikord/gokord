@@ -60,27 +60,6 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 	return toJson(r)
 }
 
-// UnmarshalJSON is a helper function to unmarshal Actions Row.
-func (r *ActionsRow) UnmarshalJSON(data []byte) error {
-	type actionsRow ActionsRow
-	var v struct {
-		actionsRow
-		RawComponents []UnmarshalableMessageComponent `json:"components"`
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-	*r = ActionsRow(v.actionsRow)
-
-	r.Components = make([]MessageComponent, len(v.RawComponents))
-	for i, v := range v.RawComponents {
-		r.Components[i] = v.MessageComponent
-	}
-
-	return err
-}
-
 // Type is a method to get the type of a component.
 func (r *ActionsRow) Type() ComponentType {
 	return ActionsRowComponent
@@ -262,31 +241,6 @@ type Section struct {
 	Accessory MessageComponent `json:"accessory"`
 }
 
-// UnmarshalJSON is a method for unmarshaling Section from JSON
-func (s *Section) UnmarshalJSON(data []byte) error {
-	type section Section
-
-	var v struct {
-		section
-		RawComponents []UnmarshalableMessageComponent `json:"components"`
-		RawAccessory  UnmarshalableMessageComponent   `json:"accessory"`
-	}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-
-	*s = Section(v.section)
-	s.Accessory = v.RawAccessory.MessageComponent
-	s.Components = make([]MessageComponent, len(v.RawComponents))
-	for i, v := range v.RawComponents {
-		s.Components[i] = v.MessageComponent
-	}
-
-	return nil
-}
-
 // Type is a method to get the type of a component.
 func (*Section) Type() ComponentType {
 	return SectionComponent
@@ -417,29 +371,6 @@ func (*Container) Type() ComponentType {
 	return ContainerComponent
 }
 
-// UnmarshalJSON is a method for unmarshaling Container from JSON
-func (c *Container) UnmarshalJSON(data []byte) error {
-	type container Container
-
-	var v struct {
-		container
-		RawComponents []UnmarshalableMessageComponent `json:"components"`
-	}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-
-	*c = Container(v.container)
-	c.Components = make([]MessageComponent, len(v.RawComponents))
-	for i, v := range v.RawComponents {
-		c.Components[i] = v.MessageComponent
-	}
-
-	return nil
-}
-
 // MarshalJSON is a method for marshaling Container to a JSON object.
 func (c *Container) MarshalJSON() ([]byte, error) {
 	return toJson(c)
@@ -483,26 +414,6 @@ type Label struct {
 // Type is a method to get the type of a component.
 func (*Label) Type() ComponentType {
 	return LabelComponent
-}
-
-// UnmarshalJSON is a method for unmarshaling Label from JSON
-func (l *Label) UnmarshalJSON(data []byte) error {
-	type label Label
-
-	var v struct {
-		label
-		RawComponent UnmarshalableMessageComponent `json:"component"`
-	}
-
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-
-	*l = Label(v.label)
-	l.Component = v.RawComponent.MessageComponent
-
-	return nil
 }
 
 // MarshalJSON is a method for marshaling Label to a JSON object.
