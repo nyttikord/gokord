@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/discord"
 	"log"
 	"os"
 	"os/signal"
@@ -58,35 +59,35 @@ var (
 		{
 			Name:        "localized-command",
 			Description: "Localized command. Description and name may vary depending on the Language setting",
-			NameLocalizations: &map[gokord.Locale]string{
-				gokord.ChineseCN: "本地化的命令",
+			NameLocalizations: &map[discord.Locale]string{
+				discord.ChineseCN: "本地化的命令",
 			},
-			DescriptionLocalizations: &map[gokord.Locale]string{
-				gokord.ChineseCN: "这是一个本地化的命令",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseCN: "这是一个本地化的命令",
 			},
 			Options: []*gokord.ApplicationCommandOption{
 				{
 					Name:        "localized-option",
 					Description: "Localized option. Description and name may vary depending on the Language setting",
-					NameLocalizations: map[gokord.Locale]string{
-						gokord.ChineseCN: "一个本地化的选项",
+					NameLocalizations: map[discord.Locale]string{
+						discord.ChineseCN: "一个本地化的选项",
 					},
-					DescriptionLocalizations: map[gokord.Locale]string{
-						gokord.ChineseCN: "这是一个本地化的选项",
+					DescriptionLocalizations: map[discord.Locale]string{
+						discord.ChineseCN: "这是一个本地化的选项",
 					},
 					Type: gokord.ApplicationCommandOptionInteger,
 					Choices: []*gokord.ApplicationCommandOptionChoice{
 						{
 							Name: "First",
-							NameLocalizations: map[gokord.Locale]string{
-								gokord.ChineseCN: "一的",
+							NameLocalizations: map[discord.Locale]string{
+								discord.ChineseCN: "一的",
 							},
 							Value: 1,
 						},
 						{
 							Name: "Second",
-							NameLocalizations: map[gokord.Locale]string{
-								gokord.ChineseCN: "二的",
+							NameLocalizations: map[discord.Locale]string{
+								discord.ChineseCN: "二的",
 							},
 							Value: 2,
 						},
@@ -246,8 +247,8 @@ var (
 			})
 		},
 		"localized-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			responses := map[gokord.Locale]string{
-				gokord.ChineseCN: "你好！ 这是一个本地化的命令",
+			responses := map[discord.Locale]string{
+				discord.ChineseCN: "你好！ 这是一个本地化的命令",
 			}
 			response := "Hi! This is a localized message"
 			if r, ok := responses[i.Locale]; ok {

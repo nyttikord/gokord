@@ -142,7 +142,7 @@ func WithAuditLogReason(reason string) RequestOption {
 }
 
 // WithLocale changes accepted locale of the request.
-func WithLocale(locale Locale) RequestOption {
+func WithLocale(locale discord.Locale) RequestOption {
 	return WithHeader("X-Discord-Locale", string(locale))
 }
 

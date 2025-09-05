@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 	"io"
 	"net/http"
@@ -31,13 +32,13 @@ const (
 
 // ApplicationCommand represents an application's slash command.
 type ApplicationCommand struct {
-	ID                string                 `json:"id,omitempty"`
-	ApplicationID     string                 `json:"application_id,omitempty"`
-	GuildID           string                 `json:"guild_id,omitempty"`
-	Version           string                 `json:"version,omitempty"`
-	Type              ApplicationCommandType `json:"type,omitempty"`
-	Name              string                 `json:"name"`
-	NameLocalizations *map[Locale]string     `json:"name_localizations,omitempty"`
+	ID                string                     `json:"id,omitempty"`
+	ApplicationID     string                     `json:"application_id,omitempty"`
+	GuildID           string                     `json:"guild_id,omitempty"`
+	Version           string                     `json:"version,omitempty"`
+	Type              ApplicationCommandType     `json:"type,omitempty"`
+	Name              string                     `json:"name"`
+	NameLocalizations *map[discord.Locale]string `json:"name_localizations,omitempty"`
 
 	// NOTE: DefaultPermission will be soon deprecated. Use DefaultMemberPermissions and Contexts instead.
 	DefaultPermission        *bool  `json:"default_permission,omitempty"`
@@ -52,7 +53,7 @@ type ApplicationCommand struct {
 	// NOTE: Chat commands only. Otherwise it mustn't be set.
 
 	Description              string                      `json:"description,omitempty"`
-	DescriptionLocalizations *map[Locale]string          `json:"description_localizations,omitempty"`
+	DescriptionLocalizations *map[discord.Locale]string  `json:"description_localizations,omitempty"`
 	Options                  []*ApplicationCommandOption `json:"options"`
 }
 
@@ -106,9 +107,9 @@ func (t ApplicationCommandOptionType) String() string {
 type ApplicationCommandOption struct {
 	Type                     ApplicationCommandOptionType `json:"type"`
 	Name                     string                       `json:"name"`
-	NameLocalizations        map[Locale]string            `json:"name_localizations,omitempty"`
+	NameLocalizations        map[discord.Locale]string    `json:"name_localizations,omitempty"`
 	Description              string                       `json:"description,omitempty"`
-	DescriptionLocalizations map[Locale]string            `json:"description_localizations,omitempty"`
+	DescriptionLocalizations map[discord.Locale]string    `json:"description_localizations,omitempty"`
 	// NOTE: This feature was on the API, but at some point developers decided to remove it.
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
@@ -132,9 +133,9 @@ type ApplicationCommandOption struct {
 
 // ApplicationCommandOptionChoice represents a slash command option choice.
 type ApplicationCommandOptionChoice struct {
-	Name              string            `json:"name"`
-	NameLocalizations map[Locale]string `json:"name_localizations,omitempty"`
-	Value             interface{}       `json:"value"`
+	Name              string                    `json:"name"`
+	NameLocalizations map[discord.Locale]string `json:"name_localizations,omitempty"`
+	Value             interface{}               `json:"value"`
 }
 
 // ApplicationCommandPermissions represents a single user or role permission for a command.
@@ -245,10 +246,10 @@ type Interaction struct {
 	User *user.User `json:"user"`
 
 	// The user's discord client locale.
-	Locale Locale `json:"locale"`
+	Locale discord.Locale `json:"locale"`
 	// The guild's locale. This defaults to EnglishUS
 	// NOTE: this field is only filled when the interaction was invoked in a guild.
-	GuildLocale *Locale `json:"guild_locale"`
+	GuildLocale *discord.Locale `json:"guild_locale"`
 
 	Context                      InteractionContextType                `json:"context"`
 	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`

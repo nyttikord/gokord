@@ -8,7 +8,6 @@ import (
 	"github.com/nyttikord/gokord/user"
 	"math"
 	"net/http"
-	"regexp"
 	"sync"
 	"time"
 
@@ -194,9 +193,9 @@ type ApplicationRoleConnectionMetadata struct {
 	Type                     ApplicationRoleConnectionMetadataType `json:"type"`
 	Key                      string                                `json:"key"`
 	Name                     string                                `json:"name"`
-	NameLocalizations        map[Locale]string                     `json:"name_localizations"`
+	NameLocalizations        map[discord.Locale]string             `json:"name_localizations"`
 	Description              string                                `json:"description"`
-	DescriptionLocalizations map[Locale]string                     `json:"description_localizations"`
+	DescriptionLocalizations map[discord.Locale]string             `json:"description_localizations"`
 }
 
 // ApplicationRoleConnection represents the role connection that an application has attached to a user.
@@ -589,92 +588,6 @@ type ForumTag struct {
 	Moderated bool   `json:"moderated"`
 	EmojiID   string `json:"emoji_id,omitempty"`
 	EmojiName string `json:"emoji_name,omitempty"`
-}
-
-// A GuildTemplate represents a replicable template for guild creation
-type GuildTemplate struct {
-	// The unique code for the guild template
-	Code string `json:"code"`
-
-	// The name of the template
-	Name string `json:"name,omitempty"`
-
-	// The description for the template
-	Description *string `json:"description,omitempty"`
-
-	// The number of times this template has been used
-	UsageCount int `json:"usage_count"`
-
-	// The ID of the user who created the template
-	CreatorID string `json:"creator_id"`
-
-	// The user who created the template
-	Creator *user.User `json:"creator"`
-
-	// The timestamp of when the template was created
-	CreatedAt time.Time `json:"created_at"`
-
-	// The timestamp of when the template was last synced
-	UpdatedAt time.Time `json:"updated_at"`
-
-	// The ID of the guild the template was based on
-	SourceGuildID string `json:"source_guild_id"`
-
-	// The guild 'snapshot' this template contains
-	SerializedSourceGuild *Guild `json:"serialized_source_guild"`
-
-	// Whether the template has unsynced changes
-	IsDirty bool `json:"is_dirty"`
-}
-
-// GuildTemplateParams stores the data needed to create or update a GuildTemplate.
-type GuildTemplateParams struct {
-	// The name of the template (1-100 characters)
-	Name string `json:"name,omitempty"`
-	// The description of the template (0-120 characters)
-	Description string `json:"description,omitempty"`
-}
-
-// A UserGuild holds a brief version of a Guild
-type UserGuild struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Icon        string         `json:"icon"`
-	Owner       bool           `json:"owner"`
-	Permissions int64          `json:"permissions,string"`
-	Features    []GuildFeature `json:"features"`
-
-	// Approximate number of members in this guild.
-	// NOTE: this field is only filled when withCounts is true.
-	ApproximateMemberCount int `json:"approximate_member_count"`
-
-	// Approximate number of non-offline members in this guild.
-	// NOTE: this field is only filled when withCounts is true.
-	ApproximatePresenceCount int `json:"approximate_presence_count"`
-}
-
-// A GuildParams stores all the data needed to update discord guild settings
-type GuildParams struct {
-	Name                        string             `json:"name,omitempty"`
-	Region                      string             `json:"region,omitempty"`
-	VerificationLevel           *VerificationLevel `json:"verification_level,omitempty"`
-	DefaultMessageNotifications int                `json:"default_message_notifications,omitempty"` // TODO: Separate type?
-	ExplicitContentFilter       int                `json:"explicit_content_filter,omitempty"`
-	AfkChannelID                string             `json:"afk_channel_id,omitempty"`
-	AfkTimeout                  int                `json:"afk_timeout,omitempty"`
-	Icon                        string             `json:"icon,omitempty"`
-	OwnerID                     string             `json:"owner_id,omitempty"`
-	Splash                      string             `json:"splash,omitempty"`
-	DiscoverySplash             string             `json:"discovery_splash,omitempty"`
-	Banner                      string             `json:"banner,omitempty"`
-	SystemChannelID             string             `json:"system_channel_id,omitempty"`
-	SystemChannelFlags          SystemChannelFlag  `json:"system_channel_flags,omitempty"`
-	RulesChannelID              string             `json:"rules_channel_id,omitempty"`
-	PublicUpdatesChannelID      string             `json:"public_updates_channel_id,omitempty"`
-	PreferredLocale             Locale             `json:"preferred_locale,omitempty"`
-	Features                    []GuildFeature     `json:"features,omitempty"`
-	Description                 string             `json:"description,omitempty"`
-	PremiumProgressBarEnabled   *bool              `json:"premium_progress_bar_enabled,omitempty"`
 }
 
 // A Role stores information about Discord guild member roles.
