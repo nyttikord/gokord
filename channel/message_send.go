@@ -1,21 +1,21 @@
 package channel
 
 import (
-	"github.com/nyttikord/gokord/components"
+	"github.com/nyttikord/gokord/component"
 )
 
 // MessageSend stores all parameters you can send with ChannelMessageSendComplex.
 type MessageSend struct {
-	Content         string                        `json:"content,omitempty"`
-	Embeds          []*MessageEmbed               `json:"embeds"`
-	TTS             bool                          `json:"tts"`
-	Components      []components.MessageComponent `json:"components"`
-	Files           []*File                       `json:"-"`
-	AllowedMentions *MessageAllowedMentions       `json:"allowed_mentions,omitempty"`
-	Reference       *MessageReference             `json:"message_reference,omitempty"`
-	StickerIDs      []string                      `json:"sticker_ids"`
-	Flags           MessageFlags                  `json:"flags,omitempty"`
-	Poll            *Poll                         `json:"poll,omitempty"`
+	Content         string                  `json:"content,omitempty"`
+	Embeds          []*MessageEmbed         `json:"embeds"`
+	TTS             bool                    `json:"tts"`
+	Components      []component.Message     `json:"components"`
+	Files           []*File                 `json:"-"`
+	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
+	Reference       *MessageReference       `json:"message_reference,omitempty"`
+	StickerIDs      []string                `json:"sticker_ids"`
+	Flags           MessageFlags            `json:"flags,omitempty"`
+	Poll            *Poll                   `json:"poll,omitempty"`
 
 	// TODO: Remove this when compatibility is not required.
 	File *File `json:"-"`
@@ -27,11 +27,11 @@ type MessageSend struct {
 // MessageEdit is used to chain parameters via ChannelMessageEditComplex, which
 // is also where you should get the instance from.
 type MessageEdit struct {
-	Content         *string                        `json:"content,omitempty"`
-	Components      *[]components.MessageComponent `json:"components,omitempty"`
-	Embeds          *[]*MessageEmbed               `json:"embeds,omitempty"`
-	AllowedMentions *MessageAllowedMentions        `json:"allowed_mentions,omitempty"`
-	Flags           MessageFlags                   `json:"flags,omitempty"`
+	Content         *string                 `json:"content,omitempty"`
+	Components      *[]component.Message    `json:"components,omitempty"`
+	Embeds          *[]*MessageEmbed        `json:"embeds,omitempty"`
+	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
+	Flags           MessageFlags            `json:"flags,omitempty"`
 	// Files to append to the message
 	Files []*File `json:"-"`
 	// Overwrite existing attachments

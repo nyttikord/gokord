@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/components"
+	"github.com/nyttikord/gokord/component"
 	"log"
 	"os"
 	"os/signal"
@@ -50,13 +50,13 @@ var (
 				Data: &gokord.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
-					Components: []components.MessageComponent{
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.TextInput{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.TextInput{
 									CustomID:    "opinion",
 									Label:       "What is your opinion on them?",
-									Style:       components.TextInputShort,
+									Style:       component.TextInputShort,
 									Placeholder: "Don't be shy, share your opinion with us",
 									Required:    true,
 									MaxLength:   300,
@@ -64,12 +64,12 @@ var (
 								},
 							},
 						},
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.TextInput{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.TextInput{
 									CustomID:  "suggestions",
 									Label:     "What would you suggest to improve them?",
-									Style:     components.TextInputParagraph,
+									Style:     component.TextInputParagraph,
 									Required:  false,
 									MaxLength: 2000,
 								},
@@ -117,8 +117,8 @@ func main() {
 			_, err = s.ChannelMessageSend(*ResultsChannel, fmt.Sprintf(
 				"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 				userid,
-				data.Components[0].(*components.ActionsRow).Components[0].(*components.TextInput).Value,
-				data.Components[1].(*components.ActionsRow).Components[0].(*components.TextInput).Value,
+				data.Components[0].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
+				data.Components[1].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
 			))
 			if err != nil {
 				panic(err)

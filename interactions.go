@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/components"
+	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 	"io"
@@ -201,7 +201,7 @@ func (t InteractionType) String() string {
 	case InteractionApplicationCommand:
 		return "ApplicationCommand"
 	case InteractionMessageComponent:
-		return "MessageComponent"
+		return "Message"
 	case InteractionModalSubmit:
 		return "ModalSubmit"
 	}
@@ -385,10 +385,10 @@ func (ApplicationCommandInteractionData) Type() InteractionType {
 // MessageComponentInteractionData contains the data of message component interaction.
 type MessageComponentInteractionData struct {
 	CustomID      string                                  `json:"custom_id"`
-	ComponentType components.ComponentType                `json:"component_type"`
+	ComponentType component.Type                          `json:"component_type"`
 	Resolved      MessageComponentInteractionDataResolved `json:"resolved"`
 
-	// NOTE: Only filled when ComponentType is SelectMenuComponent (3). Otherwise is nil.
+	// NOTE: Only filled when ComponentType is TypeSelectMenu (3). Otherwise is nil.
 	Values []string `json:"values"`
 }
 
@@ -407,8 +407,8 @@ func (MessageComponentInteractionData) Type() InteractionType {
 
 // ModalSubmitInteractionData contains the data of modal submit interaction.
 type ModalSubmitInteractionData struct {
-	CustomID   string                        `json:"custom_id"`
-	Components []components.MessageComponent `json:"-"`
+	CustomID   string              `json:"custom_id"`
+	Components []component.Message `json:"-"`
 }
 
 // Type returns the type of interaction data.
@@ -421,14 +421,14 @@ func (d *ModalSubmitInteractionData) UnmarshalJSON(data []byte) error {
 	type modalSubmitInteractionData ModalSubmitInteractionData
 	var v struct {
 		modalSubmitInteractionData
-		RawComponents []components.unmarshalableMessageComponent `json:"components"`
+		RawComponents []component.unmarshalableMessageComponent `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
 	*d = ModalSubmitInteractionData(v.modalSubmitInteractionData)
-	d.Components = make([]components.MessageComponent, len(v.RawComponents))
+	d.Components = make([]component.Message, len(v.RawComponents))
 	for i, v := range v.RawComponents {
 		d.Components[i] = v.MessageComponent
 	}
@@ -601,7 +601,7 @@ type InteractionResponse struct {
 type InteractionResponseData struct {
 	TTS             bool                            `json:"tts"`
 	Content         string                          `json:"content"`
-	Components      []components.MessageComponent   `json:"components"`
+	Components      []component.Message             `json:"components"`
 	Embeds          []*channel.MessageEmbed         `json:"embeds"`
 	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Files           []*channel.File                 `json:"-"`

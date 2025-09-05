@@ -1,4 +1,4 @@
-package components
+package component
 
 import (
 	"encoding/json"
@@ -6,43 +6,39 @@ import (
 	"github.com/nyttikord/gokord/emoji"
 )
 
-// ComponentType is type of component.
-type ComponentType uint
+// Type is type of component.
+type Type uint
 
-// MessageComponent types.
+// Message types.
 const (
-	ActionsRowComponent            ComponentType = 1
-	ButtonComponent                ComponentType = 2
-	SelectMenuComponent            ComponentType = 3
-	TextInputComponent             ComponentType = 4
-	UserSelectMenuComponent        ComponentType = 5
-	RoleSelectMenuComponent        ComponentType = 6
-	MentionableSelectMenuComponent ComponentType = 7
-	ChannelSelectMenuComponent     ComponentType = 8
-	SectionComponent               ComponentType = 9
-	TextDisplayComponent           ComponentType = 10
-	ThumbnailComponent             ComponentType = 11
-	MediaGalleryComponent          ComponentType = 12
-	FileComponentType              ComponentType = 13
-	SeparatorComponent             ComponentType = 14
-	ContainerComponent             ComponentType = 17
-	LabelComponent                 ComponentType = 18
+	TypeActionsRow            Type = 1
+	TypeButton                Type = 2
+	TypeSelectMenu            Type = 3
+	TypeTextInput             Type = 4
+	TypeUserSelectMenu        Type = 5
+	TypeRoleSelectMenu        Type = 6
+	TypeMentionableSelectMenu Type = 7
+	TypeChannelSelectMenu     Type = 8
+	TypeSection               Type = 9
+	TypeTextDisplay           Type = 10
+	TypeThumbnail             Type = 11
+	TypeMediaGallery          Type = 12
+	TypeFile                  Type = 13
+	TypeSeparator             Type = 14
+	TypeContainer             Type = 17
+	TypeLabel                 Type = 18
 )
 
-// MessageComponent is a base interface for all message components.
-type MessageComponent interface {
+// Message is a base interface for all message components.
+type Message interface {
 	json.Marshaler
-	Type() ComponentType
+	Type() Type
 }
 
-type UnmarshalableMessageComponent struct {
-	MessageComponent
-}
-
-func toJson(m MessageComponent) ([]byte, error) {
+func toJson(m Message) ([]byte, error) {
 	return json.Marshal(struct {
-		MessageComponent
-		Type ComponentType `json:"type"`
+		Message
+		Type Type `json:"type"`
 	}{m, m.Type()})
 }
 
@@ -50,7 +46,7 @@ func toJson(m MessageComponent) ([]byte, error) {
 type ActionsRow struct {
 	// Can contain Button, SelectMenu and TextInput.
 	// NOTE: maximum of 5.
-	Components []MessageComponent `json:"components"`
+	Components []Message `json:"components"`
 	// Unique identifier for the component; auto populated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
@@ -61,8 +57,8 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 }
 
 // Type is a method to get the type of a component.
-func (r *ActionsRow) Type() ComponentType {
-	return ActionsRowComponent
+func (r *ActionsRow) Type() Type {
+	return TypeActionsRow
 }
 
 // ButtonStyle is style of button.
@@ -70,18 +66,18 @@ type ButtonStyle uint
 
 // Button styles.
 const (
-	// PrimaryButton is a button with blurple color.
-	PrimaryButton ButtonStyle = 1
-	// SecondaryButton is a button with grey color.
-	SecondaryButton ButtonStyle = 2
-	// SuccessButton is a button with green color.
-	SuccessButton ButtonStyle = 3
-	// DangerButton is a button with red color.
-	DangerButton ButtonStyle = 4
-	// LinkButton is a special type of button which navigates to a URL. Has grey color.
-	LinkButton ButtonStyle = 5
-	// PremiumButton is a special type of button with a blurple color that links to a SKU.
-	PremiumButton ButtonStyle = 6
+	// ButtonStylePrimary is a button with blurple color.
+	ButtonStylePrimary ButtonStyle = 1
+	// ButtonStyleSecondary is a button with grey color.
+	ButtonStyleSecondary ButtonStyle = 2
+	// ButtonStyleSuccess is a button with green color.
+	ButtonStyleSuccess ButtonStyle = 3
+	// ButtonStyleDanger is a button with red color.
+	ButtonStyleDanger ButtonStyle = 4
+	// ButtonStyleLink is a special type of button which navigates to a URL. Has grey color.
+	ButtonStyleLink ButtonStyle = 5
+	// ButtonStylePremium is a special type of button with a blurple color that links to a SKU.
+	ButtonStylePremium ButtonStyle = 6
 )
 
 // Button represents button component.
@@ -91,7 +87,7 @@ type Button struct {
 	Disabled bool             `json:"disabled"`
 	Emoji    *emoji.Component `json:"emoji,omitempty"`
 
-	// NOTE: Only button with LinkButton style can have link. Also, URL is mutually exclusive with CustomID.
+	// NOTE: Only button with ButtonStyleLink style can have link. Also, URL is mutually exclusive with CustomID.
 	URL      string `json:"url,omitempty"`
 	CustomID string `json:"custom_id,omitempty"`
 	// Identifier for a purchasable SKU. Only available when using premium-style buttons.
@@ -103,14 +99,14 @@ type Button struct {
 // MarshalJSON is a method for marshaling Button to a JSON object.
 func (b Button) MarshalJSON() ([]byte, error) {
 	if b.Style == 0 {
-		b.Style = PrimaryButton
+		b.Style = ButtonStylePrimary
 	}
 	return toJson(b)
 }
 
 // Type is a method to get the type of a component.
-func (Button) Type() ComponentType {
-	return ButtonComponent
+func (Button) Type() Type {
+	return TypeButton
 }
 
 // SelectMenuOption represents an option for a select menu.
@@ -142,15 +138,15 @@ type SelectMenuDefaultValue struct {
 }
 
 // SelectMenuType represents select menu type.
-type SelectMenuType ComponentType
+type SelectMenuType Type
 
 // SelectMenu types.
 const (
-	StringSelectMenu      = SelectMenuType(SelectMenuComponent)
-	UserSelectMenu        = SelectMenuType(UserSelectMenuComponent)
-	RoleSelectMenu        = SelectMenuType(RoleSelectMenuComponent)
-	MentionableSelectMenu = SelectMenuType(MentionableSelectMenuComponent)
-	ChannelSelectMenu     = SelectMenuType(ChannelSelectMenuComponent)
+	StringSelectMenu      = SelectMenuType(TypeSelectMenu)
+	UserSelectMenu        = SelectMenuType(TypeUserSelectMenu)
+	RoleSelectMenu        = SelectMenuType(TypeRoleSelectMenu)
+	MentionableSelectMenu = SelectMenuType(TypeMentionableSelectMenu)
+	ChannelSelectMenu     = SelectMenuType(TypeChannelSelectMenu)
 )
 
 // SelectMenu represents select menu component.
@@ -185,11 +181,11 @@ type SelectMenu struct {
 }
 
 // Type is a method to get the type of a component.
-func (s SelectMenu) Type() ComponentType {
+func (s SelectMenu) Type() Type {
 	if s.MenuType != 0 {
-		return ComponentType(s.MenuType)
+		return Type(s.MenuType)
 	}
-	return SelectMenuComponent
+	return TypeSelectMenu
 }
 
 // MarshalJSON is a method for marshaling SelectMenu to a JSON object.
@@ -213,8 +209,8 @@ type TextInput struct {
 }
 
 // Type is a method to get the type of a component.
-func (TextInput) Type() ComponentType {
-	return TextInputComponent
+func (TextInput) Type() Type {
+	return TypeTextInput
 }
 
 // MarshalJSON is a method for marshaling TextInput to a JSON object.
@@ -236,14 +232,14 @@ type Section struct {
 	// Unique identifier for the component; auto populated through increment if not provided.
 	ID int `json:"id,omitempty"`
 	// Array of text display components; max of 3.
-	Components []MessageComponent `json:"components"`
+	Components []Message `json:"components"`
 	// Can be Button or Thumbnail
-	Accessory MessageComponent `json:"accessory"`
+	Accessory Message `json:"accessory"`
 }
 
 // Type is a method to get the type of a component.
-func (*Section) Type() ComponentType {
-	return SectionComponent
+func (*Section) Type() Type {
+	return TypeSection
 }
 
 // MarshalJSON is a method for marshaling Section to a JSON object.
@@ -257,8 +253,8 @@ type TextDisplay struct {
 }
 
 // Type is a method to get the type of a component.
-func (TextDisplay) Type() ComponentType {
-	return TextDisplayComponent
+func (TextDisplay) Type() Type {
+	return TypeTextDisplay
 }
 
 // MarshalJSON is a method for marshaling TextDisplay to a JSON object.
@@ -276,8 +272,8 @@ type Thumbnail struct {
 }
 
 // Type is a method to get the type of a component.
-func (Thumbnail) Type() ComponentType {
-	return ThumbnailComponent
+func (Thumbnail) Type() Type {
+	return TypeThumbnail
 }
 
 // MarshalJSON is a method for marshaling Thumbnail to a JSON object.
@@ -294,8 +290,8 @@ type MediaGallery struct {
 }
 
 // Type is a method to get the type of a component.
-func (MediaGallery) Type() ComponentType {
-	return MediaGalleryComponent
+func (MediaGallery) Type() Type {
+	return TypeMediaGallery
 }
 
 // MarshalJSON is a method for marshaling MediaGallery to a JSON object.
@@ -319,8 +315,8 @@ type FileComponent struct {
 }
 
 // Type is a method to get the type of a component.
-func (FileComponent) Type() ComponentType {
-	return FileComponentType
+func (FileComponent) Type() Type {
+	return TypeFile
 }
 
 // MarshalJSON is a method for marshaling FileComponent to a JSON object.
@@ -347,8 +343,8 @@ type Separator struct {
 }
 
 // Type is a method to get the type of a component.
-func (Separator) Type() ComponentType {
-	return SeparatorComponent
+func (Separator) Type() Type {
+	return TypeSeparator
 }
 
 // MarshalJSON is a method for marshaling Separator to a JSON object.
@@ -360,15 +356,15 @@ func (s Separator) MarshalJSON() ([]byte, error) {
 // Containers are visually distinct from surrounding components and have an optional customizable color bar (similar to embeds).
 type Container struct {
 	// Unique identifier for the component; auto populated through increment if not provided.
-	ID          int                `json:"id,omitempty"`
-	AccentColor *int               `json:"accent_color,omitempty"`
-	Spoiler     bool               `json:"spoiler"`
-	Components  []MessageComponent `json:"components"`
+	ID          int       `json:"id,omitempty"`
+	AccentColor *int      `json:"accent_color,omitempty"`
+	Spoiler     bool      `json:"spoiler"`
+	Components  []Message `json:"components"`
 }
 
 // Type is a method to get the type of a component.
-func (*Container) Type() ComponentType {
-	return ContainerComponent
+func (*Container) Type() Type {
+	return TypeContainer
 }
 
 // MarshalJSON is a method for marshaling Container to a JSON object.
@@ -405,15 +401,15 @@ type ResolvedUnfurledMediaItem struct {
 // Labels wrap modal components with text as a label and optional description.
 type Label struct {
 	// Unique identifier for the component; auto populated through increment if not provided.
-	ID          int              `json:"id,omitempty"`
-	Label       string           `json:"label"`
-	Description string           `json:"description,omitempty"`
-	Component   MessageComponent `json:"component"`
+	ID          int     `json:"id,omitempty"`
+	Label       string  `json:"label"`
+	Description string  `json:"description,omitempty"`
+	Component   Message `json:"component"`
 }
 
 // Type is a method to get the type of a component.
-func (*Label) Type() ComponentType {
-	return LabelComponent
+func (*Label) Type() Type {
+	return TypeLabel
 }
 
 // MarshalJSON is a method for marshaling Label to a JSON object.

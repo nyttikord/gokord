@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/components"
+	"github.com/nyttikord/gokord/component"
 	"log"
 	"os"
 	"os/signal"
@@ -43,31 +43,31 @@ var (
 				Data: &gokord.InteractionResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
 					Flags:   channel.MessageFlagsEphemeral,
-					Components: []components.MessageComponent{
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#buttons",
 								},
-								components.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								components.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -86,23 +86,23 @@ var (
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
 					Flags: channel.MessageFlagsEphemeral,
-					Components: []components.MessageComponent{
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								components.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -180,31 +180,31 @@ var (
 				Data: &gokord.InteractionResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
 						"If you want to know more, check out the links below",
-					Components: []components.MessageComponent{
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#select-menus",
 								},
-								components.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								components.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: components.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -227,29 +227,29 @@ var (
 					Content: "Are you comfortable with buttons and other message components?",
 					Flags:   channel.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
-					Components: []components.MessageComponent{
+					Components: []component.Message{
 						// ActionRow is a container of all buttons within the same row.
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.Button{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									// Label is what the user will see on the button.
 									Label: "Yes",
 									// Style provides coloring of the button. There are not so many styles tho.
-									Style: components.SuccessButton,
+									Style: component.ButtonStyleSuccess,
 									// Disabled allows bot to disable some buttons for users.
 									Disabled: false,
 									// CustomID is a thing telling Discord which data to send when this button will be pressed.
 									CustomID: "fd_yes",
 								},
-								components.Button{
+								component.Button{
 									Label:    "No",
-									Style:    components.DangerButton,
+									Style:    component.ButtonStyleDanger,
 									Disabled: false,
 									CustomID: "fd_no",
 								},
-								components.Button{
+								component.Button{
 									Label:    "I don't know",
-									Style:    components.LinkButton,
+									Style:    component.ButtonStyleLink,
 									Disabled: false,
 									// Link buttons don't require CustomID and do not trigger the gateway/HTTP event
 									URL: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -260,11 +260,11 @@ var (
 							},
 						},
 						// The message may have multiple actions rows.
-						components.ActionsRow{
-							Components: []components.MessageComponent{
-								components.Button{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Label:    "Discord Developers server",
-									Style:    components.LinkButton,
+									Style:    component.ButtonStyleLink,
 									Disabled: false,
 									URL:      "https://discord.gg/discord-developers",
 								},
@@ -286,14 +286,14 @@ var (
 					Data: &gokord.InteractionResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
 						Flags:   channel.MessageFlagsEphemeral,
-						Components: []components.MessageComponent{
-							components.ActionsRow{
-								Components: []components.MessageComponent{
-									components.SelectMenu{
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
 										// Select menu, as other components, must have a customID, so we set it to this value.
 										CustomID:    "select",
 										Placeholder: "Choose your favorite programming language 👇",
-										Options: []components.SelectMenuOption{
+										Options: []component.SelectMenuOption{
 											{
 												Label: "Go",
 												// As with components, this things must have their own unique "id" to identify which is which.
@@ -337,17 +337,17 @@ var (
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []components.MessageComponent{
-							components.ActionsRow{
-								Components: []components.MessageComponent{
-									components.SelectMenu{
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
 										CustomID:    "stackoverflow_tags",
 										Placeholder: "Select tags to search on StackOverflow",
 										// This is where confusion comes from. If you don't specify these things you will get single item select.
 										// These fields control the minimum and maximum amount of selected items.
 										MinValues: &minValues,
 										MaxValues: 3,
-										Options: []components.SelectMenuOption{
+										Options: []component.SelectMenuOption{
 											{
 												Label:       "Go",
 												Description: "Simple yet powerful programming language",
@@ -404,11 +404,11 @@ var (
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []components.MessageComponent{
-							components.ActionsRow{
-								Components: []components.MessageComponent{
-									components.SelectMenu{
-										MenuType:     components.ChannelSelectMenu,
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
+										MenuType:     component.ChannelSelectMenu,
 										CustomID:     "channel_select",
 										Placeholder:  "Pick your favorite channel!",
 										ChannelTypes: []gokord.ChannelType{gokord.ChannelTypeGuildText},

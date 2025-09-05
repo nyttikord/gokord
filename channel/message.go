@@ -1,10 +1,9 @@
 package channel
 
 import (
-	"encoding/json"
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/application"
-	"github.com/nyttikord/gokord/components"
+	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"io"
@@ -82,7 +81,7 @@ type Message struct {
 	Attachments []*MessageAttachment `json:"attachments"`
 
 	// A list of components attached to the message.
-	Components []components.MessageComponent `json:"-"`
+	Components []component.Message `json:"-"`
 
 	// A list of embeds present in the message.
 	Embeds []*MessageEmbed `json:"embeds"`
@@ -157,25 +156,6 @@ type Message struct {
 
 	// A poll object.
 	Poll *Poll `json:"poll"`
-}
-
-// UnmarshalJSON is a helper function to unmarshal the Message.
-func (m *Message) UnmarshalJSON(data []byte) error {
-	type message Message
-	var v struct {
-		message
-		RawComponents []components.UnmarshalableMessageComponent `json:"components"`
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-	*m = Message(v.message)
-	m.Components = make([]components.MessageComponent, len(v.RawComponents))
-	for i, v := range v.RawComponents {
-		m.Components[i] = v.MessageComponent
-	}
-	return err
 }
 
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
