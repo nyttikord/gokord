@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/nyttikord/gokord/endpoints"
+	"github.com/nyttikord/gokord/discord"
 	"time"
 )
 
@@ -84,8 +84,8 @@ func (m *Member) AvatarURL(size string) string {
 		return m.User.AvatarURL(size)
 	}
 	// The default/empty avatar case should be handled by the above condition
-	return avatarURL(m.Avatar, "", endpoints.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
-		endpoints.EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
+	return avatarURL(m.Avatar, "", discord.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
+		discord.EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
 
 }
 
@@ -99,8 +99,8 @@ func (m *Member) BannerURL(size string) string {
 	}
 	return bannerURL(
 		m.Banner,
-		endpoints.EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
-		endpoints.EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
+		discord.EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
+		discord.EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
 		size,
 	)
 }

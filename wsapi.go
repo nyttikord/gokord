@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nyttikord/gokord/endpoints"
+	"github.com/nyttikord/gokord/discord"
 	"io"
 	"net/http"
 	"sync/atomic"
@@ -72,7 +72,7 @@ func (s *Session) Open() error {
 	}
 
 	// Add the version and encoding to the URL
-	gateway += "?v=" + endpoints.APIVersion + "&encoding=json"
+	gateway += "?v=" + discord.APIVersion + "&encoding=json"
 
 	// Connect to the Gateway
 	s.LogInfo("connecting to gateway %s", gateway)

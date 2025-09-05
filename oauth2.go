@@ -1,7 +1,7 @@
 package gokord
 
 import (
-	"github.com/nyttikord/gokord/endpoints"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -41,7 +41,7 @@ type Team struct {
 //	appID : The ID of an Application
 func (s *Session) Application(appID string) (st *Application, err error) {
 
-	body, err := s.RequestWithBucketID("GET", endpoints.EndpointOAuth2Application(appID), nil, endpoints.EndpointOAuth2Application(""))
+	body, err := s.RequestWithBucketID("GET", discord.EndpointOAuth2Application(appID), nil, discord.EndpointOAuth2Application(""))
 	if err != nil {
 		return
 	}
@@ -53,7 +53,7 @@ func (s *Session) Application(appID string) (st *Application, err error) {
 // Applications returns all applications for the authenticated user
 func (s *Session) Applications() (st []*Application, err error) {
 
-	body, err := s.RequestWithBucketID("GET", endpoints.EndpointOAuth2Applications, nil, endpoints.EndpointOAuth2Applications)
+	body, err := s.RequestWithBucketID("GET", discord.EndpointOAuth2Applications, nil, discord.EndpointOAuth2Applications)
 	if err != nil {
 		return
 	}
@@ -73,7 +73,7 @@ func (s *Session) ApplicationCreate(ap *Application) (st *Application, err error
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
-	body, err := s.RequestWithBucketID("POST", endpoints.EndpointOAuth2Applications, data, endpoints.EndpointOAuth2Applications)
+	body, err := s.RequestWithBucketID("POST", discord.EndpointOAuth2Applications, data, discord.EndpointOAuth2Applications)
 	if err != nil {
 		return
 	}
@@ -92,7 +92,7 @@ func (s *Session) ApplicationUpdate(appID string, ap *Application) (st *Applicat
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
-	body, err := s.RequestWithBucketID("PUT", endpoints.EndpointOAuth2Application(appID), data, endpoints.EndpointOAuth2Application(""))
+	body, err := s.RequestWithBucketID("PUT", discord.EndpointOAuth2Application(appID), data, discord.EndpointOAuth2Application(""))
 	if err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (s *Session) ApplicationUpdate(appID string, ap *Application) (st *Applicat
 //	appID : The ID of an Application
 func (s *Session) ApplicationDelete(appID string) (err error) {
 
-	_, err = s.RequestWithBucketID("DELETE", endpoints.EndpointOAuth2Application(appID), nil, endpoints.EndpointOAuth2Application(""))
+	_, err = s.RequestWithBucketID("DELETE", discord.EndpointOAuth2Application(appID), nil, discord.EndpointOAuth2Application(""))
 	if err != nil {
 		return
 	}
@@ -124,7 +124,7 @@ type Asset struct {
 // ApplicationAssets returns an application's assets
 func (s *Session) ApplicationAssets(appID string) (ass []*Asset, err error) {
 
-	body, err := s.RequestWithBucketID("GET", endpoints.EndpointOAuth2ApplicationAssets(appID), nil, endpoints.EndpointOAuth2ApplicationAssets(""))
+	body, err := s.RequestWithBucketID("GET", discord.EndpointOAuth2ApplicationAssets(appID), nil, discord.EndpointOAuth2ApplicationAssets(""))
 	if err != nil {
 		return
 	}
@@ -144,7 +144,7 @@ func (s *Session) ApplicationAssets(appID string) (ass []*Asset, err error) {
 // NOTE: func name may change, if I can think up something better.
 func (s *Session) ApplicationBotCreate(appID string) (st *user.User, err error) {
 
-	body, err := s.RequestWithBucketID("POST", endpoints.EndpointOAuth2ApplicationsBot(appID), nil, endpoints.EndpointOAuth2ApplicationsBot(""))
+	body, err := s.RequestWithBucketID("POST", discord.EndpointOAuth2ApplicationsBot(appID), nil, discord.EndpointOAuth2ApplicationsBot(""))
 	if err != nil {
 		return
 	}
