@@ -36,6 +36,7 @@ type WebhookParams struct {
 	// MessageFlagsEphemeral can only be set when using Followup Message Create endpoint.
 	Flags MessageFlags `json:"flags,omitempty"`
 	// Name of the thread to create.
+	//
 	// NOTE: can only be set if the webhook channel is a forum.
 	ThreadName string `json:"thread_name,omitempty"`
 }

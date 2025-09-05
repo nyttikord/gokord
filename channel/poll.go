@@ -13,21 +13,21 @@ type PollMedia struct {
 	Emoji *emoji.Component `json:"emoji,omitempty"` // TODO: rename the type
 }
 
-// PollAnswer represents a single answer in a poll.
+// PollAnswer represents a single answer in a Poll.
 type PollAnswer struct {
 	// NOTE: should not be set on creation.
 	AnswerID int        `json:"answer_id,omitempty"`
 	Media    *PollMedia `json:"poll_media"`
 }
 
-// PollAnswerCount stores counted poll votes for a single answer.
+// PollAnswerCount stores counted Poll votes for a single answer.
 type PollAnswerCount struct {
 	ID      int  `json:"id"`
 	Count   int  `json:"count"`
 	MeVoted bool `json:"me_voted"`
 }
 
-// PollResults contains voting results on a poll.
+// PollResults contains voting results on a Poll.
 type PollResults struct {
 	Finalized    bool               `json:"is_finalized"`
 	AnswerCounts []*PollAnswerCount `json:"answer_counts"`

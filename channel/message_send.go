@@ -45,8 +45,7 @@ type MessageEdit struct {
 	Embed *MessageEmbed `json:"-"`
 }
 
-// NewMessageEdit returns a MessageEdit struct, initialized
-// with the Channel and ID.
+// NewMessageEdit returns a MessageEdit struct, initialized with the Channel and ID.
 func NewMessageEdit(channelID string, messageID string) *MessageEdit {
 	return &MessageEdit{
 		Channel: channelID,
@@ -54,49 +53,43 @@ func NewMessageEdit(channelID string, messageID string) *MessageEdit {
 	}
 }
 
-// SetContent is the same as setting the variable Content,
-// except it doesn't take a pointer.
+// SetContent is the same as setting the variable Content, except it doesn't take a pointer.
 func (m *MessageEdit) SetContent(str string) *MessageEdit {
 	m.Content = &str
 	return m
 }
 
-// SetEmbed is a convenience function for setting the embed,
-// so you can chain commands.
+// SetEmbed is a convenience function for setting the embed, so you can chain commands.
 func (m *MessageEdit) SetEmbed(embed *MessageEmbed) *MessageEdit {
 	m.Embeds = &[]*MessageEmbed{embed}
 	return m
 }
 
-// SetEmbeds is a convenience function for setting the embeds,
-// so you can chain commands.
+// SetEmbeds is a convenience function for setting the embeds, so you can chain commands.
 func (m *MessageEdit) SetEmbeds(embeds []*MessageEmbed) *MessageEdit {
 	m.Embeds = &embeds
 	return m
 }
 
-// MessageAllowedMentions allows the user to specify which mentions
-// Discord is allowed to parse in this message. This is useful when
-// sending user input as a message, as it prevents unwanted mentions.
-// If this type is used, all mentions must be explicitly whitelisted,
-// either by putting an AllowedMentionType in the Parse slice
-// (allowing all mentions of that type) or, in the case of roles and
-// users, explicitly allowing those mentions on an ID-by-ID basis.
+// MessageAllowedMentions allows the user to specify which mentions Discord is allowed to parse in this message.
+// This is useful when sending user input as a message, as it prevents unwanted mentions.
+// If this type is used, all mentions must be explicitly whitelisted, either by putting an AllowedMentionType in the
+// Parse slice (allowing all mentions of that type) or, in the case of roles and users, explicitly allowing those
+// mentions on an ID-by-ID basis.
 // For more information on this functionality, see:
 // https://discordapp.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
 type MessageAllowedMentions struct {
 	// The mention types that are allowed to be parsed in this message.
-	// Please note that this is purposely **not** marked as omitempty,
-	// so if a zero-value MessageAllowedMentions object is provided no
-	// mentions will be allowed.
+	// Please note that this is purposely **not** marked as omitempty, so if a zero-value MessageAllowedMentions object
+	// is provided no mentions will be allowed.
 	Parse []types.AllowedMention `json:"parse"`
 
-	// A list of role IDs to allow. This cannot be used when specifying
-	// AllowedMentionTypeRoles in the Parse slice.
+	// A list of guild.Role IDs to allow.
+	// This cannot be used when specifying types.AllowedMentionRoles in the Parse slice.
 	Roles []string `json:"roles,omitempty"`
 
-	// A list of user IDs to allow. This cannot be used when specifying
-	// AllowedMentionTypeUsers in the Parse slice.
+	// A list of user.User IDs to allow.
+	// This cannot be used when specifying types.AllowedMentionUsers in the Parse slice.
 	Users []string `json:"users,omitempty"`
 
 	// For replies, whether to mention the author of the message being replied to

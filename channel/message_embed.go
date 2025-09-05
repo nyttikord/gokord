@@ -53,7 +53,7 @@ type MessageEmbedField struct {
 	Inline bool   `json:"inline,omitempty"`
 }
 
-// An MessageEmbed stores data for message embeds.
+// An MessageEmbed stores data for Message embeds.
 type MessageEmbed struct {
 	URL         string                 `json:"url,omitempty"`
 	Type        types.Embed            `json:"type,omitempty"`
