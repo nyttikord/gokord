@@ -114,30 +114,19 @@ func (m *Member) DisplayName() string {
 	return m.User.DisplayName()
 }
 
-// ClientStatus stores the online, offline, idle, or dnd status of each device of a Guild member.
-type ClientStatus struct {
-	Desktop Status `json:"desktop"`
-	Mobile  Status `json:"mobile"`
-	Web     Status `json:"web"`
-}
-
-// Status type definition
-type Status string
-
-// Constants for Status with the different current available status
-const (
-	StatusOnline       Status = "online"
-	StatusIdle         Status = "idle"
-	StatusDoNotDisturb Status = "dnd"
-	StatusInvisible    Status = "invisible"
-	StatusOffline      Status = "offline"
-)
-
-// A Presence stores the online, offline, or idle and game status of Guild members.
-type Presence struct {
-	User         *User        `json:"user"`
-	Status       Status       `json:"status"`
-	Activities   []*Activity  `json:"activities"`
-	Since        *int         `json:"since"`
-	ClientStatus ClientStatus `json:"client_status"`
+// A VoiceState stores the voice states of Guilds
+type VoiceState struct {
+	GuildID                 string     `json:"guild_id"`
+	ChannelID               string     `json:"channel_id"`
+	UserID                  string     `json:"user_id"`
+	Member                  *Member    `json:"member"`
+	SessionID               string     `json:"session_id"`
+	Deaf                    bool       `json:"deaf"`
+	Mute                    bool       `json:"mute"`
+	SelfDeaf                bool       `json:"self_deaf"`
+	SelfMute                bool       `json:"self_mute"`
+	SelfStream              bool       `json:"self_stream"`
+	SelfVideo               bool       `json:"self_video"`
+	Suppress                bool       `json:"suppress"`
+	RequestToSpeakTimestamp *time.Time `json:"request_to_speak_timestamp"`
 }
