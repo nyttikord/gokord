@@ -1,18 +1,9 @@
 package premium
 
-import "time"
+import (
+	"time"
 
-// SKUType is the type of SKU (see SKUType* consts)
-// https://discord.com/developers/docs/monetization/skus
-type SKUType int
-
-// Valid SKUType values
-const (
-	SKUTypeDurable      SKUType = 2
-	SKUTypeConsumable   SKUType = 3
-	SKUTypeSubscription SKUType = 5
-	// SKUTypeSubscriptionGroup is a system-generated group for each subscription SKU.
-	SKUTypeSubscriptionGroup SKUType = 6
+	"github.com/nyttikord/gokord/discord/types"
 )
 
 // SKUFlags is a bitfield of flags used to differentiate user and server subscriptions (see SKUFlag* consts)
@@ -34,7 +25,7 @@ type SKU struct {
 	ID string `json:"id"`
 
 	// The Type of the SKU
-	Type SKUType `json:"type"`
+	Type types.SKU `json:"type"`
 
 	// The ID of the parent application
 	ApplicationID string `json:"application_id"`
@@ -95,22 +86,6 @@ const (
 	SubscriptionStatusInactive = 2
 )
 
-// EntitlementType is the type of entitlement (see EntitlementType* consts)
-// https://discord.com/developers/docs/monetization/entitlements#entitlement-object-entitlement-types
-type EntitlementType int
-
-// Valid EntitlementType values
-const (
-	EntitlementTypePurchase                = 1
-	EntitlementTypePremiumSubscription     = 2
-	EntitlementTypeDeveloperGift           = 3
-	EntitlementTypeTestModePurchase        = 4
-	EntitlementTypeFreePurchase            = 5
-	EntitlementTypeUserGift                = 6
-	EntitlementTypePremiumPurchase         = 7
-	EntitlementTypeApplicationSubscription = 8
-)
-
 // Entitlement represents that a user or guild has access to a premium offering
 // in your application.
 type Entitlement struct {
@@ -128,7 +103,7 @@ type Entitlement struct {
 	UserID string `json:"user_id,omitempty"`
 
 	// The type of the entitlement
-	Type EntitlementType `json:"type"`
+	Type types.Entitlement `json:"type"`
 
 	// The entitlement was deleted
 	Deleted bool `json:"deleted"`
@@ -154,15 +129,6 @@ type Entitlement struct {
 	SubscriptionID string `json:"subscription_id,omitempty"`
 }
 
-// EntitlementOwnerType is the type of entitlement (see EntitlementOwnerType* consts)
-type EntitlementOwnerType int
-
-// Valid EntitlementOwnerType values
-const (
-	EntitlementOwnerTypeGuildSubscription EntitlementOwnerType = 1
-	EntitlementOwnerTypeUserSubscription  EntitlementOwnerType = 2
-)
-
 // EntitlementTest is used to test granting an entitlement to a user or guild
 type EntitlementTest struct {
 	// The ID of the SKU to grant the entitlement to
@@ -172,7 +138,7 @@ type EntitlementTest struct {
 	OwnerID string `json:"owner_id"`
 
 	// OwnerType is the type of which the entitlement should be created
-	OwnerType EntitlementOwnerType `json:"owner_type"`
+	OwnerType types.EntitlementOwner `json:"owner_type"`
 }
 
 // EntitlementFilterOptions are the options for filtering Entitlements

@@ -113,40 +113,18 @@ type SelectMenuOption struct {
 	Default bool `json:"default"`
 }
 
-// SelectMenuDefaultValueType represents the type of an entity selected by default in auto-populated select menus.
-type SelectMenuDefaultValueType string
-
-// SelectMenuDefaultValue types.
-const (
-	SelectMenuDefaultValueUser    SelectMenuDefaultValueType = "user"
-	SelectMenuDefaultValueRole    SelectMenuDefaultValueType = "role"
-	SelectMenuDefaultValueChannel SelectMenuDefaultValueType = "channel"
-)
-
 // SelectMenuDefaultValue represents an entity selected by default in auto-populated select menus.
 type SelectMenuDefaultValue struct {
 	// ID of the entity.
 	ID string `json:"id"`
 	// Type of the entity.
-	Type SelectMenuDefaultValueType `json:"type"`
+	Type types.SelectMenuDefaultValue `json:"type"`
 }
-
-// SelectMenuType represents select menu type.
-type SelectMenuType types.Component
-
-// SelectMenu types.
-const (
-	StringSelectMenu      = SelectMenuType(types.ComponentSelectMenu)
-	UserSelectMenu        = SelectMenuType(types.ComponentUserSelectMenu)
-	RoleSelectMenu        = SelectMenuType(types.ComponentRoleSelectMenu)
-	MentionableSelectMenu = SelectMenuType(types.ComponentMentionableSelectMenu)
-	ChannelSelectMenu     = SelectMenuType(types.ComponentChannelSelectMenu)
-)
 
 // SelectMenu represents select menu component.
 type SelectMenu struct {
 	// Type of the select menu.
-	MenuType SelectMenuType `json:"type,omitempty"`
+	MenuType types.SelectMenu `json:"type,omitempty"`
 	// CustomID is a developer-defined identifier for the select menu.
 	CustomID string `json:"custom_id,omitempty"`
 	// The text which will be shown in the menu if there's no default options or all options was deselected and component was closed.
@@ -162,7 +140,7 @@ type SelectMenu struct {
 
 	Options []SelectMenuOption `json:"options,omitempty"`
 	// The list of value(s) selected from the predefined options.
-	// NOTE: This will only exist if the InteractionType was a ModalSubmit
+	// NOTE: This will only exist if the Interaction was a ModalSubmit
 	// otherwise you should (still) be using `MessageComponentData`
 	Values   []string `json:"values,omitempty"`
 	Disabled bool     `json:"disabled"`
@@ -314,8 +292,8 @@ type MediaGalleryItem struct {
 	Spoiler     bool              `json:"spoiler"`
 }
 
-// FileComponent is a top-level component that allows you to display an uploaded file as an attachment to the message and reference it in the component.
-type FileComponent struct {
+// File is a top-level component that allows you to display an uploaded file as an attachment to the message and reference it in the component.
+type File struct {
 	// Unique identifier for the component; auto populated through increment if not provided.
 	ID      int               `json:"id,omitempty"`
 	File    UnfurledMediaItem `json:"file"`
@@ -323,16 +301,16 @@ type FileComponent struct {
 }
 
 // Type is a method to get the type of a component.
-func (FileComponent) Type() types.Component {
+func (File) Type() types.Component {
 	return types.ComponentFile
 }
 
-// MarshalJSON is a method for marshaling FileComponent to a JSON object.
-func (f FileComponent) MarshalJSON() ([]byte, error) {
+// MarshalJSON is a method for marshaling File to a JSON object.
+func (f File) MarshalJSON() ([]byte, error) {
 	return toJson(f)
 }
 
-func (FileComponent) message() {}
+func (File) message() {}
 
 // SeparatorSpacingSize represents spacing size around the separator.
 type SeparatorSpacingSize uint

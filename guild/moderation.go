@@ -2,6 +2,7 @@ package guild
 
 import (
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -13,38 +14,18 @@ type Ban struct {
 
 // AutoModerationRule stores data for an auto moderation rule.
 type AutoModerationRule struct {
-	ID              string                         `json:"id,omitempty"`
-	GuildID         string                         `json:"guild_id,omitempty"`
-	Name            string                         `json:"name,omitempty"`
-	CreatorID       string                         `json:"creator_id,omitempty"`
-	EventType       AutoModerationRuleEventType    `json:"event_type,omitempty"`
-	TriggerType     AutoModerationRuleTriggerType  `json:"trigger_type,omitempty"`
-	TriggerMetadata *AutoModerationTriggerMetadata `json:"trigger_metadata,omitempty"`
-	Actions         []AutoModerationAction         `json:"actions,omitempty"`
-	Enabled         *bool                          `json:"enabled,omitempty"`
-	ExemptRoles     *[]string                      `json:"exempt_roles,omitempty"`
-	ExemptChannels  *[]string                      `json:"exempt_channels,omitempty"`
+	ID              string                          `json:"id,omitempty"`
+	GuildID         string                          `json:"guild_id,omitempty"`
+	Name            string                          `json:"name,omitempty"`
+	CreatorID       string                          `json:"creator_id,omitempty"`
+	EventType       types.AutoModerationRuleEvent   `json:"event_type,omitempty"`
+	TriggerType     types.AutoModerationRuleTrigger `json:"trigger_type,omitempty"`
+	TriggerMetadata *AutoModerationTriggerMetadata  `json:"trigger_metadata,omitempty"`
+	Actions         []AutoModerationAction          `json:"actions,omitempty"`
+	Enabled         *bool                           `json:"enabled,omitempty"`
+	ExemptRoles     *[]string                       `json:"exempt_roles,omitempty"`
+	ExemptChannels  *[]string                       `json:"exempt_channels,omitempty"`
 }
-
-// AutoModerationRuleEventType indicates in what event context a rule should be checked.
-type AutoModerationRuleEventType int
-
-// Auto moderation rule event types.
-const (
-	// AutoModerationEventMessageSend is checked when a member sends or edits a message in the guild
-	AutoModerationEventMessageSend AutoModerationRuleEventType = 1
-)
-
-// AutoModerationRuleTriggerType represents the type of content which can trigger the rule.
-type AutoModerationRuleTriggerType int
-
-// Auto moderation rule trigger types.
-const (
-	AutoModerationEventTriggerKeyword       AutoModerationRuleTriggerType = 1
-	AutoModerationEventTriggerHarmfulLink   AutoModerationRuleTriggerType = 2
-	AutoModerationEventTriggerSpam          AutoModerationRuleTriggerType = 3
-	AutoModerationEventTriggerKeywordPreset AutoModerationRuleTriggerType = 4
-)
 
 // AutoModerationKeywordPreset represents an internally pre-defined wordset.
 type AutoModerationKeywordPreset uint
@@ -78,16 +59,6 @@ type AutoModerationTriggerMetadata struct {
 	MentionTotalLimit int `json:"mention_total_limit,omitempty"`
 }
 
-// AutoModerationActionType represents an action which will execute whenever a rule is triggered.
-type AutoModerationActionType int
-
-// Auto moderation actions types.
-const (
-	AutoModerationRuleActionBlockMessage     AutoModerationActionType = 1
-	AutoModerationRuleActionSendAlertMessage AutoModerationActionType = 2
-	AutoModerationRuleActionTimeout          AutoModerationActionType = 3
-)
-
 // AutoModerationActionMetadata represents additional metadata needed during execution for a specific action type.
 type AutoModerationActionMetadata struct {
 	// Channel to which user content should be logged.
@@ -105,7 +76,7 @@ type AutoModerationActionMetadata struct {
 
 // AutoModerationAction stores data for an auto moderation action.
 type AutoModerationAction struct {
-	Type     AutoModerationActionType      `json:"type"`
+	Type     types.AutoModerationAction    `json:"type"`
 	Metadata *AutoModerationActionMetadata `json:"metadata,omitempty"`
 }
 
@@ -290,29 +261,19 @@ const (
 // AuditLogOptions optional data for the AuditLog
 // https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-optional-audit-entry-info
 type AuditLogOptions struct {
-	DeleteMemberDays              string               `json:"delete_member_days"`
-	MembersRemoved                string               `json:"members_removed"`
-	ChannelID                     string               `json:"channel_id"`
-	MessageID                     string               `json:"message_id"`
-	Count                         string               `json:"count"`
-	ID                            string               `json:"id"`
-	Type                          *AuditLogOptionsType `json:"type"`
-	RoleName                      string               `json:"role_name"`
-	ApplicationID                 string               `json:"application_id"`
-	AutoModerationRuleName        string               `json:"auto_moderation_rule_name"`
-	AutoModerationRuleTriggerType string               `json:"auto_moderation_rule_trigger_type"`
-	IntegrationType               string               `json:"integration_type"`
+	DeleteMemberDays              string                 `json:"delete_member_days"`
+	MembersRemoved                string                 `json:"members_removed"`
+	ChannelID                     string                 `json:"channel_id"`
+	MessageID                     string                 `json:"message_id"`
+	Count                         string                 `json:"count"`
+	ID                            string                 `json:"id"`
+	Type                          *types.AuditLogOptions `json:"type"`
+	RoleName                      string                 `json:"role_name"`
+	ApplicationID                 string                 `json:"application_id"`
+	AutoModerationRuleName        string                 `json:"auto_moderation_rule_name"`
+	AutoModerationRuleTriggerType string                 `json:"auto_moderation_rule_trigger_type"`
+	IntegrationType               string                 `json:"integration_type"`
 }
-
-// AuditLogOptionsType of the AuditLogOption
-// https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-optional-audit-entry-info
-type AuditLogOptionsType string
-
-// Valid Types for AuditLogOptionsType
-const (
-	AuditLogOptionsTypeRole   AuditLogOptionsType = "0"
-	AuditLogOptionsTypeMember AuditLogOptionsType = "1"
-)
 
 // AuditLogAction is the Action of the AuditLog (see AuditLogAction* consts)
 // https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-audit-log-events

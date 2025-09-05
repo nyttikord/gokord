@@ -1,6 +1,9 @@
 package emoji
 
-import "github.com/nyttikord/gokord/user"
+import (
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user"
+)
 
 // StickerFormat is the file format of the Sticker.
 type StickerFormat int
@@ -13,15 +16,6 @@ const (
 	StickerFormatTypeGIF    StickerFormat = 4
 )
 
-// StickerType is the type of sticker.
-type StickerType int
-
-// Defines Sticker types.
-const (
-	StickerTypeStandard StickerType = 1
-	StickerTypeGuild    StickerType = 2
-)
-
 // Sticker represents a sticker object that can be sent in a Message.
 type Sticker struct {
 	ID          string        `json:"id"`
@@ -29,7 +23,7 @@ type Sticker struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Tags        string        `json:"tags"`
-	Type        StickerType   `json:"type"`
+	Type        types.Sticker `json:"type"`
 	FormatType  StickerFormat `json:"format_type"`
 	Available   bool          `json:"available"`
 	GuildID     string        `json:"guild_id"`

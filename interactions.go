@@ -5,16 +5,15 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
@@ -23,26 +22,13 @@ import (
 // InteractionDeadline is the time allowed to respond to an interaction.
 const InteractionDeadline = time.Second * 3
 
-// ApplicationCommandType represents the type of application command.
-type ApplicationCommandType uint8
-
-// Application command types
-const (
-	// ChatApplicationCommand is default command type. They are slash commands (i.e. called directly from the chat).
-	ChatApplicationCommand ApplicationCommandType = 1
-	// UserApplicationCommand adds command to user context menu.
-	UserApplicationCommand ApplicationCommandType = 2
-	// MessageApplicationCommand adds command to message context menu.
-	MessageApplicationCommand ApplicationCommandType = 3
-)
-
 // ApplicationCommand represents an application's slash command.
 type ApplicationCommand struct {
 	ID                string                     `json:"id,omitempty"`
 	ApplicationID     string                     `json:"application_id,omitempty"`
 	GuildID           string                     `json:"guild_id,omitempty"`
 	Version           string                     `json:"version,omitempty"`
-	Type              ApplicationCommandType     `json:"type,omitempty"`
+	Type              types.ApplicationCommand   `json:"type,omitempty"`
 	Name              string                     `json:"name"`
 	NameLocalizations *map[discord.Locale]string `json:"name_localizations,omitempty"`
 
@@ -52,9 +38,9 @@ type ApplicationCommand struct {
 	NSFW                     *bool  `json:"nsfw,omitempty"`
 
 	// Deprecated: use Contexts instead.
-	DMPermission     *bool                          `json:"dm_permission,omitempty"`
-	Contexts         *[]InteractionContextType      `json:"contexts,omitempty"`
-	IntegrationTypes *[]application.IntegrationType `json:"integration_types,omitempty"`
+	DMPermission     *bool                       `json:"dm_permission,omitempty"`
+	Contexts         *[]types.InteractionContext `json:"contexts,omitempty"`
+	IntegrationTypes *[]types.Integration        `json:"integration_types,omitempty"`
 
 	// NOTE: Chat commands only. Otherwise it mustn't be set.
 
@@ -63,64 +49,18 @@ type ApplicationCommand struct {
 	Options                  []*ApplicationCommandOption `json:"options"`
 }
 
-// ApplicationCommandOptionType indicates the type of a slash command's option.
-type ApplicationCommandOptionType uint8
-
-// Application command option types.
-const (
-	ApplicationCommandOptionSubCommand      ApplicationCommandOptionType = 1
-	ApplicationCommandOptionSubCommandGroup ApplicationCommandOptionType = 2
-	ApplicationCommandOptionString          ApplicationCommandOptionType = 3
-	ApplicationCommandOptionInteger         ApplicationCommandOptionType = 4
-	ApplicationCommandOptionBoolean         ApplicationCommandOptionType = 5
-	ApplicationCommandOptionUser            ApplicationCommandOptionType = 6
-	ApplicationCommandOptionChannel         ApplicationCommandOptionType = 7
-	ApplicationCommandOptionRole            ApplicationCommandOptionType = 8
-	ApplicationCommandOptionMentionable     ApplicationCommandOptionType = 9
-	ApplicationCommandOptionNumber          ApplicationCommandOptionType = 10
-	ApplicationCommandOptionAttachment      ApplicationCommandOptionType = 11
-)
-
-func (t ApplicationCommandOptionType) String() string {
-	switch t {
-	case ApplicationCommandOptionSubCommand:
-		return "SubCommand"
-	case ApplicationCommandOptionSubCommandGroup:
-		return "SubCommandGroup"
-	case ApplicationCommandOptionString:
-		return "String"
-	case ApplicationCommandOptionInteger:
-		return "Integer"
-	case ApplicationCommandOptionBoolean:
-		return "Boolean"
-	case ApplicationCommandOptionUser:
-		return "User"
-	case ApplicationCommandOptionChannel:
-		return "Channel"
-	case ApplicationCommandOptionRole:
-		return "Role"
-	case ApplicationCommandOptionMentionable:
-		return "Mentionable"
-	case ApplicationCommandOptionNumber:
-		return "Number"
-	case ApplicationCommandOptionAttachment:
-		return "Attachment"
-	}
-	return fmt.Sprintf("ApplicationCommandOptionType(%d)", t)
-}
-
 // ApplicationCommandOption represents an option/subcommand/subcommands group.
 type ApplicationCommandOption struct {
-	Type                     ApplicationCommandOptionType `json:"type"`
-	Name                     string                       `json:"name"`
-	NameLocalizations        map[discord.Locale]string    `json:"name_localizations,omitempty"`
-	Description              string                       `json:"description,omitempty"`
-	DescriptionLocalizations map[discord.Locale]string    `json:"description_localizations,omitempty"`
+	Type                     types.ApplicationCommandOption `json:"type"`
+	Name                     string                         `json:"name"`
+	NameLocalizations        map[discord.Locale]string      `json:"name_localizations,omitempty"`
+	Description              string                         `json:"description,omitempty"`
+	DescriptionLocalizations map[discord.Locale]string      `json:"description_localizations,omitempty"`
 	// NOTE: This feature was on the API, but at some point developers decided to remove it.
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
 
-	ChannelTypes []channel.Type              `json:"channel_types"`
+	ChannelTypes []types.Channel             `json:"channel_types"`
 	Required     bool                        `json:"required"`
 	Options      []*ApplicationCommandOption `json:"options"`
 
@@ -146,9 +86,9 @@ type ApplicationCommandOptionChoice struct {
 
 // ApplicationCommandPermissions represents a single user or role permission for a command.
 type ApplicationCommandPermissions struct {
-	ID         string                           `json:"id"`
-	Type       ApplicationCommandPermissionType `json:"type"`
-	Permission bool                             `json:"permission"`
+	ID         string                             `json:"id"`
+	Type       types.ApplicationCommandPermission `json:"type"`
+	Permission bool                               `json:"permission"`
 }
 
 // GuildAllChannelsID is a helper function which returns guild_id-1.
@@ -176,62 +116,14 @@ type GuildApplicationCommandPermissions struct {
 	Permissions   []*ApplicationCommandPermissions `json:"permissions"`
 }
 
-// ApplicationCommandPermissionType indicates whether a permission is user or role based.
-type ApplicationCommandPermissionType uint8
-
-// Application command permission types.
-const (
-	ApplicationCommandPermissionTypeRole    ApplicationCommandPermissionType = 1
-	ApplicationCommandPermissionTypeUser    ApplicationCommandPermissionType = 2
-	ApplicationCommandPermissionTypeChannel ApplicationCommandPermissionType = 3
-)
-
-// InteractionType indicates the type of an interaction event.
-type InteractionType uint8
-
-// Interaction types
-const (
-	InteractionPing                           InteractionType = 1
-	InteractionApplicationCommand             InteractionType = 2
-	InteractionMessageComponent               InteractionType = 3
-	InteractionApplicationCommandAutocomplete InteractionType = 4
-	InteractionModalSubmit                    InteractionType = 5
-)
-
-func (t InteractionType) String() string {
-	switch t {
-	case InteractionPing:
-		return "Ping"
-	case InteractionApplicationCommand:
-		return "ApplicationCommand"
-	case InteractionMessageComponent:
-		return "Message"
-	case InteractionModalSubmit:
-		return "ModalSubmit"
-	}
-	return fmt.Sprintf("InteractionType(%d)", t)
-}
-
-// InteractionContextType represents the context in which interaction can be used or was triggered from.
-type InteractionContextType uint
-
-const (
-	// InteractionContextGuild indicates that interaction can be used within guilds.
-	InteractionContextGuild InteractionContextType = 0
-	// InteractionContextBotDM indicates that interaction can be used within DMs with the bot.
-	InteractionContextBotDM InteractionContextType = 1
-	// InteractionContextPrivateChannel indicates that interaction can be used within group DMs and DMs with other users.
-	InteractionContextPrivateChannel InteractionContextType = 2
-)
-
 // Interaction represents data of an interaction.
 type Interaction struct {
-	ID        string          `json:"id"`
-	AppID     string          `json:"application_id"`
-	Type      InteractionType `json:"type"`
-	Data      InteractionData `json:"data"`
-	GuildID   string          `json:"guild_id"`
-	ChannelID string          `json:"channel_id"`
+	ID        string            `json:"id"`
+	AppID     string            `json:"application_id"`
+	Type      types.Interaction `json:"type"`
+	Data      InteractionData   `json:"data"`
+	GuildID   string            `json:"guild_id"`
+	ChannelID string            `json:"channel_id"`
 
 	// The message on which interaction was used.
 	// NOTE: this field is only filled when a button click triggered the interaction. Otherwise it will be nil.
@@ -257,8 +149,8 @@ type Interaction struct {
 	// NOTE: this field is only filled when the interaction was invoked in a guild.
 	GuildLocale *discord.Locale `json:"guild_locale"`
 
-	Context                      InteractionContextType                 `json:"context"`
-	AuthorizingIntegrationOwners map[application.IntegrationType]string `json:"authorizing_integration_owners"`
+	Context                      types.InteractionContext     `json:"context"`
+	AuthorizingIntegrationOwners map[types.Integration]string `json:"authorizing_integration_owners"`
 
 	Token   string `json:"token"`
 	Version int    `json:"version"`
@@ -286,21 +178,21 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 	*i = Interaction(tmp.interaction)
 
 	switch tmp.Type {
-	case InteractionApplicationCommand, InteractionApplicationCommandAutocomplete:
+	case types.InteractionApplicationCommand, types.InteractionApplicationCommandAutocomplete:
 		v := ApplicationCommandInteractionData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
 			return err
 		}
 		i.Data = v
-	case InteractionMessageComponent:
+	case types.InteractionMessageComponent:
 		v := MessageComponentInteractionData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
 			return err
 		}
 		i.Data = v
-	case InteractionModalSubmit:
+	case types.InteractionModalSubmit:
 		v := ModalSubmitInteractionData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
@@ -313,8 +205,8 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 
 // MessageComponentData is helper function to assert the inner InteractionData to MessageComponentInteractionData.
 // Make sure to check that the Type of the interaction is InteractionMessageComponent before calling.
-func (i Interaction) MessageComponentData() (data MessageComponentInteractionData) {
-	if i.Type != InteractionMessageComponent {
+func (i *Interaction) MessageComponentData() (data MessageComponentInteractionData) {
+	if i.Type != types.InteractionMessageComponent {
 		panic("MessageComponentData called on interaction of type " + i.Type.String())
 	}
 	return i.Data.(MessageComponentInteractionData)
@@ -322,8 +214,8 @@ func (i Interaction) MessageComponentData() (data MessageComponentInteractionDat
 
 // ApplicationCommandData is helper function to assert the inner InteractionData to ApplicationCommandInteractionData.
 // Make sure to check that the Type of the interaction is InteractionApplicationCommand before calling.
-func (i Interaction) ApplicationCommandData() (data ApplicationCommandInteractionData) {
-	if i.Type != InteractionApplicationCommand && i.Type != InteractionApplicationCommandAutocomplete {
+func (i *Interaction) ApplicationCommandData() (data ApplicationCommandInteractionData) {
+	if i.Type != types.InteractionApplicationCommand && i.Type != types.InteractionApplicationCommandAutocomplete {
 		panic("ApplicationCommandData called on interaction of type " + i.Type.String())
 	}
 	return i.Data.(ApplicationCommandInteractionData)
@@ -331,8 +223,8 @@ func (i Interaction) ApplicationCommandData() (data ApplicationCommandInteractio
 
 // ModalSubmitData is helper function to assert the inner InteractionData to ModalSubmitInteractionData.
 // Make sure to check that the Type of the interaction is InteractionModalSubmit before calling.
-func (i Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
-	if i.Type != InteractionModalSubmit {
+func (i *Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
+	if i.Type != types.InteractionModalSubmit {
 		panic("ModalSubmitData called on interaction of type " + i.Type.String())
 	}
 	return i.Data.(ModalSubmitInteractionData)
@@ -340,14 +232,14 @@ func (i Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
 
 // InteractionData is a common interface for all types of interaction data.
 type InteractionData interface {
-	Type() InteractionType
+	Type() types.Interaction
 }
 
 // ApplicationCommandInteractionData contains the data of application command interaction.
 type ApplicationCommandInteractionData struct {
 	ID          string                                     `json:"id"`
 	Name        string                                     `json:"name"`
-	CommandType ApplicationCommandType                     `json:"type"`
+	CommandType types.ApplicationCommand                   `json:"type"`
 	Resolved    *ApplicationCommandInteractionDataResolved `json:"resolved"`
 
 	// Slash command options
@@ -382,14 +274,14 @@ type ApplicationCommandInteractionDataResolved struct {
 }
 
 // Type returns the type of interaction data.
-func (ApplicationCommandInteractionData) Type() InteractionType {
-	return InteractionApplicationCommand
+func (ApplicationCommandInteractionData) Type() types.Interaction {
+	return types.InteractionApplicationCommand
 }
 
 // MessageComponentInteractionData contains the data of message component interaction.
 type MessageComponentInteractionData struct {
 	CustomID      string                                  `json:"custom_id"`
-	ComponentType component.Type                          `json:"component_type"`
+	ComponentType types.Component                         `json:"component_type"`
 	Resolved      MessageComponentInteractionDataResolved `json:"resolved"`
 
 	// NOTE: Only filled when ComponentType is TypeSelectMenu (3). Otherwise is nil.
@@ -405,8 +297,8 @@ type MessageComponentInteractionDataResolved struct {
 }
 
 // Type returns the type of interaction data.
-func (MessageComponentInteractionData) Type() InteractionType {
-	return InteractionMessageComponent
+func (MessageComponentInteractionData) Type() types.Interaction {
+	return types.InteractionMessageComponent
 }
 
 // ModalSubmitInteractionData contains the data of modal submit interaction.
@@ -416,33 +308,14 @@ type ModalSubmitInteractionData struct {
 }
 
 // Type returns the type of interaction data.
-func (ModalSubmitInteractionData) Type() InteractionType {
-	return InteractionModalSubmit
-}
-
-// UnmarshalJSON is a helper function to correctly unmarshal Components.
-func (d *ModalSubmitInteractionData) UnmarshalJSON(data []byte) error {
-	type modalSubmitInteractionData ModalSubmitInteractionData
-	var v struct {
-		modalSubmitInteractionData
-		RawComponents []component.unmarshalableMessageComponent `json:"components"`
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-	*d = ModalSubmitInteractionData(v.modalSubmitInteractionData)
-	d.Components = make([]component.Message, len(v.RawComponents))
-	for i, v := range v.RawComponents {
-		d.Components[i] = v.MessageComponent
-	}
-	return err
+func (ModalSubmitInteractionData) Type() types.Interaction {
+	return types.InteractionModalSubmit
 }
 
 // ApplicationCommandInteractionDataOption represents an option of a slash command.
 type ApplicationCommandInteractionDataOption struct {
-	Name string                       `json:"name"`
-	Type ApplicationCommandOptionType `json:"type"`
+	Name string                         `json:"name"`
+	Type types.ApplicationCommandOption `json:"type"`
 	// NOTE: Contains the value specified by Type.
 	Value   interface{}                                `json:"value,omitempty"`
 	Options []*ApplicationCommandInteractionDataOption `json:"options,omitempty"`
@@ -465,7 +338,7 @@ func (o ApplicationCommandInteractionDataOption) GetOption(name string) (option 
 
 // IntValue is a utility function for casting option value to integer
 func (o ApplicationCommandInteractionDataOption) IntValue() int64 {
-	if o.Type != ApplicationCommandOptionInteger {
+	if o.Type != types.ApplicationCommandOptionInteger {
 		panic("IntValue called on data option of type " + o.Type.String())
 	}
 	return int64(o.Value.(float64))
@@ -473,7 +346,7 @@ func (o ApplicationCommandInteractionDataOption) IntValue() int64 {
 
 // UintValue is a utility function for casting option value to unsigned integer
 func (o ApplicationCommandInteractionDataOption) UintValue() uint64 {
-	if o.Type != ApplicationCommandOptionInteger {
+	if o.Type != types.ApplicationCommandOptionInteger {
 		panic("UintValue called on data option of type " + o.Type.String())
 	}
 	return uint64(o.Value.(float64))
@@ -481,7 +354,7 @@ func (o ApplicationCommandInteractionDataOption) UintValue() uint64 {
 
 // FloatValue is a utility function for casting option value to float
 func (o ApplicationCommandInteractionDataOption) FloatValue() float64 {
-	if o.Type != ApplicationCommandOptionNumber {
+	if o.Type != types.ApplicationCommandOptionNumber {
 		panic("FloatValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(float64)
@@ -489,7 +362,7 @@ func (o ApplicationCommandInteractionDataOption) FloatValue() float64 {
 
 // StringValue is a utility function for casting option value to string
 func (o ApplicationCommandInteractionDataOption) StringValue() string {
-	if o.Type != ApplicationCommandOptionString {
+	if o.Type != types.ApplicationCommandOptionString {
 		panic("StringValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(string)
@@ -497,7 +370,7 @@ func (o ApplicationCommandInteractionDataOption) StringValue() string {
 
 // BoolValue is a utility function for casting option value to bool
 func (o ApplicationCommandInteractionDataOption) BoolValue() bool {
-	if o.Type != ApplicationCommandOptionBoolean {
+	if o.Type != types.ApplicationCommandOptionBoolean {
 		panic("BoolValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(bool)
@@ -506,7 +379,7 @@ func (o ApplicationCommandInteractionDataOption) BoolValue() bool {
 // ChannelValue is a utility function for casting option value to channel object.
 // s : Session object, if not nil, function additionally fetches all channel's data
 func (o ApplicationCommandInteractionDataOption) ChannelValue(s *Session) *channel.Channel {
-	if o.Type != ApplicationCommandOptionChannel {
+	if o.Type != types.ApplicationCommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
 	chanID := o.Value.(string)
@@ -529,7 +402,7 @@ func (o ApplicationCommandInteractionDataOption) ChannelValue(s *Session) *chann
 // RoleValue is a utility function for casting option value to role object.
 // s : Session object, if not nil, function additionally fetches all role's data
 func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID string) *guild.Role {
-	if o.Type != ApplicationCommandOptionRole && o.Type != ApplicationCommandOptionMentionable {
+	if o.Type != types.ApplicationCommandOptionRole && o.Type != types.ApplicationCommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}
 	roleID := o.Value.(string)
@@ -557,7 +430,7 @@ func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID strin
 // UserValue is a utility function for casting option value to user object.
 // s : Session object, if not nil, function additionally fetches all user's data
 func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *user.User {
-	if o.Type != ApplicationCommandOptionUser && o.Type != ApplicationCommandOptionMentionable {
+	if o.Type != types.ApplicationCommandOptionUser && o.Type != types.ApplicationCommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
 	userID := o.Value.(string)
@@ -574,31 +447,10 @@ func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *user.Use
 	return u
 }
 
-// InteractionResponseType is type of interaction response.
-type InteractionResponseType uint8
-
-// Interaction response types.
-const (
-	// InteractionResponsePong is for ACK ping event.
-	InteractionResponsePong InteractionResponseType = 1
-	// InteractionResponseChannelMessageWithSource is for responding with a message, showing the user's input.
-	InteractionResponseChannelMessageWithSource InteractionResponseType = 4
-	// InteractionResponseDeferredChannelMessageWithSource acknowledges that the event was received, and that a follow-up will come later.
-	InteractionResponseDeferredChannelMessageWithSource InteractionResponseType = 5
-	// InteractionResponseDeferredMessageUpdate acknowledges that the message component interaction event was received, and message will be updated later.
-	InteractionResponseDeferredMessageUpdate InteractionResponseType = 6
-	// InteractionResponseUpdateMessage is for updating the message to which message component was attached.
-	InteractionResponseUpdateMessage InteractionResponseType = 7
-	// InteractionApplicationCommandAutocompleteResult shows autocompletion results. Autocomplete interaction only.
-	InteractionApplicationCommandAutocompleteResult InteractionResponseType = 8
-	// InteractionResponseModal is for responding to an interaction with a modal window.
-	InteractionResponseModal InteractionResponseType = 9
-)
-
 // InteractionResponse represents a response for an interaction event.
 type InteractionResponse struct {
-	Type InteractionResponseType  `json:"type,omitempty"`
-	Data *InteractionResponseData `json:"data,omitempty"`
+	Type types.InteractionResponse `json:"type,omitempty"`
+	Data *InteractionResponseData  `json:"data,omitempty"`
 }
 
 // InteractionResponseData is response data for an interaction.

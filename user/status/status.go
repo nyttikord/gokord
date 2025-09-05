@@ -2,6 +2,7 @@ package status
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"time"
@@ -58,39 +59,39 @@ type Assets struct {
 // Activity defines the Activity sent with GatewayStatusUpdate
 // https://discord.com/developers/docs/topics/gateway#activity-object
 type Activity struct {
-	Name          string       `json:"name"`
-	Type          ActivityType `json:"type"`
-	URL           string       `json:"url,omitempty"`
-	CreatedAt     time.Time    `json:"created_at"`
-	ApplicationID string       `json:"application_id,omitempty"`
-	State         string       `json:"state,omitempty"`
-	Details       string       `json:"details,omitempty"`
-	Timestamps    TimeStamps   `json:"timestamps,omitempty"`
-	Emoji         emoji.Emoji  `json:"emoji,omitempty"`
-	Party         Party        `json:"party,omitempty"`
-	Assets        Assets       `json:"assets,omitempty"`
-	Secrets       Secrets      `json:"secrets,omitempty"`
-	Instance      bool         `json:"instance,omitempty"`
-	Flags         int          `json:"flags,omitempty"`
+	Name          string         `json:"name"`
+	Type          types.Activity `json:"type"`
+	URL           string         `json:"url,omitempty"`
+	CreatedAt     time.Time      `json:"created_at"`
+	ApplicationID string         `json:"application_id,omitempty"`
+	State         string         `json:"state,omitempty"`
+	Details       string         `json:"details,omitempty"`
+	Timestamps    TimeStamps     `json:"timestamps,omitempty"`
+	Emoji         emoji.Emoji    `json:"emoji,omitempty"`
+	Party         Party          `json:"party,omitempty"`
+	Assets        Assets         `json:"assets,omitempty"`
+	Secrets       Secrets        `json:"secrets,omitempty"`
+	Instance      bool           `json:"instance,omitempty"`
+	Flags         int            `json:"flags,omitempty"`
 }
 
 // UnmarshalJSON is a custom unmarshaljson to make CreatedAt a time.Time instead of an int
 func (activity *Activity) UnmarshalJSON(b []byte) error {
 	temp := struct {
-		Name          string       `json:"name"`
-		Type          ActivityType `json:"type"`
-		URL           string       `json:"url,omitempty"`
-		CreatedAt     int64        `json:"created_at"`
-		ApplicationID json.Number  `json:"application_id,omitempty"`
-		State         string       `json:"state,omitempty"`
-		Details       string       `json:"details,omitempty"`
-		Timestamps    TimeStamps   `json:"timestamps,omitempty"`
-		Emoji         emoji.Emoji  `json:"emoji,omitempty"`
-		Party         Party        `json:"party,omitempty"`
-		Assets        Assets       `json:"assets,omitempty"`
-		Secrets       Secrets      `json:"secrets,omitempty"`
-		Instance      bool         `json:"instance,omitempty"`
-		Flags         int          `json:"flags,omitempty"`
+		Name          string         `json:"name"`
+		Type          types.Activity `json:"type"`
+		URL           string         `json:"url,omitempty"`
+		CreatedAt     int64          `json:"created_at"`
+		ApplicationID json.Number    `json:"application_id,omitempty"`
+		State         string         `json:"state,omitempty"`
+		Details       string         `json:"details,omitempty"`
+		Timestamps    TimeStamps     `json:"timestamps,omitempty"`
+		Emoji         emoji.Emoji    `json:"emoji,omitempty"`
+		Party         Party          `json:"party,omitempty"`
+		Assets        Assets         `json:"assets,omitempty"`
+		Secrets       Secrets        `json:"secrets,omitempty"`
+		Instance      bool           `json:"instance,omitempty"`
+		Flags         int            `json:"flags,omitempty"`
 	}{}
 	err := json.Unmarshal(b, &temp)
 	if err != nil {
@@ -127,20 +128,6 @@ type Secrets struct {
 	Spectate string `json:"spectate,omitempty"`
 	Match    string `json:"match,omitempty"`
 }
-
-// ActivityType is the type of Activity (see ActivityType* consts) in the Activity struct
-// https://discord.com/developers/docs/topics/gateway#activity-object-activity-types
-type ActivityType int
-
-// Valid ActivityType values
-const (
-	ActivityTypeGame      ActivityType = 0
-	ActivityTypeStreaming ActivityType = 1
-	ActivityTypeListening ActivityType = 2
-	ActivityTypeWatching  ActivityType = 3
-	ActivityTypeCustom    ActivityType = 4
-	ActivityTypeCompeting ActivityType = 5
-)
 
 // A Presence stores the online, offline, or idle and game status of Guild members.
 type Presence struct {

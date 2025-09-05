@@ -2,6 +2,8 @@ package user
 
 import (
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/types"
+
 	"strconv"
 )
 
@@ -27,18 +29,6 @@ const (
 	FlagDiscordCertifiedModerator Flags = 1 << 18
 	FlagBotHTTPInteractions       Flags = 1 << 19
 	FlagActiveBotDeveloper        Flags = 1 << 22
-)
-
-// PremiumType is the type of premium (nitro) subscription a user has (see PremiumType* consts).
-// https://discord.com/developers/docs/resources/user#user-object-premium-types
-type PremiumType int
-
-// Valid PremiumType values.
-const (
-	PremiumTypeNone         PremiumType = 0
-	PremiumTypeNitroClassic PremiumType = 1
-	PremiumTypeNitro        PremiumType = 2
-	PremiumTypeNitroBasic   PremiumType = 3
 )
 
 // A User stores all data for an individual Discord user.
@@ -93,7 +83,7 @@ type User struct {
 
 	// The type of Nitro subscription on a user's account.
 	// Only available when the request is authorized via a Bearer token.
-	PremiumType PremiumType `json:"premium_type"`
+	PremiumType types.Premium `json:"premium_type"`
 
 	// Whether the user is an Official Discord System user (part of the urgent message system).
 	System bool `json:"system"`

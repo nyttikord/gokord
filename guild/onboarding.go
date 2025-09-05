@@ -1,6 +1,7 @@
 package guild
 
 import (
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 )
 
@@ -35,16 +36,6 @@ type Onboarding struct {
 	Mode *OnboardingMode `json:"mode,omitempty"`
 }
 
-// OnboardingPromptType is the type of an onboarding prompt.
-// https://discord.com/developers/docs/resources/guild#guild-onboarding-object-prompt-types
-type OnboardingPromptType int
-
-// Block containing known OnboardingPromptType values.
-const (
-	OnboardingPromptTypeMultipleChoice OnboardingPromptType = 0
-	OnboardingPromptTypeDropdown       OnboardingPromptType = 1
-)
-
 // OnboardingPrompt is a prompt shown during onboarding and in the customize community (Channels & Roles) tab.
 // https://discord.com/developers/docs/resources/guild#guild-onboarding-object-onboarding-prompt-structure
 type OnboardingPrompt struct {
@@ -54,7 +45,7 @@ type OnboardingPrompt struct {
 	ID string `json:"id,omitempty"`
 
 	// Type of the prompt.
-	Type OnboardingPromptType `json:"type"`
+	Type types.OnboardingPrompt `json:"type"`
 
 	// Options available within the prompt.
 	Options []OnboardingPromptOption `json:"options"`

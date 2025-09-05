@@ -21,16 +21,6 @@ const (
 	FlagRequireTag Flags = 1 << 4
 )
 
-// ForumSortOrderType represents sort order of a forum channel.
-type ForumSortOrderType int
-
-const (
-	// ForumSortOrderLatestActivity sorts posts by activity.
-	ForumSortOrderLatestActivity ForumSortOrderType = 0
-	// ForumSortOrderCreationDate sorts posts by creation time (from most recent to oldest).
-	ForumSortOrderCreationDate ForumSortOrderType = 1
-)
-
 // ForumLayout represents layout of a forum channel.
 type ForumLayout int
 
@@ -43,22 +33,12 @@ const (
 	ForumLayoutGalleryView ForumLayout = 2
 )
 
-// PermissionOverwriteType represents the type of resource on which
-// a permission overwrite acts.
-type PermissionOverwriteType int
-
-// The possible permission overwrite types.
-const (
-	PermissionOverwriteTypeRole   PermissionOverwriteType = 0
-	PermissionOverwriteTypeMember PermissionOverwriteType = 1
-)
-
 // A PermissionOverwrite holds permission overwrite data for a Channel
 type PermissionOverwrite struct {
-	ID    string                  `json:"id"`
-	Type  PermissionOverwriteType `json:"type"`
-	Deny  int64                   `json:"deny,string"`
-	Allow int64                   `json:"allow,string"`
+	ID    string                    `json:"id"`
+	Type  types.PermissionOverwrite `json:"type"`
+	Deny  int64                     `json:"deny,string"`
+	Allow int64                     `json:"allow,string"`
 }
 
 // A Channel holds all data related to an individual Discord channel.
@@ -156,7 +136,7 @@ type Channel struct {
 
 	// The default sort order type used to order posts in forum channels.
 	// Defaults to null, which indicates a preferred sort order hasn't been set by a channel admin.
-	DefaultSortOrder *ForumSortOrderType `json:"default_sort_order"`
+	DefaultSortOrder *types.ForumSortOrder `json:"default_sort_order"`
 
 	// The default forum layout view used to display posts in forum channels.
 	// Defaults to ForumLayoutNotSet, which indicates a layout view has not been set by a channel admin.
@@ -198,7 +178,7 @@ type Edit struct {
 
 	AvailableTags        *[]ForumTag           `json:"available_tags,omitempty"`
 	DefaultReactionEmoji *ForumDefaultReaction `json:"default_reaction_emoji,omitempty"`
-	DefaultSortOrder     *ForumSortOrderType   `json:"default_sort_order,omitempty"` // TODO: null
+	DefaultSortOrder     *types.ForumSortOrder `json:"default_sort_order,omitempty"` // TODO: null
 	DefaultForumLayout   *ForumLayout          `json:"default_forum_layout,omitempty"`
 
 	// NOTE: forum threads only

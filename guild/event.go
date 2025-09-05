@@ -2,8 +2,10 @@ package guild
 
 import (
 	"encoding/json"
-	"github.com/nyttikord/gokord/user"
 	"time"
+
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user"
 )
 
 // ScheduledEvent is a representation of a scheduled event in a guild. Only for retrieval of the data.
@@ -32,7 +34,7 @@ type ScheduledEvent struct {
 	// Type of the entity where event would be hosted
 	// See field requirements
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
-	EntityType ScheduledEventEntityType `json:"entity_type"`
+	EntityType types.ScheduledEventEntity `json:"entity_type"`
 	// The id of an entity associated with a guild scheduled event
 	EntityID string `json:"entity_id"`
 	// Additional metadata for the guild scheduled event
@@ -67,7 +69,7 @@ type ScheduledEventParams struct {
 	// Type of the entity where event would be hosted
 	// See field requirements
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
-	EntityType ScheduledEventEntityType `json:"entity_type,omitempty"`
+	EntityType types.ScheduledEventEntity `json:"entity_type,omitempty"`
 	// Additional metadata for the guild scheduled event
 	EntityMetadata *ScheduledEventEntityMetadata `json:"entity_metadata,omitempty"`
 	// The cover image hash of the scheduled event
@@ -80,7 +82,7 @@ type ScheduledEventParams struct {
 func (p ScheduledEventParams) MarshalJSON() ([]byte, error) {
 	type guildScheduledEventParams ScheduledEventParams
 
-	if p.EntityType == ScheduledEventEntityTypeExternal && p.ChannelID == "" {
+	if p.EntityType == types.ScheduledEventEntityExternal && p.ChannelID == "" {
 		return json.Marshal(struct {
 			guildScheduledEventParams
 			ChannelID json.RawMessage `json:"channel_id"`
@@ -126,19 +128,6 @@ const (
 	ScheduledEventStatusCompleted ScheduledEventStatus = 3
 	// ScheduledEventStatusCanceled represents the current event is in canceled state
 	ScheduledEventStatusCanceled ScheduledEventStatus = 4
-)
-
-// ScheduledEventEntityType is the type of entity associated with a guild scheduled event.
-// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
-type ScheduledEventEntityType int
-
-const (
-	// ScheduledEventEntityTypeStageInstance represents a stage channel
-	ScheduledEventEntityTypeStageInstance ScheduledEventEntityType = 1
-	// ScheduledEventEntityTypeVoice represents a voice channel
-	ScheduledEventEntityTypeVoice ScheduledEventEntityType = 2
-	// ScheduledEventEntityTypeExternal represents an external event
-	ScheduledEventEntityTypeExternal ScheduledEventEntityType = 3
 )
 
 // ScheduledEventUser is a user subscribed to a scheduled event.

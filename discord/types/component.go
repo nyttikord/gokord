@@ -22,3 +22,25 @@ const (
 	ComponentContainer             Component = 17
 	ComponentLabel                 Component = 18
 )
+
+// SelectMenuDefaultValue represents the type of an entity selected by default in auto-populated select menus.
+type SelectMenuDefaultValue string
+
+// SelectMenuDefaultValue types.
+const (
+	SelectMenuDefaultValueUser    SelectMenuDefaultValue = "user"
+	SelectMenuDefaultValueRole    SelectMenuDefaultValue = "role"
+	SelectMenuDefaultValueChannel SelectMenuDefaultValue = "channel"
+)
+
+// SelectMenu represents select menu type.
+type SelectMenu Component
+
+// SelectMenu types.
+const (
+	SelectMenuString      = SelectMenu(ComponentSelectMenu)
+	SelectMenuUser        = SelectMenu(ComponentUserSelectMenu)
+	SelectMenuRole        = SelectMenu(ComponentRoleSelectMenu)
+	SelectMenuMentionable = SelectMenu(ComponentMentionableSelectMenu)
+	SelectMenuChannel     = SelectMenu(ComponentChannelSelectMenu)
+)

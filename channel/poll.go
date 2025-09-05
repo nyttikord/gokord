@@ -1,16 +1,10 @@
 package channel
 
 import (
-	"github.com/nyttikord/gokord/emoji"
 	"time"
-)
 
-// PollLayoutType represents the layout of a poll.
-type PollLayoutType int
-
-// Valid PollLayoutType values.
-const (
-	PollLayoutTypeDefault PollLayoutType = 1
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/emoji"
 )
 
 // PollMedia contains common data used by question and answers.
@@ -41,10 +35,10 @@ type PollResults struct {
 
 // Poll contains all poll related data.
 type Poll struct {
-	Question         PollMedia      `json:"question"`
-	Answers          []PollAnswer   `json:"answers"`
-	AllowMultiselect bool           `json:"allow_multiselect"`
-	LayoutType       PollLayoutType `json:"layout_type,omitempty"`
+	Question         PollMedia        `json:"question"`
+	Answers          []PollAnswer     `json:"answers"`
+	AllowMultiselect bool             `json:"allow_multiselect"`
+	LayoutType       types.PollLayout `json:"layout_type,omitempty"`
 
 	// NOTE: should be set only on creation, when fetching use Expiry.
 	Duration int `json:"duration,omitempty"`

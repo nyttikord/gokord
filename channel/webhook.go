@@ -2,33 +2,24 @@ package channel
 
 import (
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
 
 // Webhook stores the data for a webhook.
 type Webhook struct {
-	ID        string      `json:"id"`
-	Type      WebhookType `json:"type"`
-	GuildID   string      `json:"guild_id"`
-	ChannelID string      `json:"channel_id"`
-	User      *user.User  `json:"user"`
-	Name      string      `json:"name"`
-	Avatar    string      `json:"avatar"`
-	Token     string      `json:"token"`
+	ID        string        `json:"id"`
+	Type      types.Webhook `json:"type"`
+	GuildID   string        `json:"guild_id"`
+	ChannelID string        `json:"channel_id"`
+	User      *user.User    `json:"user"`
+	Name      string        `json:"name"`
+	Avatar    string        `json:"avatar"`
+	Token     string        `json:"token"`
 
 	// ApplicationID is the bot/OAuth2 application that created this webhook
 	ApplicationID string `json:"application_id,omitempty"`
 }
-
-// WebhookType is the type of Webhook (see WebhookType* consts) in the Webhook struct
-// https://discord.com/developers/docs/resources/webhook#webhook-object-webhook-types
-type WebhookType int
-
-// Valid WebhookType values
-const (
-	WebhookTypeIncoming        WebhookType = 1
-	WebhookTypeChannelFollower WebhookType = 2
-)
 
 // WebhookParams is a struct for webhook params, used in the WebhookExecute command.
 type WebhookParams struct {

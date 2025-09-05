@@ -2,6 +2,7 @@ package channel
 
 import (
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/types"
 )
 
 // MessageSend stores all parameters you can send with ChannelMessageSendComplex.
@@ -74,17 +75,6 @@ func (m *MessageEdit) SetEmbeds(embeds []*MessageEmbed) *MessageEdit {
 	return m
 }
 
-// AllowedMentionType describes the types of mentions used
-// in the MessageAllowedMentions type.
-type AllowedMentionType string
-
-// The types of mentions used in MessageAllowedMentions.
-const (
-	AllowedMentionTypeRoles    AllowedMentionType = "roles"
-	AllowedMentionTypeUsers    AllowedMentionType = "users"
-	AllowedMentionTypeEveryone AllowedMentionType = "everyone"
-)
-
 // MessageAllowedMentions allows the user to specify which mentions
 // Discord is allowed to parse in this message. This is useful when
 // sending user input as a message, as it prevents unwanted mentions.
@@ -99,7 +89,7 @@ type MessageAllowedMentions struct {
 	// Please note that this is purposely **not** marked as omitempty,
 	// so if a zero-value MessageAllowedMentions object is provided no
 	// mentions will be allowed.
-	Parse []AllowedMentionType `json:"parse"`
+	Parse []types.AllowedMention `json:"parse"`
 
 	// A list of role IDs to allow. This cannot be used when specifying
 	// AllowedMentionTypeRoles in the Parse slice.

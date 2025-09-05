@@ -1,5 +1,7 @@
 package channel
 
+import "github.com/nyttikord/gokord/discord/types"
+
 // MessageEmbedFooter is a part of a MessageEmbed struct.
 type MessageEmbedFooter struct {
 	Text         string `json:"text,omitempty"`
@@ -54,7 +56,7 @@ type MessageEmbedField struct {
 // An MessageEmbed stores data for message embeds.
 type MessageEmbed struct {
 	URL         string                 `json:"url,omitempty"`
-	Type        EmbedType              `json:"type,omitempty"`
+	Type        types.Embed            `json:"type,omitempty"`
 	Title       string                 `json:"title,omitempty"`
 	Description string                 `json:"description,omitempty"`
 	Timestamp   string                 `json:"timestamp,omitempty"`
@@ -67,17 +69,3 @@ type MessageEmbed struct {
 	Author      *MessageEmbedAuthor    `json:"author,omitempty"`
 	Fields      []*MessageEmbedField   `json:"fields,omitempty"`
 }
-
-// EmbedType is the type of embed
-// https://discord.com/developers/docs/resources/channel#embed-object-embed-types
-type EmbedType string
-
-// Block of valid EmbedTypes
-const (
-	EmbedTypeRich    EmbedType = "rich"
-	EmbedTypeImage   EmbedType = "image"
-	EmbedTypeVideo   EmbedType = "video"
-	EmbedTypeGifv    EmbedType = "gifv"
-	EmbedTypeArticle EmbedType = "article"
-	EmbedTypeLink    EmbedType = "link"
-)
