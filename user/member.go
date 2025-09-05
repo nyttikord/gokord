@@ -84,7 +84,7 @@ func (m *Member) AvatarURL(size string) string {
 		return m.User.AvatarURL(size)
 	}
 	// The default/empty avatar case should be handled by the above condition
-	return avatarURL(m.Avatar, "", discord.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
+	return discord.AvatarURL(m.Avatar, "", discord.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
 		discord.EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
 
 }
@@ -97,7 +97,7 @@ func (m *Member) BannerURL(size string) string {
 	if m.Banner == "" {
 		return m.User.BannerURL(size)
 	}
-	return bannerURL(
+	return discord.BannerURL(
 		m.Banner,
 		discord.EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
 		discord.EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),

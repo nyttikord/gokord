@@ -135,7 +135,7 @@ func (u *User) Mention() string {
 //	         if size is an empty string, no size parameter will
 //	         be added to the URL.
 func (u *User) AvatarURL(size string) string {
-	return avatarURL(
+	return discord.AvatarURL(
 		u.Avatar,
 		discord.EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
 		discord.EndpointUserAvatar(u.ID, u.Avatar),
@@ -149,7 +149,7 @@ func (u *User) AvatarURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (u *User) BannerURL(size string) string {
-	return bannerURL(u.Banner, discord.EndpointUserBanner(u.ID, u.Banner), discord.EndpointUserBannerAnimated(u.ID, u.Banner), size)
+	return discord.BannerURL(u.Banner, discord.EndpointUserBanner(u.ID, u.Banner), discord.EndpointUserBannerAnimated(u.ID, u.Banner), size)
 }
 
 // DefaultAvatarIndex returns the index of the user's default avatar.
