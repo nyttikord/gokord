@@ -1,8 +1,10 @@
-package gokord
+package components
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/emoji"
 )
 
 // ComponentType is type of component.
@@ -34,12 +36,12 @@ type MessageComponent interface {
 	Type() ComponentType
 }
 
-type unmarshalableMessageComponent struct {
+type UnmarshalableMessageComponent struct {
 	MessageComponent
 }
 
 // UnmarshalJSON is a helper function to unmarshal MessageComponent object.
-func (umc *unmarshalableMessageComponent) UnmarshalJSON(src []byte) error {
+func (umc *UnmarshalableMessageComponent) UnmarshalJSON(src []byte) error {
 	var v struct {
 		Type ComponentType `json:"type"`
 	}
@@ -82,7 +84,7 @@ func (umc *unmarshalableMessageComponent) UnmarshalJSON(src []byte) error {
 
 // MessageComponentFromJSON is a helper function for unmarshaling message components
 func MessageComponentFromJSON(b []byte) (MessageComponent, error) {
-	var u unmarshalableMessageComponent
+	var u UnmarshalableMessageComponent
 	err := u.UnmarshalJSON(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal into MessageComponent: %w", err)
@@ -100,14 +102,14 @@ type ActionsRow struct {
 }
 
 // MarshalJSON is a method for marshaling ActionsRow to a JSON object.
-func (r ActionsRow) MarshalJSON() ([]byte, error) {
+func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 	type actionsRow ActionsRow
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		actionsRow
 		Type ComponentType `json:"type"`
 	}{
-		actionsRow: actionsRow(r),
+		actionsRow: actionsRow(*r),
 		Type:       r.Type(),
 	})
 }
@@ -117,7 +119,7 @@ func (r *ActionsRow) UnmarshalJSON(data []byte) error {
 	type actionsRow ActionsRow
 	var v struct {
 		actionsRow
-		RawComponents []unmarshalableMessageComponent `json:"components"`
+		RawComponents []UnmarshalableMessageComponent `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -134,7 +136,7 @@ func (r *ActionsRow) UnmarshalJSON(data []byte) error {
 }
 
 // Type is a method to get the type of a component.
-func (r ActionsRow) Type() ComponentType {
+func (r *ActionsRow) Type() ComponentType {
 	return ActionsRowComponent
 }
 
@@ -159,10 +161,10 @@ const (
 
 // Button represents button component.
 type Button struct {
-	Label    string          `json:"label"`
-	Style    ButtonStyle     `json:"style"`
-	Disabled bool            `json:"disabled"`
-	Emoji    *ComponentEmoji `json:"emoji,omitempty"`
+	Label    string           `json:"label"`
+	Style    ButtonStyle      `json:"style"`
+	Disabled bool             `json:"disabled"`
+	Emoji    *emoji.Component `json:"emoji,omitempty"`
 
 	// NOTE: Only button with LinkButton style can have link. Also, URL is mutually exclusive with CustomID.
 	URL      string `json:"url,omitempty"`
@@ -181,7 +183,7 @@ func (b Button) MarshalJSON() ([]byte, error) {
 		b.Style = PrimaryButton
 	}
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		button
 		Type ComponentType `json:"type"`
 	}{
@@ -197,10 +199,10 @@ func (Button) Type() ComponentType {
 
 // SelectMenuOption represents an option for a select menu.
 type SelectMenuOption struct {
-	Label       string          `json:"label,omitempty"`
-	Value       string          `json:"value"`
-	Description string          `json:"description"`
-	Emoji       *ComponentEmoji `json:"emoji,omitempty"`
+	Label       string           `json:"label,omitempty"`
+	Value       string           `json:"value"`
+	Description string           `json:"description"`
+	Emoji       *emoji.Component `json:"emoji,omitempty"`
 	// Determines whenever option is selected by default or not.
 	Default bool `json:"default"`
 }
@@ -260,7 +262,7 @@ type SelectMenu struct {
 	Disabled bool     `json:"disabled"`
 
 	// NOTE: Can only be used in SelectMenu with Channel menu type.
-	ChannelTypes []ChannelType `json:"channel_types,omitempty"`
+	ChannelTypes []channel.Type `json:"channel_types,omitempty"`
 
 	// Unique identifier for the component; auto populated through increment if not provided.
 	ID int `json:"id,omitempty"`
@@ -278,7 +280,7 @@ func (s SelectMenu) Type() ComponentType {
 func (s SelectMenu) MarshalJSON() ([]byte, error) {
 	type selectMenu SelectMenu
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		selectMenu
 		Type ComponentType `json:"type"`
 	}{
@@ -311,7 +313,7 @@ func (TextInput) Type() ComponentType {
 func (m TextInput) MarshalJSON() ([]byte, error) {
 	type inputText TextInput
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		inputText
 		Type ComponentType `json:"type"`
 	}{
@@ -345,8 +347,8 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 
 	var v struct {
 		section
-		RawComponents []unmarshalableMessageComponent `json:"components"`
-		RawAccessory  unmarshalableMessageComponent   `json:"accessory"`
+		RawComponents []UnmarshalableMessageComponent `json:"components"`
+		RawAccessory  UnmarshalableMessageComponent   `json:"accessory"`
 	}
 
 	err := json.Unmarshal(data, &v)
@@ -365,19 +367,19 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 }
 
 // Type is a method to get the type of a component.
-func (Section) Type() ComponentType {
+func (*Section) Type() ComponentType {
 	return SectionComponent
 }
 
 // MarshalJSON is a method for marshaling Section to a JSON object.
-func (s Section) MarshalJSON() ([]byte, error) {
+func (s *Section) MarshalJSON() ([]byte, error) {
 	type section Section
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		section
 		Type ComponentType `json:"type"`
 	}{
-		section: section(s),
+		section: section(*s),
 		Type:    s.Type(),
 	})
 }
@@ -396,7 +398,7 @@ func (TextDisplay) Type() ComponentType {
 func (t TextDisplay) MarshalJSON() ([]byte, error) {
 	type textDisplay TextDisplay
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		textDisplay
 		Type ComponentType `json:"type"`
 	}{
@@ -423,7 +425,7 @@ func (Thumbnail) Type() ComponentType {
 func (t Thumbnail) MarshalJSON() ([]byte, error) {
 	type thumbnail Thumbnail
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		thumbnail
 		Type ComponentType `json:"type"`
 	}{
@@ -449,7 +451,7 @@ func (MediaGallery) Type() ComponentType {
 func (m MediaGallery) MarshalJSON() ([]byte, error) {
 	type mediaGallery MediaGallery
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		mediaGallery
 		Type ComponentType `json:"type"`
 	}{
@@ -482,7 +484,7 @@ func (FileComponent) Type() ComponentType {
 func (f FileComponent) MarshalJSON() ([]byte, error) {
 	type fileComponent FileComponent
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		fileComponent
 		Type ComponentType `json:"type"`
 	}{
@@ -518,7 +520,7 @@ func (Separator) Type() ComponentType {
 func (s Separator) MarshalJSON() ([]byte, error) {
 	type separator Separator
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		separator
 		Type ComponentType `json:"type"`
 	}{
@@ -538,7 +540,7 @@ type Container struct {
 }
 
 // Type is a method to get the type of a component.
-func (Container) Type() ComponentType {
+func (*Container) Type() ComponentType {
 	return ContainerComponent
 }
 
@@ -548,7 +550,7 @@ func (c *Container) UnmarshalJSON(data []byte) error {
 
 	var v struct {
 		container
-		RawComponents []unmarshalableMessageComponent `json:"components"`
+		RawComponents []UnmarshalableMessageComponent `json:"components"`
 	}
 
 	err := json.Unmarshal(data, &v)
@@ -566,14 +568,14 @@ func (c *Container) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON is a method for marshaling Container to a JSON object.
-func (c Container) MarshalJSON() ([]byte, error) {
+func (c *Container) MarshalJSON() ([]byte, error) {
 	type container Container
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		container
 		Type ComponentType `json:"type"`
 	}{
-		container: container(c),
+		container: container(*c),
 		Type:      c.Type(),
 	})
 }
@@ -614,7 +616,7 @@ type Label struct {
 }
 
 // Type is a method to get the type of a component.
-func (Label) Type() ComponentType {
+func (*Label) Type() ComponentType {
 	return LabelComponent
 }
 
@@ -624,7 +626,7 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 
 	var v struct {
 		label
-		RawComponent unmarshalableMessageComponent `json:"component"`
+		RawComponent UnmarshalableMessageComponent `json:"component"`
 	}
 
 	err := json.Unmarshal(data, &v)
@@ -639,14 +641,14 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON is a method for marshaling Label to a JSON object.
-func (l Label) MarshalJSON() ([]byte, error) {
+func (l *Label) MarshalJSON() ([]byte, error) {
 	type label Label
 
-	return Marshal(struct {
+	return json.Marshal(struct {
 		label
 		Type ComponentType `json:"type"`
 	}{
-		label: label(l),
+		label: label(*l),
 		Type:  l.Type(),
 	})
 }

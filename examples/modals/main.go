@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/components"
 	"log"
 	"os"
 	"os/signal"
@@ -49,13 +50,13 @@ var (
 				Data: &gokord.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
-					Components: []gokord.MessageComponent{
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.TextInput{
+					Components: []components.MessageComponent{
+						components.ActionsRow{
+							Components: []components.MessageComponent{
+								components.TextInput{
 									CustomID:    "opinion",
 									Label:       "What is your opinion on them?",
-									Style:       gokord.TextInputShort,
+									Style:       components.TextInputShort,
 									Placeholder: "Don't be shy, share your opinion with us",
 									Required:    true,
 									MaxLength:   300,
@@ -63,12 +64,12 @@ var (
 								},
 							},
 						},
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.TextInput{
+						components.ActionsRow{
+							Components: []components.MessageComponent{
+								components.TextInput{
 									CustomID:  "suggestions",
 									Label:     "What would you suggest to improve them?",
-									Style:     gokord.TextInputParagraph,
+									Style:     components.TextInputParagraph,
 									Required:  false,
 									MaxLength: 2000,
 								},
@@ -116,8 +117,8 @@ func main() {
 			_, err = s.ChannelMessageSend(*ResultsChannel, fmt.Sprintf(
 				"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 				userid,
-				data.Components[0].(*gokord.ActionsRow).Components[0].(*gokord.TextInput).Value,
-				data.Components[1].(*gokord.ActionsRow).Components[0].(*gokord.TextInput).Value,
+				data.Components[0].(*components.ActionsRow).Components[0].(*components.TextInput).Value,
+				data.Components[1].(*components.ActionsRow).Components[0].(*components.TextInput).Value,
 			))
 			if err != nil {
 				panic(err)

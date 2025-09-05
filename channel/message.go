@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/application"
+	"github.com/nyttikord/gokord/components"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"io"
@@ -81,7 +82,7 @@ type Message struct {
 	Attachments []*MessageAttachment `json:"attachments"`
 
 	// A list of components attached to the message.
-	Components []gokord.MessageComponent `json:"-"`
+	Components []components.MessageComponent `json:"-"`
 
 	// A list of embeds present in the message.
 	Embeds []*MessageEmbed `json:"embeds"`
@@ -163,14 +164,14 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 	type message Message
 	var v struct {
 		message
-		RawComponents []gokord.unmarshalableMessageComponent `json:"components"`
+		RawComponents []components.UnmarshalableMessageComponent `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
 	*m = Message(v.message)
-	m.Components = make([]gokord.MessageComponent, len(v.RawComponents))
+	m.Components = make([]components.MessageComponent, len(v.RawComponents))
 	for i, v := range v.RawComponents {
 		m.Components[i] = v.MessageComponent
 	}
