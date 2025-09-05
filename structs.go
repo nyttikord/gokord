@@ -3,7 +3,6 @@ package gokord
 import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
-	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
 	"math"
 	"net/http"
@@ -125,83 +124,6 @@ type Session struct {
 
 	// used to make sure gateway websocket writes do not happen concurrently
 	wsMutex sync.Mutex
-}
-
-// ApplicationIntegrationType dictates where application can be installed and its available interaction contexts.
-type ApplicationIntegrationType uint
-
-const (
-	// ApplicationIntegrationGuildInstall indicates that app is installable to guilds.
-	ApplicationIntegrationGuildInstall ApplicationIntegrationType = 0
-	// ApplicationIntegrationUserInstall indicates that app is installable to users.
-	ApplicationIntegrationUserInstall ApplicationIntegrationType = 1
-)
-
-// ApplicationInstallParams represents application's installation parameters
-// for default in-app oauth2 authorization link.
-type ApplicationInstallParams struct {
-	Scopes      []string `json:"scopes"`
-	Permissions int64    `json:"permissions,string"`
-}
-
-// ApplicationIntegrationTypeConfig represents application's configuration for a particular integration type.
-type ApplicationIntegrationTypeConfig struct {
-	OAuth2InstallParams *ApplicationInstallParams `json:"oauth2_install_params,omitempty"`
-}
-
-// Application stores values for a Discord Application
-type Application struct {
-	ID                     string                                                           `json:"id,omitempty"`
-	Name                   string                                                           `json:"name"`
-	Icon                   string                                                           `json:"icon,omitempty"`
-	Description            string                                                           `json:"description,omitempty"`
-	RPCOrigins             []string                                                         `json:"rpc_origins,omitempty"`
-	BotPublic              bool                                                             `json:"bot_public,omitempty"`
-	BotRequireCodeGrant    bool                                                             `json:"bot_require_code_grant,omitempty"`
-	TermsOfServiceURL      string                                                           `json:"terms_of_service_url"`
-	PrivacyProxyURL        string                                                           `json:"privacy_policy_url"`
-	Owner                  *user.User                                                       `json:"owner"`
-	Summary                string                                                           `json:"summary"`
-	VerifyKey              string                                                           `json:"verify_key"`
-	Team                   *Team                                                            `json:"team"`
-	GuildID                string                                                           `json:"guild_id"`
-	PrimarySKUID           string                                                           `json:"primary_sku_id"`
-	Slug                   string                                                           `json:"slug"`
-	CoverImage             string                                                           `json:"cover_image"`
-	Flags                  int                                                              `json:"flags,omitempty"`
-	IntegrationTypesConfig map[ApplicationIntegrationType]*ApplicationIntegrationTypeConfig `json:"integration_types,omitempty"`
-}
-
-// ApplicationRoleConnectionMetadataType represents the type of application role connection metadata.
-type ApplicationRoleConnectionMetadataType int
-
-// Application role connection metadata types.
-const (
-	ApplicationRoleConnectionMetadataIntegerLessThanOrEqual     ApplicationRoleConnectionMetadataType = 1
-	ApplicationRoleConnectionMetadataIntegerGreaterThanOrEqual  ApplicationRoleConnectionMetadataType = 2
-	ApplicationRoleConnectionMetadataIntegerEqual               ApplicationRoleConnectionMetadataType = 3
-	ApplicationRoleConnectionMetadataIntegerNotEqual            ApplicationRoleConnectionMetadataType = 4
-	ApplicationRoleConnectionMetadataDatetimeLessThanOrEqual    ApplicationRoleConnectionMetadataType = 5
-	ApplicationRoleConnectionMetadataDatetimeGreaterThanOrEqual ApplicationRoleConnectionMetadataType = 6
-	ApplicationRoleConnectionMetadataBooleanEqual               ApplicationRoleConnectionMetadataType = 7
-	ApplicationRoleConnectionMetadataBooleanNotEqual            ApplicationRoleConnectionMetadataType = 8
-)
-
-// ApplicationRoleConnectionMetadata stores application role connection metadata.
-type ApplicationRoleConnectionMetadata struct {
-	Type                     ApplicationRoleConnectionMetadataType `json:"type"`
-	Key                      string                                `json:"key"`
-	Name                     string                                `json:"name"`
-	NameLocalizations        map[discord.Locale]string             `json:"name_localizations"`
-	Description              string                                `json:"description"`
-	DescriptionLocalizations map[discord.Locale]string             `json:"description_localizations"`
-}
-
-// ApplicationRoleConnection represents the role connection that an application has attached to a user.
-type ApplicationRoleConnection struct {
-	PlatformName     string            `json:"platform_name"`
-	PlatformUsername string            `json:"platform_username"`
-	Metadata         map[string]string `json:"metadata"`
 }
 
 // A VoiceRegion stores data for a specific voice region server.
