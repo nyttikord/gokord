@@ -8,17 +8,18 @@
 package gokord
 
 import (
+	user2 "github.com/nyttikord/gokord/user"
 	"testing"
 )
 
 func TestMember_DisplayName(t *testing.T) {
-	user := &User{
+	user := &user2.User{
 		GlobalName: "Global",
 	}
 	t.Run("no server nickname set", func(t *testing.T) {
 		m := &Member{
-			Nick: "",
-			User: user,
+			Nick:       "",
+			user2.User: user,
 		}
 		want := user.DisplayName()
 		if dn := m.DisplayName(); dn != want {
@@ -27,8 +28,8 @@ func TestMember_DisplayName(t *testing.T) {
 	})
 	t.Run("server nickname set", func(t *testing.T) {
 		m := &Member{
-			Nick: "Server",
-			User: user,
+			Nick:       "Server",
+			user2.User: user,
 		}
 		if dn := m.DisplayName(); dn != m.Nick {
 			t.Errorf("Member.DisplayName() = %v, want %v", dn, m.Nick)

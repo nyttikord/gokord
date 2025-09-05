@@ -1,13 +1,15 @@
 package gokord
 
 import (
+	"github.com/nyttikord/gokord/channel"
+	user2 "github.com/nyttikord/gokord/user"
 	"testing"
 )
 
 func TestContentWithMoreMentionsReplaced(t *testing.T) {
 	s := &Session{StateEnabled: true, State: NewState()}
 
-	user := &User{
+	user := &user2.User{
 		ID:       "user",
 		Username: "User Name",
 	}
@@ -19,20 +21,20 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 		Mentionable: true,
 	})
 	s.State.MemberAdd(&Member{
-		User:    user,
-		Nick:    "User Nick",
-		GuildID: "guild",
+		user2.User: user,
+		Nick:       "User Nick",
+		GuildID:    "guild",
 	})
 	s.State.ChannelAdd(&Channel{
 		Name:    "Channel Name",
 		GuildID: "guild",
 		ID:      "channel",
 	})
-	m := &Message{
+	m := &channel.Message{
 		Content:      "<@&role> <@!user> <@user> <#channel>",
 		ChannelID:    "channel",
 		MentionRoles: []string{"role"},
-		Mentions:     []*User{user},
+		Mentions:     []*user2.User{user},
 	}
 	if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @User Nick @User Name #Channel Name" {
 		t.Error(result)
@@ -40,7 +42,7 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 }
 func TestGettingEmojisFromMessage(t *testing.T) {
 	msg := "test test <:kitty14:811736565172011058> <:kitty4:811736468812595260>"
-	m := &Message{
+	m := &channel.Message{
 		Content: msg,
 	}
 	emojis := m.GetCustomEmojis()
@@ -52,7 +54,7 @@ func TestGettingEmojisFromMessage(t *testing.T) {
 }
 
 func TestMessage_Reference(t *testing.T) {
-	m := &Message{
+	m := &channel.Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -78,7 +80,7 @@ func TestMessage_Reference(t *testing.T) {
 }
 
 func TestMessage_Forward(t *testing.T) {
-	m := &Message{
+	m := &channel.Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -86,7 +88,7 @@ func TestMessage_Forward(t *testing.T) {
 
 	ref := m.Forward()
 
-	if ref.Type != MessageReferenceTypeForward {
+	if ref.Type != channel.MessageReferenceTypeForward {
 		t.Error("Reference type should be 1 (forward)")
 	}
 
@@ -104,8 +106,8 @@ func TestMessage_Forward(t *testing.T) {
 }
 
 func TestMessageReference_DefaultTypeIsDefault(t *testing.T) {
-	r := MessageReference{}
-	if r.Type != MessageReferenceTypeDefault {
+	r := channel.MessageReference{}
+	if r.Type != channel.MessageReferenceTypeDefault {
 		t.Error("Default message type should be MessageReferenceTypeDefault")
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"log"
 	"os"
 	"os/signal"
@@ -99,7 +100,7 @@ func main() {
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Thank you for taking your time to fill this survey",
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {

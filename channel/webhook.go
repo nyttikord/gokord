@@ -1,4 +1,9 @@
-package gokord
+package channel
+
+import (
+	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/user"
+)
 
 // Webhook stores the data for a webhook.
 type Webhook struct {
@@ -6,7 +11,7 @@ type Webhook struct {
 	Type      WebhookType `json:"type"`
 	GuildID   string      `json:"guild_id"`
 	ChannelID string      `json:"channel_id"`
-	User      *User       `json:"user"`
+	User      *user.User  `json:"user"`
 	Name      string      `json:"name"`
 	Avatar    string      `json:"avatar"`
 	Token     string      `json:"token"`
@@ -27,15 +32,15 @@ const (
 
 // WebhookParams is a struct for webhook params, used in the WebhookExecute command.
 type WebhookParams struct {
-	Content         string                  `json:"content,omitempty"`
-	Username        string                  `json:"username,omitempty"`
-	AvatarURL       string                  `json:"avatar_url,omitempty"`
-	TTS             bool                    `json:"tts,omitempty"`
-	Files           []*File                 `json:"-"`
-	Components      []MessageComponent      `json:"components"`
-	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
-	Attachments     []*MessageAttachment    `json:"attachments,omitempty"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
+	Content         string                    `json:"content,omitempty"`
+	Username        string                    `json:"username,omitempty"`
+	AvatarURL       string                    `json:"avatar_url,omitempty"`
+	TTS             bool                      `json:"tts,omitempty"`
+	Files           []*File                   `json:"-"`
+	Components      []gokord.MessageComponent `json:"components"`
+	Embeds          []*MessageEmbed           `json:"embeds,omitempty"`
+	Attachments     []*MessageAttachment      `json:"attachments,omitempty"`
+	AllowedMentions *MessageAllowedMentions   `json:"allowed_mentions,omitempty"`
 	// Only MessageFlagsSuppressEmbeds and MessageFlagsEphemeral can be set.
 	// MessageFlagsEphemeral can only be set when using Followup Message Create endpoint.
 	Flags MessageFlags `json:"flags,omitempty"`
@@ -46,11 +51,11 @@ type WebhookParams struct {
 
 // WebhookEdit stores data for editing of a webhook message.
 type WebhookEdit struct {
-	Content         *string                 `json:"content,omitempty"`
-	Components      *[]MessageComponent     `json:"components,omitempty"`
-	Embeds          *[]*MessageEmbed        `json:"embeds,omitempty"`
-	Files           []*File                 `json:"-"`
-	Attachments     *[]*MessageAttachment   `json:"attachments,omitempty"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Flags           MessageFlags            `json:"flags,omitempty"`
+	Content         *string                    `json:"content,omitempty"`
+	Components      *[]gokord.MessageComponent `json:"components,omitempty"`
+	Embeds          *[]*MessageEmbed           `json:"embeds,omitempty"`
+	Files           []*File                    `json:"-"`
+	Attachments     *[]*MessageAttachment      `json:"attachments,omitempty"`
+	AllowedMentions *MessageAllowedMentions    `json:"allowed_mentions,omitempty"`
+	Flags           MessageFlags               `json:"flags,omitempty"`
 }

@@ -1,4 +1,4 @@
-package gokord
+package discord
 
 // Locale represents the accepted languages for Discord.
 // https://discord.com/developers/docs/reference#locales

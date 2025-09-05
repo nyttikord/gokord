@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
 	"log"
 	"os"
 	"os/signal"
@@ -58,35 +60,35 @@ var (
 		{
 			Name:        "localized-command",
 			Description: "Localized command. Description and name may vary depending on the Language setting",
-			NameLocalizations: &map[gokord.Locale]string{
-				gokord.ChineseCN: "本地化的命令",
+			NameLocalizations: &map[discord.Locale]string{
+				discord.ChineseCN: "本地化的命令",
 			},
-			DescriptionLocalizations: &map[gokord.Locale]string{
-				gokord.ChineseCN: "这是一个本地化的命令",
+			DescriptionLocalizations: &map[discord.Locale]string{
+				discord.ChineseCN: "这是一个本地化的命令",
 			},
 			Options: []*gokord.ApplicationCommandOption{
 				{
 					Name:        "localized-option",
 					Description: "Localized option. Description and name may vary depending on the Language setting",
-					NameLocalizations: map[gokord.Locale]string{
-						gokord.ChineseCN: "一个本地化的选项",
+					NameLocalizations: map[discord.Locale]string{
+						discord.ChineseCN: "一个本地化的选项",
 					},
-					DescriptionLocalizations: map[gokord.Locale]string{
-						gokord.ChineseCN: "这是一个本地化的选项",
+					DescriptionLocalizations: map[discord.Locale]string{
+						discord.ChineseCN: "这是一个本地化的选项",
 					},
 					Type: gokord.ApplicationCommandOptionInteger,
 					Choices: []*gokord.ApplicationCommandOptionChoice{
 						{
 							Name: "First",
-							NameLocalizations: map[gokord.Locale]string{
-								gokord.ChineseCN: "一的",
+							NameLocalizations: map[discord.Locale]string{
+								discord.ChineseCN: "一的",
 							},
 							Value: 1,
 						},
 						{
 							Name: "Second",
-							NameLocalizations: map[gokord.Locale]string{
-								gokord.ChineseCN: "二的",
+							NameLocalizations: map[discord.Locale]string{
+								discord.ChineseCN: "二的",
 							},
 							Value: 2,
 						},
@@ -235,7 +237,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
-					Files: []*gokord.File{
+					Files: []*channel.File{
 						{
 							ContentType: "text/plain",
 							Name:        "test.txt",
@@ -246,8 +248,8 @@ var (
 			})
 		},
 		"localized-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			responses := map[gokord.Locale]string{
-				gokord.ChineseCN: "你好！ 这是一个本地化的命令",
+			responses := map[discord.Locale]string{
+				discord.ChineseCN: "你好！ 这是一个本地化的命令",
 			}
 			response := "Hi! This is a localized message"
 			if r, ok := responses[i.Locale]; ok {
@@ -383,11 +385,11 @@ var (
 			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
-					Embeds: []*gokord.MessageEmbed{
+					Embeds: []*channel.MessageEmbed{
 						{
 							Title:       "Permissions overview",
 							Description: "Overview of permissions for this command",
-							Fields: []*gokord.MessageEmbedField{
+							Fields: []*channel.MessageEmbedField{
 								{
 									Name:  "Users",
 									Value: users,
@@ -403,7 +405,7 @@ var (
 							},
 						},
 					},
-					AllowedMentions: &gokord.MessageAllowedMentions{},
+					AllowedMentions: &channel.MessageAllowedMentions{},
 				},
 			})
 		},
@@ -456,7 +458,7 @@ var (
 					Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 				}
@@ -470,7 +472,7 @@ var (
 				},
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -479,11 +481,11 @@ var (
 				content := content + "\n\nWell, now you know how to create and edit responses. " +
 					"But you still don't know how to delete them... so... wait 10 seconds and this " +
 					"message will be deleted."
-				_, err = s.InteractionResponseEdit(i.Interaction, &gokord.WebhookEdit{
+				_, err = s.InteractionResponseEdit(i.Interaction, &channel.WebhookEdit{
 					Content: &content,
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 					return
@@ -503,15 +505,15 @@ var (
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 					Content: "Surprise!",
 				},
 			})
-			msg, err := s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			msg, err := s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Followup message has been created, after 5 seconds it will be edited",
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -519,7 +521,7 @@ var (
 			time.Sleep(time.Second * 5)
 
 			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-			s.FollowupMessageEdit(i.Interaction, msg.ID, &gokord.WebhookEdit{
+			s.FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
 				Content: &content,
 			})
 
@@ -527,7 +529,7 @@ var (
 
 			s.FollowupMessageDelete(i.Interaction, msg.ID)
 
-			s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 					"take a unicorn :unicorn: as reward!\n" +
 					"Also, as bonus... look at the original interaction response :D",

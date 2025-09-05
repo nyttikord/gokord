@@ -1,43 +1,44 @@
-package gokord
+package user
 
 import (
+	"github.com/nyttikord/gokord/discord"
 	"strconv"
 )
 
-// UserFlags is the flags of "user" (see UserFlags* consts)
+// Flags is the flags of "user" (see Flags* consts)
 // https://discord.com/developers/docs/resources/user#user-object-user-flags
-type UserFlags int
+type Flags int
 
-// Valid UserFlags values
+// Valid Flags values
 const (
-	UserFlagDiscordEmployee           UserFlags = 1 << 0
-	UserFlagDiscordPartner            UserFlags = 1 << 1
-	UserFlagHypeSquadEvents           UserFlags = 1 << 2
-	UserFlagBugHunterLevel1           UserFlags = 1 << 3
-	UserFlagHouseBravery              UserFlags = 1 << 6
-	UserFlagHouseBrilliance           UserFlags = 1 << 7
-	UserFlagHouseBalance              UserFlags = 1 << 8
-	UserFlagEarlySupporter            UserFlags = 1 << 9
-	UserFlagTeamUser                  UserFlags = 1 << 10
-	UserFlagSystem                    UserFlags = 1 << 12
-	UserFlagBugHunterLevel2           UserFlags = 1 << 14
-	UserFlagVerifiedBot               UserFlags = 1 << 16
-	UserFlagVerifiedBotDeveloper      UserFlags = 1 << 17
-	UserFlagDiscordCertifiedModerator UserFlags = 1 << 18
-	UserFlagBotHTTPInteractions       UserFlags = 1 << 19
-	UserFlagActiveBotDeveloper        UserFlags = 1 << 22
+	FlagDiscordEmployee           Flags = 1 << 0
+	FlagDiscordPartner            Flags = 1 << 1
+	FlagHypeSquadEvents           Flags = 1 << 2
+	FlagBugHunterLevel1           Flags = 1 << 3
+	FlagHouseBravery              Flags = 1 << 6
+	FlagHouseBrilliance           Flags = 1 << 7
+	FlagHouseBalance              Flags = 1 << 8
+	FlagEarlySupporter            Flags = 1 << 9
+	FlagTeamUser                  Flags = 1 << 10
+	FlagSystem                    Flags = 1 << 12
+	FlagBugHunterLevel2           Flags = 1 << 14
+	FlagVerifiedBot               Flags = 1 << 16
+	FlagVerifiedBotDeveloper      Flags = 1 << 17
+	FlagDiscordCertifiedModerator Flags = 1 << 18
+	FlagBotHTTPInteractions       Flags = 1 << 19
+	FlagActiveBotDeveloper        Flags = 1 << 22
 )
 
-// UserPremiumType is the type of premium (nitro) subscription a user has (see UserPremiumType* consts).
+// PremiumType is the type of premium (nitro) subscription a user has (see PremiumType* consts).
 // https://discord.com/developers/docs/resources/user#user-object-premium-types
-type UserPremiumType int
+type PremiumType int
 
-// Valid UserPremiumType values.
+// Valid PremiumType values.
 const (
-	UserPremiumTypeNone         UserPremiumType = 0
-	UserPremiumTypeNitroClassic UserPremiumType = 1
-	UserPremiumTypeNitro        UserPremiumType = 2
-	UserPremiumTypeNitroBasic   UserPremiumType = 3
+	PremiumTypeNone         PremiumType = 0
+	PremiumTypeNitroClassic PremiumType = 1
+	PremiumTypeNitro        PremiumType = 2
+	PremiumTypeNitroBasic   PremiumType = 3
 )
 
 // A User stores all data for an individual Discord user.
@@ -88,11 +89,11 @@ type User struct {
 	// The public flags on a user's account.
 	// This is a combination of bit masks; the presence of a certain flag can
 	// be checked by performing a bitwise AND between this int and the flag.
-	PublicFlags UserFlags `json:"public_flags"`
+	PublicFlags Flags `json:"public_flags"`
 
 	// The type of Nitro subscription on a user's account.
 	// Only available when the request is authorized via a Bearer token.
-	PremiumType UserPremiumType `json:"premium_type"`
+	PremiumType PremiumType `json:"premium_type"`
 
 	// Whether the user is an Official Discord System user (part of the urgent message system).
 	System bool `json:"system"`
@@ -102,13 +103,13 @@ type User struct {
 	Flags int `json:"flags"`
 
 	// Data for the user's avatar decoration
-	AvatarDecorationData *UserAvatarDecoration `json:"avatar_decoration_data"`
+	AvatarDecorationData *AvatarDecoration `json:"avatar_decoration_data"`
 
 	// Data for the user's collectibles
-	Collectibles *UserCollectibles `json:"collectibles"`
+	Collectibles *Collectibles `json:"collectibles"`
 
 	// User's primary guild (tag)
-	PrimaryGuild *UserPrimaryGuild `json:"primary_guild"`
+	PrimaryGuild *PrimaryGuild `json:"primary_guild"`
 }
 
 // String returns a unique identifier of the form username#discriminator
@@ -134,11 +135,11 @@ func (u *User) Mention() string {
 //	         if size is an empty string, no size parameter will
 //	         be added to the URL.
 func (u *User) AvatarURL(size string) string {
-	return avatarURL(
+	return discord.AvatarURL(
 		u.Avatar,
-		EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
-		EndpointUserAvatar(u.ID, u.Avatar),
-		EndpointUserAvatarAnimated(u.ID, u.Avatar),
+		discord.EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
+		discord.EndpointUserAvatar(u.ID, u.Avatar),
+		discord.EndpointUserAvatarAnimated(u.ID, u.Avatar),
 		size,
 	)
 }
@@ -148,7 +149,7 @@ func (u *User) AvatarURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (u *User) BannerURL(size string) string {
-	return bannerURL(u.Banner, EndpointUserBanner(u.ID, u.Banner), EndpointUserBannerAnimated(u.ID, u.Banner), size)
+	return discord.BannerURL(u.Banner, discord.EndpointUserBanner(u.ID, u.Banner), discord.EndpointUserBannerAnimated(u.ID, u.Banner), size)
 }
 
 // DefaultAvatarIndex returns the index of the user's default avatar.
@@ -170,31 +171,31 @@ func (u *User) DisplayName() string {
 	return u.Username
 }
 
-type UserAvatarDecoration struct {
+type AvatarDecoration struct {
 	// Avatar decoration hash
 	Asset string `json:"asset"`
 	// ID of the avatar decoration's SKU
 	SkuID string `json:"sku_id"`
 }
 
-type UserCollectibles struct {
+type Collectibles struct {
 	Nameplate *Nameplate `json:"nameplate"`
 }
 
-type UserNameplatePalette string
+type NameplatePalette string
 
 const (
-	UserNameplatePaletteCrimson   = "crimson"
-	UserNameplatePaletteBerry     = "berry"
-	UserNameplatePaletteSky       = "sky"
-	UserNameplatePaletteTeal      = "teal"
-	UserNameplatePaletteForest    = "forest"
-	UserNameplatePaletteBubbleGum = "bubble_gum"
-	UserNameplatePaletteViolet    = "violet"
-	UserNameplatePaletteCobalt    = "cobalt"
-	UserNameplatePaletteClover    = "clover"
-	UserNameplatePaletteLemon     = "lemon"
-	UserNameplatePaletteWhite     = "white"
+	NameplatePaletteCrimson   = "crimson"
+	NameplatePaletteBerry     = "berry"
+	NameplatePaletteSky       = "sky"
+	NameplatePaletteTeal      = "teal"
+	NameplatePaletteForest    = "forest"
+	NameplatePaletteBubbleGum = "bubble_gum"
+	NameplatePaletteViolet    = "violet"
+	NameplatePaletteCobalt    = "cobalt"
+	NameplatePaletteClover    = "clover"
+	NameplatePaletteLemon     = "lemon"
+	NameplatePaletteWhite     = "white"
 )
 
 type Nameplate struct {
@@ -205,10 +206,10 @@ type Nameplate struct {
 	// Label of this nameplate. Currently unused
 	Label string `json:"label"`
 	// Background color of the nameplate
-	Palette UserNameplatePalette `json:"palette"`
+	Palette NameplatePalette `json:"palette"`
 }
 
-type UserPrimaryGuild struct {
+type PrimaryGuild struct {
 	// ID of the User's primary guild
 	GuildID string `json:"identity_guild_id"`
 	// Whether the user is displaying the primary guild's server tag.
@@ -221,6 +222,6 @@ type UserPrimaryGuild struct {
 	Badge *string `json:"badge"`
 }
 
-func (upg *UserPrimaryGuild) IsEnabled() bool {
+func (upg *PrimaryGuild) IsEnabled() bool {
 	return upg.Enabled != nil && *upg.Enabled
 }

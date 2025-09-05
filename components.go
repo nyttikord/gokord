@@ -157,13 +157,6 @@ const (
 	PremiumButton ButtonStyle = 6
 )
 
-// ComponentEmoji represents button emoji, if it does have one.
-type ComponentEmoji struct {
-	Name     string `json:"name,omitempty"`
-	ID       string `json:"id,omitempty"`
-	Animated bool   `json:"animated,omitempty"`
-}
-
 // Button represents button component.
 type Button struct {
 	Label    string          `json:"label"`

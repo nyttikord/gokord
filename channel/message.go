@@ -1,7 +1,11 @@
-package gokord
+package channel
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/application"
+	"github.com/nyttikord/gokord/emoji"
+	"github.com/nyttikord/gokord/user"
 	"io"
 	"regexp"
 	"strings"
@@ -71,19 +75,19 @@ type Message struct {
 
 	// The author of the message. This is not guaranteed to be a
 	// valid user (webhook-sent messages do not possess a full author).
-	Author *User `json:"author"`
+	Author *user.User `json:"author"`
 
 	// A list of attachments present in the message.
 	Attachments []*MessageAttachment `json:"attachments"`
 
 	// A list of components attached to the message.
-	Components []MessageComponent `json:"-"`
+	Components []gokord.MessageComponent `json:"-"`
 
 	// A list of embeds present in the message.
 	Embeds []*MessageEmbed `json:"embeds"`
 
 	// A list of users mentioned in the message.
-	Mentions []*User `json:"mentions"`
+	Mentions []*user.User `json:"mentions"`
 
 	// A list of reactions to the message.
 	Reactions []*MessageReactions `json:"reactions"`
@@ -99,7 +103,7 @@ type Message struct {
 
 	// Member properties for this message's author,
 	// contains only partial information
-	Member *Member `json:"member"`
+	Member *user.Member `json:"member"`
 
 	// Channels specifically mentioned in this message
 	// Not all channel mentions in a message will appear in mention_channels.
@@ -148,7 +152,7 @@ type Message struct {
 	Thread *Channel `json:"thread,omitempty"`
 
 	// An array of StickerItem objects, representing sent stickers, if there were any.
-	StickerItems []*StickerItem `json:"sticker_items"`
+	StickerItems []*emoji.StickerItem `json:"sticker_items"`
 
 	// A poll object.
 	Poll *Poll `json:"poll"`
@@ -159,14 +163,14 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 	type message Message
 	var v struct {
 		message
-		RawComponents []unmarshalableMessageComponent `json:"components"`
+		RawComponents []gokord.unmarshalableMessageComponent `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
 	*m = Message(v.message)
-	m.Components = make([]MessageComponent, len(v.RawComponents))
+	m.Components = make([]gokord.MessageComponent, len(v.RawComponents))
 	for i, v := range v.RawComponents {
 		m.Components[i] = v.MessageComponent
 	}
@@ -174,15 +178,15 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 }
 
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
-func (m *Message) GetCustomEmojis() []*Emoji {
-	var toReturn []*Emoji
-	emojis := EmojiRegex.FindAllString(m.Content, -1)
+func (m *Message) GetCustomEmojis() []*emoji.Emoji {
+	var toReturn []*emoji.Emoji
+	emojis := emoji.EmojiRegex.FindAllString(m.Content, -1)
 	if len(emojis) < 1 {
 		return toReturn
 	}
 	for _, em := range emojis {
 		parts := strings.Split(em, ":")
-		toReturn = append(toReturn, &Emoji{
+		toReturn = append(toReturn, &emoji.Emoji{
 			ID:       parts[2][:len(parts[2])-1],
 			Name:     parts[1],
 			Animated: strings.HasPrefix(em, "<a:"),
@@ -232,115 +236,6 @@ type File struct {
 	Reader      io.Reader
 }
 
-// MessageSend stores all parameters you can send with ChannelMessageSendComplex.
-type MessageSend struct {
-	Content         string                  `json:"content,omitempty"`
-	Embeds          []*MessageEmbed         `json:"embeds"`
-	TTS             bool                    `json:"tts"`
-	Components      []MessageComponent      `json:"components"`
-	Files           []*File                 `json:"-"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Reference       *MessageReference       `json:"message_reference,omitempty"`
-	StickerIDs      []string                `json:"sticker_ids"`
-	Flags           MessageFlags            `json:"flags,omitempty"`
-	Poll            *Poll                   `json:"poll,omitempty"`
-
-	// TODO: Remove this when compatibility is not required.
-	File *File `json:"-"`
-
-	// TODO: Remove this when compatibility is not required.
-	Embed *MessageEmbed `json:"-"`
-}
-
-// MessageEdit is used to chain parameters via ChannelMessageEditComplex, which
-// is also where you should get the instance from.
-type MessageEdit struct {
-	Content         *string                 `json:"content,omitempty"`
-	Components      *[]MessageComponent     `json:"components,omitempty"`
-	Embeds          *[]*MessageEmbed        `json:"embeds,omitempty"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Flags           MessageFlags            `json:"flags,omitempty"`
-	// Files to append to the message
-	Files []*File `json:"-"`
-	// Overwrite existing attachments
-	Attachments *[]*MessageAttachment `json:"attachments,omitempty"`
-
-	ID      string
-	Channel string
-
-	// TODO: Remove this when compatibility is not required.
-	Embed *MessageEmbed `json:"-"`
-}
-
-// NewMessageEdit returns a MessageEdit struct, initialized
-// with the Channel and ID.
-func NewMessageEdit(channelID string, messageID string) *MessageEdit {
-	return &MessageEdit{
-		Channel: channelID,
-		ID:      messageID,
-	}
-}
-
-// SetContent is the same as setting the variable Content,
-// except it doesn't take a pointer.
-func (m *MessageEdit) SetContent(str string) *MessageEdit {
-	m.Content = &str
-	return m
-}
-
-// SetEmbed is a convenience function for setting the embed,
-// so you can chain commands.
-func (m *MessageEdit) SetEmbed(embed *MessageEmbed) *MessageEdit {
-	m.Embeds = &[]*MessageEmbed{embed}
-	return m
-}
-
-// SetEmbeds is a convenience function for setting the embeds,
-// so you can chain commands.
-func (m *MessageEdit) SetEmbeds(embeds []*MessageEmbed) *MessageEdit {
-	m.Embeds = &embeds
-	return m
-}
-
-// AllowedMentionType describes the types of mentions used
-// in the MessageAllowedMentions type.
-type AllowedMentionType string
-
-// The types of mentions used in MessageAllowedMentions.
-const (
-	AllowedMentionTypeRoles    AllowedMentionType = "roles"
-	AllowedMentionTypeUsers    AllowedMentionType = "users"
-	AllowedMentionTypeEveryone AllowedMentionType = "everyone"
-)
-
-// MessageAllowedMentions allows the user to specify which mentions
-// Discord is allowed to parse in this message. This is useful when
-// sending user input as a message, as it prevents unwanted mentions.
-// If this type is used, all mentions must be explicitly whitelisted,
-// either by putting an AllowedMentionType in the Parse slice
-// (allowing all mentions of that type) or, in the case of roles and
-// users, explicitly allowing those mentions on an ID-by-ID basis.
-// For more information on this functionality, see:
-// https://discordapp.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
-type MessageAllowedMentions struct {
-	// The mention types that are allowed to be parsed in this message.
-	// Please note that this is purposely **not** marked as omitempty,
-	// so if a zero-value MessageAllowedMentions object is provided no
-	// mentions will be allowed.
-	Parse []AllowedMentionType `json:"parse"`
-
-	// A list of role IDs to allow. This cannot be used when specifying
-	// AllowedMentionTypeRoles in the Parse slice.
-	Roles []string `json:"roles,omitempty"`
-
-	// A list of user IDs to allow. This cannot be used when specifying
-	// AllowedMentionTypeUsers in the Parse slice.
-	Users []string `json:"users,omitempty"`
-
-	// For replies, whether to mention the author of the message being replied to
-	RepliedUser bool `json:"replied_user"`
-}
-
 // A MessageAttachment stores data for message attachments.
 type MessageAttachment struct {
 	ID           string                 `json:"id"`
@@ -365,93 +260,11 @@ const (
 	MessageAttachmentFlagsIsRemix MessageAttachmentFlags = 1 << 2
 )
 
-// MessageEmbedFooter is a part of a MessageEmbed struct.
-type MessageEmbedFooter struct {
-	Text         string `json:"text,omitempty"`
-	IconURL      string `json:"icon_url,omitempty"`
-	ProxyIconURL string `json:"proxy_icon_url,omitempty"`
-}
-
-// MessageEmbedImage is a part of a MessageEmbed struct.
-type MessageEmbedImage struct {
-	URL      string `json:"url"`
-	ProxyURL string `json:"proxy_url,omitempty"`
-	Width    int    `json:"width,omitempty"`
-	Height   int    `json:"height,omitempty"`
-}
-
-// MessageEmbedThumbnail is a part of a MessageEmbed struct.
-type MessageEmbedThumbnail struct {
-	URL      string `json:"url"`
-	ProxyURL string `json:"proxy_url,omitempty"`
-	Width    int    `json:"width,omitempty"`
-	Height   int    `json:"height,omitempty"`
-}
-
-// MessageEmbedVideo is a part of a MessageEmbed struct.
-type MessageEmbedVideo struct {
-	URL    string `json:"url,omitempty"`
-	Width  int    `json:"width,omitempty"`
-	Height int    `json:"height,omitempty"`
-}
-
-// MessageEmbedProvider is a part of a MessageEmbed struct.
-type MessageEmbedProvider struct {
-	URL  string `json:"url,omitempty"`
-	Name string `json:"name,omitempty"`
-}
-
-// MessageEmbedAuthor is a part of a MessageEmbed struct.
-type MessageEmbedAuthor struct {
-	URL          string `json:"url,omitempty"`
-	Name         string `json:"name"`
-	IconURL      string `json:"icon_url,omitempty"`
-	ProxyIconURL string `json:"proxy_icon_url,omitempty"`
-}
-
-// MessageEmbedField is a part of a MessageEmbed struct.
-type MessageEmbedField struct {
-	Name   string `json:"name"`
-	Value  string `json:"value"`
-	Inline bool   `json:"inline,omitempty"`
-}
-
-// An MessageEmbed stores data for message embeds.
-type MessageEmbed struct {
-	URL         string                 `json:"url,omitempty"`
-	Type        EmbedType              `json:"type,omitempty"`
-	Title       string                 `json:"title,omitempty"`
-	Description string                 `json:"description,omitempty"`
-	Timestamp   string                 `json:"timestamp,omitempty"`
-	Color       int                    `json:"color,omitempty"`
-	Footer      *MessageEmbedFooter    `json:"footer,omitempty"`
-	Image       *MessageEmbedImage     `json:"image,omitempty"`
-	Thumbnail   *MessageEmbedThumbnail `json:"thumbnail,omitempty"`
-	Video       *MessageEmbedVideo     `json:"video,omitempty"`
-	Provider    *MessageEmbedProvider  `json:"provider,omitempty"`
-	Author      *MessageEmbedAuthor    `json:"author,omitempty"`
-	Fields      []*MessageEmbedField   `json:"fields,omitempty"`
-}
-
-// EmbedType is the type of embed
-// https://discord.com/developers/docs/resources/channel#embed-object-embed-types
-type EmbedType string
-
-// Block of valid EmbedTypes
-const (
-	EmbedTypeRich    EmbedType = "rich"
-	EmbedTypeImage   EmbedType = "image"
-	EmbedTypeVideo   EmbedType = "video"
-	EmbedTypeGifv    EmbedType = "gifv"
-	EmbedTypeArticle EmbedType = "article"
-	EmbedTypeLink    EmbedType = "link"
-)
-
 // MessageReactions holds a reactions object for a message.
 type MessageReactions struct {
-	Count int    `json:"count"`
-	Me    bool   `json:"me"`
-	Emoji *Emoji `json:"emoji"`
+	Count int          `json:"count"`
+	Me    bool         `json:"me"`
+	Emoji *emoji.Emoji `json:"emoji"`
 }
 
 // MessageActivity is sent with Rich Presence-related chat embeds
@@ -536,10 +349,10 @@ func (m *Message) Forward() *MessageReference {
 func (m *Message) ContentWithMentionsReplaced() (content string) {
 	content = m.Content
 
-	for _, user := range m.Mentions {
+	for _, u := range m.Mentions {
 		content = strings.NewReplacer(
-			"<@"+user.ID+">", "@"+user.Username,
-			"<@!"+user.ID+">", "@"+user.Username,
+			"<@"+u.ID+">", "@"+u.Username,
+			"<@!"+u.ID+">", "@"+u.Username,
 		).Replace(content)
 	}
 	return
@@ -549,62 +362,63 @@ var patternChannels = regexp.MustCompile("<#[^>]*>")
 
 // ContentWithMoreMentionsReplaced will replace all @<id> mentions with the
 // username of the mention, but also role IDs and more.
-func (m *Message) ContentWithMoreMentionsReplaced(s *Session) (content string, err error) {
-	content = m.Content
-
-	if !s.StateEnabled {
-		content = m.ContentWithMentionsReplaced()
-		return
-	}
-
-	channel, err := s.State.Channel(m.ChannelID)
-	if err != nil {
-		content = m.ContentWithMentionsReplaced()
-		return
-	}
-
-	for _, user := range m.Mentions {
-		nick := user.Username
-
-		member, err := s.State.Member(channel.GuildID, user.ID)
-		if err == nil && member.Nick != "" {
-			nick = member.Nick
-		}
-
-		content = strings.NewReplacer(
-			"<@"+user.ID+">", "@"+user.Username,
-			"<@!"+user.ID+">", "@"+nick,
-		).Replace(content)
-	}
-	for _, roleID := range m.MentionRoles {
-		role, err := s.State.Role(channel.GuildID, roleID)
-		if err != nil || !role.Mentionable {
-			continue
-		}
-
-		content = strings.Replace(content, "<@&"+role.ID+">", "@"+role.Name, -1)
-	}
-
-	content = patternChannels.ReplaceAllStringFunc(content, func(mention string) string {
-		channel, err := s.State.Channel(mention[2 : len(mention)-1])
-		if err != nil || channel.Type == ChannelTypeGuildVoice {
-			return mention
-		}
-
-		return "#" + channel.Name
-	})
-	return
-}
+// TODO: remove from message package
+//func (m *Message) ContentWithMoreMentionsReplaced(s *gokord.Session) (content string, err error) {
+//	content = m.Content
+//
+//	if !s.StateEnabled {
+//		content = m.ContentWithMentionsReplaced()
+//		return
+//	}
+//
+//	channel, err := s.State.Channel(m.ChannelID)
+//	if err != nil {
+//		content = m.ContentWithMentionsReplaced()
+//		return
+//	}
+//
+//	for _, u := range m.Mentions {
+//		nick := u.Username
+//
+//		member, err := s.State.Member(channel.GuildID, u.ID)
+//		if err == nil && member.Nick != "" {
+//			nick = member.Nick
+//		}
+//
+//		content = strings.NewReplacer(
+//			"<@"+u.ID+">", "@"+u.Username,
+//			"<@!"+u.ID+">", "@"+nick,
+//		).Replace(content)
+//	}
+//	for _, roleID := range m.MentionRoles {
+//		role, err := s.State.Role(channel.GuildID, roleID)
+//		if err != nil || !role.Mentionable {
+//			continue
+//		}
+//
+//		content = strings.Replace(content, "<@&"+role.ID+">", "@"+role.Name, -1)
+//	}
+//
+//	content = patternChannels.ReplaceAllStringFunc(content, func(mention string) string {
+//		channel, err := s.State.Channel(mention[2 : len(mention)-1])
+//		if err != nil || channel.Type == ChannelTypeGuildVoice {
+//			return mention
+//		}
+//
+//		return "#" + channel.Name
+//	})
+//	return
+//}
 
 // MessageInteraction contains information about the application command interaction which generated the message.
 type MessageInteraction struct {
-	ID   string          `json:"id"`
-	Type InteractionType `json:"type"`
-	Name string          `json:"name"`
-	User *User           `json:"user"`
+	ID   string                 `json:"id"`
+	Type gokord.InteractionType `json:"type"`
+	Name string                 `json:"name"`
+	User *user.User             `json:"user"`
 
 	// Member is only present when the interaction is from a guild.
-	Member *Member `json:"member"`
+	Member *user.Member `json:"member"`
 }
 
 // MessageInteractionMetadata contains metadata of an interaction, including relevant user info.
@@ -612,11 +426,11 @@ type MessageInteractionMetadata struct {
 	// ID of the interaction.
 	ID string `json:"id"`
 	// Type of the interaction.
-	Type InteractionType `json:"type"`
+	Type gokord.InteractionType `json:"type"`
 	// User who triggered the interaction.
-	User *User `json:"user"`
+	User *user.User `json:"user"`
 	// IDs for installation context(s) related to an interaction.
-	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
+	AuthorizingIntegrationOwners map[application.IntegrationType]string `json:"authorizing_integration_owners"`
 	// ID of the original response message.
 	// NOTE: present only on followup messages.
 	OriginalResponseMessageID string `json:"original_response_message_id,omitempty"`
@@ -626,4 +440,13 @@ type MessageInteractionMetadata struct {
 	// Metadata for interaction that was used to open a modal.
 	// NOTE: present only on modal submit interactions.
 	TriggeringInteractionMetadata *MessageInteractionMetadata `json:"triggering_interaction_metadata,omitempty"`
+}
+
+// MessageReaction stores the data for a message reaction.
+type MessageReaction struct {
+	UserID    string      `json:"user_id"`
+	MessageID string      `json:"message_id"`
+	Emoji     emoji.Emoji `json:"emoji"`
+	ChannelID string      `json:"channel_id"`
+	GuildID   string      `json:"guild_id,omitempty"`
 }

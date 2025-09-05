@@ -6,6 +6,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/user"
 	"io"
 	"net/http"
 	"strconv"
@@ -30,13 +33,13 @@ const (
 
 // ApplicationCommand represents an application's slash command.
 type ApplicationCommand struct {
-	ID                string                 `json:"id,omitempty"`
-	ApplicationID     string                 `json:"application_id,omitempty"`
-	GuildID           string                 `json:"guild_id,omitempty"`
-	Version           string                 `json:"version,omitempty"`
-	Type              ApplicationCommandType `json:"type,omitempty"`
-	Name              string                 `json:"name"`
-	NameLocalizations *map[Locale]string     `json:"name_localizations,omitempty"`
+	ID                string                     `json:"id,omitempty"`
+	ApplicationID     string                     `json:"application_id,omitempty"`
+	GuildID           string                     `json:"guild_id,omitempty"`
+	Version           string                     `json:"version,omitempty"`
+	Type              ApplicationCommandType     `json:"type,omitempty"`
+	Name              string                     `json:"name"`
+	NameLocalizations *map[discord.Locale]string `json:"name_localizations,omitempty"`
 
 	// NOTE: DefaultPermission will be soon deprecated. Use DefaultMemberPermissions and Contexts instead.
 	DefaultPermission        *bool  `json:"default_permission,omitempty"`
@@ -51,7 +54,7 @@ type ApplicationCommand struct {
 	// NOTE: Chat commands only. Otherwise it mustn't be set.
 
 	Description              string                      `json:"description,omitempty"`
-	DescriptionLocalizations *map[Locale]string          `json:"description_localizations,omitempty"`
+	DescriptionLocalizations *map[discord.Locale]string  `json:"description_localizations,omitempty"`
 	Options                  []*ApplicationCommandOption `json:"options"`
 }
 
@@ -105,9 +108,9 @@ func (t ApplicationCommandOptionType) String() string {
 type ApplicationCommandOption struct {
 	Type                     ApplicationCommandOptionType `json:"type"`
 	Name                     string                       `json:"name"`
-	NameLocalizations        map[Locale]string            `json:"name_localizations,omitempty"`
+	NameLocalizations        map[discord.Locale]string    `json:"name_localizations,omitempty"`
 	Description              string                       `json:"description,omitempty"`
-	DescriptionLocalizations map[Locale]string            `json:"description_localizations,omitempty"`
+	DescriptionLocalizations map[discord.Locale]string    `json:"description_localizations,omitempty"`
 	// NOTE: This feature was on the API, but at some point developers decided to remove it.
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
@@ -131,9 +134,9 @@ type ApplicationCommandOption struct {
 
 // ApplicationCommandOptionChoice represents a slash command option choice.
 type ApplicationCommandOptionChoice struct {
-	Name              string            `json:"name"`
-	NameLocalizations map[Locale]string `json:"name_localizations,omitempty"`
-	Value             interface{}       `json:"value"`
+	Name              string                    `json:"name"`
+	NameLocalizations map[discord.Locale]string `json:"name_localizations,omitempty"`
+	Value             interface{}               `json:"value"`
 }
 
 // ApplicationCommandPermissions represents a single user or role permission for a command.
@@ -227,7 +230,7 @@ type Interaction struct {
 
 	// The message on which interaction was used.
 	// NOTE: this field is only filled when a button click triggered the interaction. Otherwise it will be nil.
-	Message *Message `json:"message"`
+	Message *channel.Message `json:"message"`
 
 	// Bitwise set of permissions the app or bot has within the channel the interaction was sent from
 	AppPermissions int64 `json:"app_permissions,string"`
@@ -241,13 +244,13 @@ type Interaction struct {
 	// NOTE: this field is only filled when the slash command was invoked in a DM;
 	// if it was invoked in a guild, the `Member` field will be filled instead.
 	// Make sure to check for `nil` before using this field.
-	User *User `json:"user"`
+	User *user.User `json:"user"`
 
 	// The user's discord client locale.
-	Locale Locale `json:"locale"`
+	Locale discord.Locale `json:"locale"`
 	// The guild's locale. This defaults to EnglishUS
 	// NOTE: this field is only filled when the interaction was invoked in a guild.
-	GuildLocale *Locale `json:"guild_locale"`
+	GuildLocale *discord.Locale `json:"guild_locale"`
 
 	Context                      InteractionContextType                `json:"context"`
 	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
@@ -365,12 +368,12 @@ func (d ApplicationCommandInteractionData) GetOption(name string) (option *Appli
 // Partial Member objects are missing user, deaf and mute fields.
 // Partial Channel objects only have id, name, type and permissions fields.
 type ApplicationCommandInteractionDataResolved struct {
-	Users       map[string]*User              `json:"users"`
-	Members     map[string]*Member            `json:"members"`
-	Roles       map[string]*Role              `json:"roles"`
-	Channels    map[string]*Channel           `json:"channels"`
-	Messages    map[string]*Message           `json:"messages"`
-	Attachments map[string]*MessageAttachment `json:"attachments"`
+	Users       map[string]*user.User                 `json:"users"`
+	Members     map[string]*Member                    `json:"members"`
+	Roles       map[string]*Role                      `json:"roles"`
+	Channels    map[string]*Channel                   `json:"channels"`
+	Messages    map[string]*channel.Message           `json:"messages"`
+	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
 }
 
 // Type returns the type of interaction data.
@@ -390,10 +393,10 @@ type MessageComponentInteractionData struct {
 
 // MessageComponentInteractionDataResolved contains the resolved data of selected option.
 type MessageComponentInteractionDataResolved struct {
-	Users    map[string]*User    `json:"users"`
-	Members  map[string]*Member  `json:"members"`
-	Roles    map[string]*Role    `json:"roles"`
-	Channels map[string]*Channel `json:"channels"`
+	Users    map[string]*user.User `json:"users"`
+	Members  map[string]*Member    `json:"members"`
+	Roles    map[string]*Role      `json:"roles"`
+	Channels map[string]*Channel   `json:"channels"`
 }
 
 // Type returns the type of interaction data.
@@ -548,19 +551,19 @@ func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID strin
 
 // UserValue is a utility function for casting option value to user object.
 // s : Session object, if not nil, function additionally fetches all user's data
-func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *User {
+func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *user.User {
 	if o.Type != ApplicationCommandOptionUser && o.Type != ApplicationCommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
 	userID := o.Value.(string)
 
 	if s == nil {
-		return &User{ID: userID}
+		return &user.User{ID: userID}
 	}
 
 	u, err := s.User(userID)
 	if err != nil {
-		return &User{ID: userID}
+		return &user.User{ID: userID}
 	}
 
 	return u
@@ -595,17 +598,17 @@ type InteractionResponse struct {
 
 // InteractionResponseData is response data for an interaction.
 type InteractionResponseData struct {
-	TTS             bool                    `json:"tts"`
-	Content         string                  `json:"content"`
-	Components      []MessageComponent      `json:"components"`
-	Embeds          []*MessageEmbed         `json:"embeds"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Files           []*File                 `json:"-"`
-	Attachments     *[]*MessageAttachment   `json:"attachments,omitempty"`
-	Poll            *Poll                   `json:"poll,omitempty"`
+	TTS             bool                            `json:"tts"`
+	Content         string                          `json:"content"`
+	Components      []MessageComponent              `json:"components"`
+	Embeds          []*channel.MessageEmbed         `json:"embeds"`
+	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
+	Files           []*channel.File                 `json:"-"`
+	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
+	Poll            *Poll                           `json:"poll,omitempty"`
 
 	// NOTE: only MessageFlagsSuppressEmbeds and MessageFlagsEphemeral can be set.
-	Flags MessageFlags `json:"flags,omitempty"`
+	Flags channel.MessageFlags `json:"flags,omitempty"`
 
 	// NOTE: autocomplete interaction only.
 	Choices []*ApplicationCommandOptionChoice `json:"choices,omitempty"`
