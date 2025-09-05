@@ -458,7 +458,7 @@ var (
 					Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 				}
@@ -472,7 +472,7 @@ var (
 				},
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -481,11 +481,11 @@ var (
 				content := content + "\n\nWell, now you know how to create and edit responses. " +
 					"But you still don't know how to delete them... so... wait 10 seconds and this " +
 					"message will be deleted."
-				_, err = s.InteractionResponseEdit(i.Interaction, &gokord.WebhookEdit{
+				_, err = s.InteractionResponseEdit(i.Interaction, &channel.WebhookEdit{
 					Content: &content,
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 					return
@@ -509,11 +509,11 @@ var (
 					Content: "Surprise!",
 				},
 			})
-			msg, err := s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			msg, err := s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Followup message has been created, after 5 seconds it will be edited",
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -521,7 +521,7 @@ var (
 			time.Sleep(time.Second * 5)
 
 			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-			s.FollowupMessageEdit(i.Interaction, msg.ID, &gokord.WebhookEdit{
+			s.FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
 				Content: &content,
 			})
 
@@ -529,7 +529,7 @@ var (
 
 			s.FollowupMessageDelete(i.Interaction, msg.ID)
 
-			s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 					"take a unicorn :unicorn: as reward!\n" +
 					"Also, as bonus... look at the original interaction response :D",

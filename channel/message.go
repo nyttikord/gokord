@@ -360,6 +360,7 @@ var patternChannels = regexp.MustCompile("<#[^>]*>")
 
 // ContentWithMoreMentionsReplaced will replace all @<id> mentions with the
 // username of the mention, but also role IDs and more.
+// TODO: remove from message package
 func (m *Message) ContentWithMoreMentionsReplaced(s *gokord.Session) (content string, err error) {
 	content = m.Content
 

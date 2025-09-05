@@ -49,3 +49,5 @@ func IconURL(iconHash, staticIconURL, animatedIconURL, size string) string {
 	}
 	return URL
 }
+
+var QuoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)

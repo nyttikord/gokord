@@ -86,7 +86,7 @@ var (
 				i.ApplicationCommandData().TargetID,
 			)
 			if err != nil {
-				_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+				_, err = s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
 					Flags:   channel.MessageFlagsEphemeral,
 				})

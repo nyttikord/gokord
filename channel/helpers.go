@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/discord"
 	"io"
 	"mime/multipart"
 	"net/textproto"
@@ -38,7 +39,7 @@ func MultipartBodyWithJSON(data interface{}, files []*File) (requestContentType 
 
 	for i, file := range files {
 		h := make(textproto.MIMEHeader)
-		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="files[%d]"; filename="%s"`, i, quoteEscaper.Replace(file.Name)))
+		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="files[%d]"; filename="%s"`, i, discord.QuoteEscaper.Replace(file.Name)))
 		contentType := file.ContentType
 		if contentType == "" {
 			contentType = "application/octet-stream"

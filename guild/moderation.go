@@ -1,6 +1,9 @@
 package guild
 
-import "github.com/nyttikord/gokord/user"
+import (
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/user"
+)
 
 // A Ban stores data for a guild ban.
 type Ban struct {
@@ -109,10 +112,10 @@ type AutoModerationAction struct {
 // A AuditLog stores data for a guild audit Log.
 // https://discord.com/developers/docs/resources/audit-log#audit-log-object-audit-log-structure
 type AuditLog struct {
-	Webhooks        []*Webhook       `json:"webhooks,omitempty"`
-	Users           []*user.User     `json:"users,omitempty"`
-	AuditLogEntries []*AuditLogEntry `json:"audit_log_entries"`
-	Integrations    []*Integration   `json:"integrations"`
+	Webhooks        []*channel.Webhook  `json:"webhooks,omitempty"`
+	Users           []*user.User        `json:"users,omitempty"`
+	AuditLogEntries []*AuditLogEntry    `json:"audit_log_entries"`
+	Integrations    []*user.Integration `json:"integrations"`
 }
 
 // AuditLogEntry for a AuditLog

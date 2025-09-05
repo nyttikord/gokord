@@ -140,7 +140,7 @@ var (
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			_, err = s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Anyways, now when you know how to use single select menus, let's see how multi select menus work. " +
 					"Try calling `/selects multi` command.",
 				Flags: channel.MessageFlagsEphemeral,
@@ -165,7 +165,7 @@ var (
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
+			_, err = s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "But wait, there is more! You can also auto populate the select menu. Try executing `/selects auto-populated`.",
 				Flags:   channel.MessageFlagsEphemeral,
 			})

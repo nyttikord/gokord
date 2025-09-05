@@ -1720,8 +1720,6 @@ func (s *Session) ChannelMessageSend(channelID string, content string, options .
 	}, options...)
 }
 
-var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
-
 // ChannelMessageSendComplex sends a message to the given channel.
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
@@ -2251,7 +2249,7 @@ func (s *Session) GatewayBot(options ...RequestOption) (st *GatewayBotResponse, 
 // channelID: The ID of a Channel.
 // name     : The name of the webhook.
 // avatar   : The avatar of the webhook.
-func (s *Session) WebhookCreate(channelID, name, avatar string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) WebhookCreate(channelID, name, avatar string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	data := struct {
 		Name   string `json:"name"`
@@ -2270,7 +2268,7 @@ func (s *Session) WebhookCreate(channelID, name, avatar string, options ...Reque
 
 // ChannelWebhooks returns all webhooks for a given channel.
 // channelID: The ID of a channel.
-func (s *Session) ChannelWebhooks(channelID string, options ...RequestOption) (st []*Webhook, err error) {
+func (s *Session) ChannelWebhooks(channelID string, options ...RequestOption) (st []*channel.Webhook, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointChannelWebhooks(channelID), nil, discord.EndpointChannelWebhooks(channelID), options...)
 	if err != nil {
@@ -2284,7 +2282,7 @@ func (s *Session) ChannelWebhooks(channelID string, options ...RequestOption) (s
 
 // GuildWebhooks returns all webhooks for a given guild.
 // guildID: The ID of a Guild.
-func (s *Session) GuildWebhooks(guildID string, options ...RequestOption) (st []*Webhook, err error) {
+func (s *Session) GuildWebhooks(guildID string, options ...RequestOption) (st []*channel.Webhook, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointGuildWebhooks(guildID), nil, discord.EndpointGuildWebhooks(guildID), options...)
 	if err != nil {
@@ -2298,7 +2296,7 @@ func (s *Session) GuildWebhooks(guildID string, options ...RequestOption) (st []
 
 // Webhook returns a webhook for a given ID
 // webhookID: The ID of a webhook.
-func (s *Session) Webhook(webhookID string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) Webhook(webhookID string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointWebhook(webhookID), nil, discord.EndpointWebhooks, options...)
 	if err != nil {
@@ -2313,7 +2311,7 @@ func (s *Session) Webhook(webhookID string, options ...RequestOption) (st *Webho
 // WebhookWithToken returns a webhook for a given ID
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook.
-func (s *Session) WebhookWithToken(webhookID, token string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) WebhookWithToken(webhookID, token string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointWebhookToken(webhookID, token), nil, discord.EndpointWebhookToken("", ""), options...)
 	if err != nil {
@@ -2329,7 +2327,7 @@ func (s *Session) WebhookWithToken(webhookID, token string, options ...RequestOp
 // webhookID: The ID of a webhook.
 // name     : The name of the webhook.
 // avatar   : The avatar of the webhook.
-func (s *Session) WebhookEdit(webhookID, name, avatar, channelID string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) WebhookEdit(webhookID, name, avatar, channelID string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	data := struct {
 		Name      string `json:"name,omitempty"`
@@ -2352,7 +2350,7 @@ func (s *Session) WebhookEdit(webhookID, name, avatar, channelID string, options
 // token    : The auth token for the webhook.
 // name     : The name of the webhook.
 // avatar   : The avatar of the webhook.
-func (s *Session) WebhookEditWithToken(webhookID, token, name, avatar string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) WebhookEditWithToken(webhookID, token, name, avatar string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	data := struct {
 		Name   string `json:"name,omitempty"`
@@ -2382,7 +2380,7 @@ func (s *Session) WebhookDelete(webhookID string, options ...RequestOption) (err
 // WebhookDeleteWithToken deletes a webhook for a given ID with an auth token.
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook.
-func (s *Session) WebhookDeleteWithToken(webhookID, token string, options ...RequestOption) (st *Webhook, err error) {
+func (s *Session) WebhookDeleteWithToken(webhookID, token string, options ...RequestOption) (st *channel.Webhook, err error) {
 
 	body, err := s.RequestWithBucketID("DELETE", discord.EndpointWebhookToken(webhookID, token), nil, discord.EndpointWebhookToken("", ""), options...)
 	if err != nil {
@@ -2394,7 +2392,7 @@ func (s *Session) WebhookDeleteWithToken(webhookID, token string, options ...Req
 	return
 }
 
-func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
+func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID string, data *channel.WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	uri := discord.EndpointWebhookToken(webhookID, token)
 
 	v := url.Values{}
@@ -2432,7 +2430,7 @@ func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID st
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook
 // wait     : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
-func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
+func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *channel.WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	return s.webhookExecute(webhookID, token, wait, "", data, options...)
 }
 
@@ -2441,7 +2439,7 @@ func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *Webho
 // token    : The auth token for the webhook
 // wait     : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
 // threadID :	Sends a message to the specified thread within a webhook's channel. The thread will automatically be unarchived.
-func (s *Session) WebhookThreadExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
+func (s *Session) WebhookThreadExecute(webhookID, token string, wait bool, threadID string, data *channel.WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	return s.webhookExecute(webhookID, token, wait, threadID, data, options...)
 }
 
@@ -2466,7 +2464,7 @@ func (s *Session) WebhookMessage(webhookID, token, messageID string, options ...
 // webhookID : The ID of a webhook
 // token     : The auth token for the webhook
 // messageID : The ID of message to edit
-func (s *Session) WebhookMessageEdit(webhookID, token, messageID string, data *WebhookEdit, options ...RequestOption) (st *channel.Message, err error) {
+func (s *Session) WebhookMessageEdit(webhookID, token, messageID string, data *channel.WebhookEdit, options ...RequestOption) (st *channel.Message, err error) {
 	uri := discord.EndpointWebhookMessage(webhookID, token, messageID)
 
 	var response []byte
@@ -3143,7 +3141,7 @@ func (s *Session) InteractionResponse(interaction *Interaction, options ...Reque
 // InteractionResponseEdit edits the response to an interaction.
 // interaction : Interaction instance.
 // newresp     : Updated response message data.
-func (s *Session) InteractionResponseEdit(interaction *Interaction, newresp *WebhookEdit, options ...RequestOption) (*channel.Message, error) {
+func (s *Session) InteractionResponseEdit(interaction *Interaction, newresp *channel.WebhookEdit, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, "@original", newresp, options...)
 }
 
@@ -3161,7 +3159,7 @@ func (s *Session) InteractionResponseDelete(interaction *Interaction, options ..
 // interaction : Interaction instance.
 // wait        : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
 // data        : Data of the message to send.
-func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, data *WebhookParams, options ...RequestOption) (*channel.Message, error) {
+func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, data *channel.WebhookParams, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookExecute(interaction.AppID, interaction.Token, wait, data, options...)
 }
 
@@ -3169,7 +3167,7 @@ func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, dat
 // interaction : Interaction instance.
 // messageID   : The followup message ID.
 // data        : Data to update the message
-func (s *Session) FollowupMessageEdit(interaction *Interaction, messageID string, data *WebhookEdit, options ...RequestOption) (*channel.Message, error) {
+func (s *Session) FollowupMessageEdit(interaction *Interaction, messageID string, data *channel.WebhookEdit, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, messageID, data, options...)
 }
 

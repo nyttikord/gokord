@@ -203,48 +203,6 @@ type ApplicationRoleConnection struct {
 	Metadata         map[string]string `json:"metadata"`
 }
 
-// UserConnection is a Connection returned from the UserConnections endpoint
-type UserConnection struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	Type         string         `json:"type"`
-	Revoked      bool           `json:"revoked"`
-	Integrations []*Integration `json:"integrations"`
-}
-
-// Integration stores integration information
-type Integration struct {
-	ID                string             `json:"id"`
-	Name              string             `json:"name"`
-	Type              string             `json:"type"`
-	Enabled           bool               `json:"enabled"`
-	Syncing           bool               `json:"syncing"`
-	RoleID            string             `json:"role_id"`
-	EnableEmoticons   bool               `json:"enable_emoticons"`
-	ExpireBehavior    ExpireBehavior     `json:"expire_behavior"`
-	ExpireGracePeriod int                `json:"expire_grace_period"`
-	User              *user.User         `json:"user"`
-	Account           IntegrationAccount `json:"account"`
-	SyncedAt          time.Time          `json:"synced_at"`
-}
-
-// ExpireBehavior of Integration
-// https://discord.com/developers/docs/resources/guild#integration-object-integration-expire-behaviors
-type ExpireBehavior int
-
-// Block of valid ExpireBehaviors
-const (
-	ExpireBehaviorRemoveRole ExpireBehavior = 0
-	ExpireBehaviorKick       ExpireBehavior = 1
-)
-
-// IntegrationAccount is integration account information
-// sent by the UserConnections endpoint
-type IntegrationAccount struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 // A VoiceRegion stores data for a specific voice region server.
 // https://discord.com/developers/docs/resources/voice#voice-region-object
 type VoiceRegion struct {
