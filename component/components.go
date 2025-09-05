@@ -7,18 +7,20 @@ import (
 	"github.com/nyttikord/gokord/emoji"
 )
 
+// Component represents every component.
 type Component interface {
 	json.Marshaler
 	Type() types.Component
 }
 
-// Message is a base interface for all message components.
+// Message is implemented by all message components.
 type Message interface {
 	json.Marshaler
 	Type() types.Component
 	message()
 }
 
+// Modal is implemented by all modal components.
 type Modal interface {
 	json.Marshaler
 	Type() types.Component
@@ -32,31 +34,29 @@ func toJson(m Component) ([]byte, error) {
 	}{m, m.Type()})
 }
 
-// ActionsRow is a top-level container component for displaying a row of interactive components.
+// ActionsRow is a top-level container Component for displaying a row of interactive components.
 type ActionsRow struct {
 	// Can contain Button, SelectMenu and TextInput.
+	//
 	// NOTE: maximum of 5.
 	Components []Message `json:"components"`
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
 
-// MarshalJSON is a method for marshaling ActionsRow to a JSON object.
 func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 	return toJson(r)
 }
 
-// Type is a method to get the type component.
 func (r *ActionsRow) Type() types.Component {
 	return types.ComponentActionsRow
 }
 
 func (r *ActionsRow) message() {}
 
-// ButtonStyle is style of button.
+// ButtonStyle is style of Button.
 type ButtonStyle uint
 
-// Button styles.
 const (
 	// ButtonStylePrimary is a button with blurple color.
 	ButtonStylePrimary ButtonStyle = 1
@@ -72,7 +72,7 @@ const (
 	ButtonStylePremium ButtonStyle = 6
 )
 
-// Button represents button component.
+// Button represents button Component.
 type Button struct {
 	Label    string           `json:"label"`
 	Style    ButtonStyle      `json:"style"`
@@ -82,13 +82,12 @@ type Button struct {
 	// NOTE: Only button with ButtonStyleLink style can have link. Also, URL is mutually exclusive with CustomID.
 	URL      string `json:"url,omitempty"`
 	CustomID string `json:"custom_id,omitempty"`
-	// Identifier for a purchasable SKU. Only available when using premium-style buttons.
+	// Identifier for a purchasable premium.SKU. Only available when using ButtonStylePremium.
 	SKUID string `json:"sku_id,omitempty"`
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
 
-// MarshalJSON is a method for marshaling Button to a JSON object.
 func (b Button) MarshalJSON() ([]byte, error) {
 	if b.Style == 0 {
 		b.Style = ButtonStylePrimary
@@ -96,14 +95,13 @@ func (b Button) MarshalJSON() ([]byte, error) {
 	return toJson(b)
 }
 
-// Type is a method to get the type of a component.
 func (Button) Type() types.Component {
 	return types.ComponentButton
 }
 
 func (b Button) message() {}
 
-// SelectMenuOption represents an option for a select menu.
+// SelectMenuOption represents an option for a SelectMenu.
 type SelectMenuOption struct {
 	Label       string           `json:"label,omitempty"`
 	Value       string           `json:"value"`
@@ -121,38 +119,39 @@ type SelectMenuDefaultValue struct {
 	Type types.SelectMenuDefaultValue `json:"type"`
 }
 
-// SelectMenu represents select menu component.
+// SelectMenu represents select menu Component.
 type SelectMenu struct {
-	// Type of the select menu.
+	// Type of the SelectMenu.
 	MenuType types.SelectMenu `json:"type,omitempty"`
-	// CustomID is a developer-defined identifier for the select menu.
+	// CustomID is a developer-defined identifier for the SelectMenu.
 	CustomID string `json:"custom_id,omitempty"`
-	// The text which will be shown in the menu if there's no default options or all options was deselected and component was closed.
+	// The text which will be shown in the menu if there's no default options or all options was deselected and Component was closed.
 	Placeholder string `json:"placeholder"`
 	// This value determines the minimal amount of selected items in the menu.
 	MinValues *int `json:"min_values,omitempty"`
 	// This value determines the maximal amount of selected items in the menu.
-	// If MaxValues or MinValues are greater than one then the user can select multiple items in the component.
+	// If MaxValues or MinValues are greater than one then the user can select multiple items in the Component.
 	MaxValues int `json:"max_values,omitempty"`
-	// List of default values for auto-populated select menus.
+	// List of default values for autopopulated select menus.
+	//
 	// NOTE: Number of entries should be in the range defined by MinValues and MaxValues.
 	DefaultValues []SelectMenuDefaultValue `json:"default_values,omitempty"`
 
 	Options []SelectMenuOption `json:"options,omitempty"`
 	// The list of value(s) selected from the predefined options.
-	// NOTE: This will only exist if the Interaction was a ModalSubmit
-	// otherwise you should (still) be using `MessageComponentData`
+	//
+	// NOTE: This will only exist if the Interaction was a ModalSubmit otherwise you should (still) be using
+	// gokord.InteractionResponse.MessageComponentData()
 	Values   []string `json:"values,omitempty"`
 	Disabled bool     `json:"disabled"`
 
-	// NOTE: Can only be used in SelectMenu with Channel menu type.
+	// NOTE: Can only be used in SelectMenu with types.SelectMenuChannel.
 	ChannelTypes []types.Channel `json:"channel_types,omitempty"`
 
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
 
-// Type is a method to get the type of a component.
 func (s SelectMenu) Type() types.Component {
 	if s.MenuType != 0 {
 		return types.Component(s.MenuType)
@@ -160,16 +159,15 @@ func (s SelectMenu) Type() types.Component {
 	return types.ComponentSelectMenu
 }
 
-// MarshalJSON is a method for marshaling SelectMenu to a JSON object.
 func (s SelectMenu) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
 func (s SelectMenu) message() {}
 
-func (s SelectMenu) modal() {} // for StringSelectMenu
+func (s SelectMenu) modal() {} // for types.SelectMenuString
 
-// TextInput represents text input component.
+// TextInput represents text input Component.
 type TextInput struct {
 	CustomID    string         `json:"custom_id"`
 	Label       string         `json:"label"`
@@ -180,23 +178,21 @@ type TextInput struct {
 	MinLength   int            `json:"min_length,omitempty"`
 	MaxLength   int            `json:"max_length,omitempty"`
 
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
 
-// Type is a method to get the type of a component.
 func (TextInput) Type() types.Component {
 	return types.ComponentTextInput
 }
 
-// MarshalJSON is a method for marshaling TextInput to a JSON object.
 func (m TextInput) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
 
 func (TextInput) modal() {}
 
-// TextInputStyle is style of text in TextInput component.
+// TextInputStyle is style of text in TextInput Component.
 type TextInputStyle uint
 
 // Text styles
@@ -205,9 +201,9 @@ const (
 	TextInputParagraph TextInputStyle = 2
 )
 
-// Section is a top-level layout component that allows you to join text contextually with an accessory.
+// Section is a top-level layout Component that allows you to join Message Component contextually with an Accessory.
 type Section struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 	// Array of text display components; max of 3.
 	Components []Message `json:"components"`
@@ -215,70 +211,62 @@ type Section struct {
 	Accessory Message `json:"accessory"`
 }
 
-// Type is a method to get the type of a component.
 func (*Section) Type() types.Component {
 	return types.ComponentSection
 }
 
-// MarshalJSON is a method for marshaling Section to a JSON object.
 func (s *Section) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
 func (*Section) message() {}
 
-// TextDisplay is a top-level component that allows you to add markdown-formatted text to the message.
+// TextDisplay is a top-level Component that allows you to add markdown-formatted text to the Message.
 type TextDisplay struct {
 	Content string `json:"content"`
 }
 
-// Type is a method to get the type of a component.
 func (TextDisplay) Type() types.Component {
 	return types.ComponentTextDisplay
 }
 
-// MarshalJSON is a method for marshaling TextDisplay to a JSON object.
 func (t TextDisplay) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
 
 func (TextDisplay) message() {}
 
-// Thumbnail component can be used as an accessory for a section component.
+// Thumbnail can be used as an accessory for a Section component.
 type Thumbnail struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID          int               `json:"id,omitempty"`
 	Media       UnfurledMediaItem `json:"media"`
 	Description *string           `json:"description,omitempty"`
 	Spoiler     bool              `json:"spoiler,omitempty"`
 }
 
-// Type is a method to get the type of a component.
 func (Thumbnail) Type() types.Component {
 	return types.ComponentThumbnail
 }
 
-// MarshalJSON is a method for marshaling Thumbnail to a JSON object.
 func (t Thumbnail) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
 
 func (Thumbnail) message() {}
 
-// MediaGallery is a top-level component allows you to group images, videos or gifs into a gallery grid.
+// MediaGallery is a top-level Component allows you to group images, videos or gifs into a gallery grid.
 type MediaGallery struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 	// Array of media gallery items; max of 10.
 	Items []MediaGalleryItem `json:"items"`
 }
 
-// Type is a method to get the type of a component.
 func (MediaGallery) Type() types.Component {
 	return types.ComponentMediaGallery
 }
 
-// MarshalJSON is a method for marshaling MediaGallery to a JSON object.
 func (m MediaGallery) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
@@ -292,72 +280,67 @@ type MediaGalleryItem struct {
 	Spoiler     bool              `json:"spoiler"`
 }
 
-// File is a top-level component that allows you to display an uploaded file as an attachment to the message and reference it in the component.
+// File is a top-level Component that allows you to display an uploaded file as an attachment to the message and
+// reference it in the Component.
 type File struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID      int               `json:"id,omitempty"`
 	File    UnfurledMediaItem `json:"file"`
 	Spoiler bool              `json:"spoiler"`
 }
 
-// Type is a method to get the type of a component.
 func (File) Type() types.Component {
 	return types.ComponentFile
 }
 
-// MarshalJSON is a method for marshaling File to a JSON object.
 func (f File) MarshalJSON() ([]byte, error) {
 	return toJson(f)
 }
 
 func (File) message() {}
 
-// SeparatorSpacingSize represents spacing size around the separator.
+// SeparatorSpacingSize represents spacing size around the Separator.
 type SeparatorSpacingSize uint
 
-// Separator spacing sizes.
 const (
 	SeparatorSpacingSizeSmall SeparatorSpacingSize = 1
 	SeparatorSpacingSizeLarge SeparatorSpacingSize = 2
 )
 
-// Separator is a top-level layout component that adds vertical padding and visual division between other components.
+// Separator is a top-level layout Component that adds vertical padding and visual division between other components.
 type Separator struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 
 	Divider *bool                 `json:"divider,omitempty"`
 	Spacing *SeparatorSpacingSize `json:"spacing,omitempty"`
 }
 
-// Type is a method to get the type of a component.
 func (Separator) Type() types.Component {
 	return types.ComponentSeparator
 }
 
-// MarshalJSON is a method for marshaling Separator to a JSON object.
 func (s Separator) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
 func (Separator) message() {}
 
-// Container is a top-level layout component.
-// Containers are visually distinct from surrounding components and have an optional customizable color bar (similar to embeds).
+// Container is a top-level layout Component.
+// Containers are visually distinct from surrounding components and have an optional customizable color bar (similar to
+// channel.MessageEmbed).
 type Container struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID          int       `json:"id,omitempty"`
 	AccentColor *int      `json:"accent_color,omitempty"`
 	Spoiler     bool      `json:"spoiler"`
 	Components  []Message `json:"components"`
 }
 
-// Type is a method to get the type of a component.
 func (*Container) Type() types.Component {
 	return types.ComponentContainer
 }
 
-// MarshalJSON is a method for marshaling Container to a JSON object.
 func (c *Container) MarshalJSON() ([]byte, error) {
 	return toJson(c)
 }
@@ -372,7 +355,6 @@ type UnfurledMediaItem struct {
 // UnfurledMediaItemLoadingState is the loading state of the unfurled media item.
 type UnfurledMediaItemLoadingState uint
 
-// Unfurled media item loading states.
 const (
 	UnfurledMediaItemLoadingStateUnknown        UnfurledMediaItemLoadingState = 0
 	UnfurledMediaItemLoadingStateLoading        UnfurledMediaItemLoadingState = 1
@@ -389,22 +371,20 @@ type ResolvedUnfurledMediaItem struct {
 	ContentType string `json:"content_type"`
 }
 
-// Label is a top-level layout component.
-// Labels wrap modal components with text as a label and optional description.
+// Label is a top-level layout Component.
+// It wraps modal components with text as a label and optional description.
 type Label struct {
-	// Unique identifier for the component; auto populated through increment if not provided.
+	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID          int     `json:"id,omitempty"`
 	Label       string  `json:"label"`
 	Description string  `json:"description,omitempty"`
 	Component   Message `json:"component"`
 }
 
-// Type is a method to get the type of a component.
 func (*Label) Type() types.Component {
 	return types.ComponentLabel
 }
 
-// MarshalJSON is a method for marshaling Label to a JSON object.
 func (l *Label) MarshalJSON() ([]byte, error) {
 	return toJson(l)
 }
