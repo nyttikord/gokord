@@ -317,26 +317,10 @@ func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// A ReadState stores data on the read state of channels.
-type ReadState struct {
-	MentionCount  int    `json:"mention_count"`
-	LastMessageID string `json:"last_message_id"`
-	ID            string `json:"id"`
-}
-
 // An APIErrorMessage is an api error message returned from discord
 type APIErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-}
-
-// MessageReaction stores the data for a message reaction.
-type MessageReaction struct {
-	UserID    string `json:"user_id"`
-	MessageID string `json:"message_id"`
-	Emoji     Emoji  `json:"emoji"`
-	ChannelID string `json:"channel_id"`
-	GuildID   string `json:"guild_id,omitempty"`
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response

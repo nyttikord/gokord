@@ -438,3 +438,12 @@ type MessageInteractionMetadata struct {
 	// NOTE: present only on modal submit interactions.
 	TriggeringInteractionMetadata *MessageInteractionMetadata `json:"triggering_interaction_metadata,omitempty"`
 }
+
+// MessageReaction stores the data for a message reaction.
+type MessageReaction struct {
+	UserID    string     `json:"user_id"`
+	MessageID string     `json:"message_id"`
+	Emoji     user.Emoji `json:"emoji"`
+	ChannelID string     `json:"channel_id"`
+	GuildID   string     `json:"guild_id,omitempty"`
+}
