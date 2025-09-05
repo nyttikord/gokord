@@ -430,3 +430,9 @@ type Params struct {
 	Description                 string             `json:"description,omitempty"`
 	PremiumProgressBarEnabled   *bool              `json:"premium_progress_bar_enabled,omitempty"`
 }
+
+// A Embed stores data for a guild embed.
+type Embed struct {
+	Enabled   *bool  `json:"enabled,omitempty"`
+	ChannelID string `json:"channel_id,omitempty"`
+}
