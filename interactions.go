@@ -6,14 +6,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/component"
-	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/user"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/nyttikord/gokord/application"
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/premium"
+	"github.com/nyttikord/gokord/user"
 )
 
 // InteractionDeadline is the time allowed to respond to an interaction.
@@ -48,9 +52,9 @@ type ApplicationCommand struct {
 	NSFW                     *bool  `json:"nsfw,omitempty"`
 
 	// Deprecated: use Contexts instead.
-	DMPermission     *bool                         `json:"dm_permission,omitempty"`
-	Contexts         *[]InteractionContextType     `json:"contexts,omitempty"`
-	IntegrationTypes *[]ApplicationIntegrationType `json:"integration_types,omitempty"`
+	DMPermission     *bool                          `json:"dm_permission,omitempty"`
+	Contexts         *[]InteractionContextType      `json:"contexts,omitempty"`
+	IntegrationTypes *[]application.IntegrationType `json:"integration_types,omitempty"`
 
 	// NOTE: Chat commands only. Otherwise it mustn't be set.
 
@@ -116,7 +120,7 @@ type ApplicationCommandOption struct {
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
 
-	ChannelTypes []ChannelType               `json:"channel_types"`
+	ChannelTypes []channel.Type              `json:"channel_types"`
 	Required     bool                        `json:"required"`
 	Options      []*ApplicationCommandOption `json:"options"`
 
@@ -240,7 +244,7 @@ type Interaction struct {
 	// NOTE: this field is only filled when the slash command was invoked in a guild;
 	// if it was invoked in a DM, the `User` field will be filled instead.
 	// Make sure to check for `nil` before using this field.
-	Member *Member `json:"member"`
+	Member *user.Member `json:"member"`
 	// The user who invoked this interaction.
 	// NOTE: this field is only filled when the slash command was invoked in a DM;
 	// if it was invoked in a guild, the `Member` field will be filled instead.
@@ -253,15 +257,15 @@ type Interaction struct {
 	// NOTE: this field is only filled when the interaction was invoked in a guild.
 	GuildLocale *discord.Locale `json:"guild_locale"`
 
-	Context                      InteractionContextType                `json:"context"`
-	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
+	Context                      InteractionContextType                 `json:"context"`
+	AuthorizingIntegrationOwners map[application.IntegrationType]string `json:"authorizing_integration_owners"`
 
 	Token   string `json:"token"`
 	Version int    `json:"version"`
 
 	// Any entitlements for the invoking user, representing access to premium SKUs.
 	// NOTE: this field is only filled in monetized apps
-	Entitlements []*Entitlement `json:"entitlements"`
+	Entitlements []*premium.Entitlement `json:"entitlements"`
 }
 
 type interaction Interaction
@@ -370,9 +374,9 @@ func (d ApplicationCommandInteractionData) GetOption(name string) (option *Appli
 // Partial Channel objects only have id, name, type and permissions fields.
 type ApplicationCommandInteractionDataResolved struct {
 	Users       map[string]*user.User                 `json:"users"`
-	Members     map[string]*Member                    `json:"members"`
-	Roles       map[string]*Role                      `json:"roles"`
-	Channels    map[string]*Channel                   `json:"channels"`
+	Members     map[string]*user.Member               `json:"members"`
+	Roles       map[string]*guild.Role                `json:"roles"`
+	Channels    map[string]*channel.Channel           `json:"channels"`
 	Messages    map[string]*channel.Message           `json:"messages"`
 	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
 }
@@ -394,10 +398,10 @@ type MessageComponentInteractionData struct {
 
 // MessageComponentInteractionDataResolved contains the resolved data of selected option.
 type MessageComponentInteractionDataResolved struct {
-	Users    map[string]*user.User `json:"users"`
-	Members  map[string]*Member    `json:"members"`
-	Roles    map[string]*Role      `json:"roles"`
-	Channels map[string]*Channel   `json:"channels"`
+	Users    map[string]*user.User       `json:"users"`
+	Members  map[string]*user.Member     `json:"members"`
+	Roles    map[string]*guild.Role      `json:"roles"`
+	Channels map[string]*channel.Channel `json:"channels"`
 }
 
 // Type returns the type of interaction data.
@@ -501,21 +505,21 @@ func (o ApplicationCommandInteractionDataOption) BoolValue() bool {
 
 // ChannelValue is a utility function for casting option value to channel object.
 // s : Session object, if not nil, function additionally fetches all channel's data
-func (o ApplicationCommandInteractionDataOption) ChannelValue(s *Session) *Channel {
+func (o ApplicationCommandInteractionDataOption) ChannelValue(s *Session) *channel.Channel {
 	if o.Type != ApplicationCommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
 	chanID := o.Value.(string)
 
 	if s == nil {
-		return &Channel{ID: chanID}
+		return &channel.Channel{ID: chanID}
 	}
 
 	ch, err := s.State.Channel(chanID)
 	if err != nil {
 		ch, err = s.Channel(chanID)
 		if err != nil {
-			return &Channel{ID: chanID}
+			return &channel.Channel{ID: chanID}
 		}
 	}
 
@@ -524,14 +528,14 @@ func (o ApplicationCommandInteractionDataOption) ChannelValue(s *Session) *Chann
 
 // RoleValue is a utility function for casting option value to role object.
 // s : Session object, if not nil, function additionally fetches all role's data
-func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID string) *Role {
+func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID string) *guild.Role {
 	if o.Type != ApplicationCommandOptionRole && o.Type != ApplicationCommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}
 	roleID := o.Value.(string)
 
 	if s == nil || gID == "" {
-		return &Role{ID: roleID}
+		return &guild.Role{ID: roleID}
 	}
 
 	r, err := s.State.Role(gID, roleID)
@@ -544,7 +548,7 @@ func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID strin
 				}
 			}
 		}
-		return &Role{ID: roleID}
+		return &guild.Role{ID: roleID}
 	}
 
 	return r
@@ -606,7 +610,7 @@ type InteractionResponseData struct {
 	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Files           []*channel.File                 `json:"-"`
 	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
-	Poll            *Poll                           `json:"poll,omitempty"`
+	Poll            *channel.Poll                   `json:"poll,omitempty"`
 
 	// NOTE: only MessageFlagsSuppressEmbeds and MessageFlagsEphemeral can be set.
 	Flags channel.MessageFlags `json:"flags,omitempty"`

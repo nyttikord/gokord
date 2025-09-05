@@ -2,29 +2,10 @@ package channel
 
 import (
 	"fmt"
-	"github.com/nyttikord/gokord/user"
 	"time"
-)
 
-// Type is the type of a Channel
-type Type int
-
-// Block contains known Type values
-const (
-	TypeGuildText          Type = 0
-	TypeDM                 Type = 1
-	TypeGuildVoice         Type = 2
-	TypeGroupDM            Type = 3
-	TypeGuildCategory      Type = 4
-	TypeGuildNews          Type = 5
-	TypeGuildStore         Type = 6
-	TypeGuildNewsThread    Type = 10
-	TypeGuildPublicThread  Type = 11
-	TypeGuildPrivateThread Type = 12
-	TypeGuildStageVoice    Type = 13
-	TypeGuildDirectory     Type = 14
-	TypeGuildForum         Type = 15
-	TypeGuildMedia         Type = 16
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user"
 )
 
 // Flags represent flags of a channel/thread.
@@ -96,7 +77,7 @@ type Channel struct {
 	Topic string `json:"topic"`
 
 	// The type of the channel.
-	Type Type `json:"type"`
+	Type types.Channel `json:"type"`
 
 	// The ID of the last message sent in the channel. This is not
 	// guaranteed to be an ID of a valid message.
@@ -189,7 +170,7 @@ func (c *Channel) Mention() string {
 
 // IsThread is a helper function to determine if channel is a thread or not
 func (c *Channel) IsThread() bool {
-	return c.Type == TypeGuildPublicThread || c.Type == TypeGuildPrivateThread || c.Type == TypeGuildNewsThread
+	return c.Type == types.ChannelGuildPublicThread || c.Type == types.ChannelGuildPrivateThread || c.Type == types.ChannelGuildNewsThread
 }
 
 // A Edit holds Channel Field data for a channel edit.

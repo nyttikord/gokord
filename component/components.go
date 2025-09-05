@@ -2,55 +2,33 @@ package component
 
 import (
 	"encoding/json"
-	"github.com/nyttikord/gokord/channel"
+
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
-)
-
-// Type is type of component.
-type Type uint
-
-// Message types.
-const (
-	TypeActionsRow            Type = 1
-	TypeButton                Type = 2
-	TypeSelectMenu            Type = 3
-	TypeTextInput             Type = 4
-	TypeUserSelectMenu        Type = 5
-	TypeRoleSelectMenu        Type = 6
-	TypeMentionableSelectMenu Type = 7
-	TypeChannelSelectMenu     Type = 8
-	TypeSection               Type = 9
-	TypeTextDisplay           Type = 10
-	TypeThumbnail             Type = 11
-	TypeMediaGallery          Type = 12
-	TypeFile                  Type = 13
-	TypeSeparator             Type = 14
-	TypeContainer             Type = 17
-	TypeLabel                 Type = 18
 )
 
 type Component interface {
 	json.Marshaler
-	Type() Type
+	Type() types.Component
 }
 
 // Message is a base interface for all message components.
 type Message interface {
 	json.Marshaler
-	Type() Type
+	Type() types.Component
 	message()
 }
 
 type Modal interface {
 	json.Marshaler
-	Type() Type
+	Type() types.Component
 	modal()
 }
 
 func toJson(m Component) ([]byte, error) {
 	return json.Marshal(struct {
 		Component
-		Type Type `json:"type"`
+		Type types.Component `json:"type"`
 	}{m, m.Type()})
 }
 
@@ -68,9 +46,9 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 	return toJson(r)
 }
 
-// Type is a method to get the type of a component.
-func (r *ActionsRow) Type() Type {
-	return TypeActionsRow
+// Type is a method to get the type component.
+func (r *ActionsRow) Type() types.Component {
+	return types.ComponentActionsRow
 }
 
 func (r *ActionsRow) message() {}
@@ -119,8 +97,8 @@ func (b Button) MarshalJSON() ([]byte, error) {
 }
 
 // Type is a method to get the type of a component.
-func (Button) Type() Type {
-	return TypeButton
+func (Button) Type() types.Component {
+	return types.ComponentButton
 }
 
 func (b Button) message() {}
@@ -154,15 +132,15 @@ type SelectMenuDefaultValue struct {
 }
 
 // SelectMenuType represents select menu type.
-type SelectMenuType Type
+type SelectMenuType types.Component
 
 // SelectMenu types.
 const (
-	StringSelectMenu      = SelectMenuType(TypeSelectMenu)
-	UserSelectMenu        = SelectMenuType(TypeUserSelectMenu)
-	RoleSelectMenu        = SelectMenuType(TypeRoleSelectMenu)
-	MentionableSelectMenu = SelectMenuType(TypeMentionableSelectMenu)
-	ChannelSelectMenu     = SelectMenuType(TypeChannelSelectMenu)
+	StringSelectMenu      = SelectMenuType(types.ComponentSelectMenu)
+	UserSelectMenu        = SelectMenuType(types.ComponentUserSelectMenu)
+	RoleSelectMenu        = SelectMenuType(types.ComponentRoleSelectMenu)
+	MentionableSelectMenu = SelectMenuType(types.ComponentMentionableSelectMenu)
+	ChannelSelectMenu     = SelectMenuType(types.ComponentChannelSelectMenu)
 )
 
 // SelectMenu represents select menu component.
@@ -190,18 +168,18 @@ type SelectMenu struct {
 	Disabled bool     `json:"disabled"`
 
 	// NOTE: Can only be used in SelectMenu with Channel menu type.
-	ChannelTypes []channel.Type `json:"channel_types,omitempty"`
+	ChannelTypes []types.Channel `json:"channel_types,omitempty"`
 
 	// Unique identifier for the component; auto populated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }
 
 // Type is a method to get the type of a component.
-func (s SelectMenu) Type() Type {
+func (s SelectMenu) Type() types.Component {
 	if s.MenuType != 0 {
-		return Type(s.MenuType)
+		return types.Component(s.MenuType)
 	}
-	return TypeSelectMenu
+	return types.ComponentSelectMenu
 }
 
 // MarshalJSON is a method for marshaling SelectMenu to a JSON object.
@@ -229,8 +207,8 @@ type TextInput struct {
 }
 
 // Type is a method to get the type of a component.
-func (TextInput) Type() Type {
-	return TypeTextInput
+func (TextInput) Type() types.Component {
+	return types.ComponentTextInput
 }
 
 // MarshalJSON is a method for marshaling TextInput to a JSON object.
@@ -260,8 +238,8 @@ type Section struct {
 }
 
 // Type is a method to get the type of a component.
-func (*Section) Type() Type {
-	return TypeSection
+func (*Section) Type() types.Component {
+	return types.ComponentSection
 }
 
 // MarshalJSON is a method for marshaling Section to a JSON object.
@@ -277,8 +255,8 @@ type TextDisplay struct {
 }
 
 // Type is a method to get the type of a component.
-func (TextDisplay) Type() Type {
-	return TypeTextDisplay
+func (TextDisplay) Type() types.Component {
+	return types.ComponentTextDisplay
 }
 
 // MarshalJSON is a method for marshaling TextDisplay to a JSON object.
@@ -298,8 +276,8 @@ type Thumbnail struct {
 }
 
 // Type is a method to get the type of a component.
-func (Thumbnail) Type() Type {
-	return TypeThumbnail
+func (Thumbnail) Type() types.Component {
+	return types.ComponentThumbnail
 }
 
 // MarshalJSON is a method for marshaling Thumbnail to a JSON object.
@@ -318,8 +296,8 @@ type MediaGallery struct {
 }
 
 // Type is a method to get the type of a component.
-func (MediaGallery) Type() Type {
-	return TypeMediaGallery
+func (MediaGallery) Type() types.Component {
+	return types.ComponentMediaGallery
 }
 
 // MarshalJSON is a method for marshaling MediaGallery to a JSON object.
@@ -345,8 +323,8 @@ type FileComponent struct {
 }
 
 // Type is a method to get the type of a component.
-func (FileComponent) Type() Type {
-	return TypeFile
+func (FileComponent) Type() types.Component {
+	return types.ComponentFile
 }
 
 // MarshalJSON is a method for marshaling FileComponent to a JSON object.
@@ -375,8 +353,8 @@ type Separator struct {
 }
 
 // Type is a method to get the type of a component.
-func (Separator) Type() Type {
-	return TypeSeparator
+func (Separator) Type() types.Component {
+	return types.ComponentSeparator
 }
 
 // MarshalJSON is a method for marshaling Separator to a JSON object.
@@ -397,8 +375,8 @@ type Container struct {
 }
 
 // Type is a method to get the type of a component.
-func (*Container) Type() Type {
-	return TypeContainer
+func (*Container) Type() types.Component {
+	return types.ComponentContainer
 }
 
 // MarshalJSON is a method for marshaling Container to a JSON object.
@@ -444,8 +422,8 @@ type Label struct {
 }
 
 // Type is a method to get the type of a component.
-func (*Label) Type() Type {
-	return TypeLabel
+func (*Label) Type() types.Component {
+	return types.ComponentLabel
 }
 
 // MarshalJSON is a method for marshaling Label to a JSON object.

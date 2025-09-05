@@ -1,15 +1,16 @@
 package channel
 
 import (
+	"io"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
-	"io"
-	"regexp"
-	"strings"
-	"time"
 )
 
 // MessageType is the type of Message
