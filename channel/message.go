@@ -3,6 +3,7 @@ package channel
 import (
 	"encoding/json"
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 	"io"
@@ -362,52 +363,52 @@ var patternChannels = regexp.MustCompile("<#[^>]*>")
 // ContentWithMoreMentionsReplaced will replace all @<id> mentions with the
 // username of the mention, but also role IDs and more.
 // TODO: remove from message package
-func (m *Message) ContentWithMoreMentionsReplaced(s *gokord.Session) (content string, err error) {
-	content = m.Content
-
-	if !s.StateEnabled {
-		content = m.ContentWithMentionsReplaced()
-		return
-	}
-
-	channel, err := s.State.Channel(m.ChannelID)
-	if err != nil {
-		content = m.ContentWithMentionsReplaced()
-		return
-	}
-
-	for _, u := range m.Mentions {
-		nick := u.Username
-
-		member, err := s.State.Member(channel.GuildID, u.ID)
-		if err == nil && member.Nick != "" {
-			nick = member.Nick
-		}
-
-		content = strings.NewReplacer(
-			"<@"+u.ID+">", "@"+u.Username,
-			"<@!"+u.ID+">", "@"+nick,
-		).Replace(content)
-	}
-	for _, roleID := range m.MentionRoles {
-		role, err := s.State.Role(channel.GuildID, roleID)
-		if err != nil || !role.Mentionable {
-			continue
-		}
-
-		content = strings.Replace(content, "<@&"+role.ID+">", "@"+role.Name, -1)
-	}
-
-	content = patternChannels.ReplaceAllStringFunc(content, func(mention string) string {
-		channel, err := s.State.Channel(mention[2 : len(mention)-1])
-		if err != nil || channel.Type == ChannelTypeGuildVoice {
-			return mention
-		}
-
-		return "#" + channel.Name
-	})
-	return
-}
+//func (m *Message) ContentWithMoreMentionsReplaced(s *gokord.Session) (content string, err error) {
+//	content = m.Content
+//
+//	if !s.StateEnabled {
+//		content = m.ContentWithMentionsReplaced()
+//		return
+//	}
+//
+//	channel, err := s.State.Channel(m.ChannelID)
+//	if err != nil {
+//		content = m.ContentWithMentionsReplaced()
+//		return
+//	}
+//
+//	for _, u := range m.Mentions {
+//		nick := u.Username
+//
+//		member, err := s.State.Member(channel.GuildID, u.ID)
+//		if err == nil && member.Nick != "" {
+//			nick = member.Nick
+//		}
+//
+//		content = strings.NewReplacer(
+//			"<@"+u.ID+">", "@"+u.Username,
+//			"<@!"+u.ID+">", "@"+nick,
+//		).Replace(content)
+//	}
+//	for _, roleID := range m.MentionRoles {
+//		role, err := s.State.Role(channel.GuildID, roleID)
+//		if err != nil || !role.Mentionable {
+//			continue
+//		}
+//
+//		content = strings.Replace(content, "<@&"+role.ID+">", "@"+role.Name, -1)
+//	}
+//
+//	content = patternChannels.ReplaceAllStringFunc(content, func(mention string) string {
+//		channel, err := s.State.Channel(mention[2 : len(mention)-1])
+//		if err != nil || channel.Type == ChannelTypeGuildVoice {
+//			return mention
+//		}
+//
+//		return "#" + channel.Name
+//	})
+//	return
+//}
 
 // MessageInteraction contains information about the application command interaction which generated the message.
 type MessageInteraction struct {
@@ -429,7 +430,7 @@ type MessageInteractionMetadata struct {
 	// User who triggered the interaction.
 	User *user.User `json:"user"`
 	// IDs for installation context(s) related to an interaction.
-	AuthorizingIntegrationOwners map[gokord.ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
+	AuthorizingIntegrationOwners map[application.IntegrationType]string `json:"authorizing_integration_owners"`
 	// ID of the original response message.
 	// NOTE: present only on followup messages.
 	OriginalResponseMessageID string `json:"original_response_message_id,omitempty"`
