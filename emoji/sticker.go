@@ -16,7 +16,7 @@ const (
 	StickerFormatTypeGIF    StickerFormat = 4
 )
 
-// Sticker represents a sticker object that can be sent in a Message.
+// Sticker represents a sticker object that can be sent in a channel.Message.
 type Sticker struct {
 	ID          string        `json:"id"`
 	PackID      string        `json:"pack_id"`
@@ -31,7 +31,8 @@ type Sticker struct {
 	SortValue   int           `json:"sort_value"`
 }
 
-// StickerItem represents the smallest amount of data required to render a sticker. A partial sticker object.
+// StickerItem represents the smallest amount of data required to render a Sticker.
+// A partial Sticker object.
 type StickerItem struct {
 	ID         string        `json:"id"`
 	Name       string        `json:"name"`

@@ -1,11 +1,12 @@
 package emoji
 
 import (
-	"github.com/nyttikord/gokord/user"
 	"regexp"
+
+	"github.com/nyttikord/gokord/user"
 )
 
-// Emoji struct holds data related to Emoji's
+// Emoji struct holds data related to emoji's
 type Emoji struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
@@ -17,12 +18,12 @@ type Emoji struct {
 	Available     bool       `json:"available"`
 }
 
-// EmojiRegex is the regex used to find and identify emojis in messages
+// Regex is the regexp.Regexp used to find and identify emojis in messages
 var (
-	EmojiRegex = regexp.MustCompile(`<(a|):[A-Za-z0-9_~]+:[0-9]{18,20}>`)
+	Regex = regexp.MustCompile(`<(a|):[A-Za-z0-9_~]+:[0-9]{18,20}>`)
 )
 
-// MessageFormat returns a correctly formatted Emoji for use in Message content and embeds
+// MessageFormat returns a correctly formatted Emoji for use in channel.Message content and channel.MessageEmbed
 func (e *Emoji) MessageFormat() string {
 	if e.ID != "" && e.Name != "" {
 		if e.Animated {
@@ -35,7 +36,7 @@ func (e *Emoji) MessageFormat() string {
 	return e.APIName()
 }
 
-// APIName returns an correctly formatted API name for use in the MessageReactions endpoints.
+// APIName returns a correctly formatted API name for use in the channel.MessageReactions endpoints.
 func (e *Emoji) APIName() string {
 	if e.ID != "" && e.Name != "" {
 		return e.Name + ":" + e.ID

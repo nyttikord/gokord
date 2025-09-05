@@ -135,7 +135,7 @@ type Message struct {
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
 func (m *Message) GetCustomEmojis() []*emoji.Emoji {
 	var toReturn []*emoji.Emoji
-	emojis := emoji.EmojiRegex.FindAllString(m.Content, -1)
+	emojis := emoji.Regex.FindAllString(m.Content, -1)
 	if len(emojis) < 1 {
 		return toReturn
 	}
