@@ -1,11 +1,12 @@
 package types
 
-// Target indicates the type of target of an invite
+// InviteTarget indicates the type of invite.Invite.
 // https://discord.com/developers/docs/resources/invite#invite-object-invite-target-types
-type Target uint8
+type InviteTarget uint8
 
-// Invite target types
 const (
-	TargetStream              Target = 1
-	TargetEmbeddedApplication Target = 2
+	InviteTargetStream              InviteTarget = 1
+	InviteTargetEmbeddedApplication InviteTarget = 2
 )
+
+//TODO: InviteType is missing

@@ -1,18 +1,16 @@
 package types
 
-// AutoModerationRuleEvent indicates in what event context a rule should be checked.
+// AutoModerationRuleEvent indicates in what event context a guild.AutoModerationRule should be checked.
 type AutoModerationRuleEvent int
 
-// Auto moderation rule event types.
 const (
 	// AutoModerationRuleEventMessageSend is checked when a member sends or edits a message in the guild
 	AutoModerationRuleEventMessageSend AutoModerationRuleEvent = 1
 )
 
-// AutoModerationRuleTrigger represents the type of content which can trigger the rule.
+// AutoModerationRuleTrigger represents the type of content which can trigger the guild.AutoModerationRule.
 type AutoModerationRuleTrigger int
 
-// Auto moderation rule trigger types.
 const (
 	AutoModerationRuleTriggerKeyword       AutoModerationRuleTrigger = 1
 	AutoModerationRuleTriggerHarmfulLink   AutoModerationRuleTrigger = 2
@@ -20,27 +18,25 @@ const (
 	AutoModerationRuleTriggerKeywordPreset AutoModerationRuleTrigger = 4
 )
 
-// AutoModerationAction represents an action which will execute whenever a rule is triggered.
+// AutoModerationAction represents an action which will execute whenever a guild.AutoModerationAction is triggered.
 type AutoModerationAction int
 
-// Auto moderation actions types.
 const (
 	AutoModerationActionBlockMessage     AutoModerationAction = 1
 	AutoModerationActionSendAlertMessage AutoModerationAction = 2
 	AutoModerationActionTimeout          AutoModerationAction = 3
 )
 
-// OnboardingPrompt is the type of an onboarding prompt.
+// OnboardingPrompt is the type of guild.OnboardingPrompt.
 // https://discord.com/developers/docs/resources/guild#guild-onboarding-object-prompt-types
 type OnboardingPrompt int
 
-// Block containing known OnboardingPrompt values.
 const (
 	OnboardingPromptMultipleChoice OnboardingPrompt = 0
 	OnboardingPromptDropdown       OnboardingPrompt = 1
 )
 
-// ScheduledEventEntity is the type of entity associated with a guild scheduled event.
+// ScheduledEventEntity is the type of entity associated with guild.ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
 type ScheduledEventEntity int
 
@@ -53,11 +49,10 @@ const (
 	ScheduledEventEntityExternal ScheduledEventEntity = 3
 )
 
-// AuditLogOptions of the AuditLogOption
+// AuditLogOptions is the type of guild.AuditLogOptions.
 // https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-optional-audit-entry-info
 type AuditLogOptions string
 
-// Valid Types for AuditLogOptions
 const (
 	AuditLogOptionsRole   AuditLogOptions = "0"
 	AuditLogOptionsMember AuditLogOptions = "1"

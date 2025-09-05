@@ -244,7 +244,7 @@ type ApplicationCommandInteractionData struct {
 
 	// Slash command options
 	Options []*ApplicationCommandInteractionDataOption `json:"options"`
-	// Target (user/message) id on which context menu command was called.
+	// InviteTarget (user/message) id on which context menu command was called.
 	// The details are stored in Resolved according to command type.
 	TargetID string `json:"target_id"`
 }

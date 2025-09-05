@@ -1,10 +1,9 @@
 package types
 
-// Activity is the type of Activity (see Activity* consts) in the Activity struct
+// Activity is the type of status.Activity.
 // https://discord.com/developers/docs/topics/gateway#activity-object-activity-types
 type Activity int
 
-// Valid Activity values
 const (
 	ActivityGame      Activity = 0
 	ActivityStreaming Activity = 1

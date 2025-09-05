@@ -3,7 +3,6 @@ package types
 // Component is type of component.Component.
 type Component uint
 
-// Message types.
 const (
 	ComponentActionsRow            Component = 1
 	ComponentButton                Component = 2
@@ -23,20 +22,18 @@ const (
 	ComponentLabel                 Component = 18
 )
 
-// SelectMenuDefaultValue represents the type of an entity selected by default in auto-populated select menus.
+// SelectMenuDefaultValue represents the type of entity selected by default in autopopulated component.SelectMenuDefaultValue.
 type SelectMenuDefaultValue string
 
-// SelectMenuDefaultValue types.
 const (
 	SelectMenuDefaultValueUser    SelectMenuDefaultValue = "user"
 	SelectMenuDefaultValueRole    SelectMenuDefaultValue = "role"
 	SelectMenuDefaultValueChannel SelectMenuDefaultValue = "channel"
 )
 
-// SelectMenu represents select menu type.
+// SelectMenu represents the type of component.SelectMenu.
 type SelectMenu Component
 
-// SelectMenu types.
 const (
 	SelectMenuString      = SelectMenu(ComponentSelectMenu)
 	SelectMenuUser        = SelectMenu(ComponentUserSelectMenu)

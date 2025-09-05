@@ -24,7 +24,7 @@ type Invite struct {
 	Temporary         bool                     `json:"temporary"`
 	Unique            bool                     `json:"unique"`
 	TargetUser        *user.User               `json:"target_user"`
-	TargetType        types.Target             `json:"target_type"`
+	TargetType        types.InviteTarget       `json:"target_type"`
 	TargetApplication *application.Application `json:"target_application"`
 
 	// will only be filled when using InviteWithCounts

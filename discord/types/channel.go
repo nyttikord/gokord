@@ -1,9 +1,8 @@
 package types
 
-// Channel is the type of channel.Channel
+// Channel is the type of channel.Channel.
 type Channel int
 
-// Block contains known Channel type values
 const (
 	ChannelGuildText          Channel = 0
 	ChannelDM                 Channel = 1
@@ -21,40 +20,35 @@ const (
 	ChannelGuildMedia         Channel = 16
 )
 
-// Webhook is the type of Webhook (see Webhook* consts) in the Webhook struct
+// Webhook is the type of channel.Webhook.
 // https://discord.com/developers/docs/resources/webhook#webhook-object-webhook-types
 type Webhook int
 
-// Valid Webhook values
 const (
 	WebhookIncoming        Webhook = 1
 	WebhookChannelFollower Webhook = 2
 )
 
-// AllowedMention describes the types of mentions used
-// in the MessageAllowedMentions type.
+// AllowedMention describes the types of mentions used in channel.MessageAllowedMentions.
 type AllowedMention string
 
-// The types of mentions used in MessageAllowedMentions.
 const (
 	AllowedMentionRoles    AllowedMention = "roles"
 	AllowedMentionUsers    AllowedMention = "users"
 	AllowedMentionEveryone AllowedMention = "everyone"
 )
 
-// PollLayout represents the layout of a poll.
+// PollLayout represents the layout of a channel.Poll.
 type PollLayout int
 
-// Valid PollLayout values.
 const (
 	PollLayoutDefault PollLayout = 1
 )
 
-// Embed is the type of embed
+// Embed is the type of channel.MessageEmbed.
 // https://discord.com/developers/docs/resources/channel#embed-object-embed-types
 type Embed string
 
-// Block of valid EmbedTypes
 const (
 	EmbedRich    Embed = "rich"
 	EmbedImage   Embed = "image"
@@ -64,11 +58,10 @@ const (
 	EmbedLink    Embed = "link"
 )
 
-// Message is the type of Message
+// Message is the type of channel.Message.
 // https://discord.com/developers/docs/resources/channel#message-object-message-types
 type Message int
 
-// Block contains the valid known Message values
 const (
 	MessageDefault                               Message = 0
 	MessageRecipientAdd                          Message = 1
@@ -92,10 +85,9 @@ const (
 	MessageContextMenuCommand                    Message = 23
 )
 
-// MessageActivity is the type of message activity
+// MessageActivity is the type of channel.MessageActivity.
 type MessageActivity int
 
-// Constants for the different types of Message Activity
 const (
 	MessageActivityJoin        MessageActivity = 1
 	MessageActivitySpectate    MessageActivity = 2
@@ -103,17 +95,17 @@ const (
 	MessageActivityJoinRequest MessageActivity = 5
 )
 
-// MessageReference is a type of MessageReference
+// MessageReference is a type of channel.MessageReference.
 type MessageReference int
 
-// Known valid MessageReference values
+// Known valid MessageReference values.
 // https://discord.com/developers/docs/resources/message#message-reference-types
 const (
 	MessageReferenceDefault MessageReference = 0
 	MessageReferenceForward MessageReference = 1
 )
 
-// ForumSortOrder represents sort order of a forum channel.
+// ForumSortOrder represents sort order of a forum (channel.Channel with the type ChannelGuildForum).
 type ForumSortOrder int
 
 const (
@@ -123,8 +115,7 @@ const (
 	ForumSortOrderCreationDate ForumSortOrder = 1
 )
 
-// PermissionOverwrite represents the type of resource on which
-// a permission overwrite acts.
+// PermissionOverwrite represents the type of resource on which a permission overwrite acts.
 type PermissionOverwrite int
 
 // The possible permission overwrite types.

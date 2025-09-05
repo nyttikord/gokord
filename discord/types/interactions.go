@@ -2,10 +2,9 @@ package types
 
 import "fmt"
 
-// ApplicationCommand represents the type of application command.
+// ApplicationCommand represents the type of gokord.ApplicationCommand.
 type ApplicationCommand uint8
 
-// Application command types
 const (
 	// ApplicationCommandChat is default command type. They are slash commands (i.e. called directly from the chat).
 	ApplicationCommandChat ApplicationCommand = 1
@@ -15,10 +14,9 @@ const (
 	ApplicationCommandMessage ApplicationCommand = 3
 )
 
-// ApplicationCommandOption indicates the type of a slash command's option.
+// ApplicationCommandOption indicates the type of gokord.ApplicationCommandOption.
 type ApplicationCommandOption uint8
 
-// Application command option types.
 const (
 	ApplicationCommandOptionSubCommand      ApplicationCommandOption = 1
 	ApplicationCommandOptionSubCommandGroup ApplicationCommandOption = 2
@@ -61,7 +59,7 @@ func (t ApplicationCommandOption) String() string {
 	return fmt.Sprintf("ApplicationCommandOption(%d)", t)
 }
 
-// ApplicationCommandPermission indicates whether a permission is user or role based.
+// ApplicationCommandPermission indicates whether a gokord.ApplicationCommandPermissions permission is user or role based.
 type ApplicationCommandPermission uint8
 
 // Application command permission types.
@@ -71,7 +69,7 @@ const (
 	ApplicationCommandPermissionChannel ApplicationCommandPermission = 3
 )
 
-// Interaction indicates the type of an interaction event.
+// Interaction indicates the type of gokord.Interaction event.
 type Interaction uint8
 
 // Interaction types
@@ -97,7 +95,7 @@ func (t Interaction) String() string {
 	return fmt.Sprintf("Interaction(%d)", t)
 }
 
-// InteractionContext represents the context in which interaction can be used or was triggered from.
+// InteractionContext represents the context in which gokord.Interaction can be used or was triggered from.
 type InteractionContext uint
 
 const (
@@ -109,7 +107,7 @@ const (
 	InteractionContextPrivateChannel InteractionContext = 2
 )
 
-// InteractionResponse is type of interaction response.
+// InteractionResponse is type of gokord.InteractionResponse.
 type InteractionResponse uint8
 
 // Interaction response types.
