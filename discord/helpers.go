@@ -2,6 +2,7 @@ package discord
 
 import "strings"
 
+// AvatarURL returns the URL to get the avatar from a hash.
 func AvatarURL(avatarHash, defaultAvatarURL, staticAvatarURL, animatedAvatarURL, size string) string {
 	var URL string
 	if avatarHash == "" {
@@ -18,6 +19,7 @@ func AvatarURL(avatarHash, defaultAvatarURL, staticAvatarURL, animatedAvatarURL,
 	return URL
 }
 
+// BannerURL returns the URL to get the avatar from a hash.
 func BannerURL(bannerHash, staticBannerURL, animatedBannerURL, size string) string {
 	var URL string
 	if bannerHash == "" {
@@ -34,6 +36,7 @@ func BannerURL(bannerHash, staticBannerURL, animatedBannerURL, size string) stri
 	return URL
 }
 
+// IconURL returns the URL to get the avatar from a hash.
 func IconURL(iconHash, staticIconURL, animatedIconURL, size string) string {
 	var URL string
 	if iconHash == "" {

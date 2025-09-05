@@ -5,7 +5,6 @@ import "strconv"
 // APIVersion is the Discord API version used for the REST and Websocket API.
 const APIVersion = "10"
 
-// Known Discord API Endpoints.
 var (
 	EndpointStatus     = "https://status.discord.com/api/v2/"
 	EndpointSm         = EndpointStatus + "scheduled-maintenances/"
