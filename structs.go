@@ -4,6 +4,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user"
+	"github.com/nyttikord/gokord/user/status"
 	"math"
 	"net/http"
 	"sync"
@@ -213,40 +214,6 @@ type VoiceRegion struct {
 	Custom     bool   `json:"custom"`
 }
 
-// InviteTargetType indicates the type of target of an invite
-// https://discord.com/developers/docs/resources/invite#invite-object-invite-target-types
-type InviteTargetType uint8
-
-// Invite target types
-const (
-	InviteTargetStream              InviteTargetType = 1
-	InviteTargetEmbeddedApplication InviteTargetType = 2
-)
-
-// A Invite stores all data related to a specific Discord Guild or Channel invite.
-type Invite struct {
-	Guild             *Guild           `json:"guild"`
-	Channel           *Channel         `json:"channel"`
-	Inviter           *user.User       `json:"inviter"`
-	Code              string           `json:"code"`
-	CreatedAt         time.Time        `json:"created_at"`
-	MaxAge            int              `json:"max_age"`
-	Uses              int              `json:"uses"`
-	MaxUses           int              `json:"max_uses"`
-	Revoked           bool             `json:"revoked"`
-	Temporary         bool             `json:"temporary"`
-	Unique            bool             `json:"unique"`
-	TargetUser        *user.User       `json:"target_user"`
-	TargetType        InviteTargetType `json:"target_type"`
-	TargetApplication *Application     `json:"target_application"`
-
-	// will only be filled when using InviteWithCounts
-	ApproximatePresenceCount int `json:"approximate_presence_count"`
-	ApproximateMemberCount   int `json:"approximate_member_count"`
-
-	ExpiresAt *time.Time `json:"expires_at"`
-}
-
 // A TooManyRequests struct holds information received from Discord
 // when receiving a HTTP 429 response.
 type TooManyRequests struct {
@@ -299,10 +266,10 @@ type SessionInformation struct {
 // GatewayStatusUpdate is sent by the client to indicate a presence or status update
 // https://discord.com/developers/docs/topics/gateway#update-status-gateway-status-update-structure
 type GatewayStatusUpdate struct {
-	Since  int      `json:"since"`
-	Game   Activity `json:"game"`
-	Status string   `json:"status"`
-	AFK    bool     `json:"afk"`
+	Since  int             `json:"since"`
+	Game   status.Activity `json:"game"`
+	Status string          `json:"status"`
+	AFK    bool            `json:"afk"`
 }
 
 // Identify is sent during initial handshake with the discord gateway.
