@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 	"image"
@@ -1666,7 +1667,7 @@ func (s *Session) ChannelTyping(channelID string, options ...RequestOption) (err
 // beforeID  : If provided all messages returned will be before given ID.
 // afterID   : If provided all messages returned will be after given ID.
 // aroundID  : If provided all messages returned will be around given ID.
-func (s *Session) ChannelMessages(channelID string, limit int, beforeID, afterID, aroundID string, options ...RequestOption) (st []*Message, err error) {
+func (s *Session) ChannelMessages(channelID string, limit int, beforeID, afterID, aroundID string, options ...RequestOption) (st []*channel.Message, err error) {
 
 	uri := discord.EndpointChannelMessages(channelID)
 
@@ -1699,7 +1700,7 @@ func (s *Session) ChannelMessages(channelID string, limit int, beforeID, afterID
 // ChannelMessage gets a single message by ID from a given channel.
 // channeld  : The ID of a Channel
 // messageID : the ID of a Message
-func (s *Session) ChannelMessage(channelID, messageID string, options ...RequestOption) (st *Message, err error) {
+func (s *Session) ChannelMessage(channelID, messageID string, options ...RequestOption) (st *channel.Message, err error) {
 
 	response, err := s.RequestWithBucketID("GET", discord.EndpointChannelMessage(channelID, messageID), nil, discord.EndpointChannelMessage(channelID, ""), options...)
 	if err != nil {
@@ -1713,8 +1714,8 @@ func (s *Session) ChannelMessage(channelID, messageID string, options ...Request
 // ChannelMessageSend sends a message to the given channel.
 // channelID : The ID of a Channel.
 // content   : The message to send.
-func (s *Session) ChannelMessageSend(channelID string, content string, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+func (s *Session) ChannelMessageSend(channelID string, content string, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{
 		Content: content,
 	}, options...)
 }
@@ -1724,11 +1725,11 @@ var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 // ChannelMessageSendComplex sends a message to the given channel.
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
-func (s *Session) ChannelMessageSendComplex(channelID string, data *MessageSend, options ...RequestOption) (st *Message, err error) {
+func (s *Session) ChannelMessageSendComplex(channelID string, data *channel.MessageSend, options ...RequestOption) (st *channel.Message, err error) {
 	// TODO: Remove this when compatibility is not required.
 	if data.Embed != nil {
 		if data.Embeds == nil {
-			data.Embeds = []*MessageEmbed{data.Embed}
+			data.Embeds = []*channel.MessageEmbed{data.Embed}
 		} else {
 			err = fmt.Errorf("cannot specify both Embed and Embeds")
 			return
@@ -1746,7 +1747,7 @@ func (s *Session) ChannelMessageSendComplex(channelID string, data *MessageSend,
 	files := data.Files
 	if data.File != nil {
 		if files == nil {
-			files = []*File{data.File}
+			files = []*channel.File{data.File}
 		} else {
 			err = fmt.Errorf("cannot specify both File and Files")
 			return
@@ -1781,8 +1782,8 @@ func (s *Session) ChannelMessageSendComplex(channelID string, data *MessageSend,
 // ChannelMessageSendTTS sends a message to the given channel with Text to Speech.
 // channelID : The ID of a Channel.
 // content   : The message to send.
-func (s *Session) ChannelMessageSendTTS(channelID string, content string, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+func (s *Session) ChannelMessageSendTTS(channelID string, content string, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{
 		Content: content,
 		TTS:     true,
 	}, options...)
@@ -1791,15 +1792,15 @@ func (s *Session) ChannelMessageSendTTS(channelID string, content string, option
 // ChannelMessageSendEmbed sends a message to the given channel with embedded data.
 // channelID : The ID of a Channel.
 // embed     : The embed data to send.
-func (s *Session) ChannelMessageSendEmbed(channelID string, embed *MessageEmbed, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendEmbeds(channelID, []*MessageEmbed{embed}, options...)
+func (s *Session) ChannelMessageSendEmbed(channelID string, embed *channel.MessageEmbed, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendEmbeds(channelID, []*channel.MessageEmbed{embed}, options...)
 }
 
 // ChannelMessageSendEmbeds sends a message to the given channel with multiple embedded data.
 // channelID : The ID of a Channel.
 // embeds    : The embeds data to send.
-func (s *Session) ChannelMessageSendEmbeds(channelID string, embeds []*MessageEmbed, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+func (s *Session) ChannelMessageSendEmbeds(channelID string, embeds []*channel.MessageEmbed, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{
 		Embeds: embeds,
 	}, options...)
 }
@@ -1808,11 +1809,11 @@ func (s *Session) ChannelMessageSendEmbeds(channelID string, embeds []*MessageEm
 // channelID : The ID of a Channel.
 // content   : The message to send.
 // reference : The message reference to send.
-func (s *Session) ChannelMessageSendReply(channelID string, content string, reference *MessageReference, options ...RequestOption) (*Message, error) {
+func (s *Session) ChannelMessageSendReply(channelID string, content string, reference *channel.MessageReference, options ...RequestOption) (*channel.Message, error) {
 	if reference == nil {
 		return nil, fmt.Errorf("reply attempted with nil message reference")
 	}
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{
 		Content:   content,
 		Reference: reference,
 	}, options...)
@@ -1822,19 +1823,19 @@ func (s *Session) ChannelMessageSendReply(channelID string, content string, refe
 // channelID : The ID of a Channel.
 // embed   : The embed data to send.
 // reference : The message reference to send.
-func (s *Session) ChannelMessageSendEmbedReply(channelID string, embed *MessageEmbed, reference *MessageReference, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendEmbedsReply(channelID, []*MessageEmbed{embed}, reference, options...)
+func (s *Session) ChannelMessageSendEmbedReply(channelID string, embed *channel.MessageEmbed, reference *channel.MessageReference, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendEmbedsReply(channelID, []*channel.MessageEmbed{embed}, reference, options...)
 }
 
 // ChannelMessageSendEmbedsReply sends a message to the given channel with reference data and multiple embedded data.
 // channelID : The ID of a Channel.
 // embeds    : The embeds data to send.
 // reference : The message reference to send.
-func (s *Session) ChannelMessageSendEmbedsReply(channelID string, embeds []*MessageEmbed, reference *MessageReference, options ...RequestOption) (*Message, error) {
+func (s *Session) ChannelMessageSendEmbedsReply(channelID string, embeds []*channel.MessageEmbed, reference *channel.MessageReference, options ...RequestOption) (*channel.Message, error) {
 	if reference == nil {
 		return nil, fmt.Errorf("reply attempted with nil message reference")
 	}
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{
 		Embeds:    embeds,
 		Reference: reference,
 	}, options...)
@@ -1845,17 +1846,17 @@ func (s *Session) ChannelMessageSendEmbedsReply(channelID string, embeds []*Mess
 // channelID  : The ID of a Channel
 // messageID  : The ID of a Message
 // content    : The contents of the message
-func (s *Session) ChannelMessageEdit(channelID, messageID, content string, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageEditComplex(NewMessageEdit(channelID, messageID).SetContent(content), options...)
+func (s *Session) ChannelMessageEdit(channelID, messageID, content string, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetContent(content), options...)
 }
 
 // ChannelMessageEditComplex edits an existing message, replacing it entirely with
 // the given MessageEdit struct
-func (s *Session) ChannelMessageEditComplex(m *MessageEdit, options ...RequestOption) (st *Message, err error) {
+func (s *Session) ChannelMessageEditComplex(m *channel.MessageEdit, options ...RequestOption) (st *channel.Message, err error) {
 	// TODO: Remove this when compatibility is not required.
 	if m.Embed != nil {
 		if m.Embeds == nil {
-			m.Embeds = &[]*MessageEmbed{m.Embed}
+			m.Embeds = &[]*channel.MessageEmbed{m.Embed}
 		} else {
 			err = fmt.Errorf("cannot specify both Embed and Embeds")
 			return
@@ -1894,16 +1895,16 @@ func (s *Session) ChannelMessageEditComplex(m *MessageEdit, options ...RequestOp
 // channelID : The ID of a Channel
 // messageID : The ID of a Message
 // embed     : The embed data to send
-func (s *Session) ChannelMessageEditEmbed(channelID, messageID string, embed *MessageEmbed, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageEditEmbeds(channelID, messageID, []*MessageEmbed{embed}, options...)
+func (s *Session) ChannelMessageEditEmbed(channelID, messageID string, embed *channel.MessageEmbed, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageEditEmbeds(channelID, messageID, []*channel.MessageEmbed{embed}, options...)
 }
 
 // ChannelMessageEditEmbeds edits an existing message with multiple embedded data.
 // channelID : The ID of a Channel
 // messageID : The ID of a Message
 // embeds    : The embeds data to send
-func (s *Session) ChannelMessageEditEmbeds(channelID, messageID string, embeds []*MessageEmbed, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageEditComplex(NewMessageEdit(channelID, messageID).SetEmbeds(embeds), options...)
+func (s *Session) ChannelMessageEditEmbeds(channelID, messageID string, embeds []*channel.MessageEmbed, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds), options...)
 }
 
 // ChannelMessageDelete deletes a message from the Channel.
@@ -1962,7 +1963,7 @@ func (s *Session) ChannelMessageUnpin(channelID, messageID string, options ...Re
 // ChannelMessagesPinned returns an array of Message structures for pinned messages
 // within a given channel
 // channelID : The ID of a Channel.
-func (s *Session) ChannelMessagesPinned(channelID string, options ...RequestOption) (st []*Message, err error) {
+func (s *Session) ChannelMessagesPinned(channelID string, options ...RequestOption) (st []*channel.Message, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointChannelMessagesPins(channelID), nil, discord.EndpointChannelMessagesPins(channelID), options...)
 
@@ -1978,8 +1979,8 @@ func (s *Session) ChannelMessagesPinned(channelID string, options ...RequestOpti
 // channelID : The ID of a Channel.
 // name: The name of the file.
 // io.Reader : A reader for the file contents.
-func (s *Session) ChannelFileSend(channelID, name string, r io.Reader, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{File: &File{Name: name, Reader: r}}, options...)
+func (s *Session) ChannelFileSend(channelID, name string, r io.Reader, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{File: &channel.File{Name: name, Reader: r}}, options...)
 }
 
 // ChannelFileSendWithMessage sends a file to the given channel with an message.
@@ -1988,8 +1989,8 @@ func (s *Session) ChannelFileSend(channelID, name string, r io.Reader, options .
 // content: Optional Message content.
 // name: The name of the file.
 // io.Reader : A reader for the file contents.
-func (s *Session) ChannelFileSendWithMessage(channelID, content string, name string, r io.Reader, options ...RequestOption) (*Message, error) {
-	return s.ChannelMessageSendComplex(channelID, &MessageSend{File: &File{Name: name, Reader: r}, Content: content}, options...)
+func (s *Session) ChannelFileSendWithMessage(channelID, content string, name string, r io.Reader, options ...RequestOption) (*channel.Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &channel.MessageSend{File: &channel.File{Name: name, Reader: r}, Content: content}, options...)
 }
 
 // ChannelInvites returns an array of Invite structures for the given channel
@@ -2054,7 +2055,7 @@ func (s *Session) ChannelPermissionDelete(channelID, targetID string, options ..
 // of the channel
 // channelID   : The ID of a Channel
 // messageID   : The ID of a Message
-func (s *Session) ChannelMessageCrosspost(channelID, messageID string, options ...RequestOption) (st *Message, err error) {
+func (s *Session) ChannelMessageCrosspost(channelID, messageID string, options ...RequestOption) (st *channel.Message, err error) {
 
 	endpoint := discord.EndpointChannelMessageCrosspost(channelID, messageID)
 
@@ -2393,7 +2394,7 @@ func (s *Session) WebhookDeleteWithToken(webhookID, token string, options ...Req
 	return
 }
 
-func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *Message, err error) {
+func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	uri := discord.EndpointWebhookToken(webhookID, token)
 
 	v := url.Values{}
@@ -2431,7 +2432,7 @@ func (s *Session) webhookExecute(webhookID, token string, wait bool, threadID st
 // webhookID: The ID of a webhook.
 // token    : The auth token for the webhook
 // wait     : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
-func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *WebhookParams, options ...RequestOption) (st *Message, err error) {
+func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	return s.webhookExecute(webhookID, token, wait, "", data, options...)
 }
 
@@ -2440,7 +2441,7 @@ func (s *Session) WebhookExecute(webhookID, token string, wait bool, data *Webho
 // token    : The auth token for the webhook
 // wait     : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
 // threadID :	Sends a message to the specified thread within a webhook's channel. The thread will automatically be unarchived.
-func (s *Session) WebhookThreadExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *Message, err error) {
+func (s *Session) WebhookThreadExecute(webhookID, token string, wait bool, threadID string, data *WebhookParams, options ...RequestOption) (st *channel.Message, err error) {
 	return s.webhookExecute(webhookID, token, wait, threadID, data, options...)
 }
 
@@ -2448,7 +2449,7 @@ func (s *Session) WebhookThreadExecute(webhookID, token string, wait bool, threa
 // webhookID : The ID of a webhook
 // token     : The auth token for the webhook
 // messageID : The ID of message to get
-func (s *Session) WebhookMessage(webhookID, token, messageID string, options ...RequestOption) (message *Message, err error) {
+func (s *Session) WebhookMessage(webhookID, token, messageID string, options ...RequestOption) (message *channel.Message, err error) {
 	uri := discord.EndpointWebhookMessage(webhookID, token, messageID)
 
 	body, err := s.RequestWithBucketID("GET", uri, nil, discord.EndpointWebhookToken("", ""), options...)
@@ -2465,7 +2466,7 @@ func (s *Session) WebhookMessage(webhookID, token, messageID string, options ...
 // webhookID : The ID of a webhook
 // token     : The auth token for the webhook
 // messageID : The ID of message to edit
-func (s *Session) WebhookMessageEdit(webhookID, token, messageID string, data *WebhookEdit, options ...RequestOption) (st *Message, err error) {
+func (s *Session) WebhookMessageEdit(webhookID, token, messageID string, data *WebhookEdit, options ...RequestOption) (st *channel.Message, err error) {
 	uri := discord.EndpointWebhookMessage(webhookID, token, messageID)
 
 	var response []byte
@@ -2653,13 +2654,13 @@ func (s *Session) ThreadStart(channelID, name string, typ ChannelType, archiveDu
 // channelID   : Channel to create thread in.
 // threadData  : Parameters of the thread.
 // messageData : Parameters of the starting message.
-func (s *Session) ForumThreadStartComplex(channelID string, threadData *ThreadStart, messageData *MessageSend, options ...RequestOption) (th *Channel, err error) {
+func (s *Session) ForumThreadStartComplex(channelID string, threadData *ThreadStart, messageData *channel.MessageSend, options ...RequestOption) (th *Channel, err error) {
 	endpoint := discord.EndpointChannelThreads(channelID)
 
 	// TODO: Remove this when compatibility is not required.
 	if messageData.Embed != nil {
 		if messageData.Embeds == nil {
-			messageData.Embeds = []*MessageEmbed{messageData.Embed}
+			messageData.Embeds = []*channel.MessageEmbed{messageData.Embed}
 		} else {
 			err = fmt.Errorf("cannot specify both Embed and Embeds")
 			return
@@ -2676,7 +2677,7 @@ func (s *Session) ForumThreadStartComplex(channelID string, threadData *ThreadSt
 	files := messageData.Files
 	if messageData.File != nil {
 		if files == nil {
-			files = []*File{messageData.File}
+			files = []*channel.File{messageData.File}
 		} else {
 			err = fmt.Errorf("cannot specify both File and Files")
 			return
@@ -2685,7 +2686,7 @@ func (s *Session) ForumThreadStartComplex(channelID string, threadData *ThreadSt
 
 	data := struct {
 		*ThreadStart
-		Message *MessageSend `json:"message"`
+		Message *channel.MessageSend `json:"message"`
 	}{ThreadStart: threadData, Message: messageData}
 
 	var response []byte
@@ -2716,7 +2717,7 @@ func (s *Session) ForumThreadStart(channelID, name string, archiveDuration int, 
 	return s.ForumThreadStartComplex(channelID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
-	}, &MessageSend{Content: content}, options...)
+	}, &channel.MessageSend{Content: content}, options...)
 }
 
 // ForumThreadStartEmbed starts a new thread (post) in a forum channel.
@@ -2724,11 +2725,11 @@ func (s *Session) ForumThreadStart(channelID, name string, archiveDuration int, 
 // name            : Name of the thread.
 // archiveDuration : Auto archive duration.
 // embed           : Embed data of the starting message.
-func (s *Session) ForumThreadStartEmbed(channelID, name string, archiveDuration int, embed *MessageEmbed, options ...RequestOption) (th *Channel, err error) {
+func (s *Session) ForumThreadStartEmbed(channelID, name string, archiveDuration int, embed *channel.MessageEmbed, options ...RequestOption) (th *Channel, err error) {
 	return s.ForumThreadStartComplex(channelID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
-	}, &MessageSend{Embeds: []*MessageEmbed{embed}}, options...)
+	}, &channel.MessageSend{Embeds: []*channel.MessageEmbed{embed}}, options...)
 }
 
 // ForumThreadStartEmbeds starts a new thread (post) in a forum channel.
@@ -2736,11 +2737,11 @@ func (s *Session) ForumThreadStartEmbed(channelID, name string, archiveDuration 
 // name            : Name of the thread.
 // archiveDuration : Auto archive duration.
 // embeds          : Embeds data of the starting message.
-func (s *Session) ForumThreadStartEmbeds(channelID, name string, archiveDuration int, embeds []*MessageEmbed, options ...RequestOption) (th *Channel, err error) {
+func (s *Session) ForumThreadStartEmbeds(channelID, name string, archiveDuration int, embeds []*channel.MessageEmbed, options ...RequestOption) (th *Channel, err error) {
 	return s.ForumThreadStartComplex(channelID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
-	}, &MessageSend{Embeds: embeds}, options...)
+	}, &channel.MessageSend{Embeds: embeds}, options...)
 }
 
 // ThreadJoin adds current user to a thread
@@ -3135,14 +3136,14 @@ func (s *Session) InteractionRespond(interaction *Interaction, resp *Interaction
 
 // InteractionResponse gets the response to an interaction.
 // interaction : Interaction instance.
-func (s *Session) InteractionResponse(interaction *Interaction, options ...RequestOption) (*Message, error) {
+func (s *Session) InteractionResponse(interaction *Interaction, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookMessage(interaction.AppID, interaction.Token, "@original", options...)
 }
 
 // InteractionResponseEdit edits the response to an interaction.
 // interaction : Interaction instance.
 // newresp     : Updated response message data.
-func (s *Session) InteractionResponseEdit(interaction *Interaction, newresp *WebhookEdit, options ...RequestOption) (*Message, error) {
+func (s *Session) InteractionResponseEdit(interaction *Interaction, newresp *WebhookEdit, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, "@original", newresp, options...)
 }
 
@@ -3160,7 +3161,7 @@ func (s *Session) InteractionResponseDelete(interaction *Interaction, options ..
 // interaction : Interaction instance.
 // wait        : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
 // data        : Data of the message to send.
-func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, data *WebhookParams, options ...RequestOption) (*Message, error) {
+func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, data *WebhookParams, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookExecute(interaction.AppID, interaction.Token, wait, data, options...)
 }
 
@@ -3168,7 +3169,7 @@ func (s *Session) FollowupMessageCreate(interaction *Interaction, wait bool, dat
 // interaction : Interaction instance.
 // messageID   : The followup message ID.
 // data        : Data to update the message
-func (s *Session) FollowupMessageEdit(interaction *Interaction, messageID string, data *WebhookEdit, options ...RequestOption) (*Message, error) {
+func (s *Session) FollowupMessageEdit(interaction *Interaction, messageID string, data *WebhookEdit, options ...RequestOption) (*channel.Message, error) {
 	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, messageID, data, options...)
 }
 
@@ -3541,7 +3542,7 @@ func (s *Session) PollAnswerVoters(channelID, messageID string, answerID int) (v
 // PollExpire expires poll on the specified message.
 // channelID : ID of the channel.
 // messageID : ID of the message.
-func (s *Session) PollExpire(channelID, messageID string) (msg *Message, err error) {
+func (s *Session) PollExpire(channelID, messageID string) (msg *channel.Message, err error) {
 	endpoint := discord.EndpointPollExpire(channelID, messageID)
 
 	var body []byte

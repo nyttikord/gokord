@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"log"
 	"os"
@@ -236,7 +237,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
-					Files: []*gokord.File{
+					Files: []*channel.File{
 						{
 							ContentType: "text/plain",
 							Name:        "test.txt",
@@ -384,11 +385,11 @@ var (
 			s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
-					Embeds: []*gokord.MessageEmbed{
+					Embeds: []*channel.MessageEmbed{
 						{
 							Title:       "Permissions overview",
 							Description: "Overview of permissions for this command",
-							Fields: []*gokord.MessageEmbedField{
+							Fields: []*channel.MessageEmbedField{
 								{
 									Name:  "Users",
 									Value: users,
@@ -404,7 +405,7 @@ var (
 							},
 						},
 					},
-					AllowedMentions: &gokord.MessageAllowedMentions{},
+					AllowedMentions: &channel.MessageAllowedMentions{},
 				},
 			})
 		},
@@ -504,7 +505,7 @@ var (
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 					Content: "Surprise!",
 				},
 			})

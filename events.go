@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -275,7 +276,7 @@ type IntegrationDelete struct {
 
 // MessageCreate is the data for a MessageCreate event.
 type MessageCreate struct {
-	*Message
+	*channel.Message
 }
 
 // UnmarshalJSON is a helper function to unmarshal MessageCreate object.
@@ -285,9 +286,9 @@ func (m *MessageCreate) UnmarshalJSON(b []byte) error {
 
 // MessageUpdate is the data for a MessageUpdate event.
 type MessageUpdate struct {
-	*Message
+	*channel.Message
 	// BeforeUpdate will be nil if the Message was not previously cached in the state cache.
-	BeforeUpdate *Message `json:"-"`
+	BeforeUpdate *channel.Message `json:"-"`
 }
 
 // UnmarshalJSON is a helper function to unmarshal MessageUpdate object.
@@ -297,8 +298,8 @@ func (m *MessageUpdate) UnmarshalJSON(b []byte) error {
 
 // MessageDelete is the data for a MessageDelete event.
 type MessageDelete struct {
-	*Message
-	BeforeDelete *Message `json:"-"`
+	*channel.Message
+	BeforeDelete *channel.Message `json:"-"`
 }
 
 // UnmarshalJSON is a helper function to unmarshal MessageDelete object.

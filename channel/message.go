@@ -1,7 +1,8 @@
-package gokord
+package channel
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/user"
 	"io"
 	"regexp"
@@ -78,7 +79,7 @@ type Message struct {
 	Attachments []*MessageAttachment `json:"attachments"`
 
 	// A list of components attached to the message.
-	Components []MessageComponent `json:"-"`
+	Components []gokord.MessageComponent `json:"-"`
 
 	// A list of embeds present in the message.
 	Embeds []*MessageEmbed `json:"embeds"`
@@ -100,7 +101,7 @@ type Message struct {
 
 	// Member properties for this message's author,
 	// contains only partial information
-	Member *Member `json:"member"`
+	Member *user.Member `json:"member"`
 
 	// Channels specifically mentioned in this message
 	// Not all channel mentions in a message will appear in mention_channels.
@@ -149,10 +150,10 @@ type Message struct {
 	Thread *Channel `json:"thread,omitempty"`
 
 	// An array of StickerItem objects, representing sent stickers, if there were any.
-	StickerItems []*StickerItem `json:"sticker_items"`
+	StickerItems []*user.StickerItem `json:"sticker_items"`
 
 	// A poll object.
-	Poll *Poll `json:"poll"`
+	Poll *gokord.Poll `json:"poll"`
 }
 
 // UnmarshalJSON is a helper function to unmarshal the Message.
@@ -160,14 +161,14 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 	type message Message
 	var v struct {
 		message
-		RawComponents []unmarshalableMessageComponent `json:"components"`
+		RawComponents []gokord.unmarshalableMessageComponent `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
 	*m = Message(v.message)
-	m.Components = make([]MessageComponent, len(v.RawComponents))
+	m.Components = make([]gokord.MessageComponent, len(v.RawComponents))
 	for i, v := range v.RawComponents {
 		m.Components[i] = v.MessageComponent
 	}
@@ -175,15 +176,15 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 }
 
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
-func (m *Message) GetCustomEmojis() []*Emoji {
-	var toReturn []*Emoji
-	emojis := EmojiRegex.FindAllString(m.Content, -1)
+func (m *Message) GetCustomEmojis() []*user.Emoji {
+	var toReturn []*user.Emoji
+	emojis := user.EmojiRegex.FindAllString(m.Content, -1)
 	if len(emojis) < 1 {
 		return toReturn
 	}
 	for _, em := range emojis {
 		parts := strings.Split(em, ":")
-		toReturn = append(toReturn, &Emoji{
+		toReturn = append(toReturn, &user.Emoji{
 			ID:       parts[2][:len(parts[2])-1],
 			Name:     parts[1],
 			Animated: strings.HasPrefix(em, "<a:"),
@@ -235,16 +236,16 @@ type File struct {
 
 // MessageSend stores all parameters you can send with ChannelMessageSendComplex.
 type MessageSend struct {
-	Content         string                  `json:"content,omitempty"`
-	Embeds          []*MessageEmbed         `json:"embeds"`
-	TTS             bool                    `json:"tts"`
-	Components      []MessageComponent      `json:"components"`
-	Files           []*File                 `json:"-"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Reference       *MessageReference       `json:"message_reference,omitempty"`
-	StickerIDs      []string                `json:"sticker_ids"`
-	Flags           MessageFlags            `json:"flags,omitempty"`
-	Poll            *Poll                   `json:"poll,omitempty"`
+	Content         string                    `json:"content,omitempty"`
+	Embeds          []*MessageEmbed           `json:"embeds"`
+	TTS             bool                      `json:"tts"`
+	Components      []gokord.MessageComponent `json:"components"`
+	Files           []*File                   `json:"-"`
+	AllowedMentions *MessageAllowedMentions   `json:"allowed_mentions,omitempty"`
+	Reference       *MessageReference         `json:"message_reference,omitempty"`
+	StickerIDs      []string                  `json:"sticker_ids"`
+	Flags           MessageFlags              `json:"flags,omitempty"`
+	Poll            *gokord.Poll              `json:"poll,omitempty"`
 
 	// TODO: Remove this when compatibility is not required.
 	File *File `json:"-"`
@@ -256,11 +257,11 @@ type MessageSend struct {
 // MessageEdit is used to chain parameters via ChannelMessageEditComplex, which
 // is also where you should get the instance from.
 type MessageEdit struct {
-	Content         *string                 `json:"content,omitempty"`
-	Components      *[]MessageComponent     `json:"components,omitempty"`
-	Embeds          *[]*MessageEmbed        `json:"embeds,omitempty"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Flags           MessageFlags            `json:"flags,omitempty"`
+	Content         *string                    `json:"content,omitempty"`
+	Components      *[]gokord.MessageComponent `json:"components,omitempty"`
+	Embeds          *[]*MessageEmbed           `json:"embeds,omitempty"`
+	AllowedMentions *MessageAllowedMentions    `json:"allowed_mentions,omitempty"`
+	Flags           MessageFlags               `json:"flags,omitempty"`
 	// Files to append to the message
 	Files []*File `json:"-"`
 	// Overwrite existing attachments
@@ -450,9 +451,9 @@ const (
 
 // MessageReactions holds a reactions object for a message.
 type MessageReactions struct {
-	Count int    `json:"count"`
-	Me    bool   `json:"me"`
-	Emoji *Emoji `json:"emoji"`
+	Count int         `json:"count"`
+	Me    bool        `json:"me"`
+	Emoji *user.Emoji `json:"emoji"`
 }
 
 // MessageActivity is sent with Rich Presence-related chat embeds
@@ -537,10 +538,10 @@ func (m *Message) Forward() *MessageReference {
 func (m *Message) ContentWithMentionsReplaced() (content string) {
 	content = m.Content
 
-	for _, user := range m.Mentions {
+	for _, u := range m.Mentions {
 		content = strings.NewReplacer(
-			"<@"+user.ID+">", "@"+user.Username,
-			"<@!"+user.ID+">", "@"+user.Username,
+			"<@"+u.ID+">", "@"+u.Username,
+			"<@!"+u.ID+">", "@"+u.Username,
 		).Replace(content)
 	}
 	return
@@ -550,7 +551,7 @@ var patternChannels = regexp.MustCompile("<#[^>]*>")
 
 // ContentWithMoreMentionsReplaced will replace all @<id> mentions with the
 // username of the mention, but also role IDs and more.
-func (m *Message) ContentWithMoreMentionsReplaced(s *Session) (content string, err error) {
+func (m *Message) ContentWithMoreMentionsReplaced(s *gokord.Session) (content string, err error) {
 	content = m.Content
 
 	if !s.StateEnabled {
@@ -564,17 +565,17 @@ func (m *Message) ContentWithMoreMentionsReplaced(s *Session) (content string, e
 		return
 	}
 
-	for _, user := range m.Mentions {
-		nick := user.Username
+	for _, u := range m.Mentions {
+		nick := u.Username
 
-		member, err := s.State.Member(channel.GuildID, user.ID)
+		member, err := s.State.Member(channel.GuildID, u.ID)
 		if err == nil && member.Nick != "" {
 			nick = member.Nick
 		}
 
 		content = strings.NewReplacer(
-			"<@"+user.ID+">", "@"+user.Username,
-			"<@!"+user.ID+">", "@"+nick,
+			"<@"+u.ID+">", "@"+u.Username,
+			"<@!"+u.ID+">", "@"+nick,
 		).Replace(content)
 	}
 	for _, roleID := range m.MentionRoles {
@@ -599,13 +600,13 @@ func (m *Message) ContentWithMoreMentionsReplaced(s *Session) (content string, e
 
 // MessageInteraction contains information about the application command interaction which generated the message.
 type MessageInteraction struct {
-	ID   string          `json:"id"`
-	Type InteractionType `json:"type"`
-	Name string          `json:"name"`
-	User *user.User      `json:"user"`
+	ID   string                 `json:"id"`
+	Type gokord.InteractionType `json:"type"`
+	Name string                 `json:"name"`
+	User *user.User             `json:"user"`
 
 	// Member is only present when the interaction is from a guild.
-	Member *Member `json:"member"`
+	Member *user.Member `json:"member"`
 }
 
 // MessageInteractionMetadata contains metadata of an interaction, including relevant user info.
@@ -613,11 +614,11 @@ type MessageInteractionMetadata struct {
 	// ID of the interaction.
 	ID string `json:"id"`
 	// Type of the interaction.
-	Type InteractionType `json:"type"`
+	Type gokord.InteractionType `json:"type"`
 	// User who triggered the interaction.
 	User *user.User `json:"user"`
 	// IDs for installation context(s) related to an interaction.
-	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
+	AuthorizingIntegrationOwners map[gokord.ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
 	// ID of the original response message.
 	// NOTE: present only on followup messages.
 	OriginalResponseMessageID string `json:"original_response_message_id,omitempty"`

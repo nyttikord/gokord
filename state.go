@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"errors"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/user"
 	"sort"
 	"sync"
@@ -739,7 +740,7 @@ func (s *State) EmojisAdd(guildID string, emojis []*Emoji) error {
 // MessageAdd adds a message to the current world state, or updates it if it exists.
 // If the channel cannot be found, the message is discarded.
 // Messages are kept in state up to s.MaxMessageCount per channel.
-func (s *State) MessageAdd(message *Message) error {
+func (s *State) MessageAdd(message *channel.Message) error {
 	if s == nil {
 		return ErrNilState
 	}
@@ -794,7 +795,7 @@ func (s *State) MessageAdd(message *Message) error {
 }
 
 // MessageRemove removes a message from the world state.
-func (s *State) MessageRemove(message *Message) error {
+func (s *State) MessageRemove(message *channel.Message) error {
 	if s == nil {
 		return ErrNilState
 	}
@@ -875,7 +876,7 @@ func (s *State) VoiceState(guildID, userID string) (*VoiceState, error) {
 }
 
 // Message gets a message by channel and message ID.
-func (s *State) Message(channelID, messageID string) (*Message, error) {
+func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 	if s == nil {
 		return nil, ErrNilState
 	}
@@ -1133,7 +1134,7 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 		}
 	case *MessageUpdate:
 		if s.MaxMessageCount != 0 {
-			var old *Message
+			var old *channel.Message
 			old, err = s.Message(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
@@ -1144,7 +1145,7 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 		}
 	case *MessageDelete:
 		if s.MaxMessageCount != 0 {
-			var old *Message
+			var old *channel.Message
 			old, err = s.Message(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
@@ -1230,7 +1231,7 @@ func (s *State) UserChannelPermissions(userID, channelID string) (apermissions i
 
 // MessagePermissions returns the permissions of the author of the message
 // in the channel in which it was sent.
-func (s *State) MessagePermissions(message *Message) (apermissions int64, err error) {
+func (s *State) MessagePermissions(message *channel.Message) (apermissions int64, err error) {
 	if s == nil {
 		return 0, ErrNilState
 	}
@@ -1282,7 +1283,7 @@ func (s *State) UserColor(userID, channelID string) int {
 
 // MessageColor returns the color of the author's name as displayed
 // in the client associated with this message.
-func (s *State) MessageColor(message *Message) int {
+func (s *State) MessageColor(message *channel.Message) int {
 	if s == nil {
 		return 0
 	}

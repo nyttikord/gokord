@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"github.com/nyttikord/gokord/channel"
 	user2 "github.com/nyttikord/gokord/user"
 	"testing"
 )
@@ -29,7 +30,7 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 		GuildID: "guild",
 		ID:      "channel",
 	})
-	m := &Message{
+	m := &channel.Message{
 		Content:      "<@&role> <@!user> <@user> <#channel>",
 		ChannelID:    "channel",
 		MentionRoles: []string{"role"},
@@ -41,7 +42,7 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 }
 func TestGettingEmojisFromMessage(t *testing.T) {
 	msg := "test test <:kitty14:811736565172011058> <:kitty4:811736468812595260>"
-	m := &Message{
+	m := &channel.Message{
 		Content: msg,
 	}
 	emojis := m.GetCustomEmojis()
@@ -53,7 +54,7 @@ func TestGettingEmojisFromMessage(t *testing.T) {
 }
 
 func TestMessage_Reference(t *testing.T) {
-	m := &Message{
+	m := &channel.Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -79,7 +80,7 @@ func TestMessage_Reference(t *testing.T) {
 }
 
 func TestMessage_Forward(t *testing.T) {
-	m := &Message{
+	m := &channel.Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -87,7 +88,7 @@ func TestMessage_Forward(t *testing.T) {
 
 	ref := m.Forward()
 
-	if ref.Type != MessageReferenceTypeForward {
+	if ref.Type != channel.MessageReferenceTypeForward {
 		t.Error("Reference type should be 1 (forward)")
 	}
 
@@ -105,8 +106,8 @@ func TestMessage_Forward(t *testing.T) {
 }
 
 func TestMessageReference_DefaultTypeIsDefault(t *testing.T) {
-	r := MessageReference{}
-	if r.Type != MessageReferenceTypeDefault {
+	r := channel.MessageReference{}
+	if r.Type != channel.MessageReferenceTypeDefault {
 		t.Error("Default message type should be MessageReferenceTypeDefault")
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"log"
 	"os"
 	"os/signal"
@@ -40,7 +41,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 					Components: []gokord.MessageComponent{
 						gokord.ActionsRow{
 							Components: []gokord.MessageComponent{
@@ -83,7 +84,7 @@ var (
 				Data: &gokord.InteractionResponseData{
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 					Components: []gokord.MessageComponent{
 						gokord.ActionsRow{
 							Components: []gokord.MessageComponent{
@@ -122,7 +123,7 @@ var (
 					Type: gokord.InteractionResponseChannelMessageWithSource,
 					Data: &gokord.InteractionResponseData{
 						Content: "This is the way.",
-						Flags:   gokord.MessageFlagsEphemeral,
+						Flags:   channel.MessageFlagsEphemeral,
 					},
 				}
 			default:
@@ -130,7 +131,7 @@ var (
 					Type: gokord.InteractionResponseChannelMessageWithSource,
 					Data: &gokord.InteractionResponseData{
 						Content: "It is not the way to go.",
-						Flags:   gokord.MessageFlagsEphemeral,
+						Flags:   channel.MessageFlagsEphemeral,
 					},
 				}
 			}
@@ -142,7 +143,7 @@ var (
 			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "Anyways, now when you know how to use single select menus, let's see how multi select menus work. " +
 					"Try calling `/selects multi` command.",
-				Flags: gokord.MessageFlagsEphemeral,
+				Flags: channel.MessageFlagsEphemeral,
 			})
 			if err != nil {
 				panic(err)
@@ -157,7 +158,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -166,7 +167,7 @@ var (
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
 			_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 				Content: "But wait, there is more! You can also auto populate the select menu. Try executing `/selects auto-populated`.",
-				Flags:   gokord.MessageFlagsEphemeral,
+				Flags:   channel.MessageFlagsEphemeral,
 			})
 			if err != nil {
 				panic(err)
@@ -209,7 +210,7 @@ var (
 						},
 					},
 
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -223,7 +224,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Are you comfortable with buttons and other message components?",
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
 					Components: []gokord.MessageComponent{
 						// ActionRow is a container of all buttons within the same row.
@@ -283,7 +284,7 @@ var (
 					Type: gokord.InteractionResponseChannelMessageWithSource,
 					Data: &gokord.InteractionResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
-						Flags:   gokord.MessageFlagsEphemeral,
+						Flags:   channel.MessageFlagsEphemeral,
 						Components: []gokord.MessageComponent{
 							gokord.ActionsRow{
 								Components: []gokord.MessageComponent{
@@ -334,7 +335,7 @@ var (
 					Data: &gokord.InteractionResponseData{
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
-						Flags: gokord.MessageFlagsEphemeral,
+						Flags: channel.MessageFlagsEphemeral,
 						Components: []gokord.MessageComponent{
 							gokord.ActionsRow{
 								Components: []gokord.MessageComponent{
@@ -401,7 +402,7 @@ var (
 					Data: &gokord.InteractionResponseData{
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
-						Flags: gokord.MessageFlagsEphemeral,
+						Flags: channel.MessageFlagsEphemeral,
 						Components: []gokord.MessageComponent{
 							gokord.ActionsRow{
 								Components: []gokord.MessageComponent{

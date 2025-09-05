@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"log"
 	"os"
 	"os/signal"
@@ -74,7 +75,7 @@ var (
 				Type: gokord.InteractionResponseChannelMessageWithSource,
 				Data: &gokord.InteractionResponseData{
 					Content: "Operation rickroll has begun",
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -87,7 +88,7 @@ var (
 			if err != nil {
 				_, err = s.FollowupMessageCreate(i.Interaction, true, &gokord.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
-					Flags:   gokord.MessageFlagsEphemeral,
+					Flags:   channel.MessageFlagsEphemeral,
 				})
 				if err != nil {
 					panic(err)
@@ -108,7 +109,7 @@ var (
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://google.com/search?q=%s", "+"),
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -122,7 +123,7 @@ var (
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://stackoverflow.com/search?q=%s", "+"),
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -136,7 +137,7 @@ var (
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://pkg.go.dev/search?q=%s", "+"),
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -150,7 +151,7 @@ var (
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {
@@ -164,7 +165,7 @@ var (
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
-					Flags: gokord.MessageFlagsEphemeral,
+					Flags: channel.MessageFlagsEphemeral,
 				},
 			})
 			if err != nil {

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 	"io"
@@ -229,7 +230,7 @@ type Interaction struct {
 
 	// The message on which interaction was used.
 	// NOTE: this field is only filled when a button click triggered the interaction. Otherwise it will be nil.
-	Message *Message `json:"message"`
+	Message *channel.Message `json:"message"`
 
 	// Bitwise set of permissions the app or bot has within the channel the interaction was sent from
 	AppPermissions int64 `json:"app_permissions,string"`
@@ -367,12 +368,12 @@ func (d ApplicationCommandInteractionData) GetOption(name string) (option *Appli
 // Partial Member objects are missing user, deaf and mute fields.
 // Partial Channel objects only have id, name, type and permissions fields.
 type ApplicationCommandInteractionDataResolved struct {
-	Users       map[string]*user.User         `json:"users"`
-	Members     map[string]*Member            `json:"members"`
-	Roles       map[string]*Role              `json:"roles"`
-	Channels    map[string]*Channel           `json:"channels"`
-	Messages    map[string]*Message           `json:"messages"`
-	Attachments map[string]*MessageAttachment `json:"attachments"`
+	Users       map[string]*user.User                 `json:"users"`
+	Members     map[string]*Member                    `json:"members"`
+	Roles       map[string]*Role                      `json:"roles"`
+	Channels    map[string]*Channel                   `json:"channels"`
+	Messages    map[string]*channel.Message           `json:"messages"`
+	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
 }
 
 // Type returns the type of interaction data.
@@ -597,17 +598,17 @@ type InteractionResponse struct {
 
 // InteractionResponseData is response data for an interaction.
 type InteractionResponseData struct {
-	TTS             bool                    `json:"tts"`
-	Content         string                  `json:"content"`
-	Components      []MessageComponent      `json:"components"`
-	Embeds          []*MessageEmbed         `json:"embeds"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Files           []*File                 `json:"-"`
-	Attachments     *[]*MessageAttachment   `json:"attachments,omitempty"`
-	Poll            *Poll                   `json:"poll,omitempty"`
+	TTS             bool                            `json:"tts"`
+	Content         string                          `json:"content"`
+	Components      []MessageComponent              `json:"components"`
+	Embeds          []*channel.MessageEmbed         `json:"embeds"`
+	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
+	Files           []*channel.File                 `json:"-"`
+	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
+	Poll            *Poll                           `json:"poll,omitempty"`
 
 	// NOTE: only MessageFlagsSuppressEmbeds and MessageFlagsEphemeral can be set.
-	Flags MessageFlags `json:"flags,omitempty"`
+	Flags channel.MessageFlags `json:"flags,omitempty"`
 
 	// NOTE: autocomplete interaction only.
 	Choices []*ApplicationCommandOptionChoice `json:"choices,omitempty"`
