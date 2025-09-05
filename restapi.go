@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nyttikord/gokord/user"
 	"image"
 	_ "image/jpeg" // For JPEG decoding
 	_ "image/png"  // For PNG decoding
@@ -304,7 +305,7 @@ func unmarshal(data []byte, v interface{}) error {
 
 // User returns the user details of the given userID
 // userID    : A user ID or "@me" which is a shortcut of current user ID
-func (s *Session) User(userID string, options ...RequestOption) (st *User, err error) {
+func (s *Session) User(userID string, options ...RequestOption) (st *user.User, err error) {
 
 	body, err := s.RequestWithBucketID("GET", EndpointUser(userID), nil, EndpointUsers, options...)
 	if err != nil {
@@ -328,7 +329,7 @@ func (s *Session) UserAvatar(userID string, options ...RequestOption) (img image
 
 // UserAvatarDecode returns an image.Image of a user's Avatar
 // user : The user which avatar should be retrieved
-func (s *Session) UserAvatarDecode(u *User, options ...RequestOption) (img image.Image, err error) {
+func (s *Session) UserAvatarDecode(u *user.User, options ...RequestOption) (img image.Image, err error) {
 	body, err := s.RequestWithBucketID("GET", EndpointUserAvatar(u.ID, u.Avatar), nil, EndpointUserAvatar("", ""), options...)
 	if err != nil {
 		return
@@ -339,7 +340,7 @@ func (s *Session) UserAvatarDecode(u *User, options ...RequestOption) (img image
 }
 
 // UserUpdate updates current user settings.
-func (s *Session) UserUpdate(username, avatar, banner string, options ...RequestOption) (st *User, err error) {
+func (s *Session) UserUpdate(username, avatar, banner string, options ...RequestOption) (st *user.User, err error) {
 
 	// NOTE: Avatar must be either the hash/id of existing Avatar or
 	// data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG
@@ -2557,7 +2558,7 @@ func (s *Session) MessageReactionsRemoveEmoji(channelID, messageID, emojiID stri
 // limit    : max number of users to return (max 100)
 // beforeID  : If provided all reactions returned will be before given ID.
 // afterID   : If provided all reactions returned will be after given ID.
-func (s *Session) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string, options ...RequestOption) (st []*User, err error) {
+func (s *Session) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string, options ...RequestOption) (st []*user.User, err error) {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.Replace(emojiID, "#", "%23", -1)
 	uri := EndpointMessageReactions(channelID, messageID, emojiID)
@@ -3514,7 +3515,7 @@ func (s *Session) UserApplicationRoleConnectionUpdate(appID string, rconn *Appli
 // channelID : ID of the channel.
 // messageID : ID of the message.
 // answerID  : ID of the answer.
-func (s *Session) PollAnswerVoters(channelID, messageID string, answerID int) (voters []*User, err error) {
+func (s *Session) PollAnswerVoters(channelID, messageID string, answerID int) (voters []*user.User, err error) {
 	endpoint := EndpointPollAnswerVoters(channelID, messageID, answerID)
 
 	var body []byte
@@ -3524,7 +3525,7 @@ func (s *Session) PollAnswerVoters(channelID, messageID string, answerID int) (v
 	}
 
 	var r struct {
-		Users []*User `json:"users"`
+		Users []*user.User `json:"users"`
 	}
 
 	err = unmarshal(body, &r)

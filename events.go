@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord/user"
 )
 
 // This file contains all the possible structs that can be
@@ -38,7 +39,7 @@ type Event struct {
 type Ready struct {
 	Version          int          `json:"v"`
 	SessionID        string       `json:"session_id"`
-	User             *User        `json:"user"`
+	User             *user.User   `json:"user"`
 	Shard            *[2]int      `json:"shard"`
 	ResumeGatewayURL string       `json:"resume_gateway_url"`
 	Application      *Application `json:"application"`
@@ -136,14 +137,14 @@ type GuildDelete struct {
 
 // GuildBanAdd is the data for a GuildBanAdd event.
 type GuildBanAdd struct {
-	User    *User  `json:"user"`
-	GuildID string `json:"guild_id"`
+	User    *user.User `json:"user"`
+	GuildID string     `json:"guild_id"`
 }
 
 // GuildBanRemove is the data for a GuildBanRemove event.
 type GuildBanRemove struct {
-	User    *User  `json:"user"`
-	GuildID string `json:"guild_id"`
+	User    *user.User `json:"user"`
+	GuildID string     `json:"guild_id"`
 }
 
 // GuildMemberAdd is the data for a GuildMemberAdd event.
@@ -345,7 +346,7 @@ type TypingStart struct {
 
 // UserUpdate is the data for a UserUpdate event.
 type UserUpdate struct {
-	*User
+	*user.User
 }
 
 // VoiceServerUpdate is the data for a VoiceServerUpdate event.

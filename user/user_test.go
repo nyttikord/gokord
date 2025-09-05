@@ -1,4 +1,4 @@
-package gokord
+package user
 
 import "testing"
 

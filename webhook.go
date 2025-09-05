@@ -1,12 +1,14 @@
 package gokord
 
+import "github.com/nyttikord/gokord/user"
+
 // Webhook stores the data for a webhook.
 type Webhook struct {
 	ID        string      `json:"id"`
 	Type      WebhookType `json:"type"`
 	GuildID   string      `json:"guild_id"`
 	ChannelID string      `json:"channel_id"`
-	User      *User       `json:"user"`
+	User      *user.User  `json:"user"`
 	Name      string      `json:"name"`
 	Avatar    string      `json:"avatar"`
 	Token     string      `json:"token"`

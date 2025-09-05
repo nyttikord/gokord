@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nyttikord/gokord/logger"
+	"github.com/nyttikord/gokord/user"
 	"math"
 	"net/http"
 	"regexp"
@@ -160,7 +161,7 @@ type Application struct {
 	BotRequireCodeGrant    bool                                                             `json:"bot_require_code_grant,omitempty"`
 	TermsOfServiceURL      string                                                           `json:"terms_of_service_url"`
 	PrivacyProxyURL        string                                                           `json:"privacy_policy_url"`
-	Owner                  *User                                                            `json:"owner"`
+	Owner                  *user.User                                                       `json:"owner"`
 	Summary                string                                                           `json:"summary"`
 	VerifyKey              string                                                           `json:"verify_key"`
 	Team                   *Team                                                            `json:"team"`
@@ -224,7 +225,7 @@ type Integration struct {
 	EnableEmoticons   bool               `json:"enable_emoticons"`
 	ExpireBehavior    ExpireBehavior     `json:"expire_behavior"`
 	ExpireGracePeriod int                `json:"expire_grace_period"`
-	User              *User              `json:"user"`
+	User              *user.User         `json:"user"`
 	Account           IntegrationAccount `json:"account"`
 	SyncedAt          time.Time          `json:"synced_at"`
 }
@@ -270,7 +271,7 @@ const (
 type Invite struct {
 	Guild             *Guild           `json:"guild"`
 	Channel           *Channel         `json:"channel"`
-	Inviter           *User            `json:"inviter"`
+	Inviter           *user.User       `json:"inviter"`
 	Code              string           `json:"code"`
 	CreatedAt         time.Time        `json:"created_at"`
 	MaxAge            int              `json:"max_age"`
@@ -279,7 +280,7 @@ type Invite struct {
 	Revoked           bool             `json:"revoked"`
 	Temporary         bool             `json:"temporary"`
 	Unique            bool             `json:"unique"`
-	TargetUser        *User            `json:"target_user"`
+	TargetUser        *user.User       `json:"target_user"`
 	TargetType        InviteTargetType `json:"target_type"`
 	TargetApplication *Application     `json:"target_application"`
 
@@ -390,7 +391,7 @@ type Channel struct {
 	Bitrate int `json:"bitrate"`
 
 	// The recipients of the channel. This is only populated in DM channels.
-	Recipients []*User `json:"recipients"`
+	Recipients []*user.User `json:"recipients"`
 
 	// The messages in the channel. This is only present in state-cached channels,
 	// and State.MaxMessageCount must be non-zero.
@@ -591,14 +592,14 @@ type ForumTag struct {
 
 // Emoji struct holds data related to Emoji's
 type Emoji struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Roles         []string `json:"roles"`
-	User          *User    `json:"user"`
-	RequireColons bool     `json:"require_colons"`
-	Managed       bool     `json:"managed"`
-	Animated      bool     `json:"animated"`
-	Available     bool     `json:"available"`
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	Roles         []string   `json:"roles"`
+	User          *user.User `json:"user"`
+	RequireColons bool       `json:"require_colons"`
+	Managed       bool       `json:"managed"`
+	Animated      bool       `json:"animated"`
+	Available     bool       `json:"available"`
 }
 
 // EmojiRegex is the regex used to find and identify emojis in messages
@@ -673,7 +674,7 @@ type Sticker struct {
 	FormatType  StickerFormat `json:"format_type"`
 	Available   bool          `json:"available"`
 	GuildID     string        `json:"guild_id"`
-	User        *User         `json:"user"`
+	User        *user.User    `json:"user"`
 	SortValue   int           `json:"sort_value"`
 }
 
@@ -991,7 +992,7 @@ type GuildScheduledEvent struct {
 	// Additional metadata for the guild scheduled event
 	EntityMetadata GuildScheduledEventEntityMetadata `json:"entity_metadata"`
 	// The user that created the scheduled event
-	Creator *User `json:"creator"`
+	Creator *user.User `json:"creator"`
 	// The number of users subscribed to the scheduled event
 	UserCount int `json:"user_count"`
 	// The cover image hash of the scheduled event
@@ -1097,9 +1098,9 @@ const (
 // GuildScheduledEventUser is a user subscribed to a scheduled event.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-user-object
 type GuildScheduledEventUser struct {
-	GuildScheduledEventID string  `json:"guild_scheduled_event_id"`
-	User                  *User   `json:"user"`
-	Member                *Member `json:"member"`
+	GuildScheduledEventID string     `json:"guild_scheduled_event_id"`
+	User                  *user.User `json:"user"`
+	Member                *Member    `json:"member"`
 }
 
 // GuildOnboardingMode defines the criteria used to satisfy constraints that are required for enabling onboarding.
@@ -1223,7 +1224,7 @@ type GuildTemplate struct {
 	CreatorID string `json:"creator_id"`
 
 	// The user who created the template
-	Creator *User `json:"creator"`
+	Creator *user.User `json:"creator"`
 
 	// The timestamp of when the template was created
 	CreatedAt time.Time `json:"created_at"`
@@ -1506,15 +1507,6 @@ type RoleColors struct {
 	TertiaryColor *int `json:"tertiary_color"`
 }
 
-// A Presence stores the online, offline, or idle and game status of Guild members.
-type Presence struct {
-	User         *User        `json:"user"`
-	Status       Status       `json:"status"`
-	Activities   []*Activity  `json:"activities"`
-	Since        *int         `json:"since"`
-	ClientStatus ClientStatus `json:"client_status"`
-}
-
 // A TimeStamps struct contains start and end times used in the rich presence "playing .." Game
 type TimeStamps struct {
 	EndTimestamp   int64 `json:"end,omitempty"`
@@ -1543,134 +1535,6 @@ type Assets struct {
 	LargeText    string `json:"large_text,omitempty"`
 	SmallText    string `json:"small_text,omitempty"`
 }
-
-// MemberFlags represent flags of a guild member.
-// https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
-type MemberFlags int
-
-// Block containing known MemberFlags values.
-const (
-	// MemberFlagDidRejoin indicates whether the Member has left and rejoined the guild.
-	MemberFlagDidRejoin MemberFlags = 1 << 0
-	// MemberFlagCompletedOnboarding indicates whether the Member has completed onboarding.
-	MemberFlagCompletedOnboarding MemberFlags = 1 << 1
-	// MemberFlagBypassesVerification indicates whether the Member is exempt from guild verification requirements.
-	MemberFlagBypassesVerification MemberFlags = 1 << 2
-	// MemberFlagStartedOnboarding indicates whether the Member has started onboarding.
-	MemberFlagStartedOnboarding MemberFlags = 1 << 3
-)
-
-// A Member stores user information for Guild members. A guild
-// member represents a certain user's presence in a guild.
-type Member struct {
-	// The guild ID on which the member exists.
-	GuildID string `json:"guild_id"`
-
-	// The time at which the member joined the guild.
-	JoinedAt time.Time `json:"joined_at"`
-
-	// The nickname of the member, if they have one.
-	Nick string `json:"nick"`
-
-	// Whether the member is deafened at a guild level.
-	Deaf bool `json:"deaf"`
-
-	// Whether the member is muted at a guild level.
-	Mute bool `json:"mute"`
-
-	// The hash of the avatar for the guild member, if any.
-	Avatar string `json:"avatar"`
-
-	// The hash of the banner for the guild member, if any.
-	Banner string `json:"banner"`
-
-	// The underlying user on which the member is based.
-	User *User `json:"user"`
-
-	// A list of IDs of the roles which are possessed by the member.
-	Roles []string `json:"roles"`
-
-	// When the user used their Nitro boost on the server
-	PremiumSince *time.Time `json:"premium_since"`
-
-	// The flags of this member. This is a combination of bit masks; the presence of a certain
-	// flag can be checked by performing a bitwise AND between this int and the flag.
-	Flags MemberFlags `json:"flags"`
-
-	// Is true while the member hasn't accepted the membership screen.
-	Pending bool `json:"pending"`
-
-	// Total permissions of the member in the channel, including overrides, returned when in the interaction object.
-	Permissions int64 `json:"permissions,string"`
-
-	// The time at which the member's timeout will expire.
-	// Time in the past or nil if the user is not timed out.
-	CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
-}
-
-// Mention creates a member mention
-func (m *Member) Mention() string {
-	return "<@!" + m.User.ID + ">"
-}
-
-// AvatarURL returns the URL of the member's avatar
-//
-//	size:    The size of the user's avatar as a power of two
-//	         if size is an empty string, no size parameter will
-//	         be added to the URL.
-func (m *Member) AvatarURL(size string) string {
-	if m.Avatar == "" {
-		return m.User.AvatarURL(size)
-	}
-	// The default/empty avatar case should be handled by the above condition
-	return avatarURL(m.Avatar, "", EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
-		EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
-
-}
-
-// BannerURL returns the URL of the member's banner image.
-//
-//	size:    The size of the desired banner image as a power of two
-//	         Image size can be any power of two between 16 and 4096.
-func (m *Member) BannerURL(size string) string {
-	if m.Banner == "" {
-		return m.User.BannerURL(size)
-	}
-	return bannerURL(
-		m.Banner,
-		EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
-		EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
-		size,
-	)
-}
-
-// DisplayName returns the member's guild nickname if they have one,
-// otherwise it returns their discord display name.
-func (m *Member) DisplayName() string {
-	if m.Nick != "" {
-		return m.Nick
-	}
-	return m.User.DisplayName()
-}
-
-// ClientStatus stores the online, offline, idle, or dnd status of each device of a Guild member.
-type ClientStatus struct {
-	Desktop Status `json:"desktop"`
-	Mobile  Status `json:"mobile"`
-	Web     Status `json:"web"`
-}
-
-// Status type definition
-type Status string
-
-// Constants for Status with the different current available status
-const (
-	StatusOnline       Status = "online"
-	StatusIdle         Status = "idle"
-	StatusDoNotDisturb Status = "dnd"
-	StatusInvisible    Status = "invisible"
-	StatusOffline      Status = "offline"
-)
 
 // A TooManyRequests struct holds information received from Discord
 // when receiving a HTTP 429 response.
@@ -1715,8 +1579,8 @@ type GuildRole struct {
 
 // A GuildBan stores data for a guild ban.
 type GuildBan struct {
-	Reason string `json:"reason"`
-	User   *User  `json:"user"`
+	Reason string     `json:"reason"`
+	User   *user.User `json:"user"`
 }
 
 // AutoModerationRule stores data for an auto moderation rule.
@@ -1827,7 +1691,7 @@ type GuildEmbed struct {
 // https://discord.com/developers/docs/resources/audit-log#audit-log-object-audit-log-structure
 type GuildAuditLog struct {
 	Webhooks        []*Webhook       `json:"webhooks,omitempty"`
-	Users           []*User          `json:"users,omitempty"`
+	Users           []*user.User     `json:"users,omitempty"`
 	AuditLogEntries []*AuditLogEntry `json:"audit_log_entries"`
 	Integrations    []*Integration   `json:"integrations"`
 }

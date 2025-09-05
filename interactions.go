@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/nyttikord/gokord/user"
 	"io"
 	"net/http"
 	"strconv"
@@ -241,7 +242,7 @@ type Interaction struct {
 	// NOTE: this field is only filled when the slash command was invoked in a DM;
 	// if it was invoked in a guild, the `Member` field will be filled instead.
 	// Make sure to check for `nil` before using this field.
-	User *User `json:"user"`
+	User *user.User `json:"user"`
 
 	// The user's discord client locale.
 	Locale Locale `json:"locale"`
@@ -365,7 +366,7 @@ func (d ApplicationCommandInteractionData) GetOption(name string) (option *Appli
 // Partial Member objects are missing user, deaf and mute fields.
 // Partial Channel objects only have id, name, type and permissions fields.
 type ApplicationCommandInteractionDataResolved struct {
-	Users       map[string]*User              `json:"users"`
+	Users       map[string]*user.User         `json:"users"`
 	Members     map[string]*Member            `json:"members"`
 	Roles       map[string]*Role              `json:"roles"`
 	Channels    map[string]*Channel           `json:"channels"`
@@ -390,10 +391,10 @@ type MessageComponentInteractionData struct {
 
 // MessageComponentInteractionDataResolved contains the resolved data of selected option.
 type MessageComponentInteractionDataResolved struct {
-	Users    map[string]*User    `json:"users"`
-	Members  map[string]*Member  `json:"members"`
-	Roles    map[string]*Role    `json:"roles"`
-	Channels map[string]*Channel `json:"channels"`
+	Users    map[string]*user.User `json:"users"`
+	Members  map[string]*Member    `json:"members"`
+	Roles    map[string]*Role      `json:"roles"`
+	Channels map[string]*Channel   `json:"channels"`
 }
 
 // Type returns the type of interaction data.
@@ -548,19 +549,19 @@ func (o ApplicationCommandInteractionDataOption) RoleValue(s *Session, gID strin
 
 // UserValue is a utility function for casting option value to user object.
 // s : Session object, if not nil, function additionally fetches all user's data
-func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *User {
+func (o ApplicationCommandInteractionDataOption) UserValue(s *Session) *user.User {
 	if o.Type != ApplicationCommandOptionUser && o.Type != ApplicationCommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
 	userID := o.Value.(string)
 
 	if s == nil {
-		return &User{ID: userID}
+		return &user.User{ID: userID}
 	}
 
 	u, err := s.User(userID)
 	if err != nil {
-		return &User{ID: userID}
+		return &user.User{ID: userID}
 	}
 
 	return u

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/nyttikord/gokord/user"
 	"log"
 	"os"
 	"os/signal"
@@ -20,7 +21,7 @@ func parseOptions(options []*gokord.ApplicationCommandInteractionDataOption) (om
 	return
 }
 
-func interactionAuthor(i *gokord.Interaction) *gokord.User {
+func interactionAuthor(i *gokord.Interaction) *user.User {
 	if i.Member != nil {
 		return i.Member.User
 	}

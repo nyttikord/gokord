@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"errors"
+	"github.com/nyttikord/gokord/user"
 	"sort"
 	"sync"
 )
@@ -1184,8 +1185,8 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 			if err != nil {
 				// Member not found; this is a user coming online
 				m = &Member{
-					GuildID: t.GuildID,
-					User:    t.User,
+					GuildID:   t.GuildID,
+					user.User: t.User,
 				}
 			} else {
 				if t.User.Username != "" {

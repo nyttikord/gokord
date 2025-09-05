@@ -1,13 +1,14 @@
 package gokord
 
 import (
+	user2 "github.com/nyttikord/gokord/user"
 	"testing"
 )
 
 func TestContentWithMoreMentionsReplaced(t *testing.T) {
 	s := &Session{StateEnabled: true, State: NewState()}
 
-	user := &User{
+	user := &user2.User{
 		ID:       "user",
 		Username: "User Name",
 	}
@@ -19,9 +20,9 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 		Mentionable: true,
 	})
 	s.State.MemberAdd(&Member{
-		User:    user,
-		Nick:    "User Nick",
-		GuildID: "guild",
+		user2.User: user,
+		Nick:       "User Nick",
+		GuildID:    "guild",
 	})
 	s.State.ChannelAdd(&Channel{
 		Name:    "Channel Name",
@@ -32,7 +33,7 @@ func TestContentWithMoreMentionsReplaced(t *testing.T) {
 		Content:      "<@&role> <@!user> <@user> <#channel>",
 		ChannelID:    "channel",
 		MentionRoles: []string{"role"},
-		Mentions:     []*User{user},
+		Mentions:     []*user2.User{user},
 	}
 	if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @User Nick @User Name #Channel Name" {
 		t.Error(result)

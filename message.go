@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"encoding/json"
+	"github.com/nyttikord/gokord/user"
 	"io"
 	"regexp"
 	"strings"
@@ -71,7 +72,7 @@ type Message struct {
 
 	// The author of the message. This is not guaranteed to be a
 	// valid user (webhook-sent messages do not possess a full author).
-	Author *User `json:"author"`
+	Author *user.User `json:"author"`
 
 	// A list of attachments present in the message.
 	Attachments []*MessageAttachment `json:"attachments"`
@@ -83,7 +84,7 @@ type Message struct {
 	Embeds []*MessageEmbed `json:"embeds"`
 
 	// A list of users mentioned in the message.
-	Mentions []*User `json:"mentions"`
+	Mentions []*user.User `json:"mentions"`
 
 	// A list of reactions to the message.
 	Reactions []*MessageReactions `json:"reactions"`
@@ -601,7 +602,7 @@ type MessageInteraction struct {
 	ID   string          `json:"id"`
 	Type InteractionType `json:"type"`
 	Name string          `json:"name"`
-	User *User           `json:"user"`
+	User *user.User      `json:"user"`
 
 	// Member is only present when the interaction is from a guild.
 	Member *Member `json:"member"`
@@ -614,7 +615,7 @@ type MessageInteractionMetadata struct {
 	// Type of the interaction.
 	Type InteractionType `json:"type"`
 	// User who triggered the interaction.
-	User *User `json:"user"`
+	User *user.User `json:"user"`
 	// IDs for installation context(s) related to an interaction.
 	AuthorizingIntegrationOwners map[ApplicationIntegrationType]string `json:"authorizing_integration_owners"`
 	// ID of the original response message.

@@ -1,5 +1,7 @@
 package gokord
 
+import "github.com/nyttikord/gokord/user"
+
 // ------------------------------------------------------------------------------------------------
 // Code specific to Discord OAuth2 Applications
 // ------------------------------------------------------------------------------------------------
@@ -15,7 +17,7 @@ const (
 
 // A TeamMember struct stores values for a single Team Member, extending the normal User data - note that the user field is partial
 type TeamMember struct {
-	User            *User           `json:"user"`
+	User            *user.User      `json:"user"`
 	TeamID          string          `json:"team_id"`
 	MembershipState MembershipState `json:"membership_state"`
 	Permissions     []string        `json:"permissions"`
@@ -137,7 +139,7 @@ func (s *Session) ApplicationAssets(appID string) (ass []*Asset, err error) {
 //	appID : The ID of an Application
 //
 // NOTE: func name may change, if I can think up something better.
-func (s *Session) ApplicationBotCreate(appID string) (st *User, err error) {
+func (s *Session) ApplicationBotCreate(appID string) (st *user.User, err error) {
 
 	body, err := s.RequestWithBucketID("POST", EndpointOAuth2ApplicationsBot(appID), nil, EndpointOAuth2ApplicationsBot(""))
 	if err != nil {
