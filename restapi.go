@@ -39,13 +39,6 @@ var (
 	ErrUnauthorized            = errors.New("HTTP request was unauthorized. This could be because the provided token was not a bot token. Please add \"Bot \" to the start of your token. https://discord.com/developers/docs/reference#authentication-example-bot-token-authorization-header")
 )
 
-var (
-	// Marshal defines function used to encode JSON payloads
-	Marshal func(v interface{}) ([]byte, error) = json.Marshal
-	// Unmarshal defines function used to decode JSON payloads
-	Unmarshal func(src []byte, v interface{}) error = json.Unmarshal
-)
-
 // RESTError stores error information about a request with a bad response code.
 // Message is not always present, there are cases where api calls can fail
 // without returning a json message.
@@ -67,7 +60,7 @@ func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTErro
 
 	// Attempt to decode the error and assume no message was provided if it fails
 	var msg *discord.APIErrorMessage
-	err := Unmarshal(body, &msg)
+	err := json.Unmarshal(body, &msg)
 	if err == nil {
 		restErr.Message = msg
 	}
@@ -170,7 +163,7 @@ func (s *Session) Request(method, urlStr string, data interface{}, options ...Re
 func (s *Session) RequestWithBucketID(method, urlStr string, data interface{}, bucketID string, options ...RequestOption) (response []byte, err error) {
 	var body []byte
 	if data != nil {
-		body, err = Marshal(data)
+		body, err = json.Marshal(data)
 		if err != nil {
 			return
 		}
@@ -268,7 +261,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		}
 	case 429: // TOO MANY REQUESTS - Rate limiting
 		rl := TooManyRequests{}
-		err = Unmarshal(response, &rl)
+		err = json.Unmarshal(response, &rl)
 		if err != nil {
 			s.LogError("rate limit unmarshal error, %s", err)
 			return
@@ -300,7 +293,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 }
 
 func unmarshal(data []byte, v interface{}) error {
-	err := Unmarshal(data, v)
+	err := json.Unmarshal(data, v)
 	if err != nil {
 		return fmt.Errorf("%w: %s", ErrJSONUnmarshal, err)
 	}
@@ -2460,7 +2453,7 @@ func (s *Session) WebhookMessage(webhookID, token, messageID string, options ...
 		return
 	}
 
-	err = Unmarshal(body, &message)
+	err = json.Unmarshal(body, &message)
 
 	return
 }

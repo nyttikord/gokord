@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"encoding/json"
 	"math"
 	"net/http"
 	"sync"
@@ -133,7 +134,7 @@ func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
 		Message    string  `json:"message"`
 		RetryAfter float64 `json:"retry_after"`
 	}{}
-	err := Unmarshal(b, &u)
+	err := json.Unmarshal(b, &u)
 	if err != nil {
 		return err
 	}
