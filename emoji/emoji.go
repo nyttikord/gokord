@@ -48,8 +48,8 @@ func (e *Emoji) APIName() string {
 	return e.ID
 }
 
-// EmojiParams represents parameters needed to create or update an Emoji.
-type EmojiParams struct {
+// Params represents parameters needed to create or update an Emoji.
+type Params struct {
 	// Name of the emoji
 	Name string `json:"name,omitempty"`
 	// A base64 encoded emoji image, has to be smaller than 256KB.

@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/user"
 )
@@ -12,7 +13,7 @@ import (
 // Application returns an Application structure of a specific Application
 //
 //	appID : The ID of an Application
-func (s *Session) Application(appID string) (st *Application, err error) {
+func (s *Session) Application(appID string) (st *application.Application, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointOAuth2Application(appID), nil, discord.EndpointOAuth2Application(""))
 	if err != nil {
@@ -24,7 +25,7 @@ func (s *Session) Application(appID string) (st *Application, err error) {
 }
 
 // Applications returns all applications for the authenticated user
-func (s *Session) Applications() (st []*Application, err error) {
+func (s *Session) Applications() (st []*application.Application, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointOAuth2Applications, nil, discord.EndpointOAuth2Applications)
 	if err != nil {
@@ -39,7 +40,7 @@ func (s *Session) Applications() (st []*Application, err error) {
 //
 //	name : Name of Application / Bot
 //	uris : Redirect URIs (Not required)
-func (s *Session) ApplicationCreate(ap *Application) (st *Application, err error) {
+func (s *Session) ApplicationCreate(ap *application.Application) (st *application.Application, err error) {
 
 	data := struct {
 		Name        string `json:"name"`
@@ -58,7 +59,7 @@ func (s *Session) ApplicationCreate(ap *Application) (st *Application, err error
 // ApplicationUpdate updates an existing Application
 //
 //	var : desc
-func (s *Session) ApplicationUpdate(appID string, ap *Application) (st *Application, err error) {
+func (s *Session) ApplicationUpdate(appID string, ap *application.Application) (st *application.Application, err error) {
 
 	data := struct {
 		Name        string `json:"name"`
