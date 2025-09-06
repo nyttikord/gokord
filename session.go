@@ -18,10 +18,6 @@ type Session struct {
 
 	// General configurable settings.
 
-	// Authentication token for this session
-	// TODO: Remove Below, Deprecated, Use Identify struct
-	Token string
-
 	MFA bool
 
 	LogLevel logger.Level
@@ -38,10 +34,6 @@ type Session struct {
 	// Identify is sent during initial handshake with the discord gateway.
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
-
-	// TODO: Remove Below, Deprecated, Use Identify struct
-	// Should the session request compressed websocket data.
-	Compress bool
 
 	// Sharding
 	ShardID    int

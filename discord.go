@@ -29,7 +29,6 @@ func New(token string) (s *Session, err error) {
 		State:                              NewState(),
 		Ratelimiter:                        NewRatelimiter(),
 		StateEnabled:                       true,
-		Compress:                           true,
 		ShouldReconnectOnError:             true,
 		ShouldReconnectVoiceOnSessionError: true,
 		ShouldRetryOnRateLimit:             true,
@@ -52,7 +51,6 @@ func New(token string) (s *Session, err error) {
 	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
 	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 	s.Identify.Token = token
-	s.Token = token
 
 	return
 }

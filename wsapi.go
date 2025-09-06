@@ -137,7 +137,7 @@ func (s *Session) Open() error {
 		// Send Op 6 Resume Packet
 		p := resumePacket{}
 		p.Op = 6
-		p.Data.Token = s.Token
+		p.Data.Token = s.Identify.Token
 		p.Data.SessionID = s.sessionID
 		p.Data.Sequence = sequence
 
@@ -832,18 +832,6 @@ type identifyOp struct {
 // identify sends the identify packet to the gateway
 func (s *Session) identify() error {
 	s.LogDebug("called")
-
-	// TODO: This is a temporary block of code to help
-	// maintain backwards compatibility
-	if s.Compress == false {
-		s.Identify.Compress = false
-	}
-
-	// TODO: This is a temporary block of code to help
-	// maintain backwards compatibility
-	if s.Token != "" && s.Identify.Token == "" {
-		s.Identify.Token = s.Token
-	}
 
 	// TODO: Below block should be refactored so ShardID and ShardCount
 	// can be deprecated and their usage moved to the Session.Identify
