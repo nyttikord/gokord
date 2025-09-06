@@ -1,4 +1,4 @@
-package gokord
+package interactions
 
 import (
 	"bytes"

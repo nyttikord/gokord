@@ -1,6 +1,5 @@
 package discord
 
-// Block contains Discord JSON Error Response codes
 const (
 	ErrCodeGeneralError = 0
 

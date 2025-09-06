@@ -1,13 +1,13 @@
 package gokord
 
 import (
-	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/logger"
 	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/logger"
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
@@ -50,7 +50,7 @@ func New(token string) (s *Session, err error) {
 	s.Identify.LargeThreshold = 250
 	s.Identify.Properties.OS = runtime.GOOS
 	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
-	s.Identify.Intents = IntentsAllWithoutPrivileged
+	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 	s.Identify.Token = token
 	s.Token = token
 

@@ -2,18 +2,20 @@ package main
 
 import (
 	"flag"
-	"github.com/nyttikord/gokord/user"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
 
+	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/user"
+
 	"github.com/nyttikord/gokord"
 )
 
-type optionMap = map[string]*gokord.ApplicationCommandInteractionDataOption
+type optionMap = map[string]*interactions.CommandInteractionDataOption
 
-func parseOptions(options []*gokord.ApplicationCommandInteractionDataOption) (om optionMap) {
+func parseOptions(options []*interactions.CommandInteractionDataOption) (om optionMap) {
 	om = make(optionMap)
 	for _, opt := range options {
 		om[opt.Name] = opt
@@ -21,7 +23,7 @@ func parseOptions(options []*gokord.ApplicationCommandInteractionDataOption) (om
 	return
 }
 
-func interactionAuthor(i *gokord.Interaction) *user.User {
+func interactionAuthor(i *interactions.Interaction) *user.User {
 	if i.Member != nil {
 		return i.Member.User
 	}
@@ -36,9 +38,9 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 		Type: gokord.InteractionResponseChannelMessageWithSource,
-		Data: &gokord.InteractionResponseData{
+		Data: &interactions.InteractionResponseData{
 			Content: builder.String(),
 		},
 	})
@@ -48,11 +50,11 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 }
 
-var commands = []*gokord.ApplicationCommand{
+var commands = []*interactions.Command{
 	{
 		Name:        "echo",
 		Description: "Say something through a bot",
-		Options: []*gokord.ApplicationCommandOption{
+		Options: []*interactions.CommandOption{
 			{
 				Name:        "message",
 				Description: "Contents of the message",

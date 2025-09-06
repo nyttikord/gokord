@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/interactions"
+
 	"log"
 	"os"
 	"os/signal"
@@ -36,7 +40,7 @@ func init() {
 }
 
 var (
-	commands = []gokord.ApplicationCommand{
+	commands = []interactions.Command{
 		{
 			Name:        "modals-survey",
 			Description: "Take a survey about modals",
@@ -44,18 +48,18 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"modals-survey": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseModal,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
-					Components: []gokord.MessageComponent{
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.TextInput{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.TextInput{
 									CustomID:    "opinion",
 									Label:       "What is your opinion on them?",
-									Style:       gokord.TextInputShort,
+									Style:       component.TextInputShort,
 									Placeholder: "Don't be shy, share your opinion with us",
 									Required:    true,
 									MaxLength:   300,
@@ -63,12 +67,12 @@ var (
 								},
 							},
 						},
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.TextInput{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.TextInput{
 									CustomID:  "suggestions",
 									Label:     "What would you suggest to improve them?",
-									Style:     gokord.TextInputParagraph,
+									Style:     component.TextInputParagraph,
 									Required:  false,
 									MaxLength: 2000,
 								},
@@ -96,9 +100,9 @@ func main() {
 				h(s, i)
 			}
 		case gokord.InteractionModalSubmit:
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Thank you for taking your time to fill this survey",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -116,8 +120,8 @@ func main() {
 			_, err = s.ChannelMessageSend(*ResultsChannel, fmt.Sprintf(
 				"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 				userid,
-				data.Components[0].(*gokord.ActionsRow).Components[0].(*gokord.TextInput).Value,
-				data.Components[1].(*gokord.ActionsRow).Components[0].(*gokord.TextInput).Value,
+				data.Components[0].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
+				data.Components[1].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
 			))
 			if err != nil {
 				panic(err)

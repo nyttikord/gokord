@@ -1,10 +1,9 @@
 package discord
 
-// Intent is the type of a Gateway Intent
+// Intent is the type of Gateway Intent
 // https://discord.com/developers/docs/topics/gateway#gateway-intents
 type Intent int
 
-// Constants for the different bit offsets of intents
 const (
 	IntentGuilds                      Intent = 1 << 0
 	IntentGuildMembers                Intent = 1 << 1

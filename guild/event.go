@@ -2,77 +2,86 @@ package guild
 
 import (
 	"encoding/json"
-	"github.com/nyttikord/gokord/user"
 	"time"
+
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user"
 )
 
-// ScheduledEvent is a representation of a scheduled event in a guild. Only for retrieval of the data.
+// ScheduledEvent is a representation of a scheduled event in a Guild.
+// Only for retrieval of the data.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event
 type ScheduledEvent struct {
-	// The ID of the scheduled event
+	// The ID of the ScheduledEvent.
 	ID string `json:"id"`
-	// The guild id which the scheduled event belongs to
+	// The Guild.ID which the ScheduledEvent belongs to.
 	GuildID string `json:"guild_id"`
-	// The channel id in which the scheduled event will be hosted, or null if scheduled entity type is EXTERNAL
+	// The channel.Channel ID in which the ScheduledEvent will be hosted, or null if EntityType is
+	// types.ScheduledEventEntityExternal.
 	ChannelID string `json:"channel_id"`
-	// The id of the user that created the scheduled event
+	// The user.User ID that created the ScheduledEvent.
 	CreatorID string `json:"creator_id"`
-	// The name of the scheduled event (1-100 characters)
+	// The Name of the ScheduledEvent (1-100 characters)
 	Name string `json:"name"`
-	// The description of the scheduled event (1-1000 characters)
+	// The Description of the ScheduledEvent (1-1000 characters)
 	Description string `json:"description"`
-	// The time the scheduled event will start
+	// The time the ScheduledEvent will start.
 	ScheduledStartTime time.Time `json:"scheduled_start_time"`
-	// The time the scheduled event will end, required only when entity_type is EXTERNAL
+	// The time the ScheduledEvent will end, required only when EntityType is types.ScheduledEventEntityExternal.
 	ScheduledEndTime *time.Time `json:"scheduled_end_time"`
-	// The privacy level of the scheduled event
+	// The PrivacyLevel of the ScheduledEvent.
 	PrivacyLevel ScheduledEventPrivacyLevel `json:"privacy_level"`
-	// The status of the scheduled event
+	// The Status of the ScheduledEvent.
 	Status ScheduledEventStatus `json:"status"`
-	// Type of the entity where event would be hosted
-	// See field requirements
+	// Type of the entity where ScheduledEvent would be hosted.
+	//
+	// Note: See field requirements.
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
-	EntityType ScheduledEventEntityType `json:"entity_type"`
-	// The id of an entity associated with a guild scheduled event
+	EntityType types.ScheduledEventEntity `json:"entity_type"`
+	// The ID of an entity associated with a ScheduledEvent.
 	EntityID string `json:"entity_id"`
-	// Additional metadata for the guild scheduled event
+	// Additional metadata for the ScheduledEvent.
 	EntityMetadata ScheduledEventEntityMetadata `json:"entity_metadata"`
-	// The user that created the scheduled event
+	// The user.User that created the ScheduledEvent.
 	Creator *user.User `json:"creator"`
-	// The number of users subscribed to the scheduled event
+	// The number of users subscribed to the ScheduledEvent.
 	UserCount int `json:"user_count"`
-	// The cover image hash of the scheduled event
-	// see https://discord.com/developers/docs/reference#image-formatting for more
-	// information about image formatting
+	// The cover Image hash of the ScheduledEvent.
+	//
+	// Note: See https://discord.com/developers/docs/reference#image-formatting for more information about image
+	// formatting.
 	Image string `json:"image"`
 }
 
-// ScheduledEventParams are the parameters allowed for creating or updating a scheduled event
+// ScheduledEventParams are the parameters allowed for creating or updating a ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 type ScheduledEventParams struct {
-	// The channel id in which the scheduled event will be hosted, or null if scheduled entity type is EXTERNAL
+	// The channel.Channel ID in which the ScheduledEvent will be hosted, or null if EntityType is
+	// types.ScheduledEventEntityExternal.
 	ChannelID string `json:"channel_id,omitempty"`
-	// The name of the scheduled event (1-100 characters)
+	// The Name of the ScheduledEvent (1-100 characters)
 	Name string `json:"name,omitempty"`
-	// The description of the scheduled event (1-1000 characters)
+	// The Description of the ScheduledEvent (1-1000 characters)
 	Description string `json:"description,omitempty"`
-	// The time the scheduled event will start
+	// The time the ScheduledEvent will start.
 	ScheduledStartTime *time.Time `json:"scheduled_start_time,omitempty"`
-	// The time the scheduled event will end, required only when entity_type is EXTERNAL
+	// The time the ScheduledEvent will end, required only when EntityType is types.ScheduledEventEntityExternal.
 	ScheduledEndTime *time.Time `json:"scheduled_end_time,omitempty"`
-	// The privacy level of the scheduled event
+	// The PrivacyLevel of the ScheduledEvent.
 	PrivacyLevel ScheduledEventPrivacyLevel `json:"privacy_level,omitempty"`
-	// The status of the scheduled event
+	// The Status of the ScheduledEvent.
 	Status ScheduledEventStatus `json:"status,omitempty"`
-	// Type of the entity where event would be hosted
-	// See field requirements
+	// Type of the entity where ScheduledEvent would be hosted.
+	//
+	// Note: See field requirements
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
-	EntityType ScheduledEventEntityType `json:"entity_type,omitempty"`
-	// Additional metadata for the guild scheduled event
+	EntityType types.ScheduledEventEntity `json:"entity_type,omitempty"`
+	// Additional metadata for the ScheduledEvent.
 	EntityMetadata *ScheduledEventEntityMetadata `json:"entity_metadata,omitempty"`
-	// The cover image hash of the scheduled event
-	// see https://discord.com/developers/docs/reference#image-formatting for more
-	// information about image formatting
+	// The cover Image hash of the ScheduledEvent.
+	//
+	// Note: See https://discord.com/developers/docs/reference#image-formatting for more information about image
+	// formatting.
 	Image string `json:"image,omitempty"`
 }
 
@@ -80,7 +89,7 @@ type ScheduledEventParams struct {
 func (p ScheduledEventParams) MarshalJSON() ([]byte, error) {
 	type guildScheduledEventParams ScheduledEventParams
 
-	if p.EntityType == ScheduledEventEntityTypeExternal && p.ChannelID == "" {
+	if p.EntityType == types.ScheduledEventEntityExternal && p.ChannelID == "" {
 		return json.Marshal(struct {
 			guildScheduledEventParams
 			ChannelID json.RawMessage `json:"channel_id"`
@@ -93,14 +102,15 @@ func (p ScheduledEventParams) MarshalJSON() ([]byte, error) {
 	return json.Marshal(guildScheduledEventParams(p))
 }
 
-// ScheduledEventEntityMetadata holds additional metadata for guild scheduled event.
+// ScheduledEventEntityMetadata holds additional metadata for ScheduledEvent.
 type ScheduledEventEntityMetadata struct {
-	// location of the event (1-100 characters)
-	// required for events with 'entity_type': EXTERNAL
+	// Location of the ScheduledEvent (1-100 characters)
+	//
+	// Required for types.ScheduledEventEntityExternal
 	Location string `json:"location"`
 }
 
-// ScheduledEventPrivacyLevel is the privacy level of a scheduled event.
+// ScheduledEventPrivacyLevel is the privacy level of a ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level
 type ScheduledEventPrivacyLevel int
 
@@ -110,10 +120,13 @@ const (
 	ScheduledEventPrivacyLevelGuildOnly ScheduledEventPrivacyLevel = 2
 )
 
-// ScheduledEventStatus is the status of a scheduled event
-// Valid Guild Scheduled Event Status Transitions :
-// SCHEDULED --> ACTIVE --> COMPLETED
-// SCHEDULED --> CANCELED
+// ScheduledEventStatus is the status of a ScheduledEvent.
+//
+// Valid ScheduledEvent Status Transitions :
+//
+//	SCHEDULED --> ACTIVE --> COMPLETED
+//	SCHEDULED --> CANCELED
+//
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status
 type ScheduledEventStatus int
 
@@ -128,20 +141,7 @@ const (
 	ScheduledEventStatusCanceled ScheduledEventStatus = 4
 )
 
-// ScheduledEventEntityType is the type of entity associated with a guild scheduled event.
-// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types
-type ScheduledEventEntityType int
-
-const (
-	// ScheduledEventEntityTypeStageInstance represents a stage channel
-	ScheduledEventEntityTypeStageInstance ScheduledEventEntityType = 1
-	// ScheduledEventEntityTypeVoice represents a voice channel
-	ScheduledEventEntityTypeVoice ScheduledEventEntityType = 2
-	// ScheduledEventEntityTypeExternal represents an external event
-	ScheduledEventEntityTypeExternal ScheduledEventEntityType = 3
-)
-
-// ScheduledEventUser is a user subscribed to a scheduled event.
+// ScheduledEventUser is a user.User subscribed to a ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-user-object
 type ScheduledEventUser struct {
 	GuildScheduledEventID string       `json:"guild_scheduled_event_id"`

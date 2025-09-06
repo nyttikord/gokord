@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/nyttikord/gokord/discord"
 	"io"
 	"mime/multipart"
 	"net/textproto"
+
+	"github.com/nyttikord/gokord/discord"
 )
 
-// MultipartBodyWithJSON returns the contentType and body for a discord request
-// data  : The object to encode for payload_json in the multipart request
-// files : Files to include in the request
+// MultipartBodyWithJSON returns the contentType and body for a discord request.
+//
+// data is the object to encode for payload_json in the multipart request.
+// files is the files to include in the request.
 func MultipartBodyWithJSON(data interface{}, files []*File) (requestContentType string, requestBody []byte, err error) {
 	body := &bytes.Buffer{}
 	bodywriter := multipart.NewWriter(body)

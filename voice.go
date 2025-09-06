@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/nyttikord/gokord/logger"
 	"net"
 	"strconv"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/logger"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 

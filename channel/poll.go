@@ -1,16 +1,10 @@
 package channel
 
 import (
-	"github.com/nyttikord/gokord/emoji"
 	"time"
-)
 
-// PollLayoutType represents the layout of a poll.
-type PollLayoutType int
-
-// Valid PollLayoutType values.
-const (
-	PollLayoutTypeDefault PollLayoutType = 1
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/emoji"
 )
 
 // PollMedia contains common data used by question and answers.
@@ -19,21 +13,21 @@ type PollMedia struct {
 	Emoji *emoji.Component `json:"emoji,omitempty"` // TODO: rename the type
 }
 
-// PollAnswer represents a single answer in a poll.
+// PollAnswer represents a single answer in a Poll.
 type PollAnswer struct {
 	// NOTE: should not be set on creation.
 	AnswerID int        `json:"answer_id,omitempty"`
 	Media    *PollMedia `json:"poll_media"`
 }
 
-// PollAnswerCount stores counted poll votes for a single answer.
+// PollAnswerCount stores counted Poll votes for a single answer.
 type PollAnswerCount struct {
 	ID      int  `json:"id"`
 	Count   int  `json:"count"`
 	MeVoted bool `json:"me_voted"`
 }
 
-// PollResults contains voting results on a poll.
+// PollResults contains voting results on a Poll.
 type PollResults struct {
 	Finalized    bool               `json:"is_finalized"`
 	AnswerCounts []*PollAnswerCount `json:"answer_counts"`
@@ -41,10 +35,10 @@ type PollResults struct {
 
 // Poll contains all poll related data.
 type Poll struct {
-	Question         PollMedia      `json:"question"`
-	Answers          []PollAnswer   `json:"answers"`
-	AllowMultiselect bool           `json:"allow_multiselect"`
-	LayoutType       PollLayoutType `json:"layout_type,omitempty"`
+	Question         PollMedia        `json:"question"`
+	Answers          []PollAnswer     `json:"answers"`
+	AllowMultiselect bool             `json:"allow_multiselect"`
+	LayoutType       types.PollLayout `json:"layout_type,omitempty"`
 
 	// NOTE: should be set only on creation, when fetching use Expiry.
 	Duration int `json:"duration,omitempty"`

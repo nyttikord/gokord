@@ -1,15 +1,15 @@
 package gokord
 
 import (
-	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/logger"
-	"github.com/nyttikord/gokord/user/status"
 	"math"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/logger"
+	"github.com/nyttikord/gokord/user/status"
 )
 
 // A Session represents a connection to the Discord API.

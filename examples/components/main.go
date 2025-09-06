@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/interactions"
+
 	"log"
 	"os"
 	"os/signal"
@@ -37,36 +41,36 @@ func init() {
 var (
 	componentsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"fd_no": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
 					Flags:   channel.MessageFlagsEphemeral,
-					Components: []gokord.MessageComponent{
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#buttons",
 								},
-								gokord.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								gokord.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -79,29 +83,29 @@ var (
 			}
 		},
 		"fd_yes": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
 					Flags: channel.MessageFlagsEphemeral,
-					Components: []gokord.MessageComponent{
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								gokord.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -114,22 +118,22 @@ var (
 			}
 		},
 		"select": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			var response *gokord.InteractionResponse
+			var response *interactions.InteractionResponse
 
 			data := i.MessageComponentData()
 			switch data.Values[0] {
 			case "go":
-				response = &gokord.InteractionResponse{
+				response = &interactions.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &gokord.InteractionResponseData{
+					Data: &interactions.InteractionResponseData{
 						Content: "This is the way.",
 						Flags:   channel.MessageFlagsEphemeral,
 					},
 				}
 			default:
-				response = &gokord.InteractionResponse{
+				response = &interactions.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &gokord.InteractionResponseData{
+					Data: &interactions.InteractionResponseData{
 						Content: "It is not the way to go.",
 						Flags:   channel.MessageFlagsEphemeral,
 					},
@@ -154,9 +158,9 @@ var (
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
 
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -174,36 +178,36 @@ var (
 			}
 		},
 		"channel_select": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
 						"If you want to know more, check out the links below",
-					Components: []gokord.MessageComponent{
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.Button{
+					Components: []component.Message{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "📜",
 									},
 									Label: "Documentation",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#select-menus",
 								},
-								gokord.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🔧",
 									},
 									Label: "Discord developers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								gokord.Button{
+								component.Button{
 									Emoji: &gokord.ComponentEmoji{
 										Name: "🦫",
 									},
 									Label: "Discord Gophers",
-									Style: gokord.LinkButton,
+									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/7RuRrVHyXF",
 								},
 							},
@@ -220,35 +224,35 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"buttons": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Are you comfortable with buttons and other message components?",
 					Flags:   channel.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
-					Components: []gokord.MessageComponent{
+					Components: []component.Message{
 						// ActionRow is a container of all buttons within the same row.
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.Button{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									// Label is what the user will see on the button.
 									Label: "Yes",
 									// Style provides coloring of the button. There are not so many styles tho.
-									Style: gokord.SuccessButton,
+									Style: component.ButtonStyleSuccess,
 									// Disabled allows bot to disable some buttons for users.
 									Disabled: false,
 									// CustomID is a thing telling Discord which data to send when this button will be pressed.
 									CustomID: "fd_yes",
 								},
-								gokord.Button{
+								component.Button{
 									Label:    "No",
-									Style:    gokord.DangerButton,
+									Style:    component.ButtonStyleDanger,
 									Disabled: false,
 									CustomID: "fd_no",
 								},
-								gokord.Button{
+								component.Button{
 									Label:    "I don't know",
-									Style:    gokord.LinkButton,
+									Style:    component.ButtonStyleLink,
 									Disabled: false,
 									// Link buttons don't require CustomID and do not trigger the gateway/HTTP event
 									URL: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -259,11 +263,11 @@ var (
 							},
 						},
 						// The message may have multiple actions rows.
-						gokord.ActionsRow{
-							Components: []gokord.MessageComponent{
-								gokord.Button{
+						component.ActionsRow{
+							Components: []component.Message{
+								component.Button{
 									Label:    "Discord Developers server",
-									Style:    gokord.LinkButton,
+									Style:    component.ButtonStyleLink,
 									Disabled: false,
 									URL:      "https://discord.gg/discord-developers",
 								},
@@ -277,22 +281,22 @@ var (
 			}
 		},
 		"selects": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			var response *gokord.InteractionResponse
+			var response *interactions.InteractionResponse
 			switch i.ApplicationCommandData().Options[0].Name {
 			case "single":
-				response = &gokord.InteractionResponse{
+				response = &interactions.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &gokord.InteractionResponseData{
+					Data: &interactions.InteractionResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
 						Flags:   channel.MessageFlagsEphemeral,
-						Components: []gokord.MessageComponent{
-							gokord.ActionsRow{
-								Components: []gokord.MessageComponent{
-									gokord.SelectMenu{
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
 										// Select menu, as other components, must have a customID, so we set it to this value.
 										CustomID:    "select",
 										Placeholder: "Choose your favorite programming language 👇",
-										Options: []gokord.SelectMenuOption{
+										Options: []component.SelectMenuOption{
 											{
 												Label: "Go",
 												// As with components, this things must have their own unique "id" to identify which is which.
@@ -330,23 +334,23 @@ var (
 				}
 			case "multi":
 				minValues := 1
-				response = &gokord.InteractionResponse{
+				response = &interactions.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &gokord.InteractionResponseData{
+					Data: &interactions.InteractionResponseData{
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []gokord.MessageComponent{
-							gokord.ActionsRow{
-								Components: []gokord.MessageComponent{
-									gokord.SelectMenu{
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
 										CustomID:    "stackoverflow_tags",
 										Placeholder: "Select tags to search on StackOverflow",
 										// This is where confusion comes from. If you don't specify these things you will get single item select.
 										// These fields control the minimum and maximum amount of selected items.
 										MinValues: &minValues,
 										MaxValues: 3,
-										Options: []gokord.SelectMenuOption{
+										Options: []component.SelectMenuOption{
 											{
 												Label:       "Go",
 												Description: "Simple yet powerful programming language",
@@ -397,17 +401,17 @@ var (
 					},
 				}
 			case "auto-populated":
-				response = &gokord.InteractionResponse{
+				response = &interactions.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &gokord.InteractionResponseData{
+					Data: &interactions.InteractionResponseData{
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []gokord.MessageComponent{
-							gokord.ActionsRow{
-								Components: []gokord.MessageComponent{
-									gokord.SelectMenu{
-										MenuType:     gokord.ChannelSelectMenu,
+						Components: []component.Message{
+							component.ActionsRow{
+								Components: []component.Message{
+									component.SelectMenu{
+										MenuType:     component.ChannelSelectMenu,
 										CustomID:     "channel_select",
 										Placeholder:  "Pick your favorite channel!",
 										ChannelTypes: []gokord.ChannelType{gokord.ChannelTypeGuildText},
@@ -444,7 +448,7 @@ func main() {
 			}
 		}
 	})
-	_, err := s.ApplicationCommandCreate(*AppID, *GuildID, &gokord.ApplicationCommand{
+	_, err := s.ApplicationCommandCreate(*AppID, *GuildID, &interactions.Command{
 		Name:        "buttons",
 		Description: "Test the buttons if you got courage",
 	})
@@ -452,9 +456,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
 	}
-	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &gokord.ApplicationCommand{
+	_, err = s.ApplicationCommandCreate(*AppID, *GuildID, &interactions.Command{
 		Name: "selects",
-		Options: []*gokord.ApplicationCommandOption{
+		Options: []*interactions.CommandOption{
 			{
 				Type:        gokord.ApplicationCommandOptionSubCommand,
 				Name:        "multi",

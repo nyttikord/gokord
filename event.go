@@ -1,5 +1,7 @@
 package gokord
 
+import "github.com/nyttikord/gokord/guild"
+
 // EventHandler is an interface for Discord events.
 type EventHandler interface {
 	// Type returns the type of event this handler belongs to.
@@ -19,7 +21,7 @@ type EventInterfaceProvider interface {
 
 	// New returns a new instance of the struct this event handler handles.
 	// This is called once per event.
-	// The struct is provided to all handlers of the same Type().
+	// The struct is provided to all handlers of the same Type.
 	New() interface{}
 }
 
@@ -41,7 +43,7 @@ func (eh interfaceEventHandler) Handle(s *Session, i interface{}) {
 
 var registeredInterfaceProviders = map[string]EventInterfaceProvider{}
 
-// registerInterfaceProvider registers a provider so that DiscordGo can
+// registerInterfaceProvider registers a provider so that Gokord can
 // access it's New() method.
 func registerInterfaceProvider(eh EventInterfaceProvider) {
 	if _, ok := registeredInterfaceProviders[eh.Type()]; ok {
@@ -61,7 +63,7 @@ type eventHandlerInstance struct {
 }
 
 // addEventHandler adds an event handler that will be fired anytime
-// the Discord WSAPI matching eventHandler.Type() fires.
+// the Discord WSAPI matching EventHandler.Type fires.
 func (s *Session) addEventHandler(eventHandler EventHandler) func() {
 	s.handlersMu.Lock()
 	defer s.handlersMu.Unlock()
@@ -79,7 +81,7 @@ func (s *Session) addEventHandler(eventHandler EventHandler) func() {
 }
 
 // addEventHandler adds an event handler that will be fired the next time
-// the Discord WSAPI matching eventHandler.Type() fires.
+// the Discord WSAPI matching EventHandler.Type fires.
 func (s *Session) addEventHandlerOnce(eventHandler EventHandler) func() {
 	s.handlersMu.Lock()
 	defer s.handlersMu.Unlock()
@@ -144,7 +146,7 @@ func (s *Session) AddHandlerOnce(handler interface{}) func() {
 	return s.addEventHandlerOnce(eh)
 }
 
-// removeEventHandler instance removes an event handler instance.
+// removeEventHandlerInstance removes an event handler instance.
 func (s *Session) removeEventHandlerInstance(t string, ehi *eventHandlerInstance) {
 	s.handlersMu.Lock()
 	defer s.handlersMu.Unlock()
@@ -202,9 +204,9 @@ func (s *Session) handleEvent(t string, i interface{}) {
 	s.handle(t, i)
 }
 
-// setGuildIds will set the GuildID on all the members of a guild.
+// setGuildIds will set the GuildID on all the members of a guild.Guild.
 // This is done as event data does not have it set.
-func setGuildIds(g *Guild) {
+func setGuildIds(g *guild.Guild) {
 	for _, c := range g.Channels {
 		c.GuildID = g.ID
 	}

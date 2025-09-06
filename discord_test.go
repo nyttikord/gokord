@@ -7,6 +7,9 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/guild"
 )
 
 var (
@@ -190,14 +193,14 @@ func TestScheduledEvents(t *testing.T) {
 
 	beginAt := time.Now().Add(1 * time.Hour)
 	endAt := time.Now().Add(2 * time.Hour)
-	event, err := dgBot.GuildScheduledEventCreate(envGuild, &GuildScheduledEventParams{
+	event, err := dgBot.GuildScheduledEventCreate(envGuild, &guild.ScheduledEventParams{
 		Name:               "Test Event",
-		PrivacyLevel:       GuildScheduledEventPrivacyLevelGuildOnly,
+		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
 		ScheduledStartTime: &beginAt,
 		ScheduledEndTime:   &endAt,
 		Description:        "Awesome Test Event created on livestream",
-		EntityType:         GuildScheduledEventEntityTypeExternal,
-		EntityMetadata: &GuildScheduledEventEntityMetadata{
+		EntityType:         types.ScheduledEventEntityExternal,
+		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
 		},
 	})
@@ -212,7 +215,7 @@ func TestScheduledEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var foundEvent *GuildScheduledEvent
+	var foundEvent *guild.ScheduledEvent
 	for _, e := range events {
 		if e.ID == event.ID {
 			foundEvent = e
@@ -231,7 +234,7 @@ func TestScheduledEvents(t *testing.T) {
 		t.Fatal("err on GuildScheduledEvent endpoint. Mismatched Scheduled Event")
 	}
 
-	eventUpdated, err := dgBot.GuildScheduledEventEdit(envGuild, event.ID, &GuildScheduledEventParams{Name: "Test Event Updated"})
+	eventUpdated, err := dgBot.GuildScheduledEventEdit(envGuild, event.ID, &guild.ScheduledEventParams{Name: "Test Event Updated"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,13 +266,13 @@ func TestComplexScheduledEvents(t *testing.T) {
 
 	beginAt := time.Now().Add(1 * time.Hour)
 	endAt := time.Now().Add(2 * time.Hour)
-	event, err := dgBot.GuildScheduledEventCreate(envGuild, &GuildScheduledEventParams{
+	event, err := dgBot.GuildScheduledEventCreate(envGuild, &guild.ScheduledEventParams{
 		Name:               "Test Voice Event",
-		PrivacyLevel:       GuildScheduledEventPrivacyLevelGuildOnly,
+		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
 		ScheduledStartTime: &beginAt,
 		ScheduledEndTime:   &endAt,
 		Description:        "Test event on voice channel",
-		EntityType:         GuildScheduledEventEntityTypeVoice,
+		EntityType:         types.ScheduledEventEntityVoice,
 		ChannelID:          envVoiceChannel,
 	})
 	if err != nil || event.Name != "Test Voice Event" {
@@ -277,9 +280,9 @@ func TestComplexScheduledEvents(t *testing.T) {
 	}
 	defer dgBot.GuildScheduledEventDelete(envGuild, event.ID)
 
-	_, err = dgBot.GuildScheduledEventEdit(envGuild, event.ID, &GuildScheduledEventParams{
-		EntityType: GuildScheduledEventEntityTypeExternal,
-		EntityMetadata: &GuildScheduledEventEntityMetadata{
+	_, err = dgBot.GuildScheduledEventEdit(envGuild, event.ID, &guild.ScheduledEventParams{
+		EntityType: types.ScheduledEventEntityExternal,
+		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
 		},
 	})
@@ -288,9 +291,9 @@ func TestComplexScheduledEvents(t *testing.T) {
 		t.Fatal("err on GuildScheduledEventEdit. Change of entity type to external failed")
 	}
 
-	_, err = dgBot.GuildScheduledEventEdit(envGuild, event.ID, &GuildScheduledEventParams{
+	_, err = dgBot.GuildScheduledEventEdit(envGuild, event.ID, &guild.ScheduledEventParams{
 		ChannelID:      envVoiceChannel,
-		EntityType:     GuildScheduledEventEntityTypeVoice,
+		EntityType:     types.ScheduledEventEntityVoice,
 		EntityMetadata: nil,
 	})
 

@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nyttikord/gokord/discord"
 	"io"
 	"net/http"
 	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user/status"
 )
 
 // ErrWSAlreadyOpen is thrown when you attempt to open
@@ -309,10 +311,10 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}
 
 // UpdateStatusData is provided to UpdateStatusComplex()
 type UpdateStatusData struct {
-	IdleSince  *int        `json:"since"`
-	Activities []*Activity `json:"activities"`
-	AFK        bool        `json:"afk"`
-	Status     string      `json:"status"`
+	IdleSince  *int               `json:"since"`
+	Activities []*status.Activity `json:"activities"`
+	AFK        bool               `json:"afk"`
+	Status     string             `json:"status"`
 }
 
 type updateStatusOp struct {
@@ -320,7 +322,7 @@ type updateStatusOp struct {
 	Data UpdateStatusData `json:"d"`
 }
 
-func newUpdateStatusData(idle int, activityType ActivityType, name, url string) *UpdateStatusData {
+func newUpdateStatusData(idle int, activityType types.Activity, name, url string) *UpdateStatusData {
 	usd := &UpdateStatusData{
 		Status: "online",
 	}
@@ -330,7 +332,7 @@ func newUpdateStatusData(idle int, activityType ActivityType, name, url string) 
 	}
 
 	if name != "" {
-		usd.Activities = []*Activity{{
+		usd.Activities = []*status.Activity{{
 			Name: name,
 			Type: activityType,
 			URL:  url,
@@ -345,7 +347,7 @@ func newUpdateStatusData(idle int, activityType ActivityType, name, url string) 
 // If name!="" then set game.
 // if otherwise, set status to active, and no activity.
 func (s *Session) UpdateGameStatus(idle int, name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(idle, ActivityTypeGame, name, ""))
+	return s.UpdateStatusComplex(*newUpdateStatusData(idle, types.ActivityGame, name, ""))
 }
 
 // UpdateWatchStatus is used to update the user's watch status.
@@ -353,7 +355,7 @@ func (s *Session) UpdateGameStatus(idle int, name string) (err error) {
 // If name!="" then set movie/stream.
 // if otherwise, set status to active, and no activity.
 func (s *Session) UpdateWatchStatus(idle int, name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(idle, ActivityTypeWatching, name, ""))
+	return s.UpdateStatusComplex(*newUpdateStatusData(idle, types.ActivityWatching, name, ""))
 }
 
 // UpdateStreamingStatus is used to update the user's streaming status.
@@ -362,9 +364,9 @@ func (s *Session) UpdateWatchStatus(idle int, name string) (err error) {
 // If name!="" and url!="" then set the status type to streaming with the URL set.
 // if otherwise, set status to active, and no game.
 func (s *Session) UpdateStreamingStatus(idle int, name string, url string) (err error) {
-	gameType := ActivityTypeGame
+	gameType := types.ActivityGame
 	if url != "" {
-		gameType = ActivityTypeStreaming
+		gameType = types.ActivityStreaming
 	}
 	return s.UpdateStatusComplex(*newUpdateStatusData(idle, gameType, name, url))
 }
@@ -373,7 +375,7 @@ func (s *Session) UpdateStreamingStatus(idle int, name string, url string) (err 
 // If name!="" then set to what user is listening to
 // Else, set user to active and no activity.
 func (s *Session) UpdateListeningStatus(name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(0, ActivityTypeListening, name, ""))
+	return s.UpdateStatusComplex(*newUpdateStatusData(0, types.ActivityListening, name, ""))
 }
 
 // UpdateCustomStatus is used to update the user's custom status.
@@ -386,9 +388,9 @@ func (s *Session) UpdateCustomStatus(state string) (err error) {
 
 	if state != "" {
 		// Discord requires a non-empty activity name, therefore we provide "Custom Status" as a placeholder.
-		data.Activities = []*Activity{{
+		data.Activities = []*status.Activity{{
 			Name:  "Custom Status",
-			Type:  ActivityTypeCustom,
+			Type:  types.ActivityCustom,
 			State: state,
 		}}
 	}
@@ -407,7 +409,7 @@ func (s *Session) UpdateStatusComplex(usd UpdateStatusData) (err error) {
 	// disconnects us, I think that disallowing it from being sent in `UpdateStatusComplex`
 	// isn't that big of an issue.
 	if usd.Activities == nil {
-		usd.Activities = make([]*Activity, 0)
+		usd.Activities = make([]*status.Activity, 0)
 	}
 
 	s.RLock()

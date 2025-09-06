@@ -1,36 +1,18 @@
+// Package channel contains every data structures linked with channels like... Channel or Message.
+// It also has helping functions not using gokord.Session.
 package channel
 
 import (
 	"fmt"
-	"github.com/nyttikord/gokord/user"
 	"time"
+
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/user"
 )
 
-// Type is the type of a Channel
-type Type int
-
-// Block contains known Type values
-const (
-	TypeGuildText          Type = 0
-	TypeDM                 Type = 1
-	TypeGuildVoice         Type = 2
-	TypeGroupDM            Type = 3
-	TypeGuildCategory      Type = 4
-	TypeGuildNews          Type = 5
-	TypeGuildStore         Type = 6
-	TypeGuildNewsThread    Type = 10
-	TypeGuildPublicThread  Type = 11
-	TypeGuildPrivateThread Type = 12
-	TypeGuildStageVoice    Type = 13
-	TypeGuildDirectory     Type = 14
-	TypeGuildForum         Type = 15
-	TypeGuildMedia         Type = 16
-)
-
-// Flags represent flags of a channel/thread.
+// Flags represent flags of a Channel (including threads).
 type Flags int
 
-// Block containing known Flags values.
 const (
 	// FlagPinned indicates whether the thread is pinned in the forum channel.
 	// NOTE: forum threads only.
@@ -40,17 +22,7 @@ const (
 	FlagRequireTag Flags = 1 << 4
 )
 
-// ForumSortOrderType represents sort order of a forum channel.
-type ForumSortOrderType int
-
-const (
-	// ForumSortOrderLatestActivity sorts posts by activity.
-	ForumSortOrderLatestActivity ForumSortOrderType = 0
-	// ForumSortOrderCreationDate sorts posts by creation time (from most recent to oldest).
-	ForumSortOrderCreationDate ForumSortOrderType = 1
-)
-
-// ForumLayout represents layout of a forum channel.
+// ForumLayout represents layout of a forum channel (Channel with type types.ChannelGuildForum).
 type ForumLayout int
 
 const (
@@ -62,48 +34,38 @@ const (
 	ForumLayoutGalleryView ForumLayout = 2
 )
 
-// PermissionOverwriteType represents the type of resource on which
-// a permission overwrite acts.
-type PermissionOverwriteType int
-
-// The possible permission overwrite types.
-const (
-	PermissionOverwriteTypeRole   PermissionOverwriteType = 0
-	PermissionOverwriteTypeMember PermissionOverwriteType = 1
-)
-
-// A PermissionOverwrite holds permission overwrite data for a Channel
+// PermissionOverwrite holds permission overwrite data for a Channel
 type PermissionOverwrite struct {
-	ID    string                  `json:"id"`
-	Type  PermissionOverwriteType `json:"type"`
-	Deny  int64                   `json:"deny,string"`
-	Allow int64                   `json:"allow,string"`
+	ID    string                    `json:"id"`
+	Type  types.PermissionOverwrite `json:"type"`
+	Deny  int64                     `json:"deny,string"`
+	Allow int64                     `json:"allow,string"`
 }
 
-// A Channel holds all data related to an individual Discord channel.
+// Channel holds all data related to an individual Discord Channel.
 type Channel struct {
-	// The ID of the channel.
+	// The ID of the Channel.
 	ID string `json:"id"`
 
-	// The ID of the guild to which the channel belongs, if it is in a guild.
+	// The ID of the guild.Guild to which the Channel belongs, if it is in a guild.
 	// Else, this ID is empty (e.g. DM channels).
 	GuildID string `json:"guild_id"`
 
-	// The name of the channel.
+	// The name of the Channel.
 	Name string `json:"name"`
 
-	// The topic of the channel.
+	// The topic of the Channel.
 	Topic string `json:"topic"`
 
-	// The type of the channel.
-	Type Type `json:"type"`
+	// The type of the Channel.
+	Type types.Channel `json:"type"`
 
-	// The ID of the last message sent in the channel. This is not
-	// guaranteed to be an ID of a valid message.
+	// The ID of the last message sent in the Channel.
+	// This is not guaranteed to be an ID of a valid Message.
 	LastMessageID string `json:"last_message_id"`
 
-	// The timestamp of the last pinned message in the channel.
-	// nil if the channel has no pinned messages.
+	// The timestamp of the last pinned Message in the Channel.
+	// nil if the Channel has no pinned messages.
 	LastPinTimestamp *time.Time `json:"last_pin_timestamp"`
 
 	// An approximate count of messages in a thread, stops counting at 50
@@ -111,42 +73,46 @@ type Channel struct {
 	// An approximate count of users in a thread, stops counting at 50
 	MemberCount int `json:"member_count"`
 
-	// Whether the channel is marked as NSFW.
+	// Whether the Channel is marked as NSFW.
 	NSFW bool `json:"nsfw"`
 
-	// Icon of the group DM channel.
+	// Icon of the group DM Channel.
 	Icon string `json:"icon"`
 
-	// The position of the channel, used for sorting in client.
+	// The position of the Channel, used for sorting in client.
 	Position int `json:"position"`
 
-	// The bitrate of the channel, if it is a voice channel.
+	// The bitrate of the Channel, if it is a voice Channel (types.ChannelGuildVoice).
 	Bitrate int `json:"bitrate"`
 
-	// The recipients of the channel. This is only populated in DM channels.
+	// The recipients of the Channel.
+	// This is only populated in DM channels.
 	Recipients []*user.User `json:"recipients"`
 
-	// The messages in the channel. This is only present in state-cached channels,
-	// and State.MaxMessageCount must be non-zero.
+	// The messages in the Channel.
+	// This is only present in state-cached channels, and State.MaxMessageCount must be non-zero.
 	Messages []*Message `json:"-"`
 
-	// A list of permission overwrites present for the channel.
+	// A list of permission overwrites present for the Channel.
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites"`
 
-	// The user limit of the voice channel.
+	// The user limit of the voice Channel (types.ChannelGuildVoice).
 	UserLimit int `json:"user_limit"`
 
-	// The ID of the parent channel, if the channel is under a category. For threads - id of the channel thread was created in.
+	// The ID of the parent Channel, if the Channel is under a category.
+	// For threads - id of the Channel thread was created in.
 	ParentID string `json:"parent_id"`
 
-	// Amount of seconds a user has to wait before sending another message or creating another thread (0-21600)
-	// bots, as well as users with the permission manage_messages or manage_channel, are unaffected
+	// Amount of seconds a user.User has to wait before sending another Message or creating another thread (0-21600).
+	//
+	// Bots, as well as users with the permission discord.PermissionManageMessages or discord.PermissionManageChannels,
+	// are unaffected
 	RateLimitPerUser int `json:"rate_limit_per_user"`
 
 	// ID of the creator of the group DM or thread
 	OwnerID string `json:"owner_id"`
 
-	// ApplicationID of the DM creator Zeroed if guild channel or not a bot user
+	// ApplicationID of the DM creator Zeroed if guild Channel or not a bot user
 	ApplicationID string `json:"application_id"`
 
 	// Thread-specific fields not needed by other channels
@@ -154,7 +120,8 @@ type Channel struct {
 	// Thread member object for the current user, if they have joined the thread, only included on certain API endpoints
 	Member *ThreadMember `json:"thread_member"`
 
-	// All thread members. State channels only.
+	// All thread members.
+	/// State channels only.
 	Members []*ThreadMember `json:"-"`
 
 	// Channel flags.
@@ -175,24 +142,24 @@ type Channel struct {
 
 	// The default sort order type used to order posts in forum channels.
 	// Defaults to null, which indicates a preferred sort order hasn't been set by a channel admin.
-	DefaultSortOrder *ForumSortOrderType `json:"default_sort_order"`
+	DefaultSortOrder *types.ForumSortOrder `json:"default_sort_order"`
 
 	// The default forum layout view used to display posts in forum channels.
 	// Defaults to ForumLayoutNotSet, which indicates a layout view has not been set by a channel admin.
 	DefaultForumLayout ForumLayout `json:"default_forum_layout"`
 }
 
-// Mention returns a string which mentions the channel
+// Mention returns a string which mentions the Channel
 func (c *Channel) Mention() string {
 	return fmt.Sprintf("<#%s>", c.ID)
 }
 
-// IsThread is a helper function to determine if channel is a thread or not
+// IsThread is a helper function to determine if Channel is a thread or not
 func (c *Channel) IsThread() bool {
-	return c.Type == TypeGuildPublicThread || c.Type == TypeGuildPrivateThread || c.Type == TypeGuildNewsThread
+	return c.Type == types.ChannelGuildPublicThread || c.Type == types.ChannelGuildPrivateThread || c.Type == types.ChannelGuildNewsThread
 }
 
-// A Edit holds Channel Field data for a channel edit.
+// Edit holds Channel field data for a channel edit.
 type Edit struct {
 	Name                          string                 `json:"name,omitempty"`
 	Topic                         string                 `json:"topic,omitempty"`
@@ -207,24 +174,28 @@ type Edit struct {
 	DefaultThreadRateLimitPerUser *int                   `json:"default_thread_rate_limit_per_user,omitempty"`
 
 	// NOTE: threads only
-
-	Archived            *bool `json:"archived,omitempty"`
-	AutoArchiveDuration int   `json:"auto_archive_duration,omitempty"`
-	Locked              *bool `json:"locked,omitempty"`
-	Invitable           *bool `json:"invitable,omitempty"`
+	Archived *bool `json:"archived,omitempty"`
+	// NOTE: threads only
+	AutoArchiveDuration int `json:"auto_archive_duration,omitempty"`
+	// NOTE: threads only
+	Locked *bool `json:"locked,omitempty"`
+	// NOTE: threads only
+	Invitable *bool `json:"invitable,omitempty"`
 
 	// NOTE: forum channels only
-
-	AvailableTags        *[]ForumTag           `json:"available_tags,omitempty"`
+	AvailableTags *[]ForumTag `json:"available_tags,omitempty"`
+	// NOTE: forum channels only
 	DefaultReactionEmoji *ForumDefaultReaction `json:"default_reaction_emoji,omitempty"`
-	DefaultSortOrder     *ForumSortOrderType   `json:"default_sort_order,omitempty"` // TODO: null
-	DefaultForumLayout   *ForumLayout          `json:"default_forum_layout,omitempty"`
+	// NOTE: forum channels only
+	DefaultSortOrder *types.ForumSortOrder `json:"default_sort_order,omitempty"` // TODO: null
+	// NOTE: forum channels only
+	DefaultForumLayout *ForumLayout `json:"default_forum_layout,omitempty"`
 
 	// NOTE: forum threads only
 	AppliedTags *[]string `json:"applied_tags,omitempty"`
 }
 
-// A Follow holds data returned after following a news channel
+// A Follow holds data returned after following a news Channel
 type Follow struct {
 	ChannelID string `json:"channel_id"`
 	WebhookID string `json:"webhook_id"`
@@ -239,7 +210,7 @@ type ForumDefaultReaction struct {
 	EmojiName string `json:"emoji_name,omitempty"`
 }
 
-// ForumTag represents a tag that is able to be applied to a thread in a forum channel.
+// ForumTag represents a tag that can be applied to a thread in a forum channel.
 type ForumTag struct {
 	ID        string `json:"id,omitempty"`
 	Name      string `json:"name"`

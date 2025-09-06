@@ -2,16 +2,16 @@ package application
 
 import "github.com/nyttikord/gokord/user"
 
-// The MembershipState represents whether the user is in the team or has been invited into it
+// The MembershipState represents whether the user is in the team or has been invited into it.
 type MembershipState int
 
-// Constants for the different stages of the MembershipState
 const (
 	MembershipStateInvited  MembershipState = 1
 	MembershipStateAccepted MembershipState = 2
 )
 
-// A TeamMember struct stores values for a single Team Member, extending the normal User data - note that the user field is partial
+// A TeamMember struct stores values for a single Team Member, extending the normal User data - note that the user field
+// is partial.
 type TeamMember struct {
 	User            *user.User      `json:"user"`
 	TeamID          string          `json:"team_id"`
@@ -19,7 +19,7 @@ type TeamMember struct {
 	Permissions     []string        `json:"permissions"`
 }
 
-// A Team struct stores the members of a Discord Developer Team as well as some metadata about it
+// A Team struct stores the members of a Discord Developer Team as well as some metadata about it.
 type Team struct {
 	ID          string        `json:"id"`
 	Name        string        `json:"name"`

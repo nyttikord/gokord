@@ -3,41 +3,47 @@ package channel
 // StageInstance holds information about a live stage.
 // https://discord.com/developers/docs/resources/stage-instance#stage-instance-resource
 type StageInstance struct {
-	// The id of this Stage instance
+	// The id of this Stage instance.
 	ID string `json:"id"`
-	// The guild id of the associated Stage channel
+	// The guild.Guild id of the associated Stage Channel.
 	GuildID string `json:"guild_id"`
-	// The id of the associated Stage channel
+	// The id of the associated Stage Channel.
 	ChannelID string `json:"channel_id"`
-	// The topic of the Stage instance (1-120 characters)
+	// The topic of the Stage instance (1-120 characters).
 	Topic string `json:"topic"`
-	// The privacy level of the Stage instance
+	// The privacy level of the Stage instance.
 	// https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level"`
-	// Whether or not Stage Discovery is disabled (deprecated)
+	// Whether Stage Discovery is disabled.
+	//
+	// Deprecated: Not used anymore.
 	DiscoverableDisabled bool `json:"discoverable_disabled"`
-	// The id of the scheduled event for this Stage instance
+	// The id of the guild.ScheduledEvent for this Stage instance.
 	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
 }
 
-// StageInstanceParams represents the parameters needed to create or edit a stage instance
+// StageInstanceParams represents the parameters needed to create or edit a stage instance.
 type StageInstanceParams struct {
-	// ChannelID represents the id of the Stage channel
+	// ChannelID represents the id of the Stage Channel.
 	ChannelID string `json:"channel_id,omitempty"`
-	// Topic of the Stage instance (1-120 characters)
+	// Topic of the Stage instance (1-120 characters).
 	Topic string `json:"topic,omitempty"`
-	// PrivacyLevel of the Stage instance (default GUILD_ONLY)
+	// PrivacyLevel of the Stage instance.
+	//
+	// Default: StageInstancePrivacyLevelGuildOnly
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level,omitempty"`
-	// SendStartNotification will notify @everyone that a Stage instance has started
+	// SendStartNotification will notify @everyone that a Stage instance has started.
 	SendStartNotification bool `json:"send_start_notification,omitempty"`
 }
 
-// StageInstancePrivacyLevel represents the privacy level of a Stage instance
+// StageInstancePrivacyLevel represents the privacy level of a Stage instance.
 // https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 type StageInstancePrivacyLevel int
 
 const (
-	// StageInstancePrivacyLevelPublic The Stage instance is visible publicly. (deprecated)
+	// StageInstancePrivacyLevelPublic The Stage instance is visible publicly.
+	//
+	// Deprecated: Not possible anymore.
 	StageInstancePrivacyLevelPublic StageInstancePrivacyLevel = 1
 	// StageInstancePrivacyLevelGuildOnly The Stage instance is visible to only guild members.
 	StageInstancePrivacyLevelGuildOnly StageInstancePrivacyLevel = 2
