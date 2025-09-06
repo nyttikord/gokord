@@ -10,7 +10,7 @@ import (
 
 // This test takes ~2 seconds to run
 func TestRatelimitReset(t *testing.T) {
-	rl := NewRatelimiter()
+	rl := NewRateLimiter()
 
 	sendReq := func(endpoint string) {
 		bucket := rl.LockBucket(endpoint)
@@ -48,7 +48,7 @@ func TestRatelimitReset(t *testing.T) {
 
 // This test takes ~1 seconds to run
 func TestRatelimitGlobal(t *testing.T) {
-	rl := NewRatelimiter()
+	rl := NewRateLimiter()
 
 	sendReq := func(endpoint string) {
 		bucket := rl.LockBucket(endpoint)
@@ -82,14 +82,14 @@ func TestRatelimitGlobal(t *testing.T) {
 }
 
 func BenchmarkRatelimitSingleEndpoint(b *testing.B) {
-	rl := NewRatelimiter()
+	rl := NewRateLimiter()
 	for i := 0; i < b.N; i++ {
 		sendBenchReq("/guilds/99/channels", rl)
 	}
 }
 
 func BenchmarkRatelimitParallelMultiEndpoints(b *testing.B) {
-	rl := NewRatelimiter()
+	rl := NewRateLimiter()
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {

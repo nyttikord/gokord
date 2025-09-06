@@ -1,5 +1,11 @@
 package discord
 
+// An APIErrorMessage is an api error message returned from discord
+type APIErrorMessage struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 const (
 	ErrCodeGeneralError = 0
 

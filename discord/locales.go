@@ -81,3 +81,13 @@ var Locales = map[Locale]string{
 	LocaleVietnamese:   "LocaleVietnamese",
 	LocaleUnknown:      "unknown",
 }
+
+// A VoiceRegion stores data for a specific voice region server.
+// https://discord.com/developers/docs/resources/voice#voice-region-object
+type VoiceRegion struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Optimal    bool   `json:"optimal"`
+	Deprecated bool   `json:"deprecated"`
+	Custom     bool   `json:"custom"`
+}

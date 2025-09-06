@@ -17,7 +17,7 @@ type customRateLimit struct {
 	reset    time.Duration
 }
 
-// RateLimiter holds all ratelimit buckets
+// RateLimiter holds all rate limit buckets
 type RateLimiter struct {
 	sync.Mutex
 	global           *int64
@@ -26,8 +26,8 @@ type RateLimiter struct {
 	customRateLimits []*customRateLimit
 }
 
-// NewRatelimiter returns a new RateLimiter
-func NewRatelimiter() *RateLimiter {
+// NewRateLimiter returns a new RateLimiter
+func NewRateLimiter() *RateLimiter {
 
 	return &RateLimiter{
 		buckets: make(map[string]*Bucket),
@@ -57,7 +57,7 @@ func (r *RateLimiter) GetBucket(key string) *Bucket {
 		global:    r.global,
 	}
 
-	// Check if there is a custom ratelimit set for this bucket ID.
+	// Check if there is a custom rate limit set for this bucket ID.
 	for _, rl := range r.customRateLimits {
 		if strings.HasSuffix(b.Key, rl.suffix) {
 			b.customRateLimit = rl
@@ -77,7 +77,7 @@ func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 		return b.reset.Sub(time.Now())
 	}
 
-	// Check for global ratelimits
+	// Check for global rate limits
 	sleepTo := time.Unix(0, atomic.LoadInt64(r.global))
 	if now := time.Now(); now.Before(sleepTo) {
 		return sleepTo.Sub(now)
@@ -86,12 +86,12 @@ func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 	return 0
 }
 
-// LockBucket Locks until a request can be made
+// LockBucket locks until a request can be made
 func (r *RateLimiter) LockBucket(bucketID string) *Bucket {
 	return r.LockBucketObject(r.GetBucket(bucketID))
 }
 
-// LockBucketObject Locks an already resolved bucket until a request can be made
+// LockBucketObject locks an already resolved bucket until a request can be made
 func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	b.Lock()
 
@@ -103,7 +103,7 @@ func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	return b
 }
 
-// Bucket represents a ratelimit bucket, each bucket gets ratelimited individually (-global ratelimits)
+// Bucket represents a rate limit bucket, each bucket gets rate limited individually (-global rate limits)
 type Bucket struct {
 	sync.Mutex
 	Key       string
@@ -117,12 +117,12 @@ type Bucket struct {
 	Userdata        interface{}
 }
 
-// Release unlocks the bucket and reads the headers to update the buckets ratelimit info
-// and locks up the whole thing in case if there's a global ratelimit.
+// Release unlocks the bucket and reads the headers to update the buckets rate limit info and locks up the whole thing in
+// case if there's a global rate limit.
 func (b *Bucket) Release(headers http.Header) error {
 	defer b.Unlock()
 
-	// Check if the bucket uses a custom ratelimiter
+	// Check if the bucket uses a custom rate limiter
 	if rl := b.customRateLimit; rl != nil {
 		if time.Now().Sub(b.lastReset) >= rl.reset {
 			b.Remaining = rl.requests - 1
@@ -184,7 +184,7 @@ func (b *Bucket) Release(headers http.Header) error {
 		b.reset = time.Now().Add(delta)
 	}
 
-	// Udpate remaining if header is present
+	// Update remaining if header is present
 	if remaining != "" {
 		parsedRemaining, err := strconv.ParseInt(remaining, 10, 32)
 		if err != nil {

@@ -23,13 +23,11 @@ const VERSION = "0.30.0+v" + discord.APIVersion
 // Or if it is an OAuth2 token, it must be prefixed with "Bearer "
 //
 //	e.g. "Bearer ..."
-func New(token string) (s *Session, err error) {
-	// Create an empty Session interface.
-	s = &Session{
+func New(token string) *Session {
+	s := &Session{
 		State:                              NewState(),
-		Ratelimiter:                        NewRatelimiter(),
+		RateLimiter:                        NewRateLimiter(),
 		StateEnabled:                       true,
-		Compress:                           true,
 		ShouldReconnectOnError:             true,
 		ShouldReconnectVoiceOnSessionError: true,
 		ShouldRetryOnRateLimit:             true,
@@ -52,7 +50,6 @@ func New(token string) (s *Session, err error) {
 	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
 	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 	s.Identify.Token = token
-	s.Token = token
 
-	return
+	return s
 }
