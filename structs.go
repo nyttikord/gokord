@@ -153,12 +153,6 @@ func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// An APIErrorMessage is an api error message returned from discord
-type APIErrorMessage struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
 // GatewayBotResponse stores the data for the gateway/bot response
 type GatewayBotResponse struct {
 	URL               string             `json:"url"`

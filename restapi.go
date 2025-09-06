@@ -54,7 +54,7 @@ type RESTError struct {
 	Response     *http.Response
 	ResponseBody []byte
 
-	Message *APIErrorMessage // Message may be nil.
+	Message *discord.APIErrorMessage // Message may be nil.
 }
 
 // newRestError returns a new REST API error.
@@ -66,7 +66,7 @@ func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTErro
 	}
 
 	// Attempt to decode the error and assume no message was provided if it fails
-	var msg *APIErrorMessage
+	var msg *discord.APIErrorMessage
 	err := Unmarshal(body, &msg)
 	if err == nil {
 		restErr.Message = msg
