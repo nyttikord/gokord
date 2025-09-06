@@ -2183,7 +2183,7 @@ func (s *Session) InviteAccept(inviteID string, options ...RequestOption) (st *i
 // ------------------------------------------------------------------------------------------------
 
 // VoiceRegions returns the voice server regions
-func (s *Session) VoiceRegions(options ...RequestOption) (st []*VoiceRegion, err error) {
+func (s *Session) VoiceRegions(options ...RequestOption) (st []*discord.VoiceRegion, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointVoiceRegions, nil, discord.EndpointVoiceRegions, options...)
 	if err != nil {

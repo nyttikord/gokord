@@ -52,7 +52,7 @@ type Session struct {
 	// active guilds and the members of the guilds.
 	StateEnabled bool
 
-	// Whether or not to call event handlers synchronously.
+	// Whether to call event handlers synchronously.
 	// e.g. false = launch event handlers in their own goroutines.
 	SyncEvents bool
 
@@ -126,18 +126,7 @@ type Session struct {
 	wsMutex sync.Mutex
 }
 
-// A VoiceRegion stores data for a specific voice region server.
-// https://discord.com/developers/docs/resources/voice#voice-region-object
-type VoiceRegion struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Optimal    bool   `json:"optimal"`
-	Deprecated bool   `json:"deprecated"`
-	Custom     bool   `json:"custom"`
-}
-
-// A TooManyRequests struct holds information received from Discord
-// when receiving a HTTP 429 response.
+// A TooManyRequests struct holds information received from Discord when receiving an HTTP 429 response.
 type TooManyRequests struct {
 	Bucket     string        `json:"bucket"`
 	Message    string        `json:"message"`
