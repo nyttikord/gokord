@@ -2,7 +2,9 @@ package gokord
 
 import (
 	"encoding/json"
+
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/interactions"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -379,7 +381,7 @@ type WebhooksUpdate struct {
 
 // InteractionCreate is the data for a InteractionCreate event
 type InteractionCreate struct {
-	*Interaction
+	*interactions.Interaction
 }
 
 // UnmarshalJSON is a helper function to unmarshal Interaction object.
@@ -403,7 +405,7 @@ type InviteDelete struct {
 
 // ApplicationCommandPermissionsUpdate is the data for an ApplicationCommandPermissionsUpdate event
 type ApplicationCommandPermissionsUpdate struct {
-	*GuildApplicationCommandPermissions
+	*interactions.GuildCommandPermissions
 }
 
 // AutoModerationRuleCreate is the data for an AutoModerationRuleCreate event.

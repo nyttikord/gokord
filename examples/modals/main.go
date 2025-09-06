@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/interactions"
+
 	"log"
 	"os"
 	"os/signal"
@@ -37,7 +40,7 @@ func init() {
 }
 
 var (
-	commands = []gokord.ApplicationCommand{
+	commands = []interactions.Command{
 		{
 			Name:        "modals-survey",
 			Description: "Take a survey about modals",
@@ -45,9 +48,9 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"modals-survey": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseModal,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
 					Components: []component.Message{
@@ -97,9 +100,9 @@ func main() {
 				h(s, i)
 			}
 		case gokord.InteractionModalSubmit:
-			err := s.InteractionRespond(i.Interaction, &gokord.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &gokord.InteractionResponseData{
+				Data: &interactions.InteractionResponseData{
 					Content: "Thank you for taking your time to fill this survey",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
