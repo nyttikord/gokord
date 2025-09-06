@@ -14,6 +14,15 @@ import (
 	"github.com/nyttikord/gokord/discord"
 )
 
+func unmarshal(data []byte, v interface{}) error {
+	err := json.Unmarshal(data, v)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrJSONUnmarshal, err)
+	}
+
+	return nil
+}
+
 // RequestConfig is an HTTP request configuration.
 type RequestConfig struct {
 	Request                *http.Request
