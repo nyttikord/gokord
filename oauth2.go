@@ -6,10 +6,6 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// ------------------------------------------------------------------------------------------------
-// Code specific to Discord OAuth2 Applications
-// ------------------------------------------------------------------------------------------------
-
 // Application returns an Application structure of a specific Application
 //
 //	appID : The ID of an Application

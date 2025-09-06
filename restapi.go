@@ -180,7 +180,7 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 	if bucketID == "" {
 		bucketID = strings.SplitN(urlStr, "?", 2)[0]
 	}
-	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucket(bucketID), sequence, options...)
+	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
 }
 
 // RequestWithLockedBucket makes a request using a bucket that's already been locked
@@ -255,11 +255,11 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		if sequence < cfg.MaxRestRetries {
 
 			s.LogInfo("%s Failed (%s), Retrying...", urlStr, resp.Status)
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence+1, options...)
+			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence+1, options...)
 		} else {
 			err = fmt.Errorf("Exceeded Max retries HTTP %s, %s", resp.Status, response)
 		}
-	case 429: // TOO MANY REQUESTS - Rate limiting
+	case http.StatusTooManyRequests: // rate limiting
 		rl := TooManyRequests{}
 		err = json.Unmarshal(response, &rl)
 		if err != nil {
@@ -275,7 +275,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 			// we can make the above smarter
 			// this method can cause longer delays than required
 
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.Ratelimiter.LockBucketObject(bucket), sequence, options...)
+			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence, options...)
 		} else {
 			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
 		}

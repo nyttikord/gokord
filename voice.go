@@ -15,10 +15,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-// ------------------------------------------------------------------------------------------------
-// Code related to both VoiceConnection Websocket and UDP connections.
-// ------------------------------------------------------------------------------------------------
-
 // A VoiceConnection struct holds all the data and functions related to a Discord Voice Connection.
 type VoiceConnection struct {
 	sync.RWMutex
