@@ -7,12 +7,8 @@ import (
 	"testing"
 )
 
-//////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////// START OF TESTS
-
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend(t *testing.T) {
-
 	if envChannel == "" {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
@@ -113,7 +109,6 @@ func TestUserGuilds(t *testing.T) {
 }
 
 func TestGateway(t *testing.T) {
-
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
@@ -124,7 +119,6 @@ func TestGateway(t *testing.T) {
 }
 
 func TestGatewayBot(t *testing.T) {
-
 	if dgBot == nil {
 		t.Skip("Skipping, dgBot not set.")
 	}
@@ -135,7 +129,6 @@ func TestGatewayBot(t *testing.T) {
 }
 
 func TestVoiceRegions(t *testing.T) {
-
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
@@ -146,7 +139,6 @@ func TestVoiceRegions(t *testing.T) {
 	}
 }
 func TestGuildRoles(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -163,7 +155,6 @@ func TestGuildRoles(t *testing.T) {
 }
 
 func TestGuildMemberNickname(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -180,7 +171,6 @@ func TestGuildMemberNickname(t *testing.T) {
 
 // TestChannelMessageSend2 tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend2(t *testing.T) {
-
 	if envChannel == "" {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
@@ -197,7 +187,6 @@ func TestChannelMessageSend2(t *testing.T) {
 
 // TestGuildPruneCount tests GuildPruneCount() function. This should not return an error.
 func TestGuildPruneCount(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -244,10 +233,7 @@ func TestWithContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), key{}, "value")
 
 	// Set up a test client.
-	session, err := New("")
-	if err != nil {
-		t.Fatal(err)
-	}
+	session := New("")
 
 	testErr := errors.New("test")
 
@@ -261,7 +247,7 @@ func TestWithContext(t *testing.T) {
 	})
 
 	// Run any client method using WithContext.
-	_, err = session.User("", WithContext(ctx))
+	_, err := session.User("", WithContext(ctx))
 
 	// Verify that the assertion code was actually run.
 	if !errors.Is(err, testErr) {
