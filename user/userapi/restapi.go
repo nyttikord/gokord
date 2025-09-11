@@ -1,3 +1,4 @@
+// Package userapi contains everything to interact with everything located in the user package.
 package userapi
 
 import (

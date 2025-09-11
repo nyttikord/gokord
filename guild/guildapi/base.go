@@ -1,3 +1,4 @@
+// Package guildapi contains everything to interact with everything located in the guild package.
 package guildapi
 
 import (
