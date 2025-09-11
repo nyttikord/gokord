@@ -22,7 +22,7 @@ func unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
-func (s *Session) unmarshal(bytes []byte, i interface{}) error {
+func (s *Session) Unmarshal(bytes []byte, i interface{}) error {
 	return unmarshal(bytes, i)
 }
 

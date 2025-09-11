@@ -1,11 +1,9 @@
-package gokord
+package userrest
 
 import (
 	"bytes"
 	"image"
 	"net/http"
-	"net/url"
-	"strconv"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
@@ -14,8 +12,12 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
+type Requester struct {
+	discord.Requester
+}
+
 // User returns the user.User details of the given userID (can be @me to be the current user.User ID).
-func (s *Session) User(userID string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) User(userID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUser(userID),
@@ -28,11 +30,11 @@ func (s *Session) User(userID string, options ...discord.RequestOption) (*user.U
 	}
 
 	var u user.User
-	return &u, unmarshal(body, &u)
+	return &u, s.Unmarshal(body, &u)
 }
 
 // UserAvatarDecode returns an image.Image of a user.User's Avatar.
-func (s *Session) UserAvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
+func (s Requester) UserAvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUserAvatar(u.ID, u.Avatar),
@@ -53,7 +55,7 @@ func (s *Session) UserAvatarDecode(u *user.User, options ...discord.RequestOptio
 // Note: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
-func (s *Session) UserUpdate(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) UserUpdate(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
 	data := struct {
 		Username string `json:"username,omitempty"`
 		Avatar   string `json:"avatar,omitempty"`
@@ -72,11 +74,11 @@ func (s *Session) UserUpdate(username, avatar, banner string, options ...discord
 	}
 
 	var u user.User
-	return &u, unmarshal(body, &u)
+	return &u, s.Unmarshal(body, &u)
 }
 
 // UserConnections returns the current user.Connection.
-func (s *Session) UserConnections(options ...discord.RequestOption) ([]*user.Connection, error) {
+func (s Requester) UserConnections(options ...discord.RequestOption) ([]*user.Connection, error) {
 	response, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUserConnections("@me"),
@@ -89,11 +91,11 @@ func (s *Session) UserConnections(options ...discord.RequestOption) ([]*user.Con
 	}
 
 	var conn []*user.Connection
-	return conn, unmarshal(response, &conn)
+	return conn, s.Unmarshal(response, &conn)
 }
 
 // UserChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User
-func (s *Session) UserChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
+func (s Requester) UserChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	data := struct {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
@@ -110,11 +112,11 @@ func (s *Session) UserChannelCreate(userID string, options ...discord.RequestOpt
 	}
 
 	var c channel.Channel
-	return &c, unmarshal(body, &c)
+	return &c, s.Unmarshal(body, &c)
 }
 
 // UserGuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
-func (s *Session) UserGuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
+func (s Requester) UserGuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUserGuildMember("@me", guildID),
@@ -127,49 +129,12 @@ func (s *Session) UserGuildMember(guildID string, options ...discord.RequestOpti
 	}
 
 	var m user.Member
-	return &m, unmarshal(body, &m)
+	return &m, s.Unmarshal(body, &m)
 }
 
-// UserGuilds returns an array of guild.UserGuild structures for all guilds.
-//
-// limit is the number of guilds that can be returned (max 200).
-// If beforeID is set, it will return all guilds before this ID.
-// If afterID is set, it will return all guilds after this ID.
-// Set withCounts to true if you want to include approximate member and presence counts.
-func (s *Session) UserGuilds(limit int, beforeID, afterID string, withCounts bool, options ...discord.RequestOption) ([]*guild.UserGuild, error) {
-	v := url.Values{}
-
-	if limit > 0 {
-		v.Set("limit", strconv.Itoa(limit))
-	}
-	if afterID != "" {
-		v.Set("after", afterID)
-	}
-	if beforeID != "" {
-		v.Set("before", beforeID)
-	}
-	if withCounts {
-		v.Set("with_counts", "true")
-	}
-
-	uri := discord.EndpointUserGuilds("@me")
-
-	if len(v) > 0 {
-		uri += "?" + v.Encode()
-	}
-
-	body, err := s.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointUserGuilds(""), options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var ug []*guild.UserGuild
-	return ug, unmarshal(body, &ug)
-}
-
-// memberPermissions calculates the permissions for a user.Member.
+// MemberPermissions calculates the permissions for a user.Member.
 // https://support.discord.com/hc/en-us/articles/206141927-How-is-the-permission-hierarchy-structured-
-func memberPermissions(guild *guild.Guild, channel *channel.Channel, userID string, roles []string) int64 {
+func MemberPermissions(guild *guild.Guild, channel *channel.Channel, userID string, roles []string) int64 {
 	if userID == guild.OwnerID {
 		return discord.PermissionAll
 	}

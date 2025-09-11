@@ -18,7 +18,7 @@ type Requester interface {
 	RequestRaw(string, string, string, []byte, string, int, ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(string, string, string, []byte, *Bucket, int, ...RequestOption) ([]byte, error)
-	unmarshal([]byte, interface{}) error
+	Unmarshal([]byte, interface{}) error
 }
 
 // RequestConfig is an HTTP request configuration.

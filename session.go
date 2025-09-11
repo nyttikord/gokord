@@ -11,6 +11,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user/status"
+	"github.com/nyttikord/gokord/user/userrest"
 )
 
 // Session represents a connection to the Discord API.
@@ -182,4 +183,8 @@ type IdentifyProperties struct {
 	Device          string `json:"$device"`
 	Referer         string `json:"$referer"`
 	ReferringDomain string `json:"$referring_domain"`
+}
+
+func (s *Session) UserAPI() userrest.Requester {
+	return userrest.Requester{Requester: s}
 }

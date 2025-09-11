@@ -18,6 +18,43 @@ import (
 	"github.com/nyttikord/gokord/user/invite"
 )
 
+// UserGuilds returns an array of guild.UserGuild structures for all guilds.
+//
+// limit is the number of guilds that can be returned (max 200).
+// If beforeID is set, it will return all guilds before this ID.
+// If afterID is set, it will return all guilds after this ID.
+// Set withCounts to true if you want to include approximate member and presence counts.
+func (s *Session) UserGuilds(limit int, beforeID, afterID string, withCounts bool, options ...discord.RequestOption) ([]*guild.UserGuild, error) {
+	v := url.Values{}
+
+	if limit > 0 {
+		v.Set("limit", strconv.Itoa(limit))
+	}
+	if afterID != "" {
+		v.Set("after", afterID)
+	}
+	if beforeID != "" {
+		v.Set("before", beforeID)
+	}
+	if withCounts {
+		v.Set("with_counts", "true")
+	}
+
+	uri := discord.EndpointUserGuilds("@me")
+
+	if len(v) > 0 {
+		uri += "?" + v.Encode()
+	}
+
+	body, err := s.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointUserGuilds(""), options...)
+	if err != nil {
+		return nil, err
+	}
+
+	var ug []*guild.UserGuild
+	return ug, s.Unmarshal(body, &ug)
+}
+
 // Guild returns the guild.Guild with the given guildID.
 func (s *Session) Guild(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
 	body, err := s.RequestWithBucketID(
