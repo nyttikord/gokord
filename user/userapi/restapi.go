@@ -1,4 +1,4 @@
-package userrest
+package userapi
 
 import (
 	"bytes"

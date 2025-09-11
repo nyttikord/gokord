@@ -18,6 +18,8 @@ type Requester interface {
 	RequestRaw(string, string, string, []byte, string, int, ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(string, string, string, []byte, *Bucket, int, ...RequestOption) ([]byte, error)
+	// VoiceRegions returns the VoiceRegion
+	VoiceRegions(...RequestOption) ([]*VoiceRegion, error)
 	Unmarshal([]byte, interface{}) error
 }
 

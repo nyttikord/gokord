@@ -10,13 +10,9 @@ import (
 
 // All error constants
 var (
-	ErrJSONUnmarshal           = errors.New("json unmarshal")
-	ErrStatusOffline           = errors.New("you can't set your Status to offline")
-	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
-	ErrPruneDaysBounds         = errors.New("the number of days should be more than or equal to 1")
-	ErrGuildNoIcon             = errors.New("guild does not have an icon set")
-	ErrGuildNoSplash           = errors.New("guild does not have a splash set")
-	ErrUnauthorized            = errors.New("HTTP request was unauthorized. This could be because the provided token was not a bot token. Please add \"Bot \" to the start of your token. https://discord.com/developers/docs/reference#authentication-example-bot-token-authorization-header")
+	ErrJSONUnmarshal = errors.New("json unmarshal")
+	ErrStatusOffline = errors.New("you can't set your Status to offline")
+	ErrUnauthorized  = errors.New("HTTP request was unauthorized. This could be because the provided token was not a bot token. Please add \"Bot \" to the start of your token. https://discord.com/developers/docs/reference#authentication-example-bot-token-authorization-header")
 )
 
 // RESTError stores error information about a request with a bad response code.

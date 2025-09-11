@@ -599,7 +599,6 @@ func (s *Session) InviteAccept(inviteID string, options ...discord.RequestOption
 // Functions specific to Discord Voice
 // ------------------------------------------------------------------------------------------------
 
-// VoiceRegions returns the voice server regions
 func (s *Session) VoiceRegions(options ...discord.RequestOption) (st []*discord.VoiceRegion, err error) {
 
 	body, err := s.RequestWithBucketID("GET", discord.EndpointVoiceRegions, nil, discord.EndpointVoiceRegions, options...)

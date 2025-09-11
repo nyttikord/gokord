@@ -185,7 +185,7 @@ func TestChannelMessageSend2(t *testing.T) {
 	}
 }
 
-// TestGuildPruneCount tests GuildPruneCount() function. This should not return an error.
+// TestGuildPruneCount tests PruneCount() function. This should not return an error.
 func TestGuildPruneCount(t *testing.T) {
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
@@ -197,12 +197,12 @@ func TestGuildPruneCount(t *testing.T) {
 
 	_, err := dg.GuildPruneCount(envGuild, 1)
 	if err != nil {
-		t.Errorf("GuildPruneCount returned error: %+v", err)
+		t.Errorf("PruneCount returned error: %+v", err)
 	}
 }
 
 /*
-// TestGuildPrune tests GuildPrune() function. This should not return an error.
+// TestGuildPrune tests Prune() function. This should not return an error.
 func TestGuildPrune(t *testing.T) {
 
 	if envGuild == "" {
@@ -213,9 +213,9 @@ func TestGuildPrune(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildPrune(envGuild, 1)
+	_, err := dg.Prune(envGuild, 1)
 	if err != nil {
-		t.Errorf("GuildPrune returned error: %+v", err)
+		t.Errorf("Prune returned error: %+v", err)
 	}
 }
 */

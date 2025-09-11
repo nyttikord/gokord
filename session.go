@@ -9,9 +9,10 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user/status"
-	"github.com/nyttikord/gokord/user/userrest"
+	"github.com/nyttikord/gokord/user/userapi"
 )
 
 // Session represents a connection to the Discord API.
@@ -185,6 +186,10 @@ type IdentifyProperties struct {
 	ReferringDomain string `json:"$referring_domain"`
 }
 
-func (s *Session) UserAPI() userrest.Requester {
-	return userrest.Requester{Requester: s}
+func (s *Session) UserAPI() userapi.Requester {
+	return userapi.Requester{Requester: s}
+}
+
+func (s *Session) GuildAPI() guildapi.Requester {
+	return guildapi.Requester{Requester: s}
 }
