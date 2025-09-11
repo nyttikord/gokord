@@ -2,7 +2,6 @@ package gokord
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,82 +22,15 @@ func unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
-// RequestConfig is an HTTP request configuration.
-type RequestConfig struct {
-	Request                *http.Request
-	ShouldRetryOnRateLimit bool
-	MaxRestRetries         int
-	Client                 *http.Client
+func (s *Session) unmarshal(bytes []byte, i interface{}) error {
+	return unmarshal(bytes, i)
 }
 
-// newRequestConfig returns a new HTTP request configuration based on parameters in Session.
-func newRequestConfig(s *Session, req *http.Request) *RequestConfig {
-	return &RequestConfig{
-		ShouldRetryOnRateLimit: s.ShouldRetryOnRateLimit,
-		MaxRestRetries:         s.MaxRestRetries,
-		Client:                 s.Client,
-		Request:                req,
-	}
-}
-
-// RequestOption is a function which mutates request configuration.
-// It can be supplied as an argument to any REST method.
-type RequestOption func(cfg *RequestConfig)
-
-// WithClient changes the HTTP client used for the request.
-func WithClient(client *http.Client) RequestOption {
-	return func(cfg *RequestConfig) {
-		if client != nil {
-			cfg.Client = client
-		}
-	}
-}
-
-// WithRetryOnRatelimit controls whether session will retry the request on rate limit.
-func WithRetryOnRatelimit(retry bool) RequestOption {
-	return func(cfg *RequestConfig) {
-		cfg.ShouldRetryOnRateLimit = retry
-	}
-}
-
-// WithRestRetries changes maximum amount of retries if request fails.
-func WithRestRetries(max int) RequestOption {
-	return func(cfg *RequestConfig) {
-		cfg.MaxRestRetries = max
-	}
-}
-
-// WithHeader sets a header in the request.
-func WithHeader(key, value string) RequestOption {
-	return func(cfg *RequestConfig) {
-		cfg.Request.Header.Set(key, value)
-	}
-}
-
-// WithAuditLogReason changes audit Log reason associated with the request.
-func WithAuditLogReason(reason string) RequestOption {
-	return WithHeader("X-Audit-Log-Reason", reason)
-}
-
-// WithLocale changes accepted locale of the request.
-func WithLocale(locale discord.Locale) RequestOption {
-	return WithHeader("X-Discord-Locale", string(locale))
-}
-
-// WithContext changes context of the request.
-func WithContext(ctx context.Context) RequestOption {
-	return func(cfg *RequestConfig) {
-		cfg.Request = cfg.Request.WithContext(ctx)
-	}
-}
-
-// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
-func (s *Session) Request(method, urlStr string, data interface{}, options ...RequestOption) ([]byte, error) {
+func (s *Session) Request(method, urlStr string, data interface{}, options ...discord.RequestOption) ([]byte, error) {
 	return s.RequestWithBucketID(method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
 }
 
-// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.
-func (s *Session) RequestWithBucketID(method, urlStr string, data interface{}, bucketID string, options ...RequestOption) ([]byte, error) {
+func (s *Session) RequestWithBucketID(method, urlStr string, data interface{}, bucketID string, options ...discord.RequestOption) ([]byte, error) {
 	var body []byte
 	if data != nil {
 		var err error
@@ -110,20 +42,14 @@ func (s *Session) RequestWithBucketID(method, urlStr string, data interface{}, b
 	return s.RequestRaw(method, urlStr, "application/json", body, bucketID, 0, options...)
 }
 
-// RequestRaw makes a (GET/POST/...) Requests to Discord REST API.
-// Preferably use the other request methods but this lets you send JSON directly if that's what you have.
-//
-// sequence is the sequence number, if it fails with a 502 it will retry with sequence+1 until it either succeeds or
-// sequence >= Session.MaxRestRetries
-func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error) {
+func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	if bucketID == "" {
 		bucketID = strings.SplitN(urlStr, "?", 2)[0]
 	}
 	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
 }
 
-// RequestWithLockedBucket makes a request using a bucket that's already been locked
-func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error) {
+func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	s.LogDebug("API REQUEST %8s :: %s\n", method, urlStr)
 	s.LogDebug("API REQUEST  PAYLOAD :: [%s]\n", string(b))
 
@@ -151,7 +77,12 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 	// TODO: Make a configurable static variable.
 	req.Header.Set("User-Agent", s.UserAgent)
 
-	cfg := newRequestConfig(s, req)
+	cfg := &discord.RequestConfig{
+		ShouldRetryOnRateLimit: s.ShouldRetryOnRateLimit,
+		MaxRestRetries:         s.MaxRestRetries,
+		Client:                 s.Client,
+		Request:                req,
+	}
 	for _, opt := range options {
 		opt(cfg)
 	}

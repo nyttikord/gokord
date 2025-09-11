@@ -26,7 +26,7 @@ const VERSION = "0.30.0+v" + discord.APIVersion
 func New(token string) *Session {
 	s := &Session{
 		State:                              NewState(),
-		RateLimiter:                        NewRateLimiter(),
+		RateLimiter:                        discord.NewRateLimiter(),
 		StateEnabled:                       true,
 		ShouldReconnectOnError:             true,
 		ShouldReconnectVoiceOnSessionError: true,

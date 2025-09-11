@@ -19,7 +19,7 @@ import (
 )
 
 // Guild returns the guild.Guild with the given guildID.
-func (s *Session) Guild(guildID string, options ...RequestOption) (*guild.Guild, error) {
+func (s *Session) Guild(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuild(guildID),
@@ -36,7 +36,7 @@ func (s *Session) Guild(guildID string, options ...RequestOption) (*guild.Guild,
 }
 
 // GuildWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
-func (s *Session) GuildWithCounts(guildID string, options ...RequestOption) (*guild.Guild, error) {
+func (s *Session) GuildWithCounts(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuild(guildID)+"?with_counts=true",
@@ -53,7 +53,7 @@ func (s *Session) GuildWithCounts(guildID string, options ...RequestOption) (*gu
 }
 
 // GuildPreview returns the guild.Preview for the given public guild.Guild guildID.
-func (s *Session) GuildPreview(guildID string, options ...RequestOption) (*guild.Preview, error) {
+func (s *Session) GuildPreview(guildID string, options ...discord.RequestOption) (*guild.Preview, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildPreview(guildID),
@@ -70,7 +70,7 @@ func (s *Session) GuildPreview(guildID string, options ...RequestOption) (*guild
 }
 
 // GuildCreate creates a new guild.Guild with the given name.
-func (s *Session) GuildCreate(name string, options ...RequestOption) (*guild.Guild, error) {
+func (s *Session) GuildCreate(name string, options ...discord.RequestOption) (*guild.Guild, error) {
 	data := struct {
 		Name string `json:"name"`
 	}{name}
@@ -91,7 +91,7 @@ func (s *Session) GuildCreate(name string, options ...RequestOption) (*guild.Gui
 }
 
 // GuildEdit edits a guild.Guild with the given params.
-func (s *Session) GuildEdit(guildID string, params *guild.Params, options ...RequestOption) (*guild.Guild, error) {
+func (s *Session) GuildEdit(guildID string, params *guild.Params, options ...discord.RequestOption) (*guild.Guild, error) {
 	// Bounds checking for VerificationLevel, interval: [0, 4]
 	if params.VerificationLevel != nil {
 		val := *params.VerificationLevel
@@ -134,13 +134,13 @@ func (s *Session) GuildEdit(guildID string, params *guild.Params, options ...Req
 }
 
 // GuildDelete deletes a guild.Guild.
-func (s *Session) GuildDelete(guildID string, options ...RequestOption) error {
+func (s *Session) GuildDelete(guildID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(http.MethodDelete, discord.EndpointGuild(guildID), nil, discord.EndpointGuild(guildID), options...)
 	return err
 }
 
 // GuildLeave leaves a guild.Guild.
-func (s *Session) GuildLeave(guildID string, options ...RequestOption) error {
+func (s *Session) GuildLeave(guildID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointUserGuild("@me", guildID),
@@ -156,7 +156,7 @@ func (s *Session) GuildLeave(guildID string, options ...RequestOption) error {
 // limit is the limit of bans to return (max 1000).
 // If not empty, all returned guild.Ban will be before the ID specified by beforeID.
 // If not empty, all returned guild.Ban will be after the ID specified by afterID.
-func (s *Session) GuildBans(guildID string, limit int, beforeID, afterID string, options ...RequestOption) ([]*guild.Ban, error) {
+func (s *Session) GuildBans(guildID string, limit int, beforeID, afterID string, options ...discord.RequestOption) ([]*guild.Ban, error) {
 	uri := discord.EndpointGuildBans(guildID)
 
 	v := url.Values{}
@@ -188,12 +188,12 @@ func (s *Session) GuildBans(guildID string, limit int, beforeID, afterID string,
 // days is the number of days of previous comments to delete.
 //
 // Note: See GuildBanCreate.
-func (s *Session) GuildBanCreate(guildID, userID string, days int, options ...RequestOption) error {
+func (s *Session) GuildBanCreate(guildID, userID string, days int, options ...discord.RequestOption) error {
 	return s.GuildBanCreateWithReason(guildID, userID, "", days, options...)
 }
 
 // GuildBan finds ban by given guild.Guild and user.User id and returns guild.Ban structure
-func (s *Session) GuildBan(guildID, userID string, options ...RequestOption) (*guild.Ban, error) {
+func (s *Session) GuildBan(guildID, userID string, options ...discord.RequestOption) (*guild.Ban, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildBan(guildID, userID),
@@ -212,7 +212,7 @@ func (s *Session) GuildBan(guildID, userID string, options ...RequestOption) (*g
 // GuildBanCreateWithReason bans the given user.User from the given guild.Guild also providing a reason.
 //
 // Note: See GuildBanCreate.
-func (s *Session) GuildBanCreateWithReason(guildID, userID, reason string, days int, options ...RequestOption) error {
+func (s *Session) GuildBanCreateWithReason(guildID, userID, reason string, days int, options ...discord.RequestOption) error {
 	uri := discord.EndpointGuildBan(guildID, userID)
 
 	queryParams := url.Values{}
@@ -232,7 +232,7 @@ func (s *Session) GuildBanCreateWithReason(guildID, userID, reason string, days 
 }
 
 // GuildUnban unbans the given user.User from the given guild.Guild
-func (s *Session) GuildUnban(guildID, userID string, options ...RequestOption) error {
+func (s *Session) GuildUnban(guildID, userID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildBan(guildID, userID),
@@ -246,7 +246,7 @@ func (s *Session) GuildUnban(guildID, userID string, options ...RequestOption) e
 // GuildMembers returns a list of members for a guild.Guild.
 // If afterID is set, every member ID will be after this.
 // limit is the maximum number of members to return (max 1000).
-func (s *Session) GuildMembers(guildID string, afterID string, limit int, options ...RequestOption) ([]*user.Member, error) {
+func (s *Session) GuildMembers(guildID string, afterID string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
 
 	uri := discord.EndpointGuildMembers(guildID)
 
@@ -275,7 +275,7 @@ func (s *Session) GuildMembers(guildID string, afterID string, limit int, option
 
 // GuildMembersSearch returns a list of user.Member whose username or nickname starts with a provided string.
 // limit is the maximum number of members to return (min 1, max 1000).
-func (s *Session) GuildMembersSearch(guildID, query string, limit int, options ...RequestOption) ([]*user.Member, error) {
+func (s *Session) GuildMembersSearch(guildID, query string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
 
 	uri := discord.EndpointGuildMembersSearch(guildID)
 
@@ -295,7 +295,7 @@ func (s *Session) GuildMembersSearch(guildID, query string, limit int, options .
 }
 
 // GuildMember returns a user.Member of a guild.Guild.
-func (s *Session) GuildMember(guildID, userID string, options ...RequestOption) (*user.Member, error) {
+func (s *Session) GuildMember(guildID, userID string, options ...discord.RequestOption) (*user.Member, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildMember(guildID, userID),
@@ -318,7 +318,7 @@ func (s *Session) GuildMember(guildID, userID string, options ...RequestOption) 
 }
 
 // GuildMemberAdd force joins a user.User to the guild.Guild with the given data.
-func (s *Session) GuildMemberAdd(guildID, userID string, data *guild.MemberAddParams, options ...RequestOption) error {
+func (s *Session) GuildMemberAdd(guildID, userID string, data *guild.MemberAddParams, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPut,
 		discord.EndpointGuildMember(guildID, userID),
@@ -330,12 +330,12 @@ func (s *Session) GuildMemberAdd(guildID, userID string, data *guild.MemberAddPa
 }
 
 // GuildMemberKick kicks the given user.User from the given guild.Guild.
-func (s *Session) GuildMemberKick(guildID, userID string, options ...RequestOption) error {
+func (s *Session) GuildMemberKick(guildID, userID string, options ...discord.RequestOption) error {
 	return s.GuildMemberKickWithReason(guildID, userID, "", options...)
 }
 
 // GuildMemberKickWithReason removes the given user.User from the given guild.Guild with the given reason.
-func (s *Session) GuildMemberKickWithReason(guildID, userID, reason string, options ...RequestOption) error {
+func (s *Session) GuildMemberKickWithReason(guildID, userID, reason string, options ...discord.RequestOption) error {
 	uri := discord.EndpointGuildMember(guildID, userID)
 	if reason != "" {
 		uri += "?reason=" + url.QueryEscape(reason)
@@ -346,7 +346,7 @@ func (s *Session) GuildMemberKickWithReason(guildID, userID, reason string, opti
 }
 
 // GuildMemberEdit edits a user.Member with the given data and returns them.
-func (s *Session) GuildMemberEdit(guildID, userID string, data *guild.MemberParams, options ...RequestOption) (*user.Member, error) {
+func (s *Session) GuildMemberEdit(guildID, userID string, data *guild.MemberParams, options ...discord.RequestOption) (*user.Member, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildMember(guildID, userID),
@@ -365,7 +365,7 @@ func (s *Session) GuildMemberEdit(guildID, userID string, data *guild.MemberPara
 // GuildMemberMove moves a user.Member from one voice channel.Channel to another/none.
 //
 // Note: I am not entirely set on the name of this function, and it may change.
-func (s *Session) GuildMemberMove(guildID string, userID string, channelID *string, options ...RequestOption) error {
+func (s *Session) GuildMemberMove(guildID string, userID string, channelID *string, options ...discord.RequestOption) error {
 	data := struct {
 		ChannelID *string `json:"channel_id"`
 	}{channelID}
@@ -383,7 +383,7 @@ func (s *Session) GuildMemberMove(guildID string, userID string, channelID *stri
 // GuildMemberNickname updates the nickname of a user.Member in a guild.Guild.
 //
 // Note: To reset the nickname, set it to an empty string.
-func (s *Session) GuildMemberNickname(guildID, userID, nickname string, options ...RequestOption) error {
+func (s *Session) GuildMemberNickname(guildID, userID, nickname string, options ...discord.RequestOption) error {
 	data := struct {
 		Nick string `json:"nick"`
 	}{nickname}
@@ -403,7 +403,7 @@ func (s *Session) GuildMemberNickname(guildID, userID, nickname string, options 
 }
 
 // GuildMemberMute (un)mutes a user.Member in a guild.Guild.
-func (s *Session) GuildMemberMute(guildID string, userID string, mute bool, options ...RequestOption) error {
+func (s *Session) GuildMemberMute(guildID string, userID string, mute bool, options ...discord.RequestOption) error {
 	data := struct {
 		Mute bool `json:"mute"`
 	}{mute}
@@ -421,7 +421,7 @@ func (s *Session) GuildMemberMute(guildID string, userID string, mute bool, opti
 // GuildMemberTimeout times out a user.Member in a guild.Guild.
 //
 // Note: Set until to nil to remove timeout.
-func (s *Session) GuildMemberTimeout(guildID string, userID string, until *time.Time, options ...RequestOption) error {
+func (s *Session) GuildMemberTimeout(guildID string, userID string, until *time.Time, options ...discord.RequestOption) error {
 	data := struct {
 		CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 	}{until}
@@ -437,7 +437,7 @@ func (s *Session) GuildMemberTimeout(guildID string, userID string, until *time.
 }
 
 // GuildMemberDeafen server deafens a user.Member in a guild.Guild.
-func (s *Session) GuildMemberDeafen(guildID string, userID string, deaf bool, options ...RequestOption) error {
+func (s *Session) GuildMemberDeafen(guildID string, userID string, deaf bool, options ...discord.RequestOption) error {
 	data := struct {
 		Deaf bool `json:"deaf"`
 	}{deaf}
@@ -453,7 +453,7 @@ func (s *Session) GuildMemberDeafen(guildID string, userID string, deaf bool, op
 }
 
 // GuildMemberRoleAdd adds the specified guild.Role to a given user.Member.
-func (s *Session) GuildMemberRoleAdd(guildID, userID, roleID string, options ...RequestOption) error {
+func (s *Session) GuildMemberRoleAdd(guildID, userID, roleID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPut,
 		discord.EndpointGuildMemberRole(guildID, userID, roleID),
@@ -465,7 +465,7 @@ func (s *Session) GuildMemberRoleAdd(guildID, userID, roleID string, options ...
 }
 
 // GuildMemberRoleRemove removes the specified guild.Role to a given user.Member.
-func (s *Session) GuildMemberRoleRemove(guildID, userID, roleID string, options ...RequestOption) error {
+func (s *Session) GuildMemberRoleRemove(guildID, userID, roleID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildMemberRole(guildID, userID, roleID),
@@ -477,7 +477,7 @@ func (s *Session) GuildMemberRoleRemove(guildID, userID, roleID string, options 
 }
 
 // GuildChannels returns the channel.Channel in the guild.Guild.
-func (s *Session) GuildChannels(guildID string, options ...RequestOption) ([]*channel.Channel, error) {
+func (s *Session) GuildChannels(guildID string, options ...discord.RequestOption) ([]*channel.Channel, error) {
 	body, err := s.RequestRaw(
 		http.MethodGet,
 		discord.EndpointGuildChannels(guildID),
@@ -510,7 +510,7 @@ type GuildChannelCreateData struct {
 }
 
 // GuildChannelCreateComplex creates a new channel in the given guild.Guild
-func (s *Session) GuildChannelCreateComplex(guildID string, data GuildChannelCreateData, options ...RequestOption) (*channel.Channel, error) {
+func (s *Session) GuildChannelCreateComplex(guildID string, data GuildChannelCreateData, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointGuildChannels(guildID),
@@ -527,7 +527,7 @@ func (s *Session) GuildChannelCreateComplex(guildID string, data GuildChannelCre
 }
 
 // GuildChannelCreate creates a new channel.Channel in the given guild.Guild.
-func (s *Session) GuildChannelCreate(guildID, name string, ctype types.Channel, options ...RequestOption) (st *channel.Channel, err error) {
+func (s *Session) GuildChannelCreate(guildID, name string, ctype types.Channel, options ...discord.RequestOption) (st *channel.Channel, err error) {
 	return s.GuildChannelCreateComplex(guildID, GuildChannelCreateData{
 		Name: name,
 		Type: ctype,
@@ -535,7 +535,7 @@ func (s *Session) GuildChannelCreate(guildID, name string, ctype types.Channel, 
 }
 
 // GuildChannelsReorder updates the order of channel.Channel in a guild.Guild.
-func (s *Session) GuildChannelsReorder(guildID string, channels []*channel.Channel, options ...RequestOption) error {
+func (s *Session) GuildChannelsReorder(guildID string, channels []*channel.Channel, options ...discord.RequestOption) error {
 	data := make([]struct {
 		ID       string `json:"id"`
 		Position int    `json:"position"`
@@ -557,7 +557,7 @@ func (s *Session) GuildChannelsReorder(guildID string, channels []*channel.Chann
 }
 
 // GuildInvites returns an array of invite.Invite for the given guild.Guild.
-func (s *Session) GuildInvites(guildID string, options ...RequestOption) ([]*invite.Invite, error) {
+func (s *Session) GuildInvites(guildID string, options ...discord.RequestOption) ([]*invite.Invite, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildInvites(guildID),
@@ -574,7 +574,7 @@ func (s *Session) GuildInvites(guildID string, options ...RequestOption) ([]*inv
 }
 
 // GuildRoleCreate creates a new guild.Role.
-func (s *Session) GuildRoleCreate(guildID string, data *guild.RoleParams, options ...RequestOption) (*guild.Role, error) {
+func (s *Session) GuildRoleCreate(guildID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointGuildRoles(guildID),
@@ -591,7 +591,7 @@ func (s *Session) GuildRoleCreate(guildID string, data *guild.RoleParams, option
 }
 
 // GuildRoles returns all guild.Role for a given guild.Guild.
-func (s *Session) GuildRoles(guildID string, options ...RequestOption) ([]*guild.Role, error) {
+func (s *Session) GuildRoles(guildID string, options ...discord.RequestOption) ([]*guild.Role, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildRoles(guildID),
@@ -608,7 +608,7 @@ func (s *Session) GuildRoles(guildID string, options ...RequestOption) ([]*guild
 }
 
 // GuildRoleEdit updates an existing guild.Role and returns updated data.
-func (s *Session) GuildRoleEdit(guildID, roleID string, data *guild.RoleParams, options ...RequestOption) (*guild.Role, error) {
+func (s *Session) GuildRoleEdit(guildID, roleID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
 	// Prevent sending a color int that is too big.
 	if data.Color != nil && *data.Color > 0xFFFFFF {
 		return nil, fmt.Errorf("color value cannot be larger than 0xFFFFFF")
@@ -630,7 +630,7 @@ func (s *Session) GuildRoleEdit(guildID, roleID string, data *guild.RoleParams, 
 }
 
 // GuildRoleReorder reoders guild.Role.
-func (s *Session) GuildRoleReorder(guildID string, roles []*guild.Role, options ...RequestOption) ([]*guild.Role, error) {
+func (s *Session) GuildRoleReorder(guildID string, roles []*guild.Role, options ...discord.RequestOption) ([]*guild.Role, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildRoles(guildID),
@@ -647,7 +647,7 @@ func (s *Session) GuildRoleReorder(guildID string, roles []*guild.Role, options 
 }
 
 // GuildRoleDelete deletes a guild.Role.
-func (s *Session) GuildRoleDelete(guildID, roleID string, options ...RequestOption) error {
+func (s *Session) GuildRoleDelete(guildID, roleID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildRole(guildID, roleID),
@@ -661,7 +661,7 @@ func (s *Session) GuildRoleDelete(guildID, roleID string, options ...RequestOpti
 // GuildPruneCount returns the number of user.Member that would be removed in a prune operation.
 //
 // Requires discord.PermissionKickMembers.
-func (s *Session) GuildPruneCount(guildID string, days uint32, options ...RequestOption) (uint32, error) {
+func (s *Session) GuildPruneCount(guildID string, days uint32, options ...discord.RequestOption) (uint32, error) {
 	if days <= 0 {
 		return 0, ErrPruneDaysBounds
 	}
@@ -688,7 +688,7 @@ func (s *Session) GuildPruneCount(guildID string, days uint32, options ...Reques
 // Returns the number of pruned members.
 //
 // Requires discord.PermissionKickMembers.
-func (s *Session) GuildPrune(guildID string, days uint32, options ...RequestOption) (uint32, error) {
+func (s *Session) GuildPrune(guildID string, days uint32, options ...discord.RequestOption) (uint32, error) {
 	if days <= 0 {
 		return 0, ErrPruneDaysBounds
 	}
@@ -721,7 +721,7 @@ func (s *Session) GuildPrune(guildID string, days uint32, options ...RequestOpti
 }
 
 // GuildIntegrations returns user.Integration for a guild.Guild.
-func (s *Session) GuildIntegrations(guildID string, options ...RequestOption) ([]*user.Integration, error) {
+func (s *Session) GuildIntegrations(guildID string, options ...discord.RequestOption) ([]*user.Integration, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildIntegrations(guildID),
@@ -738,7 +738,7 @@ func (s *Session) GuildIntegrations(guildID string, options ...RequestOption) ([
 }
 
 // GuildIntegrationCreate creates a guild.Guild user.Integration.
-func (s *Session) GuildIntegrationCreate(guildID, integrationType, integrationID string, options ...RequestOption) error {
+func (s *Session) GuildIntegrationCreate(guildID, integrationType, integrationID string, options ...discord.RequestOption) error {
 	data := struct {
 		Type string `json:"type"`
 		ID   string `json:"id"`
@@ -759,7 +759,7 @@ func (s *Session) GuildIntegrationCreate(guildID, integrationType, integrationID
 // expireBehavior is the behavior when a user.Integration subscription lapses.
 // expireGracePeriod is the period (in seconds) where the user.Integration will ignore lapsed subscriptions.
 // enableEmoticons is true if emoticons should be synced for this user.Integration (twitch only currently).
-func (s *Session) GuildIntegrationEdit(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool, options ...RequestOption) error {
+func (s *Session) GuildIntegrationEdit(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool, options ...discord.RequestOption) error {
 	data := struct {
 		ExpireBehavior    int  `json:"expire_behavior"`
 		ExpireGracePeriod int  `json:"expire_grace_period"`
@@ -777,7 +777,7 @@ func (s *Session) GuildIntegrationEdit(guildID, integrationID string, expireBeha
 }
 
 // GuildIntegrationDelete removes the user.Integration from the guild.Guild.
-func (s *Session) GuildIntegrationDelete(guildID, integrationID string, options ...RequestOption) (err error) {
+func (s *Session) GuildIntegrationDelete(guildID, integrationID string, options ...discord.RequestOption) (err error) {
 	_, err = s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildIntegration(guildID, integrationID),
@@ -789,7 +789,7 @@ func (s *Session) GuildIntegrationDelete(guildID, integrationID string, options 
 }
 
 // GuildIcon returns an image.Image of a guild.Guild icon.
-func (s *Session) GuildIcon(guildID string, options ...RequestOption) (image.Image, error) {
+func (s *Session) GuildIcon(guildID string, options ...discord.RequestOption) (image.Image, error) {
 	g, err := s.Guild(guildID, options...)
 	if err != nil {
 		return nil, err
@@ -815,7 +815,7 @@ func (s *Session) GuildIcon(guildID string, options ...RequestOption) (image.Ima
 }
 
 // GuildSplash returns an image.Image of a guild.Guild splash image.
-func (s *Session) GuildSplash(guildID string, options ...RequestOption) (image.Image, error) {
+func (s *Session) GuildSplash(guildID string, options ...discord.RequestOption) (image.Image, error) {
 	g, err := s.Guild(guildID, options...)
 	if err != nil {
 		return nil, err
@@ -841,7 +841,7 @@ func (s *Session) GuildSplash(guildID string, options ...RequestOption) (image.I
 }
 
 // GuildEmbed returns the guild.Embed for a guild.Guild.
-func (s *Session) GuildEmbed(guildID string, options ...RequestOption) (*guild.Embed, error) {
+func (s *Session) GuildEmbed(guildID string, options ...discord.RequestOption) (*guild.Embed, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildEmbed(guildID),
@@ -858,7 +858,7 @@ func (s *Session) GuildEmbed(guildID string, options ...RequestOption) (*guild.E
 }
 
 // GuildEmbedEdit edits the guild.Embed of a guild.Guild.
-func (s *Session) GuildEmbedEdit(guildID string, data *guild.Embed, options ...RequestOption) error {
+func (s *Session) GuildEmbedEdit(guildID string, data *guild.Embed, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildEmbed(guildID),
@@ -875,7 +875,7 @@ func (s *Session) GuildEmbedEdit(guildID string, data *guild.Embed, options ...R
 // If provided all guild.AuditLog entries returned will be before the given beforeID.
 // If provided the guild.AuditLog will be filtered for the given actionType.
 // limit is the number of messages that can be returned (default 50, min 1, max 100).
-func (s *Session) GuildAuditLog(guildID, userID, beforeID string, actionType, limit int, options ...RequestOption) (*guild.AuditLog, error) {
+func (s *Session) GuildAuditLog(guildID, userID, beforeID string, actionType, limit int, options ...discord.RequestOption) (*guild.AuditLog, error) {
 	uri := discord.EndpointGuildAuditLogs(guildID)
 
 	v := url.Values{}
@@ -905,7 +905,7 @@ func (s *Session) GuildAuditLog(guildID, userID, beforeID string, actionType, li
 }
 
 // GuildEmojis returns all emoji.Emoji.
-func (s *Session) GuildEmojis(guildID string, options ...RequestOption) ([]*emoji.Emoji, error) {
+func (s *Session) GuildEmojis(guildID string, options ...discord.RequestOption) ([]*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildEmojis(guildID),
@@ -922,7 +922,7 @@ func (s *Session) GuildEmojis(guildID string, options ...RequestOption) ([]*emoj
 }
 
 // GuildEmoji returns the emoji.Emoji in the given guild.Guild.
-func (s *Session) GuildEmoji(guildID, emojiID string, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) GuildEmoji(guildID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	var body []byte
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
@@ -940,7 +940,7 @@ func (s *Session) GuildEmoji(guildID, emojiID string, options ...RequestOption) 
 }
 
 // GuildEmojiCreate creates a new emoji.Emoji in the given guild.Guild.
-func (s *Session) GuildEmojiCreate(guildID string, data *emoji.Params, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) GuildEmojiCreate(guildID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointGuildEmojis(guildID),
@@ -957,7 +957,7 @@ func (s *Session) GuildEmojiCreate(guildID string, data *emoji.Params, options .
 }
 
 // GuildEmojiEdit modifies and returns updated emoji.Emoji in the given guild.Guild.
-func (s *Session) GuildEmojiEdit(guildID, emojiID string, data *emoji.Params, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) GuildEmojiEdit(guildID, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildEmoji(guildID, emojiID),
@@ -974,7 +974,7 @@ func (s *Session) GuildEmojiEdit(guildID, emojiID string, data *emoji.Params, op
 }
 
 // GuildEmojiDelete deletes an emoji.Emoji in the given guild.Guild.
-func (s *Session) GuildEmojiDelete(guildID, emojiID string, options ...RequestOption) error {
+func (s *Session) GuildEmojiDelete(guildID, emojiID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildEmoji(guildID, emojiID),
@@ -986,7 +986,7 @@ func (s *Session) GuildEmojiDelete(guildID, emojiID string, options ...RequestOp
 }
 
 // ApplicationEmojis returns all emoji.Emoji for the given application.Application
-func (s *Session) ApplicationEmojis(appID string, options ...RequestOption) (emojis []*emoji.Emoji, err error) {
+func (s *Session) ApplicationEmojis(appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointApplicationEmojis(appID),
@@ -1007,7 +1007,7 @@ func (s *Session) ApplicationEmojis(appID string, options ...RequestOption) (emo
 }
 
 // ApplicationEmoji returns the emoji.Emoji for the given application.Application.
-func (s *Session) ApplicationEmoji(appID, emojiID string, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) ApplicationEmoji(appID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointApplicationEmoji(appID, emojiID),
@@ -1024,7 +1024,7 @@ func (s *Session) ApplicationEmoji(appID, emojiID string, options ...RequestOpti
 }
 
 // ApplicationEmojiCreate creates a new emoji.Emoji for the given application.Application.
-func (s *Session) ApplicationEmojiCreate(appID string, data *emoji.Params, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) ApplicationEmojiCreate(appID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointApplicationEmojis(appID),
@@ -1041,7 +1041,7 @@ func (s *Session) ApplicationEmojiCreate(appID string, data *emoji.Params, optio
 }
 
 // ApplicationEmojiEdit modifies and returns updated emoji.Emoji for the given application.Application.
-func (s *Session) ApplicationEmojiEdit(appID string, emojiID string, data *emoji.Params, options ...RequestOption) (*emoji.Emoji, error) {
+func (s *Session) ApplicationEmojiEdit(appID string, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointApplicationEmoji(appID, emojiID),
@@ -1058,7 +1058,7 @@ func (s *Session) ApplicationEmojiEdit(appID string, emojiID string, data *emoji
 }
 
 // ApplicationEmojiDelete deletes an emoji.Emoji for the given application.Application.
-func (s *Session) ApplicationEmojiDelete(appID, emojiID string, options ...RequestOption) error {
+func (s *Session) ApplicationEmojiDelete(appID, emojiID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointApplicationEmoji(appID, emojiID),
@@ -1070,7 +1070,7 @@ func (s *Session) ApplicationEmojiDelete(appID, emojiID string, options ...Reque
 }
 
 // GuildTemplate returns a guild.Template for the given code.
-func (s *Session) GuildTemplate(code string, options ...RequestOption) (*guild.Template, error) {
+func (s *Session) GuildTemplate(code string, options ...discord.RequestOption) (*guild.Template, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildTemplate(code),
@@ -1091,7 +1091,7 @@ func (s *Session) GuildTemplate(code string, options ...RequestOption) (*guild.T
 // code is the Code of the guild.Template.
 // name is the name of the guild.Guild (2-100 characters).
 // icon is the base64 encoded 128x128 image for the guild.Guild icon.
-func (s *Session) GuildCreateWithTemplate(templateCode, name, icon string, options ...RequestOption) (*guild.Guild, error) {
+func (s *Session) GuildCreateWithTemplate(templateCode, name, icon string, options ...discord.RequestOption) (*guild.Guild, error) {
 	data := struct {
 		Name string `json:"name"`
 		Icon string `json:"icon"`
@@ -1113,7 +1113,7 @@ func (s *Session) GuildCreateWithTemplate(templateCode, name, icon string, optio
 }
 
 // GuildTemplates returns every guild.Template of the given guild.Guild.
-func (s *Session) GuildTemplates(guildID string, options ...RequestOption) ([]*guild.Template, error) {
+func (s *Session) GuildTemplates(guildID string, options ...discord.RequestOption) ([]*guild.Template, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointGuildTemplates(guildID),
@@ -1130,7 +1130,7 @@ func (s *Session) GuildTemplates(guildID string, options ...RequestOption) ([]*g
 }
 
 // GuildTemplateCreate creates a guild.Template for the guild.Guild.
-func (s *Session) GuildTemplateCreate(guildID string, data *guild.TemplateParams, options ...RequestOption) (*guild.Template, error) {
+func (s *Session) GuildTemplateCreate(guildID string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointGuildTemplates(guildID),
@@ -1149,7 +1149,7 @@ func (s *Session) GuildTemplateCreate(guildID string, data *guild.TemplateParams
 // GuildTemplateSync syncs the guild.Template to the guild.Guild's current state
 //
 // code is the code of the guild.Template.
-func (s *Session) GuildTemplateSync(guildID, code string, options ...RequestOption) error {
+func (s *Session) GuildTemplateSync(guildID, code string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPut,
 		discord.EndpointGuildTemplateSync(guildID, code),
@@ -1163,7 +1163,7 @@ func (s *Session) GuildTemplateSync(guildID, code string, options ...RequestOpti
 // GuildTemplateEdit modifies the guild.Template's metadata of the given guild.Guild.
 //
 // code is the code of the guild.Template.
-func (s *Session) GuildTemplateEdit(guildID, code string, data *guild.TemplateParams, options ...RequestOption) (*guild.Template, error) {
+func (s *Session) GuildTemplateEdit(guildID, code string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildTemplateSync(guildID, code),
@@ -1182,7 +1182,7 @@ func (s *Session) GuildTemplateEdit(guildID, code string, data *guild.TemplatePa
 // GuildTemplateDelete deletes the guild.Template of the given guild.Guild.
 //
 // code is the code of the guild.Template.
-func (s *Session) GuildTemplateDelete(guildID, templateCode string, options ...RequestOption) error {
+func (s *Session) GuildTemplateDelete(guildID, templateCode string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildTemplateSync(guildID, templateCode),

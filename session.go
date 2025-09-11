@@ -83,7 +83,7 @@ type Session struct {
 	LastHeartbeatSent time.Time
 
 	// Used to deal with rate limits.
-	RateLimiter *RateLimiter
+	RateLimiter *discord.RateLimiter
 
 	// Event handlers
 	handlersMu   sync.RWMutex
