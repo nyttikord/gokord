@@ -14,8 +14,8 @@ type Requester struct {
 	discord.Requester
 }
 
-// Application returns an application.Application.
-func (s Requester) Application(appID string, options ...discord.RequestOption) (*application.Application, error) {
+// Get returns an application.Application.
+func (s Requester) Get(appID string, options ...discord.RequestOption) (*application.Application, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointOAuth2Application(appID),
@@ -31,8 +31,8 @@ func (s Requester) Application(appID string, options ...discord.RequestOption) (
 	return &app, s.Unmarshal(body, &app)
 }
 
-// Applications returns all application.Application for the authenticated user.User.
-func (s Requester) Applications(options ...discord.RequestOption) ([]*application.Application, error) {
+// GetAll returns all application.Application for the authenticated user.Get.
+func (s Requester) GetAll(options ...discord.RequestOption) ([]*application.Application, error) {
 	body, err := s.Request("GET", discord.EndpointOAuth2Applications, nil, options...)
 	if err != nil {
 		return nil, err
@@ -42,10 +42,10 @@ func (s Requester) Applications(options ...discord.RequestOption) ([]*applicatio
 	return app, s.Unmarshal(body, &app)
 }
 
-// ApplicationCreate creates a new Application.
+// Create creates a new application.Application.
 //
 // uris are the redirect URIs (not required).
-func (s Requester) ApplicationCreate(ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+func (s Requester) Create(ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -60,8 +60,8 @@ func (s Requester) ApplicationCreate(ap *application.Application, options ...dis
 	return &app, s.Unmarshal(body, &app)
 }
 
-// ApplicationUpdate updates an existing application.Application.
-func (s Requester) ApplicationUpdate(appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+// Update updates an existing application.Application.
+func (s Requester) Update(appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -82,8 +82,8 @@ func (s Requester) ApplicationUpdate(appID string, ap *application.Application, 
 	return &app, s.Unmarshal(body, &app)
 }
 
-// ApplicationDelete deletes an existing application.Application.
-func (s Requester) ApplicationDelete(appID string, options ...discord.RequestOption) error {
+// Delete deletes an existing application.Application.
+func (s Requester) Delete(appID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointOAuth2Application(appID),
@@ -94,8 +94,8 @@ func (s Requester) ApplicationDelete(appID string, options ...discord.RequestOpt
 	return err
 }
 
-// ApplicationAssets returns an application.Asset.
-func (s Requester) ApplicationAssets(appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
+// Assets returns application.Asset.
+func (s Requester) Assets(appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointOAuth2ApplicationAssets(appID),

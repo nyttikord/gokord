@@ -23,8 +23,8 @@ type Requester struct {
 	discord.Requester
 }
 
-// Channel returns the channel.Channel with the given ID.
-func (s Requester) Channel(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
+// Get returns the channel.Channel with the given ID.
+func (s Requester) Get(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointChannel(channelID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -34,8 +34,8 @@ func (s Requester) Channel(channelID string, options ...discord.RequestOption) (
 	return &c, s.Unmarshal(body, &c)
 }
 
-// ChannelEdit edits the given channel.Channel and returns the updated channel.Channel data.
-func (s Requester) ChannelEdit(channelID string, data *channel.Edit, options ...discord.RequestOption) (*channel.Channel, error) {
+// Edit edits the given channel.Channel and returns the updated channel.Channel data.
+func (s Requester) Edit(channelID string, data *channel.Edit, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodPatch, discord.EndpointChannel(channelID), data, options...)
 	if err != nil {
 		return nil, err
@@ -46,8 +46,8 @@ func (s Requester) ChannelEdit(channelID string, data *channel.Edit, options ...
 
 }
 
-// ChannelDelete deletes the given channel.Channel.
-func (s Requester) ChannelDelete(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
+// Delete deletes the given channel.Channel.
+func (s Requester) Delete(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodDelete, discord.EndpointChannel(channelID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s Requester) ChannelDelete(channelID string, options ...discord.RequestOpt
 	return &c, s.Unmarshal(body, &c)
 }
 
-// Typing broadcasts to all members that authenticated user.User is typing in the given channel.Channel.
+// Typing broadcasts to all members that authenticated user.Get is typing in the given channel.Channel.
 func (s Requester) Typing(channelID string, options ...discord.RequestOption) error {
 	_, err := s.Request(http.MethodPost, discord.EndpointChannelTyping(channelID), nil, options...)
 	return err
@@ -94,11 +94,11 @@ func (s Requester) InviteCreate(channelID string, i invite.Invite, options ...di
 	return &m, json.Unmarshal(body, &m)
 }
 
-// ChannelPermissionSet creates a channel.PermissionOverwrite for the given channel.Channel.
+// PermissionSet creates a channel.PermissionOverwrite for the given channel.Channel.
 //
 // Note: This func name may be changed.
 // Using Set instead of Create because you can both create a new override or update an override with this function.
-func (s Requester) ChannelPermissionSet(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64, options ...discord.RequestOption) error {
+func (s Requester) PermissionSet(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64, options ...discord.RequestOption) error {
 	data := struct {
 		ID    string                    `json:"id"`
 		Type  types.PermissionOverwrite `json:"type"`
@@ -116,10 +116,10 @@ func (s Requester) ChannelPermissionSet(channelID, targetID string, targetType t
 	return err
 }
 
-// ChannelPermissionDelete deletes a specific channel.PermissionOverwrite for the given channel.Channel.
+// PermissionDelete deletes a specific channel.PermissionOverwrite for the given channel.Channel.
 //
 // Note: Name of this func may change.
-func (s Requester) ChannelPermissionDelete(channelID, targetID string, options ...discord.RequestOption) error {
+func (s Requester) PermissionDelete(channelID, targetID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointChannelPermission(channelID, targetID),
@@ -130,11 +130,11 @@ func (s Requester) ChannelPermissionDelete(channelID, targetID string, options .
 	return err
 }
 
-// ChannelNewsFollow follows a news channel.Channel in the given channel.Channel.
+// NewsFollow follows a news channel.Channel in the given channel.Channel.
 //
 // channelID is the channel.Channel to follow.
 // targetID is where the news channel.Channel should post to.
-func (s Requester) ChannelNewsFollow(channelID, targetID string, options ...discord.RequestOption) (*channel.Follow, error) {
+func (s Requester) NewsFollow(channelID, targetID string, options ...discord.RequestOption) (*channel.Follow, error) {
 	endpoint := discord.EndpointChannelFollow(channelID)
 
 	data := struct {

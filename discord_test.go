@@ -18,10 +18,10 @@ var (
 
 	envOAuth2Token  = os.Getenv("DG_OAUTH2_TOKEN")  // Token to use when authenticating using OAuth2 token
 	envBotToken     = os.Getenv("DGB_TOKEN")        // Token to use when authenticating the bot account
-	envGuild        = os.Getenv("DG_GUILD")         // Guild ID to use for tests
-	envChannel      = os.Getenv("DG_CHANNEL")       // Channel ID to use for tests
-	envVoiceChannel = os.Getenv("DG_VOICE_CHANNEL") // Channel ID to use for tests
-	envAdmin        = os.Getenv("DG_ADMIN")         // User ID of admin user to use for tests
+	envGuild        = os.Getenv("DG_GUILD")         // Get ID to use for tests
+	envChannel      = os.Getenv("DG_CHANNEL")       // Get ID to use for tests
+	envVoiceChannel = os.Getenv("DG_VOICE_CHANNEL") // Get ID to use for tests
+	envAdmin        = os.Getenv("DG_ADMIN")         // Get ID of admin user to use for tests
 )
 
 func TestMain(m *testing.M) {

@@ -355,7 +355,7 @@ func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID str
 	return err
 }
 
-// MessageReactions gets all the user.User reactions for a specific emoji.Emoji.
+// MessageReactions gets all the user.Get reactions for a specific emoji.Emoji.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
 // limit is the max number of users to return (max 100).

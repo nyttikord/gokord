@@ -99,7 +99,7 @@ func (v *VoiceConnection) Speaking(b bool) (err error) {
 	return
 }
 
-// ChangeChannel sends Discord a request to change channels within a Guild
+// ChangeChannel sends Discord a request to change channels within a Get
 // !!! NOTE !!! This function may be removed in favour of just using ChannelVoiceJoin
 func (v *VoiceConnection) ChangeChannel(channelID string, mute, deaf bool) (err error) {
 	v.LogDebug("called")

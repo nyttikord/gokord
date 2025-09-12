@@ -14,8 +14,8 @@ var (
 	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
 )
 
-// Guild returns the guild.Guild with the given guildID.
-func (r Requester) Guild(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
+// Get returns the guild.Guild with the given guildID.
+func (r Requester) Get(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -25,8 +25,8 @@ func (r Requester) Guild(guildID string, options ...discord.RequestOption) (*gui
 	return &g, r.Unmarshal(body, &g)
 }
 
-// GuildWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
-func (r Requester) GuildWithCounts(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
+// GetWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
+func (r Requester) GetWithCounts(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true", nil, options...)
 	if err != nil {
 		return nil, err
@@ -36,8 +36,8 @@ func (r Requester) GuildWithCounts(guildID string, options ...discord.RequestOpt
 	return &g, r.Unmarshal(body, &g)
 }
 
-// GuildPreview returns the guild.Preview for the given public guild.Guild guildID.
-func (r Requester) GuildPreview(guildID string, options ...discord.RequestOption) (*guild.Preview, error) {
+// Preview returns the guild.Preview for the given public guild.Guild guildID.
+func (r Requester) Preview(guildID string, options ...discord.RequestOption) (*guild.Preview, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuildPreview(guildID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -47,8 +47,8 @@ func (r Requester) GuildPreview(guildID string, options ...discord.RequestOption
 	return &gp, r.Unmarshal(body, &gp)
 }
 
-// GuildCreate creates a new guild.Guild with the given name.
-func (r Requester) GuildCreate(name string, options ...discord.RequestOption) (*guild.Guild, error) {
+// Create creates a new guild.Guild with the given name.
+func (r Requester) Create(name string, options ...discord.RequestOption) (*guild.Guild, error) {
 	data := struct {
 		Name string `json:"name"`
 	}{name}
@@ -62,8 +62,8 @@ func (r Requester) GuildCreate(name string, options ...discord.RequestOption) (*
 	return &g, r.Unmarshal(body, &g)
 }
 
-// GuildEdit edits a guild.Guild with the given params.
-func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...discord.RequestOption) (*guild.Guild, error) {
+// Edit edits a guild.Guild with the given params.
+func (r Requester) Edit(guildID string, params *guild.Params, options ...discord.RequestOption) (*guild.Guild, error) {
 	// Bounds checking for VerificationLevel, interval: [0, 4]
 	if params.VerificationLevel != nil {
 		val := *params.VerificationLevel
@@ -99,14 +99,14 @@ func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...di
 	return &g, r.Unmarshal(body, &g)
 }
 
-// GuildDelete deletes a guild.Guild.
-func (r Requester) GuildDelete(guildID string, options ...discord.RequestOption) error {
+// Delete deletes a guild.Guild.
+func (r Requester) Delete(guildID string, options ...discord.RequestOption) error {
 	_, err := r.Request(http.MethodDelete, discord.EndpointGuild(guildID), nil, options...)
 	return err
 }
 
-// GuildLeave leaves a guild.Guild.
-func (r Requester) GuildLeave(guildID string, options ...discord.RequestOption) error {
+// Leave leaves a guild.Guild.
+func (r Requester) Leave(guildID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointUserGuild("@me", guildID),

@@ -12,24 +12,24 @@ import (
 //	func TestContentWithMoreMentionsReplaced(t *testing.T) {
 //		s := &Session{StateEnabled: true, State: NewState()}
 //
-//		u := &user.User{
+//		u := &user.Get{
 //			ID:       "user",
-//			Username: "User Name",
+//			Username: "Get Name",
 //		}
 //
-//		s.State.GuildAdd(&guild.Guild{ID: "guild"})
+//		s.State.GuildAdd(&guild.Get{ID: "guild"})
 //		s.State.RoleAdd("guild", &guild.Role{
 //			ID:          "role",
 //			Name:        "Role Name",
 //			Mentionable: true,
 //		})
 //		s.State.MemberAdd(&user.Member{
-//			User: u,
-//			Nick:      "User Nick",
+//			Get: u,
+//			Nick:      "Get Nick",
 //			GuildID:   "guild",
 //		})
-//		s.State.ChannelAdd(&channel.Channel{
-//			Name:    "Channel Name",
+//		s.State.ChannelAdd(&channel.Get{
+//			Name:    "Get Name",
 //			GuildID: "guild",
 //			ID:      "channel",
 //		})
@@ -37,9 +37,9 @@ import (
 //			Content:      "<@&role> <@!user> <@user> <#channel>",
 //			ChannelID:    "channel",
 //			MentionRoles: []string{"role"},
-//			Mentions:     []*user.User{u},
+//			Mentions:     []*user.Get{u},
 //		}
-//		if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @User Nick @User Name #Channel Name" {
+//		if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @Get Nick @Get Name #Get Name" {
 //			t.Error(result)
 //		}
 //	}
@@ -74,11 +74,11 @@ func TestMessage_Reference(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Guild ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Channel ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 }
 
@@ -100,11 +100,11 @@ func TestMessage_Forward(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Guild ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Channel ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 }
 

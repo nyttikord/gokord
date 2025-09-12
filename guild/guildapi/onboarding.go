@@ -7,8 +7,8 @@ import (
 	"github.com/nyttikord/gokord/guild"
 )
 
-// GuildOnboarding returns guild.Onboarding configuration of a guild.Guild.
-func (r Requester) GuildOnboarding(guildID string, options ...discord.RequestOption) (*guild.Onboarding, error) {
+// Onboarding returns guild.Onboarding configuration of a guild.Guild.
+func (r Requester) Onboarding(guildID string, options ...discord.RequestOption) (*guild.Onboarding, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuildOnboarding(guildID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -18,8 +18,8 @@ func (r Requester) GuildOnboarding(guildID string, options ...discord.RequestOpt
 	return &ob, r.Unmarshal(body, &ob)
 }
 
-// GuildOnboardingEdit edits guild.Onboarding configuration of a guild.Guild.
-func (r Requester) GuildOnboardingEdit(guildID string, o *guild.Onboarding, options ...discord.RequestOption) (*guild.Onboarding, error) {
+// OnboardingEdit edits guild.Onboarding configuration of a guild.Guild.
+func (r Requester) OnboardingEdit(guildID string, o *guild.Onboarding, options ...discord.RequestOption) (*guild.Onboarding, error) {
 	body, err := r.Request("PUT", discord.EndpointGuildOnboarding(guildID), o, options...)
 	if err != nil {
 		return nil, err

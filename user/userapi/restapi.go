@@ -18,8 +18,8 @@ type Requester struct {
 	discord.Requester
 }
 
-// User returns the user.User details of the given userID (can be @me to be the current user.User ID).
-func (s Requester) User(userID string, options ...discord.RequestOption) (*user.User, error) {
+// Get returns the user.Get details of the given userID (can be @me to be the current user.User ID).
+func (s Requester) Get(userID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUser(userID),
@@ -35,8 +35,8 @@ func (s Requester) User(userID string, options ...discord.RequestOption) (*user.
 	return &u, s.Unmarshal(body, &u)
 }
 
-// UserAvatarDecode returns an image.Image of a user.User's Avatar.
-func (s Requester) UserAvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
+// AvatarDecode returns an image.Image of a user.User's Avatar.
+func (s Requester) AvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUserAvatar(u.ID, u.Avatar),
@@ -52,12 +52,12 @@ func (s Requester) UserAvatarDecode(u *user.User, options ...discord.RequestOpti
 	return img, err
 }
 
-// UserUpdate updates current user settings.
+// Update updates current user settings.
 //
 // Note: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
-func (s Requester) UserUpdate(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) Update(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
 	data := struct {
 		Username string `json:"username,omitempty"`
 		Avatar   string `json:"avatar,omitempty"`
@@ -79,8 +79,8 @@ func (s Requester) UserUpdate(username, avatar, banner string, options ...discor
 	return &u, s.Unmarshal(body, &u)
 }
 
-// UserConnections returns the current user.Connection.
-func (s Requester) UserConnections(options ...discord.RequestOption) ([]*user.Connection, error) {
+// Connections returns the current user.Connection.
+func (s Requester) Connections(options ...discord.RequestOption) ([]*user.Connection, error) {
 	response, err := s.Request(http.MethodGet, discord.EndpointUserConnections("@me"), nil, options...)
 	if err != nil {
 		return nil, err
@@ -111,8 +111,8 @@ func (s Requester) ChannelCreate(userID string, options ...discord.RequestOption
 	return &c, s.Unmarshal(body, &c)
 }
 
-// UserGuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
-func (s Requester) UserGuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
+// GuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
+func (s Requester) GuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointUserGuildMember("@me", guildID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (s Requester) UserGuildMember(guildID string, options ...discord.RequestOpt
 
 // MemberPermissions calculates the permissions for a user.Member.
 // https://support.discord.com/hc/en-us/articles/206141927-How-is-the-permission-hierarchy-structured-
-func MemberPermissions(guild *guild.Guild, channel *channel.Channel, userID string, roles []string) int64 {
+func (s Requester) MemberPermissions(guild *guild.Guild, channel *channel.Channel, userID string, roles []string) int64 {
 	if userID == guild.OwnerID {
 		return discord.PermissionAll
 	}

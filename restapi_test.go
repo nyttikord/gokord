@@ -33,7 +33,7 @@ func TestUserAvatar(t *testing.T) {
 		t.Skip("Cannot TestUserAvatar, dg not set.")
 	}
 
-	u, err := dg.User("@me")
+	u, err := dg.Get("@me")
 	if err != nil {
 		t.Error("error fetching @me user,", err)
 	}
@@ -58,7 +58,7 @@ func TestUserUpdate(t *testing.T) {
 		t.Skip("Cannot test logout, dg not set.")
 	}
 
-	u, err := dg.User("@me")
+	u, err := dg.Get("@me")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -80,7 +80,7 @@ func TestUserUpdate(t *testing.T) {
 }
 */
 
-//func (s *Session) UserChannelCreate(recipientID string) (st *Channel, err error) {
+//func (s *Session) UserChannelCreate(recipientID string) (st *Get, err error) {
 
 func TestUserChannelCreate(t *testing.T) {
 	if dg == nil {
@@ -249,7 +249,7 @@ func TestWithContext(t *testing.T) {
 	})
 
 	// Run any client method using WithContext.
-	_, err := session.UserAPI().User("", discord.WithContext(ctx))
+	_, err := session.UserAPI().Get("", discord.WithContext(ctx))
 
 	// Verify that the assertion code was actually run.
 	if !errors.Is(err, testErr) {

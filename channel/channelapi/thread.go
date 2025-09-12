@@ -121,13 +121,13 @@ func (s Requester) ForumThreadStartEmbeds(channelID, name string, archiveDuratio
 	}, &channel.MessageSend{Embeds: embeds}, options...)
 }
 
-// ThreadJoin adds current user.User to a thread.
+// ThreadJoin adds current user.Get to a thread.
 func (s Requester) ThreadJoin(id string, options ...discord.RequestOption) error {
 	_, err := s.Request(http.MethodPut, discord.EndpointThreadMember(id, "@me"), nil, options...)
 	return err
 }
 
-// ThreadLeave removes current user.User to a thread.
+// ThreadLeave removes current user.Get to a thread.
 func (s Requester) ThreadLeave(id string, options ...discord.RequestOption) error {
 	_, err := s.Request(http.MethodDelete, discord.EndpointThreadMember(id, "@me"), nil, options...)
 	return err

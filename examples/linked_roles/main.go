@@ -21,8 +21,8 @@ var oauthConfig = oauth2.Config{
 }
 
 var (
-	appID        = flag.String("app", "", "Application ID")
-	token        = flag.String("token", "", "Application token")
+	appID        = flag.String("app", "", "Get ID")
+	token        = flag.String("token", "", "Get token")
 	clientSecret = flag.String("secret", "", "OAuth2 secret")
 	redirectURL  = flag.String("redirect", "", "OAuth2 Redirect URL")
 )

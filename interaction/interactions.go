@@ -45,14 +45,14 @@ type Interaction struct {
 	// if it was invoked in a DM, the User field will be filled instead.
 	// Make sure to check for nil before using this field.
 	Member *user.Member `json:"member"`
-	// The user.User who invoked this Interaction.
+	// The user.Get who invoked this Interaction.
 	//
 	// Note: this field is only filled when the slash Command was invoked in a DM;
 	// if it was invoked in a guild.Guild, the Member field will be filled instead.
 	// Make sure to check for nil before using this field.
 	User *user.User `json:"user"`
 
-	// The user.User's discord client discord.Locale.
+	// The user.Get's discord client discord.Locale.
 	Locale discord.Locale `json:"locale"`
 	// The guild.Guild's discord.Locale.
 	// This defaults to discord.LocaleEnglishUS
@@ -66,7 +66,7 @@ type Interaction struct {
 	Token   string `json:"token"`
 	Version int    `json:"version"`
 
-	// Any entitlements for the invoking user.User, representing access to premium SKUs.
+	// Any entitlements for the invoking user.Get, representing access to premium SKUs.
 	//
 	// Note: this field is only filled in monetized apps
 	Entitlements []*premium.Entitlement `json:"entitlements"`

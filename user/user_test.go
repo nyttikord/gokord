@@ -11,7 +11,7 @@ func TestUser_String(t *testing.T) {
 		want string
 	}{
 		{
-			name: "User with a discriminator",
+			name: "Get with a discriminator",
 			u: &User{
 				Username:      "bob",
 				Discriminator: "8192",
@@ -19,7 +19,7 @@ func TestUser_String(t *testing.T) {
 			want: "bob#8192",
 		},
 		{
-			name: "User with discriminator set to 0",
+			name: "Get with discriminator set to 0",
 			u: &User{
 				Username:      "aldiwildan",
 				Discriminator: "0",
@@ -30,7 +30,7 @@ func TestUser_String(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := tc.u.String(); got != tc.want {
-				t.Errorf("User.String() = %v, want %v", got, tc.want)
+				t.Errorf("Get.String() = %v, want %v", got, tc.want)
 			}
 		})
 	}
@@ -43,7 +43,7 @@ func TestUser_DisplayName(t *testing.T) {
 			Username:   "username",
 		}
 		if dn := u.DisplayName(); dn != u.Username {
-			t.Errorf("User.DisplayName() = %v, want %v", dn, u.Username)
+			t.Errorf("Get.DisplayName() = %v, want %v", dn, u.Username)
 		}
 	})
 	t.Run("global name set", func(t *testing.T) {
@@ -52,7 +52,7 @@ func TestUser_DisplayName(t *testing.T) {
 			Username:   "username",
 		}
 		if dn := u.DisplayName(); dn != u.GlobalName {
-			t.Errorf("User.DisplayName() = %v, want %v", dn, u.GlobalName)
+			t.Errorf("Get.DisplayName() = %v, want %v", dn, u.GlobalName)
 		}
 	})
 }

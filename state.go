@@ -174,7 +174,7 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 // Guild gets a guild by ID.
 // Useful for querying if @me is in a guild:
 //
-//	   _, err := discordgo.Session.State.Guild(guildID)
+//	   _, err := discordgo.Session.State.Get(guildID)
 //		  isInGuild := err == nil
 func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	if s == nil {
@@ -301,7 +301,7 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 	return nil, ErrStateNotFound
 }
 
-// TODO: Consider moving Guild state update methods onto *Guild.
+// TODO: Consider moving Get state update methods onto *Get.
 
 func (s *State) memberAdd(member *user.Member) error {
 	guild, ok := s.guildMap[member.GuildID]
@@ -839,7 +839,7 @@ func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// Handle Leaving Channel
+	// Handle Leaving Get
 	if update.ChannelID == "" {
 		for i, state := range guild.VoiceStates {
 			if state.UserID == update.UserID {

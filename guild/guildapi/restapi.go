@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user/invite"
 )
@@ -75,7 +74,7 @@ func (r Requester) Invites(guildID string, options ...discord.RequestOption) ([]
 
 // Icon returns an image.Image of a guild.Guild icon.
 func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Guild(guildID, options...)
+	g, err := r.Get(guildID, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +100,7 @@ func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image
 
 // Splash returns an image.Image of a guild.Guild splash image.
 func (r Requester) Splash(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Guild(guildID, options...)
+	g, err := r.Get(guildID, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,70 +174,4 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 
 	var al guild.AuditLog
 	return &al, r.Unmarshal(body, &al)
-}
-
-// ApplicationEmojis returns all emoji.Emoji for the given application.Application
-func (r Requester) ApplicationEmojis(appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmojis(appID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var data struct {
-		Items []*emoji.Emoji `json:"items"`
-	}
-
-	emojis = data.Items
-	return data.Items, r.Unmarshal(body, &data)
-}
-
-// ApplicationEmoji returns the emoji.Emoji for the given application.Application.
-func (r Requester) ApplicationEmoji(appID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var em emoji.Emoji
-	return &em, r.Unmarshal(body, &em)
-}
-
-// ApplicationEmojiCreate creates a new emoji.Emoji for the given application.Application.
-func (r Requester) ApplicationEmojiCreate(appID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointApplicationEmojis(appID), data, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var em emoji.Emoji
-	return &em, r.Unmarshal(body, &em)
-}
-
-// ApplicationEmojiEdit modifies and returns updated emoji.Emoji for the given application.Application.
-func (r Requester) ApplicationEmojiEdit(appID string, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPatch,
-		discord.EndpointApplicationEmoji(appID, emojiID),
-		data,
-		discord.EndpointApplicationEmojis(appID),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var em emoji.Emoji
-	return &em, r.Unmarshal(body, &em)
-}
-
-// ApplicationEmojiDelete deletes an emoji.Emoji for the given application.Application.
-func (r Requester) ApplicationEmojiDelete(appID, emojiID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		http.MethodDelete,
-		discord.EndpointApplicationEmoji(appID, emojiID),
-		nil,
-		discord.EndpointApplicationEmojis(appID),
-		options...,
-	)
-	return err
 }

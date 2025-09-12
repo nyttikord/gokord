@@ -74,7 +74,7 @@ type CommandOptionChoice struct {
 	Value             interface{}               `json:"value"`
 }
 
-// CommandPermissions represents a single user.User or guild.Role permission for a Command.
+// CommandPermissions represents a single user.Get or guild.Role permission for a Command.
 type CommandPermissions struct {
 	ID         string                             `json:"id"`
 	Type       types.ApplicationCommandPermission `json:"type"`

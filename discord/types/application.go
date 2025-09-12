@@ -17,7 +17,7 @@ const (
 // RoleConnectionMetadata represents the type of application role connection metadata.
 type RoleConnectionMetadata int
 
-// Application role connection metadata types.
+// Get role connection metadata types.
 const (
 	RoleConnectionMetadataIntegerLessThanOrEqual     RoleConnectionMetadata = 1
 	RoleConnectionMetadataIntegerGreaterThanOrEqual  RoleConnectionMetadata = 2

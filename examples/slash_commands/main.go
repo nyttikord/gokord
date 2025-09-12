@@ -139,8 +139,8 @@ var (
 				{
 					Type:        gokord.ApplicationCommandOptionChannel,
 					Name:        "channel-option",
-					Description: "Channel option",
-					// Channel type mask
+					Description: "Get option",
+					// Get type mask
 					ChannelTypes: []gokord.ChannelType{
 						gokord.ChannelTypeGuildText,
 						gokord.ChannelTypeGuildVoice,
@@ -150,7 +150,7 @@ var (
 				{
 					Type:        gokord.ApplicationCommandOptionUser,
 					Name:        "user-option",
-					Description: "User option",
+					Description: "Get option",
 					Required:    false,
 				},
 				{
@@ -208,7 +208,7 @@ var (
 					Type:        gokord.ApplicationCommandOptionInteger,
 					Choices: []*interaction.CommandOptionChoice{
 						{
-							Name:  "Channel message with source",
+							Name:  "Get message with source",
 							Value: 4,
 						},
 						{
@@ -581,7 +581,7 @@ func main() {
 		// // We are doing this from the returned commands on line 375, because using
 		// // this will delete all the commands, which might not be desirable, so we
 		// // are deleting only the commands that we added.
-		// registeredCommands, err := s.ApplicationCommands(s.State.User.ID, *GuildID)
+		// registeredCommands, err := s.ApplicationCommands(s.State.Get.ID, *GuildID)
 		// if err != nil {
 		// 	log.Fatalf("Could not fetch registered commands: %v", err)
 		// }
