@@ -7,9 +7,7 @@ import (
 	"strings"
 
 	"github.com/nyttikord/gokord/application"
-	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/user"
 )
 
 // ------------------------------------------------------------------------------------------------
@@ -79,107 +77,48 @@ func (s *Session) GatewayBot(options ...discord.RequestOption) (*GatewayBotRespo
 	return &resp, nil
 }
 
-// ApplicationRoleConnectionMetadata returns application role connection metadata.
-// appID : ID of the application
-func (s *Session) ApplicationRoleConnectionMetadata(appID string) (st []*application.RoleConnectionMetadata, err error) {
-	endpoint := discord.EndpointApplicationRoleConnectionMetadata(appID)
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+// I don't know what this does, so I let it here.
+
+// ApplicationRoleConnectionMetadata returns application.RoleConnectionMetadata.
+func (s *Session) ApplicationRoleConnectionMetadata(appID string, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
+	body, err := s.Request(http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID), nil, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(body, &st)
-	return
+	var m []*application.RoleConnectionMetadata
+	return m, unmarshal(body, &m)
 }
 
-// ApplicationRoleConnectionMetadataUpdate updates and returns application role connection metadata.
-// appID    : ID of the application
-// metadata : New metadata
-func (s *Session) ApplicationRoleConnectionMetadataUpdate(appID string, metadata []*application.RoleConnectionMetadata) (st []*application.RoleConnectionMetadata, err error) {
-	endpoint := discord.EndpointApplicationRoleConnectionMetadata(appID)
-	var body []byte
-	body, err = s.RequestWithBucketID("PUT", endpoint, metadata, endpoint)
+// ApplicationRoleConnectionMetadataUpdate updates and returns application.RoleConnectionMetadata.
+func (s *Session) ApplicationRoleConnectionMetadataUpdate(appID string, metadata []*application.RoleConnectionMetadata, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
+	body, err := s.Request(http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID), metadata, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(body, &st)
-	return
+	var m []*application.RoleConnectionMetadata
+	return m, unmarshal(body, &m)
 }
 
-// UserApplicationRoleConnection returns user role connection to the specified application.
-// appID : ID of the application
-func (s *Session) UserApplicationRoleConnection(appID string) (st *application.RoleConnection, err error) {
-	endpoint := discord.EndpointUserApplicationRoleConnection(appID)
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
+// UserApplicationRoleConnection returns application.RoleConnection to the specified application.Application.
+func (s *Session) UserApplicationRoleConnection(appID string, options ...discord.RequestOption) (*application.RoleConnection, error) {
+	body, err := s.Request(http.MethodGet, discord.EndpointUserApplicationRoleConnection(appID), nil, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(body, &st)
-	return
-
+	var c application.RoleConnection
+	return &c, unmarshal(body, &c)
 }
 
-// UserApplicationRoleConnectionUpdate updates and returns user role connection to the specified application.
-// appID      : ID of the application
-// connection : New ApplicationRoleConnection data
-func (s *Session) UserApplicationRoleConnectionUpdate(appID string, rconn *application.RoleConnection) (st *application.RoleConnection, err error) {
-	endpoint := discord.EndpointUserApplicationRoleConnection(appID)
-	var body []byte
-	body, err = s.RequestWithBucketID("PUT", endpoint, rconn, endpoint)
+// UserApplicationRoleConnectionUpdate updates and returns application.RoleConnection to the specified application.Application.
+func (s *Session) UserApplicationRoleConnectionUpdate(appID string, rconn *application.RoleConnection, options ...discord.RequestOption) (*application.RoleConnection, error) {
+	body, err := s.Request(http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID), rconn, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(body, &st)
-	return
-}
-
-// ----------------------------------------------------------------------
-// Functions specific to polls
-// ----------------------------------------------------------------------
-
-// PollAnswerVoters returns users who voted for a particular answer in a poll on the specified message.
-// channelID : ID of the channel.
-// messageID : ID of the message.
-// answerID  : ID of the answer.
-func (s *Session) PollAnswerVoters(channelID, messageID string, answerID int) (voters []*user.User, err error) {
-	endpoint := discord.EndpointPollAnswerVoters(channelID, messageID, answerID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	var r struct {
-		Users []*user.User `json:"users"`
-	}
-
-	err = unmarshal(body, &r)
-	if err != nil {
-		return
-	}
-
-	voters = r.Users
-	return
-}
-
-// PollExpire expires poll on the specified message.
-// channelID : ID of the channel.
-// messageID : ID of the message.
-func (s *Session) PollExpire(channelID, messageID string) (msg *channel.Message, err error) {
-	endpoint := discord.EndpointPollExpire(channelID, messageID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("POST", endpoint, nil, endpoint)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &msg)
-	return
+	var c application.RoleConnection
+	return &c, unmarshal(body, &c)
 }
