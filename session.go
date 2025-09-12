@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild/guildapi"
@@ -189,27 +190,32 @@ type IdentifyProperties struct {
 	ReferringDomain string `json:"$referring_domain"`
 }
 
-// UserAPI returns an userapi.Requester to interact with the user package
+// UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() userapi.Requester {
 	return userapi.Requester{Requester: s}
 }
 
-// GuildAPI returns a guildapi.Requester to interact with the guild package
+// GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() guildapi.Requester {
 	return guildapi.Requester{Requester: s}
 }
 
-// ChannelAPI returns a channelapi.Requester to interact with the channel package
+// ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() channelapi.Requester {
 	return channelapi.Requester{Requester: s}
 }
 
-// InviteAPI returns an inviteapi.Requester to interact with the invite package
+// InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() inviteapi.Requester {
 	return inviteapi.Requester{Requester: s}
 }
 
-// InteractionAPI returns an interactionapi.Requester to interact with the interaction package
+// InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() interactionapi.Requester {
 	return interactionapi.Requester{API: s}
+}
+
+// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
+func (s *Session) ApplicationAPI() applicationapi.Requester {
+	return applicationapi.Requester{Requester: s}
 }

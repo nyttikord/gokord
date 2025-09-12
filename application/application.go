@@ -56,3 +56,10 @@ type RoleConnection struct {
 	PlatformUsername string            `json:"platform_username"`
 	Metadata         map[string]string `json:"metadata"`
 }
+
+// Asset struct stores values for an asset of an Application
+type Asset struct {
+	Type int    `json:"type"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
