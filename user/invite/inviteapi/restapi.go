@@ -1,3 +1,4 @@
+// Package inviteapi contains everything to interact with everything located in the invite package.
 package inviteapi
 
 import (

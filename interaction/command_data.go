@@ -1,4 +1,4 @@
-package interactions
+package interaction
 
 import (
 	"github.com/nyttikord/gokord/channel"

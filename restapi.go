@@ -3,6 +3,7 @@ package gokord
 import (
 	_ "image/jpeg" // For JPEG decoding
 	_ "image/png"  // For PNG decoding
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -11,25 +12,22 @@ import (
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/interactions"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/user/invite"
 )
 
 // ------------------------------------------------------------------------------------------------
 // Functions specific to Discord Voice
 // ------------------------------------------------------------------------------------------------
 
-func (s *Session) VoiceRegions(options ...discord.RequestOption) (st []*discord.VoiceRegion, err error) {
-
-	body, err := s.RequestWithBucketID("GET", discord.EndpointVoiceRegions, nil, discord.EndpointVoiceRegions, options...)
+func (s *Session) VoiceRegions(options ...discord.RequestOption) ([]*discord.VoiceRegion, error) {
+	body, err := s.Request(http.MethodGet, discord.EndpointVoiceRegions, nil, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(body, &st)
-	return
+	var vc []*discord.VoiceRegion
+	return vc, unmarshal(body, &vc)
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -37,11 +35,10 @@ func (s *Session) VoiceRegions(options ...discord.RequestOption) (st []*discord.
 // ------------------------------------------------------------------------------------------------
 
 // Gateway returns the websocket Gateway address
-func (s *Session) Gateway(options ...discord.RequestOption) (gateway string, err error) {
-
-	response, err := s.RequestWithBucketID("GET", discord.EndpointGateway, nil, discord.EndpointGateway, options...)
+func (s *Session) Gateway(options ...discord.RequestOption) (string, error) {
+	response, err := s.Request(http.MethodGet, discord.EndpointGateway, nil, options...)
 	if err != nil {
-		return
+		return "", err
 	}
 
 	temp := struct {
@@ -50,10 +47,10 @@ func (s *Session) Gateway(options ...discord.RequestOption) (gateway string, err
 
 	err = unmarshal(response, &temp)
 	if err != nil {
-		return
+		return "", err
 	}
 
-	gateway = temp.URL
+	gateway := temp.URL
 
 	// Ensure the gateway always has a trailing slash.
 	// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
@@ -61,273 +58,29 @@ func (s *Session) Gateway(options ...discord.RequestOption) (gateway string, err
 		gateway += "/"
 	}
 
-	return
+	return gateway, nil
 }
 
 // GatewayBot returns the websocket Gateway address and the recommended number of shards
-func (s *Session) GatewayBot(options ...discord.RequestOption) (st *GatewayBotResponse, err error) {
-
-	response, err := s.RequestWithBucketID("GET", discord.EndpointGatewayBot, nil, discord.EndpointGatewayBot, options...)
+func (s *Session) GatewayBot(options ...discord.RequestOption) (*GatewayBotResponse, error) {
+	response, err := s.Request(http.MethodGet, discord.EndpointGatewayBot, nil, options...)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	err = unmarshal(response, &st)
+	var resp GatewayBotResponse
+	err = unmarshal(response, &resp)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	// Ensure the gateway always has a trailing slash.
 	// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
-	if !strings.HasSuffix(st.URL, "/") {
-		st.URL += "/"
+	if !strings.HasSuffix(resp.URL, "/") {
+		resp.URL += "/"
 	}
 
-	return
-}
-
-// ------------------------------------------------------------------------------------------------
-// Functions specific to application (slash) commands
-// ------------------------------------------------------------------------------------------------
-
-// ApplicationCommandCreate creates a global application command and returns it.
-// appID       : The application ID.
-// guildID     : Guild ID to create guild-specific application command. If empty - creates global application command.
-// cmd         : New application command data.
-func (s *Session) ApplicationCommandCreate(appID string, guildID string, cmd *interactions.Command, options ...discord.RequestOption) (ccmd *interactions.Command, err error) {
-	endpoint := discord.EndpointApplicationGlobalCommands(appID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
-	}
-
-	body, err := s.RequestWithBucketID("POST", endpoint, *cmd, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &ccmd)
-
-	return
-}
-
-// ApplicationCommandEdit edits application command and returns new command data.
-// appID       : The application ID.
-// cmdID       : Application command ID to edit.
-// guildID     : Guild ID to edit guild-specific application command. If empty - edits global application command.
-// cmd         : Updated application command data.
-func (s *Session) ApplicationCommandEdit(appID, guildID, cmdID string, cmd *interactions.Command, options ...discord.RequestOption) (updated *interactions.Command, err error) {
-	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
-	}
-
-	body, err := s.RequestWithBucketID("PATCH", endpoint, *cmd, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &updated)
-
-	return
-}
-
-// ApplicationCommandBulkOverwrite Creates commands overwriting existing commands. Returns a list of commands.
-// appID    : The application ID.
-// commands : The commands to create.
-func (s *Session) ApplicationCommandBulkOverwrite(appID string, guildID string, commands []*interactions.Command, options ...discord.RequestOption) (createdCommands []*interactions.Command, err error) {
-	endpoint := discord.EndpointApplicationGlobalCommands(appID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
-	}
-
-	body, err := s.RequestWithBucketID("PUT", endpoint, commands, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &createdCommands)
-
-	return
-}
-
-// ApplicationCommandDelete deletes application command by ID.
-// appID       : The application ID.
-// cmdID       : Application command ID to delete.
-// guildID     : Guild ID to delete guild-specific application command. If empty - deletes global application command.
-func (s *Session) ApplicationCommandDelete(appID, guildID, cmdID string, options ...discord.RequestOption) error {
-	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
-	}
-
-	_, err := s.RequestWithBucketID("DELETE", endpoint, nil, endpoint, options...)
-
-	return err
-}
-
-// ApplicationCommand retrieves an application command by given ID.
-// appID       : The application ID.
-// cmdID       : Application command ID.
-// guildID     : Guild ID to retrieve guild-specific application command. If empty - retrieves global application command.
-func (s *Session) ApplicationCommand(appID, guildID, cmdID string, options ...discord.RequestOption) (cmd *interactions.Command, err error) {
-	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
-	}
-
-	body, err := s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &cmd)
-
-	return
-}
-
-// ApplicationCommands retrieves all commands in application.
-// appID       : The application ID.
-// guildID     : Guild ID to retrieve all guild-specific application commands. If empty - retrieves global application commands.
-func (s *Session) ApplicationCommands(appID, guildID string, options ...discord.RequestOption) (cmd []*interactions.Command, err error) {
-	endpoint := discord.EndpointApplicationGlobalCommands(appID)
-	if guildID != "" {
-		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
-	}
-
-	body, err := s.RequestWithBucketID("GET", endpoint+"?with_localizations=true", nil, "GET "+endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &cmd)
-
-	return
-}
-
-// GuildApplicationCommandsPermissions returns permissions for application commands in a guild.
-// appID       : The application ID
-// guildID     : Guild ID to retrieve application commands permissions for.
-func (s *Session) GuildApplicationCommandsPermissions(appID, guildID string, options ...discord.RequestOption) (permissions []*interactions.GuildCommandPermissions, err error) {
-	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &permissions)
-	return
-}
-
-// ApplicationCommandPermissions returns all permissions of an application command
-// appID       : The Application ID
-// guildID     : The guild ID containing the application command
-// cmdID       : The command ID to retrieve the permissions of
-func (s *Session) ApplicationCommandPermissions(appID, guildID, cmdID string, options ...discord.RequestOption) (permissions *interactions.GuildCommandPermissions, err error) {
-	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &permissions)
-	return
-}
-
-// ApplicationCommandPermissionsEdit edits the permissions of an application command
-// appID       : The Application ID
-// guildID     : The guild ID containing the application command
-// cmdID       : The command ID to edit the permissions of
-// permissions : An object containing a list of permissions for the application command
-//
-// NOTE: Requires OAuth2 token with applications.commands.permissions.update scope
-func (s *Session) ApplicationCommandPermissionsEdit(appID, guildID, cmdID string, permissions *interactions.CommandPermissionsList, options ...discord.RequestOption) (err error) {
-	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
-
-	_, err = s.RequestWithBucketID("PUT", endpoint, permissions, endpoint, options...)
-	return
-}
-
-// ApplicationCommandPermissionsBatchEdit edits the permissions of a batch of commands
-// appID       : The Application ID
-// guildID     : The guild ID to batch edit commands of
-// permissions : A list of permissions paired with a command ID, guild ID, and application ID per application command
-//
-// NOTE: This endpoint has been disabled with updates to command permissions (Permissions v2). Please use ApplicationCommandPermissionsEdit instead.
-func (s *Session) ApplicationCommandPermissionsBatchEdit(appID, guildID string, permissions []*interactions.GuildCommandPermissions, options ...discord.RequestOption) (err error) {
-	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
-
-	_, err = s.RequestWithBucketID("PUT", endpoint, permissions, endpoint, options...)
-	return
-}
-
-// InteractionRespond creates the response to an interaction.
-// interaction : Interaction instance.
-// resp        : Response message data.
-func (s *Session) InteractionRespond(interaction *interactions.Interaction, resp *interactions.InteractionResponse, options ...discord.RequestOption) error {
-	endpoint := discord.EndpointInteractionResponse(interaction.ID, interaction.Token)
-
-	if resp.Data != nil && len(resp.Data.Files) > 0 {
-		contentType, body, err := channel.MultipartBodyWithJSON(resp, resp.Data.Files)
-		if err != nil {
-			return err
-		}
-
-		_, err = s.RequestRaw("POST", endpoint, contentType, body, endpoint, 0, options...)
-		return err
-	}
-
-	_, err := s.RequestWithBucketID("POST", endpoint, *resp, endpoint, options...)
-	return err
-}
-
-// InteractionResponse gets the response to an interaction.
-// interaction : Interaction instance.
-func (s *Session) InteractionResponse(interaction *interactions.Interaction, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.WebhookMessage(interaction.AppID, interaction.Token, "@original", options...)
-}
-
-// InteractionResponseEdit edits the response to an interaction.
-// interaction : Interaction instance.
-// newresp     : Updated response message data.
-func (s *Session) InteractionResponseEdit(interaction *interactions.Interaction, newresp *channel.WebhookEdit, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, "@original", newresp, options...)
-}
-
-// InteractionResponseDelete deletes the response to an interaction.
-// interaction : Interaction instance.
-func (s *Session) InteractionResponseDelete(interaction *interactions.Interaction, options ...discord.RequestOption) error {
-	endpoint := discord.EndpointInteractionResponseActions(interaction.AppID, interaction.Token)
-
-	_, err := s.RequestWithBucketID("DELETE", endpoint, nil, endpoint, options...)
-
-	return err
-}
-
-// FollowupMessageCreate creates the followup message for an interaction.
-// interaction : Interaction instance.
-// wait        : Waits for server confirmation of message send and ensures that the return struct is populated (it is nil otherwise)
-// data        : Data of the message to send.
-func (s *Session) FollowupMessageCreate(interaction *interactions.Interaction, wait bool, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.WebhookExecute(interaction.AppID, interaction.Token, wait, data, options...)
-}
-
-// FollowupMessageEdit edits a followup message of an interaction.
-// interaction : Interaction instance.
-// messageID   : The followup message ID.
-// data        : Data to update the message
-func (s *Session) FollowupMessageEdit(interaction *interactions.Interaction, messageID string, data *channel.WebhookEdit, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.WebhookMessageEdit(interaction.AppID, interaction.Token, messageID, data, options...)
-}
-
-// FollowupMessageDelete deletes a followup message of an interaction.
-// interaction : Interaction instance.
-// messageID   : The followup message ID.
-func (s *Session) FollowupMessageDelete(interaction *interactions.Interaction, messageID string, options ...discord.RequestOption) error {
-	return s.WebhookMessageDelete(interaction.AppID, interaction.Token, messageID, options...)
+	return &resp, nil
 }
 
 // ----------------------------------------------------------------------

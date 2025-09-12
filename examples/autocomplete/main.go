@@ -8,7 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/nyttikord/gokord"
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/interaction"
 )
 
 // Bot parameters
@@ -31,12 +31,12 @@ func init() {
 }
 
 var (
-	commands = []*interactions.Command{
+	commands = []*interaction.Command{
 		{
 			Name:        "single-autocomplete",
 			Description: "Showcase of single autocomplete option",
 			Type:        gokord.ChatApplicationCommand,
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option",
 					Description:  "Autocomplete option",
@@ -50,7 +50,7 @@ var (
 			Name:        "multi-autocomplete",
 			Description: "Showcase of multiple autocomplete option",
 			Type:        gokord.ChatApplicationCommand,
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option-1",
 					Description:  "Autocomplete option 1",
@@ -74,9 +74,9 @@ var (
 			switch i.Type {
 			case gokord.InteractionApplicationCommand:
 				data := i.ApplicationCommandData()
-				err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &interactions.InteractionResponseData{
+					Data: &interaction.InteractionResponseData{
 						Content: fmt.Sprintf(
 							"You picked %q autocompletion",
 							// Autocompleted options do not affect usual flow of handling application command. They are ordinary options at this stage
@@ -90,7 +90,7 @@ var (
 			// Autocomplete options introduce a new interaction type (8) for returning custom autocomplete results.
 			case gokord.InteractionApplicationCommandAutocomplete:
 				data := i.ApplicationCommandData()
-				choices := []*interactions.CommandOptionChoice{
+				choices := []*interaction.CommandOptionChoice{
 					{
 						Name:  "Autocomplete",
 						Value: "autocomplete",
@@ -115,15 +115,15 @@ var (
 				}
 
 				if data.Options[0].StringValue() != "" {
-					choices = append(choices, &interactions.CommandOptionChoice{
+					choices = append(choices, &interaction.CommandOptionChoice{
 						Name:  data.Options[0].StringValue(), // To get user input you just get value of the autocomplete option.
 						Value: "choice_custom",
 					})
 				}
 
-				err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
 					Type: gokord.InteractionApplicationCommandAutocompleteResult,
-					Data: &interactions.InteractionResponseData{
+					Data: &interaction.InteractionResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 					},
 				})
@@ -136,9 +136,9 @@ var (
 			switch i.Type {
 			case gokord.InteractionApplicationCommand:
 				data := i.ApplicationCommandData()
-				err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
 					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &interactions.InteractionResponseData{
+					Data: &interaction.InteractionResponseData{
 						Content: fmt.Sprintf(
 							"Option 1: %s\nOption 2: %s",
 							data.Options[0].StringValue(),
@@ -151,11 +151,11 @@ var (
 				}
 			case gokord.InteractionApplicationCommandAutocomplete:
 				data := i.ApplicationCommandData()
-				var choices []*interactions.CommandOptionChoice
+				var choices []*interaction.CommandOptionChoice
 				switch {
 				// In this case there are multiple autocomplete options. The Focused field shows which option user is focused on.
 				case data.Options[0].Focused:
-					choices = []*interactions.CommandOptionChoice{
+					choices = []*interaction.CommandOptionChoice{
 						{
 							Name:  "Autocomplete 4 first option",
 							Value: "autocomplete_default",
@@ -174,14 +174,14 @@ var (
 						},
 					}
 					if data.Options[0].StringValue() != "" {
-						choices = append(choices, &interactions.CommandOptionChoice{
+						choices = append(choices, &interaction.CommandOptionChoice{
 							Name:  data.Options[0].StringValue(),
 							Value: "choice_custom",
 						})
 					}
 
 				case data.Options[1].Focused:
-					choices = []*interactions.CommandOptionChoice{
+					choices = []*interaction.CommandOptionChoice{
 						{
 							Name:  "Autocomplete 4 second option",
 							Value: "autocomplete_1_default",
@@ -200,16 +200,16 @@ var (
 						},
 					}
 					if data.Options[1].StringValue() != "" {
-						choices = append(choices, &interactions.CommandOptionChoice{
+						choices = append(choices, &interaction.CommandOptionChoice{
 							Name:  data.Options[1].StringValue(),
 							Value: "choice_custom_2",
 						})
 					}
 				}
 
-				err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
 					Type: gokord.InteractionApplicationCommandAutocompleteResult,
-					Data: &interactions.InteractionResponseData{
+					Data: &interaction.InteractionResponseData{
 						Choices: choices,
 					},
 				})
