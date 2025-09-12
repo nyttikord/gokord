@@ -11,7 +11,6 @@ import (
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
-	"github.com/nyttikord/gokord/user/userapi"
 )
 
 // ErrNilState is returned when the state is nil.
@@ -245,7 +244,7 @@ func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
 }
 
 // PresenceAdd adds a presence to the current world state, or
-// updates it if it already exists.
+// updates it if it already existuserapis.
 func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	if s == nil {
 		return ErrNilState
@@ -1232,7 +1231,7 @@ func (s *State) UserChannelPermissions(userID, channelID string) (apermissions i
 		return
 	}
 
-	return userapi.MemberPermissions(guild, channel, userID, member.Roles), nil
+	return user.MemberPermissions(guild, channel, userID, member.Roles), nil
 }
 
 // MessagePermissions returns the permissions of the author of the message
@@ -1256,7 +1255,7 @@ func (s *State) MessagePermissions(message *channel.Message) (apermissions int64
 		return
 	}
 
-	return userapi.MemberPermissions(guild, channel, message.Author.ID, message.Member.Roles), nil
+	return user.MemberPermissions(guild, channel, message.Author.ID, message.Member.Roles), nil
 }
 
 // UserColor returns the color of a user in a channel.
