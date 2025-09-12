@@ -32,7 +32,7 @@ func (s Requester) Webhooks(channelID string, options ...discord.RequestOption) 
 	}
 
 	var ws []*channel.Webhook
-	return ws, s.Unmarshal(body, ws)
+	return ws, s.Unmarshal(body, &ws)
 }
 
 // GuildWebhooks returns all channel.Webhook for a given guild.Guild.

@@ -9,19 +9,13 @@ import (
 
 // Integrations returns the list of user.Integration for a guild.Guild.
 func (r Requester) Integrations(guildID string, options ...discord.RequestOption) ([]*user.Integration, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildIntegrations(guildID),
-		nil,
-		discord.EndpointGuildIntegrations(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildIntegrations(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var st []*user.Integration
-	return st, r.Unmarshal(body, st)
+	return st, r.Unmarshal(body, &st)
 }
 
 // IntegrationCreate creates a guild.Guild user.Integration.
@@ -31,13 +25,7 @@ func (r Requester) IntegrationCreate(guildID, integrationType, integrationID str
 		ID   string `json:"id"`
 	}{integrationType, integrationID}
 
-	_, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildIntegrations(guildID),
-		data,
-		discord.EndpointGuildIntegrations(guildID),
-		options...,
-	)
+	_, err := r.Request(http.MethodPost, discord.EndpointGuildIntegrations(guildID), data, options...)
 	return err
 }
 

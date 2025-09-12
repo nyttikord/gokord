@@ -3,7 +3,6 @@ package guildapi
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"image"
 	"net/http"
 	"net/url"
@@ -64,19 +63,13 @@ func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bo
 
 // Invites returns the list of invite.Invite for the given guild.Guild.
 func (r Requester) Invites(guildID string, options ...discord.RequestOption) ([]*invite.Invite, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildInvites(guildID),
-		nil,
-		discord.EndpointGuildInvites(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildInvites(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var st []*invite.Invite
-	return st, r.Unmarshal(body, st)
+	return st, r.Unmarshal(body, &st)
 }
 
 // Icon returns an image.Image of a guild.Guild icon.
@@ -133,13 +126,7 @@ func (r Requester) Splash(guildID string, options ...discord.RequestOption) (ima
 
 // Embed returns the guild.Embed for a guild.Guild.
 func (r Requester) Embed(guildID string, options ...discord.RequestOption) (*guild.Embed, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildEmbed(guildID),
-		nil,
-		discord.EndpointGuildEmbed(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmbed(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,13 +137,7 @@ func (r Requester) Embed(guildID string, options ...discord.RequestOption) (*gui
 
 // EmbedEdit edits the guild.Embed of a guild.Guild.
 func (r Requester) EmbedEdit(guildID string, data *guild.Embed, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		http.MethodPatch,
-		discord.EndpointGuildEmbed(guildID),
-		data,
-		discord.EndpointGuildEmbed(guildID),
-		options...,
-	)
+	_, err := r.Request(http.MethodPatch, discord.EndpointGuildEmbed(guildID), data, options...)
 	return err
 }
 
@@ -183,10 +164,10 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 		v.Set("limit", strconv.Itoa(limit))
 	}
 	if len(v) > 0 {
-		uri = fmt.Sprintf("%r?%r", uri, v.Encode())
+		uri += "?" + v.Encode()
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointGuildAuditLogs(guildID), options...)
+	body, err := r.Request(http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -197,13 +178,7 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 
 // ApplicationEmojis returns all emoji.Emoji for the given application.Application
 func (r Requester) ApplicationEmojis(appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointApplicationEmojis(appID),
-		nil,
-		discord.EndpointApplicationEmojis(appID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmojis(appID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -218,13 +193,7 @@ func (r Requester) ApplicationEmojis(appID string, options ...discord.RequestOpt
 
 // ApplicationEmoji returns the emoji.Emoji for the given application.Application.
 func (r Requester) ApplicationEmoji(appID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointApplicationEmoji(appID, emojiID),
-		nil,
-		discord.EndpointApplicationEmoji(appID, emojiID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,13 +204,7 @@ func (r Requester) ApplicationEmoji(appID, emojiID string, options ...discord.Re
 
 // ApplicationEmojiCreate creates a new emoji.Emoji for the given application.Application.
 func (r Requester) ApplicationEmojiCreate(appID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointApplicationEmojis(appID),
-		data,
-		discord.EndpointApplicationEmojis(appID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointApplicationEmojis(appID), data, options...)
 	if err != nil {
 		return nil, err
 	}

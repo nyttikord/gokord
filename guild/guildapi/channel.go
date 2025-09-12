@@ -43,13 +43,7 @@ type ChannelCreateData struct {
 
 // ChannelCreateComplex creates a new channel.Channel in the given guild.Guild
 func (r Requester) ChannelCreateComplex(guildID string, data ChannelCreateData, options ...discord.RequestOption) (*channel.Channel, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildChannels(guildID),
-		data,
-		discord.EndpointGuildChannels(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildChannels(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,12 +72,6 @@ func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel, 
 		data[i].Position = c.Position
 	}
 
-	_, err := r.RequestWithBucketID(
-		http.MethodPatch,
-		discord.EndpointGuildChannels(guildID),
-		data,
-		discord.EndpointGuildChannels(guildID),
-		options...,
-	)
+	_, err := r.Request(http.MethodPatch, discord.EndpointGuildChannels(guildID), data, options...)
 	return err
 }

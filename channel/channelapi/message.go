@@ -45,7 +45,7 @@ func (s Requester) Messages(channelID string, limit int, beforeID, afterID, arou
 	}
 
 	var c []*channel.Message
-	return c, s.Unmarshal(body, c)
+	return c, s.Unmarshal(body, &c)
 }
 
 // Message gets channel.Message from a given channel.Channel.
@@ -395,5 +395,5 @@ func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit 
 	}
 
 	var u []*user.User
-	return u, s.Unmarshal(body, u)
+	return u, s.Unmarshal(body, &u)
 }

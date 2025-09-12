@@ -34,7 +34,7 @@ func (r Requester) Bans(guildID string, limit int, beforeID, afterID string, opt
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointGuildBans(guildID), options...)
+	body, err := r.Request(http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,7 @@ func (r Requester) BanCreate(guildID, userID string, days int, options ...discor
 
 // Ban finds ban by given guild.Guild and user.User id and returns guild.Ban structure
 func (r Requester) Ban(guildID, userID string, options ...discord.RequestOption) (*guild.Ban, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildBan(guildID, userID),
-		nil,
-		discord.EndpointGuildBan(guildID, userID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildBan(guildID, userID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +118,7 @@ func (r Requester) Members(guildID string, afterID string, limit int, options ..
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointGuildMembers(guildID), options...)
+	body, err := r.Request(http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +139,7 @@ func (r Requester) MembersSearch(guildID, query string, limit int, options ...di
 		queryParams.Set("limit", strconv.Itoa(limit))
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, uri+"?"+queryParams.Encode(), nil, uri, options...)
+	body, err := r.Request(http.MethodGet, uri+"?"+queryParams.Encode(), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +343,7 @@ func (r Requester) PruneCount(guildID string, days uint32, options ...discord.Re
 	}{}
 
 	uri := discord.EndpointGuildPrune(guildID) + "?days=" + strconv.FormatUint(uint64(days), 10)
-	body, err := r.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointGuildPrune(guildID), options...)
+	body, err := r.Request(http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return 0, err
 	}
@@ -379,13 +373,7 @@ func (r Requester) Prune(guildID string, days uint32, options ...discord.Request
 		Pruned uint32 `json:"pruned"`
 	}{}
 
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildPrune(guildID),
-		data,
-		discord.EndpointGuildPrune(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildPrune(guildID), data, options...)
 	if err != nil {
 		return 0, err
 	}

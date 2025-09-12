@@ -9,31 +9,19 @@ import (
 
 // Emojis returns all emoji.Emoji.
 func (r Requester) Emojis(guildID string, options ...discord.RequestOption) ([]*emoji.Emoji, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildEmojis(guildID),
-		nil,
-		discord.EndpointGuildEmojis(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmojis(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var em []*emoji.Emoji
-	return em, r.Unmarshal(body, em)
+	return em, r.Unmarshal(body, &em)
 }
 
 // Emoji returns the emoji.Emoji in the given guild.Guild.
 func (r Requester) Emoji(guildID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	var body []byte
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildEmoji(guildID, emojiID),
-		nil,
-		discord.EndpointGuildEmoji(guildID, emojiID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmoji(guildID, emojiID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +32,7 @@ func (r Requester) Emoji(guildID, emojiID string, options ...discord.RequestOpti
 
 // EmojiCreate creates a new emoji.Emoji in the given guild.Guild.
 func (r Requester) EmojiCreate(guildID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildEmojis(guildID),
-		data,
-		discord.EndpointGuildEmojis(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildEmojis(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}

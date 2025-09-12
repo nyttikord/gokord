@@ -9,14 +9,8 @@ import (
 )
 
 // RoleCreate creates a new guild.Role.
-func (r Requester) GuildRoleCreate(guildID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildRoles(guildID),
-		data,
-		discord.EndpointGuildRoles(guildID),
-		options...,
-	)
+func (r Requester) RoleCreate(guildID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildRoles(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -27,19 +21,13 @@ func (r Requester) GuildRoleCreate(guildID string, data *guild.RoleParams, optio
 
 // Roles returns all guild.Role for a given guild.Guild.
 func (r Requester) Roles(guildID string, options ...discord.RequestOption) ([]*guild.Role, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildRoles(guildID),
-		nil,
-		discord.EndpointGuildRoles(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildRoles(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var st []*guild.Role
-	return st, r.Unmarshal(body, st)
+	return st, r.Unmarshal(body, &st)
 }
 
 // RoleEdit updates an existing guild.Role and returns updated data.
@@ -66,23 +54,17 @@ func (r Requester) RoleEdit(guildID, roleID string, data *guild.RoleParams, opti
 
 // RoleReorder reoders guild.Role.
 func (r Requester) RoleReorder(guildID string, roles []*guild.Role, options ...discord.RequestOption) ([]*guild.Role, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPatch,
-		discord.EndpointGuildRoles(guildID),
-		roles,
-		discord.EndpointGuildRoles(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPatch, discord.EndpointGuildRoles(guildID), roles, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var st []*guild.Role
-	return st, r.Unmarshal(body, st)
+	return st, r.Unmarshal(body, &st)
 }
 
 // RoleDelete deletes a guild.Role.
-func (r Requester) GuildRoleDelete(guildID, roleID string, options ...discord.RequestOption) error {
+func (r Requester) RoleDelete(guildID, roleID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointGuildRole(guildID, roleID),

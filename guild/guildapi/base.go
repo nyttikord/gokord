@@ -16,13 +16,7 @@ var (
 
 // Guild returns the guild.Guild with the given guildID.
 func (r Requester) Guild(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuild(guildID),
-		nil,
-		discord.EndpointGuild(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +27,7 @@ func (r Requester) Guild(guildID string, options ...discord.RequestOption) (*gui
 
 // GuildWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
 func (r Requester) GuildWithCounts(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuild(guildID)+"?with_counts=true",
-		nil,
-		discord.EndpointGuild(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true", nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,13 +38,7 @@ func (r Requester) GuildWithCounts(guildID string, options ...discord.RequestOpt
 
 // GuildPreview returns the guild.Preview for the given public guild.Guild guildID.
 func (r Requester) GuildPreview(guildID string, options ...discord.RequestOption) (*guild.Preview, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildPreview(guildID),
-		nil,
-		discord.EndpointGuildPreview(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildPreview(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +53,7 @@ func (r Requester) GuildCreate(name string, options ...discord.RequestOption) (*
 		Name string `json:"name"`
 	}{name}
 
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildCreate,
-		data,
-		discord.EndpointGuildCreate,
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildCreate, data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,13 +90,7 @@ func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...di
 		}
 	}
 
-	body, err := r.RequestWithBucketID(
-		http.MethodPatch,
-		discord.EndpointGuild(guildID),
-		params,
-		discord.EndpointGuild(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPatch, discord.EndpointGuild(guildID), params, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,13 +101,7 @@ func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...di
 
 // GuildDelete deletes a guild.Guild.
 func (r Requester) GuildDelete(guildID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		http.MethodDelete,
-		discord.EndpointGuild(guildID),
-		nil,
-		discord.EndpointGuild(guildID),
-		options...,
-	)
+	_, err := r.Request(http.MethodDelete, discord.EndpointGuild(guildID), nil, options...)
 	return err
 }
 

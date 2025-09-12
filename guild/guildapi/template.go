@@ -9,13 +9,7 @@ import (
 
 // Template returns a guild.Template for the given code.
 func (r Requester) Template(code string, options ...discord.RequestOption) (*guild.Template, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildTemplate(code),
-		nil,
-		discord.EndpointGuildTemplate(code),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildTemplate(code), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -35,13 +29,7 @@ func (r Requester) CreateWithTemplate(templateCode, name, icon string, options .
 		Icon string `json:"icon"`
 	}{name, icon}
 
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildTemplate(templateCode),
-		data,
-		discord.EndpointGuildTemplate(templateCode),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildTemplate(templateCode), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,13 +40,7 @@ func (r Requester) CreateWithTemplate(templateCode, name, icon string, options .
 
 // Templates returns every guild.Template of the given guild.Guild.
 func (r Requester) Templates(guildID string, options ...discord.RequestOption) ([]*guild.Template, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointGuildTemplates(guildID),
-		nil,
-		discord.EndpointGuildTemplates(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildTemplates(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,15 +49,9 @@ func (r Requester) Templates(guildID string, options ...discord.RequestOption) (
 	return t, r.Unmarshal(body, &t)
 }
 
-// GuildTemplateCreate creates a guild.Template for the guild.Guild.
+// TemplateCreate creates a guild.Template for the guild.Guild.
 func (r Requester) TemplateCreate(guildID string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
-	body, err := r.RequestWithBucketID(
-		http.MethodPost,
-		discord.EndpointGuildTemplates(guildID),
-		data,
-		discord.EndpointGuildTemplates(guildID),
-		options...,
-	)
+	body, err := r.Request(http.MethodPost, discord.EndpointGuildTemplates(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}

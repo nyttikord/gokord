@@ -80,13 +80,7 @@ func (s Requester) UserUpdate(username, avatar, banner string, options ...discor
 
 // UserConnections returns the current user.Connection.
 func (s Requester) UserConnections(options ...discord.RequestOption) ([]*user.Connection, error) {
-	response, err := s.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointUserConnections("@me"),
-		nil,
-		discord.EndpointUserConnections("@me"),
-		options...,
-	)
+	response, err := s.Request(http.MethodGet, discord.EndpointUserConnections("@me"), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,13 +112,7 @@ func (s Requester) UserChannelCreate(userID string, options ...discord.RequestOp
 
 // UserGuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
 func (s Requester) UserGuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
-	body, err := s.RequestWithBucketID(
-		http.MethodGet,
-		discord.EndpointUserGuildMember("@me", guildID),
-		nil,
-		discord.EndpointUserGuildMember("@me", guildID),
-		options...,
-	)
+	body, err := s.Request(http.MethodGet, discord.EndpointUserGuildMember("@me", guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
