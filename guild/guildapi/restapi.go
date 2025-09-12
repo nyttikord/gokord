@@ -20,6 +20,7 @@ var (
 	ErrGuildNoSplash   = errors.New("guild does not have a splash set")
 )
 
+// Requester handles everything inside the guild package.
 type Requester struct {
 	discord.Requester
 }

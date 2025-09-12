@@ -13,6 +13,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
+// Requester handles everything inside the user package.
 type Requester struct {
 	discord.Requester
 }

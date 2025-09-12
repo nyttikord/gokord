@@ -1,3 +1,4 @@
+// Package applicationapi contains everything to interact with everything located in the application package.
 package applicationapi
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
+// Requester handles everything inside the application package.
 type Requester struct {
 	discord.Requester
 }

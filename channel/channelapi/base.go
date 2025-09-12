@@ -18,6 +18,7 @@ var (
 	ErrReplyNilMessageRef      = errors.New("reply attempted with nil message reference")
 )
 
+// Requester handles everything inside the channel package.
 type Requester struct {
 	discord.Requester
 }

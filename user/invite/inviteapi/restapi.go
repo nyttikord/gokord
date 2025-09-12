@@ -9,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/user/invite"
 )
 
+// Requester handles everything inside the invite package.
 type Requester struct {
 	discord.Requester
 }

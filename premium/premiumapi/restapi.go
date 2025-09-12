@@ -1,3 +1,4 @@
+// Package premiumapi contains everything to interact with everything located in the premium package.
 package premiumapi
 
 import (
@@ -11,6 +12,7 @@ import (
 	"github.com/nyttikord/gokord/premium"
 )
 
+// Requester handles everything inside the premium package.
 type Requester struct {
 	discord.Requester
 }

@@ -5,22 +5,24 @@ import (
 	"net/http"
 )
 
+// Requester is used to interact with the Discord API.
 type Requester interface {
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
-	Request(string, string, interface{}, ...RequestOption) ([]byte, error)
+	Request(method string, urlStr string, data interface{}, options ...RequestOption) ([]byte, error)
 	// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.
-	RequestWithBucketID(string, string, interface{}, string, ...RequestOption) ([]byte, error)
+	RequestWithBucketID(method string, urlStr string, data interface{}, bucketID string, options ...RequestOption) ([]byte, error)
 	// RequestRaw makes a (GET/POST/...) Requests to Discord REST API.
 	// Preferably use the other request methods but this lets you send JSON directly if that's what you have.
 	//
 	// sequence is the sequence number, if it fails with a 502 it will retry with sequence+1 until it either succeeds or
 	// sequence >= Session.MaxRestRetries
-	RequestRaw(string, string, string, []byte, string, int, ...RequestOption) ([]byte, error)
+	RequestRaw(method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
-	RequestWithLockedBucket(string, string, string, []byte, *Bucket, int, ...RequestOption) ([]byte, error)
+	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
 	// VoiceRegions returns the VoiceRegion
-	VoiceRegions(...RequestOption) ([]*VoiceRegion, error)
-	Unmarshal([]byte, interface{}) error
+	VoiceRegions(options ...RequestOption) ([]*VoiceRegion, error)
+	// Unmarshal is for unmarshalling body returned by the Discord API.
+	Unmarshal(bytes []byte, i interface{}) error
 }
 
 // RequestConfig is an HTTP request configuration.
