@@ -17,12 +17,6 @@ type MessageSend struct {
 	StickerIDs      []string                `json:"sticker_ids"`
 	Flags           MessageFlags            `json:"flags,omitempty"`
 	Poll            *Poll                   `json:"poll,omitempty"`
-
-	// TODO: Remove this when compatibility is not required.
-	File *File `json:"-"`
-
-	// TODO: Remove this when compatibility is not required.
-	Embed *MessageEmbed `json:"-"`
 }
 
 // MessageEdit is used to chain parameters via ChannelMessageEditComplex, which
@@ -40,9 +34,6 @@ type MessageEdit struct {
 
 	ID      string
 	Channel string
-
-	// TODO: Remove this when compatibility is not required.
-	Embed *MessageEmbed `json:"-"`
 }
 
 // NewMessageEdit returns a MessageEdit struct, initialized with the Channel and ID.

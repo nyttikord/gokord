@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/logger"
@@ -194,4 +195,9 @@ func (s *Session) UserAPI() userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package
 func (s *Session) GuildAPI() guildapi.Requester {
 	return guildapi.Requester{Requester: s}
+}
+
+// ChannelAPI returns a channelapi.Requester to interact with the channel package
+func (s *Session) ChannelAPI() channelapi.Requester {
+	return channelapi.Requester{Requester: s}
 }

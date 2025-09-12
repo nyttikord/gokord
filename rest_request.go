@@ -16,7 +16,7 @@ import (
 func unmarshal(data []byte, v interface{}) error {
 	err := json.Unmarshal(data, v)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrJSONUnmarshal, err)
+		return errors.Join(ErrJSONUnmarshal, err)
 	}
 
 	return nil
