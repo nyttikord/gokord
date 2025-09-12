@@ -111,10 +111,10 @@ func (s Requester) ApplicationAssets(appID string, options ...discord.RequestOpt
 	return a, s.Unmarshal(body, &a)
 }
 
-// ApplicationBotCreate creates an application.Application Bot Account.
+// BotCreate creates an application.Application Bot Account.
 //
 // Note: func name may change, if I can think up something better.
-func (s Requester) ApplicationBotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) BotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointOAuth2ApplicationsBot(appID),

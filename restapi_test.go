@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+
+	"github.com/nyttikord/gokord/discord"
 )
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
@@ -17,7 +19,7 @@ func TestChannelMessageSend(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelMessageSend(envChannel, "Running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "Running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -89,7 +91,7 @@ func TestUserChannelCreate(t *testing.T) {
 		t.Skip("Skipped, DG_ADMIN not set.")
 	}
 
-	_, err := dg.UserChannelCreate(envAdmin)
+	_, err := dg.UserAPI().ChannelCreate(envAdmin)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -102,7 +104,7 @@ func TestUserGuilds(t *testing.T) {
 		t.Skip("Cannot TestUserGuilds, dg not set.")
 	}
 
-	_, err := dg.UserGuilds(10, "", "", false)
+	_, err := dg.GuildAPI().UserGuilds(10, "", "", false)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -147,7 +149,7 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildRoles(envGuild)
+	_, err := dg.GuildAPI().Roles(envGuild)
 	if err != nil {
 		t.Errorf("GuildRoles(envGuild) returned error: %+v", err)
 	}
@@ -163,7 +165,7 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	err := dg.GuildMemberNickname(envGuild, "@me/nick", "B1nzyRocks")
+	err := dg.GuildAPI().MemberNickname(envGuild, "@me/nick", "B1nzyRocks")
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -179,7 +181,7 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelMessageSend(envChannel, "All done running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "All done running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -195,7 +197,7 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildPruneCount(envGuild, 1)
+	_, err := dg.GuildAPI().PruneCount(envGuild, 1)
 	if err != nil {
 		t.Errorf("PruneCount returned error: %+v", err)
 	}
@@ -247,7 +249,7 @@ func TestWithContext(t *testing.T) {
 	})
 
 	// Run any client method using WithContext.
-	_, err := session.User("", WithContext(ctx))
+	_, err := session.UserAPI().User("", discord.WithContext(ctx))
 
 	// Verify that the assertion code was actually run.
 	if !errors.Is(err, testErr) {

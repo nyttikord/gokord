@@ -90,8 +90,8 @@ func (s Requester) UserConnections(options ...discord.RequestOption) ([]*user.Co
 	return conn, s.Unmarshal(response, &conn)
 }
 
-// UserChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User
-func (s Requester) UserChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
+// ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User
+func (s Requester) ChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	data := struct {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
