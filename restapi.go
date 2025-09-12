@@ -1,11 +1,8 @@
 package gokord
 
 import (
-	"encoding/json"
-	"fmt"
 	_ "image/jpeg" // For JPEG decoding
 	_ "image/png"  // For PNG decoding
-	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -14,8 +11,6 @@ import (
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/discord/types"
-	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/interactions"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
@@ -422,225 +417,9 @@ func (s *Session) FollowupMessageDelete(interaction *interactions.Interaction, m
 	return s.WebhookMessageDelete(interaction.AppID, interaction.Token, messageID, options...)
 }
 
-// ------------------------------------------------------------------------------------------------
-// Functions specific to guilds scheduled events
-// ------------------------------------------------------------------------------------------------
-
-// GuildScheduledEvents returns an array of GuildScheduledEvent for a guild
-// guildID        : The ID of a Guild
-// userCount      : Whether to include the user count in the response
-func (s *Session) GuildScheduledEvents(guildID string, userCount bool, options ...discord.RequestOption) (st []*guild.ScheduledEvent, err error) {
-	uri := discord.EndpointGuildScheduledEvents(guildID)
-	if userCount {
-		uri += "?with_user_count=true"
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, discord.EndpointGuildScheduledEvents(guildID), options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEvent returns a specific GuildScheduledEvent in a guild
-// guildID        : The ID of a Guild
-// eventID        : The ID of the event
-// userCount      : Whether to include the user count in the response
-func (s *Session) GuildScheduledEvent(guildID, eventID string, userCount bool, options ...discord.RequestOption) (st *guild.ScheduledEvent, err error) {
-	uri := discord.EndpointGuildScheduledEvent(guildID, eventID)
-	if userCount {
-		uri += "?with_user_count=true"
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, discord.EndpointGuildScheduledEvent(guildID, eventID), options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventCreate creates a GuildScheduledEvent for a guild and returns it
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventCreate(guildID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (st *guild.ScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("POST", discord.EndpointGuildScheduledEvents(guildID), event, discord.EndpointGuildScheduledEvents(guildID), options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventEdit updates a specific event for a guild and returns it.
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventEdit(guildID, eventID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (st *guild.ScheduledEvent, err error) {
-	body, err := s.RequestWithBucketID("PATCH", discord.EndpointGuildScheduledEvent(guildID, eventID), event, discord.EndpointGuildScheduledEvent(guildID, eventID), options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildScheduledEventDelete deletes a specific GuildScheduledEvent in a guild
-// guildID   : The ID of a Guild
-// eventID   : The ID of the event
-func (s *Session) GuildScheduledEventDelete(guildID, eventID string, options ...discord.RequestOption) (err error) {
-	_, err = s.RequestWithBucketID("DELETE", discord.EndpointGuildScheduledEvent(guildID, eventID), nil, discord.EndpointGuildScheduledEvent(guildID, eventID), options...)
-	return
-}
-
-// GuildScheduledEventUsers returns an array of GuildScheduledEventUser for a particular event in a guild
-// guildID    : The ID of a Guild
-// eventID    : The ID of the event
-// limit      : The maximum number of users to return (Max 100)
-// withMember : Whether to include the member object in the response
-// beforeID   : If is not empty all returned users entries will be before the given ID
-// afterID    : If is not empty all returned users entries will be after the given ID
-func (s *Session) GuildScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string, options ...discord.RequestOption) (st []*guild.ScheduledEventUser, err error) {
-	uri := discord.EndpointGuildScheduledEventUsers(guildID, eventID)
-
-	queryParams := url.Values{}
-	if withMember {
-		queryParams.Set("with_member", "true")
-	}
-	if limit > 0 {
-		queryParams.Set("limit", strconv.Itoa(limit))
-	}
-	if beforeID != "" {
-		queryParams.Set("before", beforeID)
-	}
-	if afterID != "" {
-		queryParams.Set("after", afterID)
-	}
-
-	if len(queryParams) > 0 {
-		uri += "?" + queryParams.Encode()
-	}
-
-	body, err := s.RequestWithBucketID("GET", uri, nil, discord.EndpointGuildScheduledEventUsers(guildID, eventID), options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// GuildOnboarding returns onboarding configuration of a guild.
-// guildID   : The ID of the guild
-func (s *Session) GuildOnboarding(guildID string, options ...discord.RequestOption) (onboarding *guild.Onboarding, err error) {
-	endpoint := discord.EndpointGuildOnboarding(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &onboarding)
-	return
-}
-
-// GuildOnboardingEdit edits onboarding configuration of a guild.
-// guildID   : The ID of the guild
-// o         : New GuildOnboarding data
-func (s *Session) GuildOnboardingEdit(guildID string, o *guild.Onboarding, options ...discord.RequestOption) (onboarding *guild.Onboarding, err error) {
-	endpoint := discord.EndpointGuildOnboarding(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("PUT", endpoint, o, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &onboarding)
-	return
-}
-
 // ----------------------------------------------------------------------
 // Functions specific to auto moderation
 // ----------------------------------------------------------------------
-
-// AutoModerationRules returns a list of auto moderation rules.
-// guildID : ID of the guild
-func (s *Session) AutoModerationRules(guildID string, options ...discord.RequestOption) (st []*guild.AutoModerationRule, err error) {
-	endpoint := discord.EndpointGuildAutoModerationRules(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRule returns an auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-func (s *Session) AutoModerationRule(guildID, ruleID string, options ...discord.RequestOption) (st *guild.AutoModerationRule, err error) {
-	endpoint := discord.EndpointGuildAutoModerationRule(guildID, ruleID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("GET", endpoint, nil, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleCreate creates an auto moderation rule with the given data and returns it.
-// guildID : ID of the guild
-// rule    : Rule data
-func (s *Session) AutoModerationRuleCreate(guildID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (st *guild.AutoModerationRule, err error) {
-	endpoint := discord.EndpointGuildAutoModerationRules(guildID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("POST", endpoint, rule, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleEdit edits and returns the updated auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-// rule    : New rule data
-func (s *Session) AutoModerationRuleEdit(guildID, ruleID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (st *guild.AutoModerationRule, err error) {
-	endpoint := discord.EndpointGuildAutoModerationRule(guildID, ruleID)
-
-	var body []byte
-	body, err = s.RequestWithBucketID("PATCH", endpoint, rule, endpoint, options...)
-	if err != nil {
-		return
-	}
-
-	err = unmarshal(body, &st)
-	return
-}
-
-// AutoModerationRuleDelete deletes an auto moderation rule.
-// guildID : ID of the guild
-// ruleID  : ID of the auto moderation rule
-func (s *Session) AutoModerationRuleDelete(guildID, ruleID string, options ...discord.RequestOption) (err error) {
-	endpoint := discord.EndpointGuildAutoModerationRule(guildID, ruleID)
-	_, err = s.RequestWithBucketID("DELETE", endpoint, nil, endpoint, options...)
-	return
-}
 
 // ApplicationRoleConnectionMetadata returns application role connection metadata.
 // appID : ID of the application

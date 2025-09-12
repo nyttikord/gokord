@@ -35,17 +35,6 @@ func (s Requester) Webhooks(channelID string, options ...discord.RequestOption) 
 	return ws, s.Unmarshal(body, &ws)
 }
 
-// GuildWebhooks returns all channel.Webhook for a given guild.Guild.
-func (s Requester) GuildWebhooks(guildID string, options ...discord.RequestOption) ([]*channel.Webhook, error) {
-	body, err := s.Request(http.MethodGet, discord.EndpointGuildWebhooks(guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var ws []*channel.Webhook
-	return ws, s.Unmarshal(body, &ws)
-}
-
 // Webhook returns the channel.Webhook.
 func (s Requester) Webhook(webhookID string, options ...discord.RequestOption) (*channel.Webhook, error) {
 	body, err := s.RequestWithBucketID(

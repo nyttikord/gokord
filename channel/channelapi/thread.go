@@ -214,17 +214,6 @@ func (s Requester) ThreadsActive(channelID string, options ...discord.RequestOpt
 	return &tl, s.Unmarshal(body, &tl)
 }
 
-// GuildThreadsActive returns all active threads in the given guild.Guild.
-func (s Requester) GuildThreadsActive(guildID string, options ...discord.RequestOption) (*channel.ThreadsList, error) {
-	body, err := s.Request(http.MethodGet, discord.EndpointGuildActiveThreads(guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var tl channel.ThreadsList
-	return &tl, s.Unmarshal(body, &tl)
-}
-
 // ThreadsArchived returns archived threads in the given channel.Channel.
 //
 // If specified returns only threads before the timestamp

@@ -75,3 +75,25 @@ func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel, 
 	_, err := r.Request(http.MethodPatch, discord.EndpointGuildChannels(guildID), data, options...)
 	return err
 }
+
+// ThreadsActive returns all active threads in the given guild.Guild.
+func (r Requester) ThreadsActive(guildID string, options ...discord.RequestOption) (*channel.ThreadsList, error) {
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildActiveThreads(guildID), nil, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	var tl channel.ThreadsList
+	return &tl, r.Unmarshal(body, &tl)
+}
+
+// Webhooks returns all channel.Webhook for a given guild.Guild.
+func (r Requester) Webhooks(guildID string, options ...discord.RequestOption) ([]*channel.Webhook, error) {
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildWebhooks(guildID), nil, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	var ws []*channel.Webhook
+	return ws, r.Unmarshal(body, &ws)
+}
