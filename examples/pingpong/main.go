@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord"
 )
 
 // Variables used for command line parameters
@@ -24,20 +25,16 @@ func init() {
 func main() {
 
 	// Create a new Discord session using the provided bot token.
-	dg, err := gokord.New("Bot " + Token)
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
-	}
+	dg := gokord.New("Bot " + Token)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
 
 	// In this example, we only care about receiving message events.
-	dg.Identify.Intents = gokord.IntentsGuildMessages
+	dg.Identify.Intents = discord.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
-	err = dg.Open()
+	err := dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
@@ -64,11 +61,11 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 	}
 	// If the message is "ping" reply with "Pong!"
 	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Pong!")
 	}
 
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Ping!")
 	}
 }

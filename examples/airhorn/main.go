@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord"
 )
 
 func init() {
@@ -38,11 +39,7 @@ func main() {
 	}
 
 	// Create a new Discord session using the provided bot token.
-	dg, err := gokord.New("Bot " + token)
-	if err != nil {
-		fmt.Println("Error creating Discord session: ", err)
-		return
-	}
+	dg := gokord.New("Bot " + token)
 
 	// Register ready as a callback for the ready events.
 	dg.AddHandler(ready)
@@ -55,7 +52,7 @@ func main() {
 
 	// We need information about guilds (which includes their channels),
 	// messages and voice states.
-	dg.Identify.Intents = gokord.IntentsGuilds | gokord.IntentsGuildMessages | gokord.IntentsGuildVoiceStates
+	dg.Identify.Intents = discord.IntentsGuilds | discord.IntentsGuildMessages | discord.IntentsGuildVoiceStates
 
 	// Open the websocket and begin listening.
 	err = dg.Open()
@@ -132,7 +129,7 @@ func guildCreate(s *gokord.Session, event *gokord.GuildCreate) {
 
 	for _, channel := range event.Guild.Channels {
 		if channel.ID == event.Guild.ID {
-			_, _ = s.ChannelMessageSend(channel.ID, "Airhorn is ready! Type !airhorn while in a voice channel to play a sound.")
+			_, _ = s.ChannelAPI().MessageSend(channel.ID, "Airhorn is ready! Type !airhorn while in a voice channel to play a sound.")
 			return
 		}
 	}

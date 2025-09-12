@@ -6,6 +6,7 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
 
 	"log"
@@ -32,11 +33,7 @@ func init() {
 }
 
 func init() {
-	var err error
-	s, err = gokord.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (
@@ -48,14 +45,14 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"modals-survey": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-				Type: gokord.InteractionResponseModal,
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseModal,
 				Data: &interaction.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
 					Components: []component.Message{
-						component.ActionsRow{
-							Components: []component.Message{
+						&component.ActionsRow{
+							Components: []component.Modal{
 								component.TextInput{
 									CustomID:    "opinion",
 									Label:       "What is your opinion on them?",

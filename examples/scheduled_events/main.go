@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/guild"
 )
 
 // Flags
@@ -21,7 +23,7 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	s, _ := gokord.New("Bot " + *BotToken)
+	s := gokord.New("Bot " + *BotToken)
 	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		fmt.Println("Bot is ready")
 	})
@@ -43,20 +45,20 @@ func main() {
 }
 
 // Create a new event on guild
-func createAmazingEvent(s *gokord.Session) *gokord.GuildScheduledEvent {
+func createAmazingEvent(s *gokord.Session) *guild.ScheduledEvent {
 	// Define the starting time (must be in future)
 	startingTime := time.Now().Add(1 * time.Hour)
 	// Define the ending time (must be after starting time)
 	endingTime := startingTime.Add(30 * time.Minute)
 	// Create the event
-	scheduledEvent, err := s.GuildScheduledEventCreate(*GuildID, &gokord.GuildScheduledEventParams{
+	scheduledEvent, err := s.GuildAPI().ScheduledEventCreate(*GuildID, &guild.ScheduledEventParams{
 		Name:               "Amazing Event",
 		Description:        "This event will start in 1 hour and last 30 minutes",
 		ScheduledStartTime: &startingTime,
 		ScheduledEndTime:   &endingTime,
-		EntityType:         gokord.GuildScheduledEventEntityTypeVoice,
+		EntityType:         types.ScheduledEventEntityVoice,
 		ChannelID:          *VoiceChannelID,
-		PrivacyLevel:       gokord.GuildScheduledEventPrivacyLevelGuildOnly,
+		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
 	})
 	if err != nil {
 		log.Printf("Error creating scheduled event: %v", err)
@@ -67,11 +69,11 @@ func createAmazingEvent(s *gokord.Session) *gokord.GuildScheduledEvent {
 	return scheduledEvent
 }
 
-func transformEventToExternalEvent(s *gokord.Session, event *gokord.GuildScheduledEvent) {
-	scheduledEvent, err := s.GuildScheduledEventEdit(*GuildID, event.ID, &gokord.GuildScheduledEventParams{
+func transformEventToExternalEvent(s *gokord.Session, event *guild.ScheduledEvent) {
+	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(*GuildID, event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
-		EntityType: gokord.GuildScheduledEventEntityTypeExternal,
-		EntityMetadata: &gokord.GuildScheduledEventEntityMetadata{
+		EntityType: types.ScheduledEventEntityExternal,
+		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
 		},
 	})

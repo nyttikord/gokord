@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
 )
 
@@ -23,11 +24,7 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	var err error
-	s, err = gokord.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (
@@ -35,12 +32,12 @@ var (
 		{
 			Name:        "single-autocomplete",
 			Description: "Showcase of single autocomplete option",
-			Type:        gokord.ChatApplicationCommand,
+			Type:        types.ApplicationCommandChat,
 			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option",
 					Description:  "Autocomplete option",
-					Type:         gokord.ApplicationCommandOptionString,
+					Type:         types.ApplicationCommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},
@@ -49,19 +46,19 @@ var (
 		{
 			Name:        "multi-autocomplete",
 			Description: "Showcase of multiple autocomplete option",
-			Type:        gokord.ChatApplicationCommand,
+			Type:        types.ApplicationCommandChat,
 			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option-1",
 					Description:  "Autocomplete option 1",
-					Type:         gokord.ApplicationCommandOptionString,
+					Type:         types.ApplicationCommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},
 				{
 					Name:         "autocomplete-option-2",
 					Description:  "Autocomplete option 2",
-					Type:         gokord.ApplicationCommandOptionString,
+					Type:         types.ApplicationCommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},
@@ -72,10 +69,10 @@ var (
 	commandHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"single-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			switch i.Type {
-			case gokord.InteractionApplicationCommand:
+			case types.InteractionApplicationCommand:
 				data := i.ApplicationCommandData()
-				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-					Type: gokord.InteractionResponseChannelMessageWithSource,
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.InteractionResponseData{
 						Content: fmt.Sprintf(
 							"You picked %q autocompletion",
@@ -88,7 +85,7 @@ var (
 					panic(err)
 				}
 			// Autocomplete options introduce a new interaction type (8) for returning custom autocomplete results.
-			case gokord.InteractionApplicationCommandAutocomplete:
+			case types.InteractionApplicationCommandAutocomplete:
 				data := i.ApplicationCommandData()
 				choices := []*interaction.CommandOptionChoice{
 					{
@@ -121,8 +118,8 @@ var (
 					})
 				}
 
-				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-					Type: gokord.InteractionApplicationCommandAutocompleteResult,
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.InteractionResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 					},
@@ -134,10 +131,10 @@ var (
 		},
 		"multi-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			switch i.Type {
-			case gokord.InteractionApplicationCommand:
+			case types.InteractionApplicationCommand:
 				data := i.ApplicationCommandData()
-				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-					Type: gokord.InteractionResponseChannelMessageWithSource,
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.InteractionResponseData{
 						Content: fmt.Sprintf(
 							"Option 1: %s\nOption 2: %s",
@@ -149,7 +146,7 @@ var (
 				if err != nil {
 					panic(err)
 				}
-			case gokord.InteractionApplicationCommandAutocomplete:
+			case types.InteractionApplicationCommandAutocomplete:
 				data := i.ApplicationCommandData()
 				var choices []*interaction.CommandOptionChoice
 				switch {
@@ -207,8 +204,8 @@ var (
 					}
 				}
 
-				err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-					Type: gokord.InteractionApplicationCommandAutocompleteResult,
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.InteractionResponseData{
 						Choices: choices,
 					},
@@ -234,7 +231,7 @@ func main() {
 	}
 	defer s.Close()
 
-	createdCommands, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, *GuildID, commands)
+	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.State.User.ID, *GuildID, commands)
 
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
@@ -247,7 +244,7 @@ func main() {
 
 	if *RemoveCommands {
 		for _, cmd := range createdCommands {
-			err := s.ApplicationCommandDelete(s.State.User.ID, *GuildID, cmd.ID)
+			err := s.InteractionAPI().CommandDelete(s.State.User.ID, *GuildID, cmd.ID)
 			if err != nil {
 				log.Fatalf("Cannot delete %q command: %v", cmd.Name, err)
 			}

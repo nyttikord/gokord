@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 
+	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/user"
 
@@ -38,8 +39,8 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-		Type: gokord.InteractionResponseChannelMessageWithSource,
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.InteractionResponseData{
 			Content: builder.String(),
 		},
@@ -58,13 +59,13 @@ var commands = []*interaction.Command{
 			{
 				Name:        "message",
 				Description: "Contents of the message",
-				Type:        gokord.ApplicationCommandOptionString,
+				Type:        types.ApplicationCommandOptionString,
 				Required:    true,
 			},
 			{
 				Name:        "author",
 				Description: "Whether to prepend message's author",
-				Type:        gokord.ApplicationCommandOptionBoolean,
+				Type:        types.ApplicationCommandOptionBoolean,
 			},
 		},
 	},
@@ -82,10 +83,10 @@ func main() {
 		log.Fatal("application id is not set")
 	}
 
-	session, _ := gokord.New("Bot " + *Token)
+	session := gokord.New("Bot " + *Token)
 
 	session.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
-		if i.Type != gokord.InteractionApplicationCommand {
+		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
 
@@ -101,7 +102,7 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := session.ApplicationCommandBulkOverwrite(*App, *Guild, commands)
+	_, err := session.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands)
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}
