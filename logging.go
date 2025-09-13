@@ -1,6 +1,8 @@
 package gokord
 
 import (
+	"fmt"
+
 	"github.com/nyttikord/gokord/logger"
 )
 
@@ -15,11 +17,13 @@ func (s *Session) Log(level logger.Level, caller int, format string, args ...any
 	logger.Log(level, caller+1, format, args...)
 }
 
-func (s *Session) LogError(format string, args ...any) {
+func (s *Session) LogError(err error, format string, args ...any) {
+	format += fmt.Sprintf(" %s%s%s", logger.AnsiRed, err.Error(), logger.AnsiReset)
 	s.Log(logger.LevelError, 1, format, args...)
 }
 
 func (s *Session) LogWarn(format string, args ...any) {
+	format = fmt.Sprintf("%s%s%s ", logger.AnsiYellow, format, logger.AnsiReset)
 	s.Log(logger.LevelWarn, 1, format, args...)
 }
 

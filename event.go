@@ -1,6 +1,14 @@
 package gokord
 
-import "github.com/nyttikord/gokord/guild"
+import (
+	"errors"
+
+	"github.com/nyttikord/gokord/guild"
+)
+
+var (
+	ErrInvalidHandler = errors.New("invalid handler type")
+)
 
 // EventHandler is an interface for Discord events.
 type EventHandler interface {
@@ -117,7 +125,7 @@ func (s *Session) addEventHandlerOnce(eventHandler EventHandler) func() {
 // library for each event: https://discord.com/developers/docs/topics/gateway#event-names
 // There are also synthetic events fired by the library internally which are
 // available for handling, like Connect, Disconnect, and RateLimit.
-// events.go contains all of the Discord WSAPI and synthetic events that can be handled.
+// events.go contains all the Discord WSAPI and synthetic events that can be handled.
 //
 // The return value of this method is a function, that when called will remove the
 // event handler.
@@ -125,7 +133,7 @@ func (s *Session) AddHandler(handler interface{}) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		s.LogError("Invalid handler type, handler will never be called")
+		s.LogError(ErrInvalidHandler, "handler will never be called")
 		return func() {}
 	}
 
@@ -139,7 +147,7 @@ func (s *Session) AddHandlerOnce(handler interface{}) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		s.LogError("Invalid handler type, handler will never be called")
+		s.LogError(ErrInvalidHandler, "handler will never be called")
 		return func() {}
 	}
 

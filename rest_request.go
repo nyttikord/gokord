@@ -138,7 +138,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		rl := TooManyRequests{}
 		err = json.Unmarshal(response, &rl)
 		if err != nil {
-			s.LogError("rate limit unmarshal error, %s", err)
+			s.LogError(err, "rate limit unmarshal error")
 			return nil, err
 		}
 

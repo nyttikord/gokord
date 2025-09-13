@@ -30,6 +30,21 @@ func (l Level) String() string {
 	return ""
 }
 
+const (
+	AnsiReset       = "\033[0m"
+	AnsiRed         = "\033[91m"
+	AnsiGreen       = "\033[32m"
+	AnsiYellow      = "\033[33m"
+	AnsiBlue        = "\033[34m"
+	AnsiMagenta     = "\033[35m"
+	AnsiCyan        = "\033[36m"
+	AnsiWhite       = "\033[37m"
+	AnsiBlueBold    = "\033[34;1m"
+	AnsiMagentaBold = "\033[35;1m"
+	AnsiRedBold     = "\033[31;1m"
+	AnsiYellowBold  = "\033[33;1m"
+)
+
 // Log logs and formats a message at the given level.
 //
 // Caller is the number of calls before this one (e.g., 0 if you want to log this call, 1 to log the call before...)

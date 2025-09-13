@@ -79,7 +79,7 @@ func (s *Session) Open() error {
 	header.Add("accept-encoding", "zlib")
 	s.wsConn, _, err = s.Dialer.Dial(gateway, header)
 	if err != nil {
-		s.LogError("error connecting to gateway %s, %s", s.gateway, err)
+		s.LogError(err, "connecting to gateway %s", s.gateway)
 		s.gateway = "" // clear cached gateway
 		s.wsConn = nil // Just to be safe.
 		return err
@@ -285,9 +285,9 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}
 		s.wsMutex.Unlock()
 		if err != nil || time.Now().UTC().Sub(last) > (heartbeatIntervalMsec*FailedHeartbeatAcks) {
 			if err != nil {
-				s.LogError("error sending heartbeat to gateway %s, %s", s.gateway, err)
+				s.LogError(err, "sending heartbeat to gateway %s", s.gateway)
 			} else {
-				s.LogError("haven't gotten a heartbeat ACK in %v, triggering a reconnection", time.Now().UTC().Sub(last))
+				s.LogWarn("haven't gotten a heartbeat ACK in %v, triggering a reconnection", time.Now().UTC().Sub(last))
 			}
 			s.Close()
 			s.reconnect()
@@ -550,14 +550,13 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 
 		z, err2 := zlib.NewReader(reader)
 		if err2 != nil {
-			s.LogError("error uncompressing websocket message, %s", err)
 			return nil, err2
 		}
 
 		defer func() {
 			err3 := z.Close()
 			if err3 != nil {
-				s.LogError("error closing zlib, %s", err)
+				s.LogError(err3, "closing zlib")
 			}
 		}()
 
@@ -568,7 +567,6 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 	var e *Event
 	decoder := json.NewDecoder(reader)
 	if err = decoder.Decode(&e); err != nil {
-		s.LogError("error decoding websocket message, %s", err)
 		return e, err
 	}
 
@@ -582,7 +580,6 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 		err = s.wsConn.WriteJSON(heartbeatOp{1, atomic.LoadInt64(s.sequence)})
 		s.wsMutex.Unlock()
 		if err != nil {
-			s.LogError("error sending heartbeat in response to Op1")
 			return e, err
 		}
 
@@ -605,8 +602,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 		s.CloseWithCode(websocket.CloseServiceRestart)
 
 		var resumable bool
-		if err := json.Unmarshal(e.RawData, &resumable); err != nil {
-			s.LogError("error unmarshalling invalid session event, %s", err)
+		if err = json.Unmarshal(e.RawData, &resumable); err != nil {
 			return e, err
 		}
 
@@ -651,7 +647,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 
 		// Attempt to unmarshal our event.
 		if err = json.Unmarshal(e.RawData, e.Struct); err != nil {
-			s.LogError("error unmarshalling %s event, %s", e.Type, err)
+			s.LogError(err, "unmarshalling %s event, %s", e.Type)
 		}
 
 		// Send event to any registered event handlers for it's type.
@@ -724,7 +720,7 @@ func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *Voi
 	// doesn't exactly work perfect yet.. TODO
 	err = voice.waitUntilConnected()
 	if err != nil {
-		s.LogError("error waiting for voice to connect, %s", err)
+		s.LogError(err, "waiting for voice to connect")
 		voice.Close()
 		return
 	}
@@ -817,7 +813,7 @@ func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
 	// Open a connection to the voice server
 	err := voice.open()
 	if err != nil {
-		s.LogError("onVoiceServerUpdate voice.open, %s", err)
+		s.LogError(err, "onVoiceServerUpdate voice.open")
 	}
 }
 
@@ -872,7 +868,7 @@ func (s *Session) reconnect() {
 				return
 			}
 
-			s.LogError("error reconnecting to gateway, %s", err)
+			s.LogError(err, "reconnecting to gateway")
 
 			<-time.After(wait * time.Second)
 			wait *= 2
@@ -940,7 +936,7 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 		err := s.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""))
 		s.wsMutex.Unlock()
 		if err != nil {
-			s.LogError("error closing websocket, %s", err)
+			s.LogError(err, "closing websocket")
 		}
 
 		// TODO: Wait for Discord to actually close the connection.
@@ -949,7 +945,7 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 		s.LogInfo("closing gateway websocket")
 		err = s.wsConn.Close()
 		if err != nil {
-			s.LogError("error closing websocket, %s", err)
+			s.LogError(err, "closing websocket")
 		}
 
 		s.wsConn = nil
