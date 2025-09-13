@@ -7,6 +7,21 @@ import (
 	"strings"
 )
 
+type Logger interface {
+	// Log the message if level is equal to or greater than previously defined
+	//
+	// See logger.Log
+	Log(level Level, caller int, format string, args ...any)
+	LogError(err error, format string, args ...any)
+	LogWarn(format string, args ...any)
+	LogInfo(format string, args ...any)
+	LogDebug(format string, args ...any)
+	// GetLevel returns the minimum Level logged
+	GetLevel() Level
+	// ChangeLevel changes the minimum Level logged
+	ChangeLevel(level Level)
+}
+
 type Level int
 
 const (

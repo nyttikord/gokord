@@ -13,7 +13,6 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
-	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -22,12 +21,11 @@ import (
 // Session represents a connection to the Discord API.
 type Session struct {
 	sync.RWMutex
+	stdLogger
 
 	// General configurable settings.
 
 	MFA bool
-
-	LogLevel logger.Level
 
 	// Should the session reconnect the websocket on errors.
 	ShouldReconnectOnError bool

@@ -11,15 +11,14 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/nyttikord/gokord/logger"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
 // A VoiceConnection struct holds all the data and functions related to a Discord Voice Connection.
 type VoiceConnection struct {
 	sync.RWMutex
+	stdLogger
 
-	LogLevel     logger.Level
 	Ready        bool // If true, voice is ready to send/receive audio
 	UserID       string
 	GuildID      string

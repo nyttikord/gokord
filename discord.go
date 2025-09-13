@@ -42,7 +42,7 @@ func New(token string) *Session {
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           new(int64),
 		LastHeartbeatAck:                   time.Now().UTC(),
-		LogLevel:                           logger.LevelInfo,
+		stdLogger:                          stdLogger{Level: logger.LevelInfo},
 	}
 
 	// Initialize the Identify Package with defaults
