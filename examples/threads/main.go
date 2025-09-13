@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
 )
 
 // Flags
@@ -24,14 +26,14 @@ var games map[string]time.Time = make(map[string]time.Time)
 func init() { flag.Parse() }
 
 func main() {
-	s, _ := gokord.New("Bot " + *BotToken)
+	s := gokord.New("Bot " + *BotToken)
 	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
 		fmt.Println("Bot is ready")
 	})
 	s.AddHandler(func(s *gokord.Session, m *gokord.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
-				thread, err := s.MessageThreadStartComplex(m.ChannelID, m.ID, &gokord.ThreadStart{
+				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
 					Name:                "Pong game with " + m.Author.Username,
 					AutoArchiveDuration: 60,
 					Invitable:           false,
@@ -40,17 +42,17 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				_, _ = s.ChannelMessageSend(thread.ID, "pong")
+				_, _ = s.ChannelAPI().MessageSend(thread.ID, "pong")
 				m.ChannelID = thread.ID
 			} else {
-				_, _ = s.ChannelMessageSendReply(m.ChannelID, "pong", m.Reference())
+				_, _ = s.ChannelAPI().MessageSendReply(m.ChannelID, "pong", m.Reference())
 			}
 			games[m.ChannelID] = time.Now()
 			<-time.After(timeout)
 			if time.Since(games[m.ChannelID]) >= timeout {
 				archived := true
 				locked := true
-				_, err := s.ChannelEditComplex(m.ChannelID, &gokord.ChannelEdit{
+				_, err := s.ChannelAPI().Edit(m.ChannelID, &channel.Edit{
 					Archived: &archived,
 					Locked:   &locked,
 				})
@@ -60,7 +62,7 @@ func main() {
 			}
 		}
 	})
-	s.Identify.Intents = gokord.MakeIntent(gokord.IntentsAllWithoutPrivileged)
+	s.Identify.Intents = discord.MakeIntent(discord.IntentsAllWithoutPrivileged)
 
 	err := s.Open()
 	if err != nil {

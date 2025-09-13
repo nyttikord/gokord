@@ -63,7 +63,7 @@ type AutoModerationTriggerMetadata struct {
 // AutoModerationActionMetadata represents additional metadata needed during execution for a specific
 // AutoModerationAction type.
 type AutoModerationActionMetadata struct {
-	// Channel to which user content should be logged.
+	// Get to which user content should be logged.
 	// NOTE: should be only used with send alert message action type.
 	ChannelID string `json:"channel_id,omitempty"`
 
@@ -132,7 +132,7 @@ const (
 	AuditLogChangeKeyAutoArchiveDuration AuditLogChangeKey = "auto_archive_duration"
 	// AuditLogChangeKeyAvailable is sent when availability of sticker changed (bool) - emoji.Sticker
 	AuditLogChangeKeyAvailable AuditLogChangeKey = "available"
-	// AuditLogChangeKeyAvatarHash is sent when user avatar changed (string) - user.User
+	// AuditLogChangeKeyAvatarHash is sent when user avatar changed (string) - user.Get
 	AuditLogChangeKeyAvatarHash AuditLogChangeKey = "avatar_hash"
 	// AuditLogChangeKeyBannerHash is sent when guild banner changed (string) - Guild
 	AuditLogChangeKeyBannerHash AuditLogChangeKey = "banner_hash"

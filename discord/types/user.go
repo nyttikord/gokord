@@ -1,6 +1,6 @@
 package types
 
-// Premium is the type of premium (nitro) subscription a user.User has.
+// Premium is the type of premium (nitro) subscription a user.Get has.
 // https://discord.com/developers/docs/resources/user#user-object-premium-types
 type Premium int
 

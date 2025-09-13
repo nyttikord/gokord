@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/discord"
 )
 
 // Variables used for command line parameters
@@ -22,21 +23,17 @@ func init() {
 
 func main() {
 	// Create a new Discord session using the provided bot token.
-	dg, err := gokord.New("Bot " + Token)
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
-	}
+	dg := gokord.New("Bot " + Token)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
 
 	// Just like the ping pong example, we only care about receiving message
 	// events in this example.
-	dg.Identify.Intents = gokord.IntentsGuildMessages
+	dg.Identify.Intents = discord.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
-	err = dg.Open()
+	err := dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
@@ -69,7 +66,7 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 	}
 
 	// We create the private channel with the user who sent the message.
-	channel, err := s.UserChannelCreate(m.Author.ID)
+	channel, err := s.UserAPI().ChannelCreate(m.Author.ID)
 	if err != nil {
 		// If an error occurred, we failed to create the channel.
 		//
@@ -79,14 +76,14 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 		//    label us as abusing the endpoint, blocking us from opening
 		//    new ones.
 		fmt.Println("error creating channel:", err)
-		s.ChannelMessageSend(
+		s.ChannelAPI().MessageSend(
 			m.ChannelID,
 			"Something went wrong while sending the DM!",
 		)
 		return
 	}
 	// Then we send the message through the channel we created.
-	_, err = s.ChannelMessageSend(channel.ID, "Pong!")
+	_, err = s.ChannelAPI().MessageSend(channel.ID, "Pong!")
 	if err != nil {
 		// If an error occurred, we failed to send the message.
 		//
@@ -94,7 +91,7 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 		// user (highly unlikely as we just received a message) or
 		// the user disabled DM in their settings (more likely).
 		fmt.Println("error sending DM message:", err)
-		s.ChannelMessageSend(
+		s.ChannelAPI().MessageSend(
 			m.ChannelID,
 			"Failed to send you a DM. "+
 				"Did you disable DM in your privacy settings?",

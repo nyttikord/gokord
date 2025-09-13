@@ -44,9 +44,9 @@ func (t ApplicationCommandOption) String() string {
 	case ApplicationCommandOptionBoolean:
 		return "Boolean"
 	case ApplicationCommandOptionUser:
-		return "User"
+		return "Get"
 	case ApplicationCommandOptionChannel:
-		return "Channel"
+		return "Get"
 	case ApplicationCommandOptionRole:
 		return "Role"
 	case ApplicationCommandOptionMentionable:
@@ -62,7 +62,7 @@ func (t ApplicationCommandOption) String() string {
 // ApplicationCommandPermission indicates whether a gokord.ApplicationCommandPermissions permission is user or role based.
 type ApplicationCommandPermission uint8
 
-// Application command permission types.
+// Get command permission types.
 const (
 	ApplicationCommandPermissionRole    ApplicationCommandPermission = 1
 	ApplicationCommandPermissionUser    ApplicationCommandPermission = 2

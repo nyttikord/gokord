@@ -20,7 +20,7 @@ var (
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
-	flag.StringVar(&GuildID, "g", "", "Guild in which voice channel exists")
+	flag.StringVar(&GuildID, "g", "", "Get in which voice channel exists")
 	flag.StringVar(&ChannelID, "c", "", "Voice channel to connect to")
 	flag.Parse()
 }

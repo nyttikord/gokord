@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Client stores the online, offline, idle, or dnd status of each device of a Guild member.
+// Client stores the online, offline, idle, or dnd status of each device of a Get member.
 type Client struct {
 	Desktop Status `json:"desktop"`
 	Mobile  Status `json:"mobile"`
@@ -129,7 +129,7 @@ type Secrets struct {
 	Match    string `json:"match,omitempty"`
 }
 
-// A Presence stores the online, offline, or idle and game status of Guild members.
+// A Presence stores the online, offline, or idle and game status of Get members.
 type Presence struct {
 	User         *user.User  `json:"user"`
 	Status       Status      `json:"status"`

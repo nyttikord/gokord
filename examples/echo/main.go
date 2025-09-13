@@ -7,15 +7,16 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/user"
 
 	"github.com/nyttikord/gokord"
 )
 
-type optionMap = map[string]*interactions.CommandInteractionDataOption
+type optionMap = map[string]*interaction.CommandInteractionDataOption
 
-func parseOptions(options []*interactions.CommandInteractionDataOption) (om optionMap) {
+func parseOptions(options []*interaction.CommandInteractionDataOption) (om optionMap) {
 	om = make(optionMap)
 	for _, opt := range options {
 		om[opt.Name] = opt
@@ -23,7 +24,7 @@ func parseOptions(options []*interactions.CommandInteractionDataOption) (om opti
 	return
 }
 
-func interactionAuthor(i *interactions.Interaction) *user.User {
+func interactionAuthor(i *interaction.Interaction) *user.User {
 	if i.Member != nil {
 		return i.Member.User
 	}
@@ -38,9 +39,9 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-		Type: gokord.InteractionResponseChannelMessageWithSource,
-		Data: &interactions.InteractionResponseData{
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.InteractionResponseData{
 			Content: builder.String(),
 		},
 	})
@@ -50,21 +51,21 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 }
 
-var commands = []*interactions.Command{
+var commands = []*interaction.Command{
 	{
 		Name:        "echo",
 		Description: "Say something through a bot",
-		Options: []*interactions.CommandOption{
+		Options: []*interaction.CommandOption{
 			{
 				Name:        "message",
 				Description: "Contents of the message",
-				Type:        gokord.ApplicationCommandOptionString,
+				Type:        types.ApplicationCommandOptionString,
 				Required:    true,
 			},
 			{
 				Name:        "author",
 				Description: "Whether to prepend message's author",
-				Type:        gokord.ApplicationCommandOptionBoolean,
+				Type:        types.ApplicationCommandOptionBoolean,
 			},
 		},
 	},
@@ -72,8 +73,8 @@ var commands = []*interactions.Command{
 
 var (
 	Token = flag.String("token", "", "Bot authentication token")
-	App   = flag.String("app", "", "Application ID")
-	Guild = flag.String("guild", "", "Guild ID")
+	App   = flag.String("app", "", "Get ID")
+	Guild = flag.String("guild", "", "Get ID")
 )
 
 func main() {
@@ -82,10 +83,10 @@ func main() {
 		log.Fatal("application id is not set")
 	}
 
-	session, _ := gokord.New("Bot " + *Token)
+	session := gokord.New("Bot " + *Token)
 
 	session.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
-		if i.Type != gokord.InteractionApplicationCommand {
+		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
 
@@ -101,7 +102,7 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := session.ApplicationCommandBulkOverwrite(*App, *Guild, commands)
+	_, err := session.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands)
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}

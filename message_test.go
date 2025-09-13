@@ -1,45 +1,48 @@
 package gokord
 
 import (
-	"github.com/nyttikord/gokord/channel"
-	user2 "github.com/nyttikord/gokord/user"
 	"testing"
+
+	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord/types"
 )
 
-func TestContentWithMoreMentionsReplaced(t *testing.T) {
-	s := &Session{StateEnabled: true, State: NewState()}
-
-	user := &user2.User{
-		ID:       "user",
-		Username: "User Name",
-	}
-
-	s.State.GuildAdd(&Guild{ID: "guild"})
-	s.State.RoleAdd("guild", &Role{
-		ID:          "role",
-		Name:        "Role Name",
-		Mentionable: true,
-	})
-	s.State.MemberAdd(&Member{
-		user2.User: user,
-		Nick:       "User Nick",
-		GuildID:    "guild",
-	})
-	s.State.ChannelAdd(&Channel{
-		Name:    "Channel Name",
-		GuildID: "guild",
-		ID:      "channel",
-	})
-	m := &channel.Message{
-		Content:      "<@&role> <@!user> <@user> <#channel>",
-		ChannelID:    "channel",
-		MentionRoles: []string{"role"},
-		Mentions:     []*user2.User{user},
-	}
-	if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @User Nick @User Name #Channel Name" {
-		t.Error(result)
-	}
-}
+// disabled since channel.Message ContentWithMoreMentionsReplaced is not implemented
+//
+//	func TestContentWithMoreMentionsReplaced(t *testing.T) {
+//		s := &Session{StateEnabled: true, State: NewState()}
+//
+//		u := &user.Get{
+//			ID:       "user",
+//			Username: "Get Name",
+//		}
+//
+//		s.State.GuildAdd(&guild.Get{ID: "guild"})
+//		s.State.RoleAdd("guild", &guild.Role{
+//			ID:          "role",
+//			Name:        "Role Name",
+//			Mentionable: true,
+//		})
+//		s.State.MemberAdd(&user.Member{
+//			Get: u,
+//			Nick:      "Get Nick",
+//			GuildID:   "guild",
+//		})
+//		s.State.ChannelAdd(&channel.Get{
+//			Name:    "Get Name",
+//			GuildID: "guild",
+//			ID:      "channel",
+//		})
+//		m := &channel.Message{
+//			Content:      "<@&role> <@!user> <@user> <#channel>",
+//			ChannelID:    "channel",
+//			MentionRoles: []string{"role"},
+//			Mentions:     []*user.Get{u},
+//		}
+//		if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @Get Nick @Get Name #Get Name" {
+//			t.Error(result)
+//		}
+//	}
 func TestGettingEmojisFromMessage(t *testing.T) {
 	msg := "test test <:kitty14:811736565172011058> <:kitty4:811736468812595260>"
 	m := &channel.Message{
@@ -71,11 +74,11 @@ func TestMessage_Reference(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Guild ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Channel ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 }
 
@@ -88,7 +91,7 @@ func TestMessage_Forward(t *testing.T) {
 
 	ref := m.Forward()
 
-	if ref.Type != channel.MessageReferenceTypeForward {
+	if ref.Type != types.MessageReferenceForward {
 		t.Error("Reference type should be 1 (forward)")
 	}
 
@@ -97,17 +100,17 @@ func TestMessage_Forward(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Guild ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Channel ID should be the same")
+		t.Error("Get ID should be the same")
 	}
 }
 
 func TestMessageReference_DefaultTypeIsDefault(t *testing.T) {
 	r := channel.MessageReference{}
-	if r.Type != channel.MessageReferenceTypeDefault {
+	if r.Type != types.MessageReferenceDefault {
 		t.Error("Default message type should be MessageReferenceTypeDefault")
 	}
 }

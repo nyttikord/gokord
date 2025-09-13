@@ -1,6 +1,10 @@
 package discord
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+	"time"
+)
 
 // AvatarURL returns the URL to get the avatar from a hash.
 func AvatarURL(avatarHash, defaultAvatarURL, staticAvatarURL, animatedAvatarURL, size string) string {
@@ -54,3 +58,14 @@ func IconURL(iconHash, staticIconURL, animatedIconURL, size string) string {
 }
 
 var QuoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
+
+// SnowflakeTimestamp returns the creation time of a Snowflake ID relative to the creation of Discord.
+func SnowflakeTimestamp(ID string) (t time.Time, err error) {
+	i, err := strconv.ParseInt(ID, 10, 64)
+	if err != nil {
+		return
+	}
+	timestamp := (i >> 22) + 1420070400000
+	t = time.Unix(0, timestamp*1000000)
+	return
+}

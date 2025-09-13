@@ -1,7 +1,8 @@
-package interactions
+package interaction
 
 import (
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user"
@@ -9,7 +10,11 @@ import (
 
 // ChannelGetter represents a type fetching channel.Channel.
 type ChannelGetter interface {
-	// Channel returns the channel.Channel with the given ID.
+	// Get returns the channel.Channel with the given ID.
+	Get(string, ...discord.RequestOption) (*channel.Channel, error)
+}
+
+type StateChannelGetter interface {
 	Channel(string) (*channel.Channel, error)
 }
 
@@ -21,14 +26,14 @@ type RoleGetter interface {
 
 // RolesGetter represents a type fetching []*guild.Role.
 type RolesGetter interface {
-	// GuildRoles returns the []*guild.Role in the given guild.Guild.
-	GuildRoles(string) ([]*guild.Role, error)
+	// Roles returns the []*guild.Role in the given guild.Guild.
+	Roles(string, ...discord.RequestOption) ([]*guild.Role, error)
 }
 
 // UserGetter represents a type fetching user.User.
 type UserGetter interface {
-	// User returns the user.User with the given ID.
-	User(string) (*user.User, error)
+	// Get returns the user.User with the given ID.
+	Get(string, ...discord.RequestOption) (*user.User, error)
 }
 
 // CommandInteractionData contains the data of Command Interaction.
@@ -60,7 +65,7 @@ func (d CommandInteractionData) GetOption(name string) (option *CommandInteracti
 // CommandInteractionDataResolved contains resolved data of Command execution.
 type CommandInteractionDataResolved struct {
 	Users map[string]*user.User `json:"users"`
-	// Partial user.Member are missing user.User, Deaf and Mute fields.
+	// Partial user.Member are missing user.Get, Deaf and Mute fields.
 	Members map[string]*user.Member `json:"members"`
 	Roles   map[string]*guild.Role  `json:"roles"`
 	// Partial channel.Channel only have ID, Name, Type and Permissions fields.
@@ -144,7 +149,7 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 // channel.Channel's data.
 // state is another ChannelGetter representing the internal state of the application (implemented by gokord.State), if
 // not nil, it is called before s.
-func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state ChannelGetter) *channel.Channel {
+func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateChannelGetter) *channel.Channel {
 	if o.Type != types.ApplicationCommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
@@ -160,7 +165,7 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state Channe
 			return ch
 		}
 	}
-	ch, err := s.Channel(chanID)
+	ch, err := s.Get(chanID)
 	if err != nil {
 		return &channel.Channel{ID: chanID}
 	}
@@ -188,7 +193,7 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 	if err == nil {
 		return r
 	}
-	roles, err := s.GuildRoles(gID)
+	roles, err := s.Roles(gID)
 	if err == nil {
 		for _, r = range roles {
 			if r.ID == roleID {
@@ -199,9 +204,9 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 	return &guild.Role{ID: roleID}
 }
 
-// UserValue is a utility function for casting CommandOption value to user.User.
+// UserValue is a utility function for casting CommandOption value to user.Get.
 //
-// s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.User's data.
+// s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.Get's data.
 func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
 	if o.Type != types.ApplicationCommandOptionUser && o.Type != types.ApplicationCommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
@@ -212,7 +217,7 @@ func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
 		return &user.User{ID: userID}
 	}
 
-	u, err := s.User(userID)
+	u, err := s.Get(userID)
 	if err != nil {
 		return &user.User{ID: userID}
 	}

@@ -17,17 +17,14 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
-// ErrWSAlreadyOpen is thrown when you attempt to open
-// a websocket that already is open.
-var ErrWSAlreadyOpen = errors.New("web socket already opened")
-
-// ErrWSNotFound is thrown when you attempt to use a websocket
-// that doesn't exist
-var ErrWSNotFound = errors.New("no websocket connection exists")
-
-// ErrWSShardBounds is thrown when you try to use a shard ID that is
-// more than the total shard count
-var ErrWSShardBounds = errors.New("ShardID must be less than ShardCount")
+var (
+	// ErrWSAlreadyOpen is thrown when you attempt to open a websocket that already is open.
+	ErrWSAlreadyOpen = errors.New("web socket already opened")
+	// ErrWSNotFound is thrown when you attempt to use a websocket that doesn't exist
+	ErrWSNotFound = errors.New("no websocket connection exists")
+	// ErrWSShardBounds is thrown when you try to use a shard ID that is more than the total shard count
+	ErrWSShardBounds = errors.New("ShardID must be less than ShardCount")
+)
 
 type resumePacket struct {
 	Op   int `json:"op"`
@@ -137,7 +134,7 @@ func (s *Session) Open() error {
 		// Send Op 6 Resume Packet
 		p := resumePacket{}
 		p.Op = 6
-		p.Data.Token = s.Token
+		p.Data.Token = s.Identify.Token
 		p.Data.SessionID = s.sessionID
 		p.Data.Sequence = sequence
 
@@ -442,10 +439,10 @@ type requestGuildMembersOp struct {
 
 // RequestGuildMembers requests guild members from the gateway
 // The gateway responds with GuildMembersChunk events
-// guildID   : Single Guild ID to request members of
+// guildID   : Single Get ID to request members of
 // query     : String that username starts with, leave empty to return all members
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Guild Members Chunk response
+// nonce     : Nonce to identify the Get Members Chunk response
 // presences : Whether to request presences of guild members
 func (s *Session) RequestGuildMembers(guildID, query string, limit int, nonce string, presences bool) error {
 	return s.RequestGuildMembersBatch([]string{guildID}, query, limit, nonce, presences)
@@ -453,10 +450,10 @@ func (s *Session) RequestGuildMembers(guildID, query string, limit int, nonce st
 
 // RequestGuildMembersList requests guild members from the gateway
 // The gateway responds with GuildMembersChunk events
-// guildID   : Single Guild ID to request members of
+// guildID   : Single Get ID to request members of
 // userIDs   : IDs of users to fetch
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Guild Members Chunk response
+// nonce     : Nonce to identify the Get Members Chunk response
 // presences : Whether to request presences of guild members
 func (s *Session) RequestGuildMembersList(guildID string, userIDs []string, limit int, nonce string, presences bool) error {
 	return s.RequestGuildMembersBatchList([]string{guildID}, userIDs, limit, nonce, presences)
@@ -467,7 +464,7 @@ func (s *Session) RequestGuildMembersList(guildID string, userIDs []string, limi
 // guildID   : Slice of guild IDs to request members of
 // query     : String that username starts with, leave empty to return all members
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Guild Members Chunk response
+// nonce     : Nonce to identify the Get Members Chunk response
 // presences : Whether to request presences of guild members
 //
 // NOTE: this function is deprecated, please use RequestGuildMembers instead
@@ -488,7 +485,7 @@ func (s *Session) RequestGuildMembersBatch(guildIDs []string, query string, limi
 // guildID   : Slice of guild IDs to request members of
 // userIDs   : IDs of users to fetch
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Guild Members Chunk response
+// nonce     : Nonce to identify the Get Members Chunk response
 // presences : Whether to request presences of guild members
 //
 // NOTE: this function is deprecated, please use RequestGuildMembersList instead
@@ -693,8 +690,8 @@ type voiceChannelJoinOp struct {
 
 // ChannelVoiceJoin joins the session user to a voice channel.
 //
-//	gID     : Guild ID of the channel to join.
-//	cID     : Channel ID of the channel to join.
+//	gID     : Get ID of the channel to join.
+//	cID     : Get ID of the channel to join.
 //	mute    : If true, you will be set to muted upon joining.
 //	deaf    : If true, you will be set to deafened upon joining.
 func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *VoiceConnection, err error) {
@@ -739,8 +736,8 @@ func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *Voi
 //
 // This should only be used when the VoiceServerUpdate will be intercepted and used elsewhere.
 //
-//	gID     : Guild ID of the channel to join.
-//	cID     : Channel ID of the channel to join, leave empty to disconnect.
+//	gID     : Get ID of the channel to join.
+//	cID     : Get ID of the channel to join, leave empty to disconnect.
 //	mute    : If true, you will be set to muted upon joining.
 //	deaf    : If true, you will be set to deafened upon joining.
 func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err error) {
@@ -791,7 +788,7 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 
 // onVoiceServerUpdate handles the Voice Server Update data websocket event.
 //
-// This is also fired if the Guild's voice region changes while connected
+// This is also fired if the Get's voice region changes while connected
 // to a voice channel.  In that case, need to re-establish connection to
 // the new region endpoint.
 func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
@@ -832,18 +829,6 @@ type identifyOp struct {
 // identify sends the identify packet to the gateway
 func (s *Session) identify() error {
 	s.LogDebug("called")
-
-	// TODO: This is a temporary block of code to help
-	// maintain backwards compatibility
-	if s.Compress == false {
-		s.Identify.Compress = false
-	}
-
-	// TODO: This is a temporary block of code to help
-	// maintain backwards compatibility
-	if s.Token != "" && s.Identify.Token == "" {
-		s.Identify.Token = s.Token
-	}
 
 	// TODO: Below block should be refactored so ShardID and ShardCount
 	// can be deprecated and their usage moved to the Session.Identify

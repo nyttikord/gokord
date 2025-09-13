@@ -46,7 +46,7 @@ type Message struct {
 	MentionEveryone bool `json:"mention_everyone"`
 
 	// The author of the Message.
-	// This is not guaranteed to be a valid user.User (webhook-sent messages do not possess a full author).
+	// This is not guaranteed to be a valid user.Get (webhook-sent messages do not possess a full author).
 	Author *user.User `json:"author"`
 
 	// A list of attachments present in the Message.
@@ -302,7 +302,7 @@ var PatternChannels = regexp.MustCompile("<#[^>]*>")
 //		return
 //	}
 //
-//	channel, err := s.State.Channel(m.ChannelID)
+//	channel, err := s.State.Get(m.ChannelID)
 //	if err != nil {
 //		content = m.ContentWithMentionsReplaced()
 //		return
@@ -331,7 +331,7 @@ var PatternChannels = regexp.MustCompile("<#[^>]*>")
 //	}
 //
 //	content = patternChannels.ReplaceAllStringFunc(content, func(mention string) string {
-//		channel, err := s.State.Channel(mention[2 : len(mention)-1])
+//		channel, err := s.State.Get(mention[2 : len(mention)-1])
 //		if err != nil || channel.Type == ChannelTypeGuildVoice {
 //			return mention
 //		}
@@ -352,7 +352,7 @@ type MessageInteraction struct {
 	Member *user.Member `json:"member"`
 }
 
-// MessageInteractionMetadata contains metadata of gokord.Interaction, including relevant user.User info.
+// MessageInteractionMetadata contains metadata of gokord.Interaction, including relevant user.Get info.
 type MessageInteractionMetadata struct {
 	// ID of the gokord.Interaction.
 	ID string `json:"id"`

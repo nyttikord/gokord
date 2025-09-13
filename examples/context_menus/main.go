@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 
 	"log"
 	"os"
@@ -19,7 +20,7 @@ import (
 var (
 	GuildID  = flag.String("guild", "", "Test guild ID")
 	BotToken = flag.String("token", "", "Bot access token")
-	AppID    = flag.String("app", "", "Application ID")
+	AppID    = flag.String("app", "", "Get ID")
 	Cleanup  = flag.Bool("cleanup", true, "Cleanup of commands")
 )
 
@@ -28,11 +29,7 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	var err error
-	s, err = gokord.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	s = gokord.New("Bot " + *BotToken)
 }
 
 func searchLink(message, format, sep string) string {
@@ -46,37 +43,37 @@ func searchLink(message, format, sep string) string {
 }
 
 var (
-	commands = []interactions.Command{
+	commands = []interaction.Command{
 		{
 			Name: "rickroll-em",
-			Type: gokord.UserApplicationCommand,
+			Type: types.ApplicationCommandUser,
 		},
 		{
 			Name: "google-it",
-			Type: gokord.MessageApplicationCommand,
+			Type: types.ApplicationCommandMessage,
 		},
 		{
 			Name: "stackoverflow-it",
-			Type: gokord.MessageApplicationCommand,
+			Type: types.ApplicationCommandMessage,
 		},
 		{
 			Name: "godoc-it",
-			Type: gokord.MessageApplicationCommand,
+			Type: types.ApplicationCommandMessage,
 		},
 		{
 			Name: "discordjs-it",
-			Type: gokord.MessageApplicationCommand,
+			Type: types.ApplicationCommandMessage,
 		},
 		{
 			Name: "discordpy-it",
-			Type: gokord.MessageApplicationCommand,
+			Type: types.ApplicationCommandMessage,
 		},
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"rickroll-em": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: "Operation rickroll has begun",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -85,11 +82,11 @@ var (
 				panic(err)
 			}
 
-			ch, err := s.UserChannelCreate(
+			ch, err := s.UserAPI().ChannelCreate(
 				i.ApplicationCommandData().TargetID,
 			)
 			if err != nil {
-				_, err = s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+				_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
 					Flags:   channel.MessageFlagsEphemeral,
 				})
@@ -97,7 +94,7 @@ var (
 					panic(err)
 				}
 			}
-			_, err = s.ChannelMessageSend(
+			_, err = s.ChannelAPI().MessageSend(
 				ch.ID,
 				fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
 			)
@@ -106,9 +103,9 @@ var (
 			}
 		},
 		"google-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://google.com/search?q=%s", "+"),
@@ -120,9 +117,9 @@ var (
 			}
 		},
 		"stackoverflow-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://stackoverflow.com/search?q=%s", "+"),
@@ -134,9 +131,9 @@ var (
 			}
 		},
 		"godoc-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://pkg.go.dev/search?q=%s", "+"),
@@ -148,9 +145,9 @@ var (
 			}
 		},
 		"discordjs-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
@@ -162,9 +159,9 @@ var (
 			}
 		},
 		"discordpy-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: searchLink(
 						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
 						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
@@ -192,7 +189,7 @@ func main() {
 	cmdIDs := make(map[string]string, len(commands))
 
 	for _, cmd := range commands {
-		rcmd, err := s.ApplicationCommandCreate(*AppID, *GuildID, &cmd)
+		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -217,7 +214,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.ApplicationCommandDelete(*AppID, *GuildID, id)
+		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

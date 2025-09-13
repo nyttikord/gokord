@@ -173,7 +173,7 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 // Guild gets a guild by ID.
 // Useful for querying if @me is in a guild:
 //
-//	   _, err := discordgo.Session.State.Guild(guildID)
+//	   _, err := discordgo.Session.State.Get(guildID)
 //		  isInGuild := err == nil
 func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	if s == nil {
@@ -244,7 +244,7 @@ func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
 }
 
 // PresenceAdd adds a presence to the current world state, or
-// updates it if it already exists.
+// updates it if it already existuserapis.
 func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	if s == nil {
 		return ErrNilState
@@ -300,7 +300,7 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 	return nil, ErrStateNotFound
 }
 
-// TODO: Consider moving Guild state update methods onto *Guild.
+// TODO: Consider moving Get state update methods onto *Get.
 
 func (s *State) memberAdd(member *user.Member) error {
 	guild, ok := s.guildMap[member.GuildID]
@@ -838,7 +838,7 @@ func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// Handle Leaving Channel
+	// Handle Leaving Get
 	if update.ChannelID == "" {
 		for i, state := range guild.VoiceStates {
 			if state.UserID == update.UserID {
@@ -1231,7 +1231,7 @@ func (s *State) UserChannelPermissions(userID, channelID string) (apermissions i
 		return
 	}
 
-	return memberPermissions(guild, channel, userID, member.Roles), nil
+	return MemberPermissions(guild, channel, userID, member.Roles), nil
 }
 
 // MessagePermissions returns the permissions of the author of the message
@@ -1255,7 +1255,7 @@ func (s *State) MessagePermissions(message *channel.Message) (apermissions int64
 		return
 	}
 
-	return memberPermissions(guild, channel, message.Author.ID, message.Member.Roles), nil
+	return MemberPermissions(guild, channel, message.Author.ID, message.Member.Roles), nil
 }
 
 // UserColor returns the color of a user in a channel.

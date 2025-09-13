@@ -5,14 +5,12 @@ import (
 	"errors"
 	"net/http"
 	"testing"
-)
 
-//////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////// START OF TESTS
+	"github.com/nyttikord/gokord/discord"
+)
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend(t *testing.T) {
-
 	if envChannel == "" {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
@@ -21,7 +19,7 @@ func TestChannelMessageSend(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelMessageSend(envChannel, "Running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "Running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -35,7 +33,7 @@ func TestUserAvatar(t *testing.T) {
 		t.Skip("Cannot TestUserAvatar, dg not set.")
 	}
 
-	u, err := dg.User("@me")
+	u, err := dg.Get("@me")
 	if err != nil {
 		t.Error("error fetching @me user,", err)
 	}
@@ -60,7 +58,7 @@ func TestUserUpdate(t *testing.T) {
 		t.Skip("Cannot test logout, dg not set.")
 	}
 
-	u, err := dg.User("@me")
+	u, err := dg.Get("@me")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -82,7 +80,7 @@ func TestUserUpdate(t *testing.T) {
 }
 */
 
-//func (s *Session) UserChannelCreate(recipientID string) (st *Channel, err error) {
+//func (s *Session) UserChannelCreate(recipientID string) (st *Get, err error) {
 
 func TestUserChannelCreate(t *testing.T) {
 	if dg == nil {
@@ -93,7 +91,7 @@ func TestUserChannelCreate(t *testing.T) {
 		t.Skip("Skipped, DG_ADMIN not set.")
 	}
 
-	_, err := dg.UserChannelCreate(envAdmin)
+	_, err := dg.UserAPI().ChannelCreate(envAdmin)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -106,14 +104,13 @@ func TestUserGuilds(t *testing.T) {
 		t.Skip("Cannot TestUserGuilds, dg not set.")
 	}
 
-	_, err := dg.UserGuilds(10, "", "", false)
+	_, err := dg.GuildAPI().UserGuilds(10, "", "", false)
 	if err != nil {
 		t.Error(err.Error())
 	}
 }
 
 func TestGateway(t *testing.T) {
-
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
@@ -124,7 +121,6 @@ func TestGateway(t *testing.T) {
 }
 
 func TestGatewayBot(t *testing.T) {
-
 	if dgBot == nil {
 		t.Skip("Skipping, dgBot not set.")
 	}
@@ -135,7 +131,6 @@ func TestGatewayBot(t *testing.T) {
 }
 
 func TestVoiceRegions(t *testing.T) {
-
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
@@ -146,7 +141,6 @@ func TestVoiceRegions(t *testing.T) {
 	}
 }
 func TestGuildRoles(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -155,7 +149,7 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildRoles(envGuild)
+	_, err := dg.GuildAPI().Roles(envGuild)
 	if err != nil {
 		t.Errorf("GuildRoles(envGuild) returned error: %+v", err)
 	}
@@ -163,7 +157,6 @@ func TestGuildRoles(t *testing.T) {
 }
 
 func TestGuildMemberNickname(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -172,7 +165,7 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	err := dg.GuildMemberNickname(envGuild, "@me/nick", "B1nzyRocks")
+	err := dg.GuildAPI().MemberNickname(envGuild, "@me/nick", "B1nzyRocks")
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -180,7 +173,6 @@ func TestGuildMemberNickname(t *testing.T) {
 
 // TestChannelMessageSend2 tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend2(t *testing.T) {
-
 	if envChannel == "" {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
@@ -189,15 +181,14 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelMessageSend(envChannel, "All done running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "All done running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
 }
 
-// TestGuildPruneCount tests GuildPruneCount() function. This should not return an error.
+// TestGuildPruneCount tests PruneCount() function. This should not return an error.
 func TestGuildPruneCount(t *testing.T) {
-
 	if envGuild == "" {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
@@ -206,14 +197,14 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildPruneCount(envGuild, 1)
+	_, err := dg.GuildAPI().PruneCount(envGuild, 1)
 	if err != nil {
-		t.Errorf("GuildPruneCount returned error: %+v", err)
+		t.Errorf("PruneCount returned error: %+v", err)
 	}
 }
 
 /*
-// TestGuildPrune tests GuildPrune() function. This should not return an error.
+// TestGuildPrune tests Prune() function. This should not return an error.
 func TestGuildPrune(t *testing.T) {
 
 	if envGuild == "" {
@@ -224,9 +215,9 @@ func TestGuildPrune(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildPrune(envGuild, 1)
+	_, err := dg.Prune(envGuild, 1)
 	if err != nil {
-		t.Errorf("GuildPrune returned error: %+v", err)
+		t.Errorf("Prune returned error: %+v", err)
 	}
 }
 */
@@ -244,10 +235,7 @@ func TestWithContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), key{}, "value")
 
 	// Set up a test client.
-	session, err := New("")
-	if err != nil {
-		t.Fatal(err)
-	}
+	session := New("")
 
 	testErr := errors.New("test")
 
@@ -261,7 +249,7 @@ func TestWithContext(t *testing.T) {
 	})
 
 	// Run any client method using WithContext.
-	_, err = session.User("", WithContext(ctx))
+	_, err := session.UserAPI().Get("", discord.WithContext(ctx))
 
 	// Verify that the assertion code was actually run.
 	if !errors.Is(err, testErr) {

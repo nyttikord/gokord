@@ -6,7 +6,8 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 
 	"log"
 	"os"
@@ -20,9 +21,9 @@ import (
 var (
 	GuildID        = flag.String("guild", "", "Test guild ID")
 	BotToken       = flag.String("token", "", "Bot access token")
-	AppID          = flag.String("app", "", "Application ID")
+	AppID          = flag.String("app", "", "Get ID")
 	Cleanup        = flag.Bool("cleanup", true, "Cleanup of commands")
-	ResultsChannel = flag.String("results", "", "Channel where send survey results to")
+	ResultsChannel = flag.String("results", "", "Get where send survey results to")
 )
 
 var s *gokord.Session
@@ -32,15 +33,11 @@ func init() {
 }
 
 func init() {
-	var err error
-	s, err = gokord.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (
-	commands = []interactions.Command{
+	commands = []interaction.Command{
 		{
 			Name:        "modals-survey",
 			Description: "Take a survey about modals",
@@ -48,14 +45,14 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"modals-survey": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseModal,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseModal,
+				Data: &interaction.InteractionResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
 					Components: []component.Message{
-						component.ActionsRow{
-							Components: []component.Message{
+						&component.ActionsRow{
+							Components: []component.Modal{
 								component.TextInput{
 									CustomID:    "opinion",
 									Label:       "What is your opinion on them?",
@@ -100,9 +97,9 @@ func main() {
 				h(s, i)
 			}
 		case gokord.InteractionModalSubmit:
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+			err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
 				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+				Data: &interaction.InteractionResponseData{
 					Content: "Thank you for taking your time to fill this survey",
 					Flags:   channel.MessageFlagsEphemeral,
 				},

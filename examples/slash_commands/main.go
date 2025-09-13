@@ -7,7 +7,8 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/interaction"
 
 	"log"
 	"os"
@@ -30,19 +31,15 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	var err error
-	s, err = gokord.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (
 	integerOptionMinValue          = 1.0
 	dmPermission                   = false
-	defaultMemberPermissions int64 = gokord.PermissionManageGuild
+	defaultMemberPermissions int64 = discord.PermissionManageGuild
 
-	commands = []*interactions.Command{
+	commands = []*interaction.Command{
 		{
 			Name: "basic-command",
 			// All commands and options must have a description
@@ -69,7 +66,7 @@ var (
 			DescriptionLocalizations: &map[discord.Locale]string{
 				discord.LocaleChineseCN: "这是一个本地化的命令",
 			},
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 				{
 					Name:        "localized-option",
 					Description: "Localized option. Description and name may vary depending on the Language setting",
@@ -79,8 +76,8 @@ var (
 					DescriptionLocalizations: map[discord.Locale]string{
 						discord.LocaleChineseCN: "这是一个本地化的选项",
 					},
-					Type: gokord.ApplicationCommandOptionInteger,
-					Choices: []*interactions.CommandOptionChoice{
+					Type: types.ApplicationCommandOptionInteger,
+					Choices: []*interaction.CommandOptionChoice{
 						{
 							Name: "First",
 							NameLocalizations: map[discord.Locale]string{
@@ -102,16 +99,16 @@ var (
 		{
 			Name:        "options",
 			Description: "Command for demonstrating options",
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 
 				{
-					Type:        gokord.ApplicationCommandOptionString,
+					Type:        types.ApplicationCommandOptionString,
 					Name:        "string-option",
 					Description: "String option",
 					Required:    true,
 				},
 				{
-					Type:        gokord.ApplicationCommandOptionInteger,
+					Type:        types.ApplicationCommandOptionInteger,
 					Name:        "integer-option",
 					Description: "Integer option",
 					MinValue:    &integerOptionMinValue,
@@ -119,14 +116,14 @@ var (
 					Required:    true,
 				},
 				{
-					Type:        gokord.ApplicationCommandOptionNumber,
+					Type:        types.ApplicationCommandOptionNumber,
 					Name:        "number-option",
 					Description: "Float option",
 					MaxValue:    10.1,
 					Required:    true,
 				},
 				{
-					Type:        gokord.ApplicationCommandOptionBoolean,
+					Type:        types.ApplicationCommandOptionBoolean,
 					Name:        "bool-option",
 					Description: "Boolean option",
 					Required:    true,
@@ -137,24 +134,24 @@ var (
 				// The same concept applies to Discord's Slash-commands API
 
 				{
-					Type:        gokord.ApplicationCommandOptionChannel,
+					Type:        types.ApplicationCommandOptionChannel,
 					Name:        "channel-option",
-					Description: "Channel option",
-					// Channel type mask
-					ChannelTypes: []gokord.ChannelType{
-						gokord.ChannelTypeGuildText,
-						gokord.ChannelTypeGuildVoice,
+					Description: "Get option",
+					// Get type mask
+					ChannelTypes: []types.Channel{
+						types.ChannelGuildText,
+						types.ChannelGuildVoice,
 					},
 					Required: false,
 				},
 				{
-					Type:        gokord.ApplicationCommandOptionUser,
+					Type:        types.ApplicationCommandOptionUser,
 					Name:        "user-option",
-					Description: "User option",
+					Description: "Get option",
 					Required:    false,
 				},
 				{
-					Type:        gokord.ApplicationCommandOptionRole,
+					Type:        types.ApplicationCommandOptionRole,
 					Name:        "role-option",
 					Description: "Role option",
 					Required:    false,
@@ -164,7 +161,7 @@ var (
 		{
 			Name:        "subcommands",
 			Description: "Subcommands and command groups example",
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 				// When a command has subcommands/subcommand groups
 				// It must not have top-level options, they aren't accesible in the UI
 				// in this case (at least not yet), so if a command has
@@ -174,17 +171,17 @@ var (
 				{
 					Name:        "subcommand-group",
 					Description: "Subcommands group",
-					Options: []*interactions.CommandOption{
+					Options: []*interaction.CommandOption{
 						// Also, subcommand groups aren't capable of
 						// containing options, by the name of them, you can see
 						// they can only contain subcommands
 						{
 							Name:        "nested-subcommand",
 							Description: "Nested subcommand",
-							Type:        gokord.ApplicationCommandOptionSubCommand,
+							Type:        types.ApplicationCommandOptionSubCommand,
 						},
 					},
-					Type: gokord.ApplicationCommandOptionSubCommandGroup,
+					Type: types.ApplicationCommandOptionSubCommandGroup,
 				},
 				// Also, you can create both subcommand groups and subcommands
 				// in the command at the same time. But, there's some limits to
@@ -194,21 +191,21 @@ var (
 				{
 					Name:        "subcommand",
 					Description: "Top-level subcommand",
-					Type:        gokord.ApplicationCommandOptionSubCommand,
+					Type:        types.ApplicationCommandOptionSubCommand,
 				},
 			},
 		},
 		{
 			Name:        "responses",
 			Description: "Interaction responses testing initiative",
-			Options: []*interactions.CommandOption{
+			Options: []*interaction.CommandOption{
 				{
 					Name:        "resp-type",
 					Description: "Response type",
-					Type:        gokord.ApplicationCommandOptionInteger,
-					Choices: []*interactions.CommandOptionChoice{
+					Type:        types.ApplicationCommandOptionInteger,
+					Choices: []*interaction.CommandOptionChoice{
 						{
-							Name:  "Channel message with source",
+							Name:  "Get message with source",
 							Value: 4,
 						},
 						{
@@ -228,17 +225,17 @@ var (
 
 	commandHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"basic-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command",
 				},
 			})
 		},
 		"basic-command-with-files": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
 					Files: []*channel.File{
 						{
@@ -258,9 +255,9 @@ var (
 			if r, ok := responses[i.Locale]; ok {
 				response = r
 			}
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: response,
 				},
 			})
@@ -273,7 +270,7 @@ var (
 			options := i.ApplicationCommandData().Options
 
 			// Or convert the slice into a map
-			optionMap := make(map[string]*interactions.CommandInteractionDataOption, len(options))
+			optionMap := make(map[string]*interaction.CommandInteractionDataOption, len(options))
 			for _, opt := range options {
 				optionMap[opt.Name] = opt
 			}
@@ -309,24 +306,24 @@ var (
 			}
 
 			if opt, ok := optionMap["channel-option"]; ok {
-				margs = append(margs, opt.ChannelValue(nil).ID)
+				margs = append(margs, opt.ChannelValue(s.ChannelAPI(), s.State).ID)
 				msgformat += "> channel-option: <#%s>\n"
 			}
 
 			if opt, ok := optionMap["user-option"]; ok {
-				margs = append(margs, opt.UserValue(nil).ID)
+				margs = append(margs, opt.UserValue(s.UserAPI()).ID)
 				msgformat += "> user-option: <@%s>\n"
 			}
 
 			if opt, ok := optionMap["role-option"]; ok {
-				margs = append(margs, opt.RoleValue(nil, "").ID)
+				margs = append(margs, opt.RoleValue("", s.GuildAPI(), s.State).ID)
 				msgformat += "> role-option: <@&%s>\n"
 			}
 
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
 				// Ignore type for now, they will be discussed in "responses"
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: fmt.Sprintf(
 						msgformat,
 						margs...,
@@ -335,13 +332,13 @@ var (
 			})
 		},
 		"permission-overview": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			perms, err := s.ApplicationCommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
+			perms, err := s.InteractionAPI().CommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
 
 			var restError *gokord.RESTError
-			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == gokord.ErrCodeUnknownApplicationCommandPermissions {
-				s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-					Type: gokord.InteractionResponseChannelMessageWithSource,
-					Data: &interactions.InteractionResponseData{
+			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discord.ErrCodeUnknownApplicationCommandPermissions {
+				s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionResponseChannelMessageWithSource,
+					Data: &interaction.InteractionResponseData{
 						Content: ":x: No permission overwrites",
 					},
 				})
@@ -366,17 +363,17 @@ var (
 				}
 
 				switch o.Type {
-				case gokord.ApplicationCommandPermissionTypeUser:
+				case types.ApplicationCommandPermissionUser:
 					users += fmt.Sprintf(format, emoji, "<@!"+o.ID+">")
-				case gokord.ApplicationCommandPermissionTypeChannel:
-					allChannels, _ := interactions.GuildAllChannelsID(i.GuildID)
+				case types.ApplicationCommandPermissionChannel:
+					allChannels, _ := interaction.GuildAllChannelsID(i.GuildID)
 
 					if o.ID == allChannels {
 						channels += fmt.Sprintf(format, emoji, "All channels")
 					} else {
 						channels += fmt.Sprintf(format, emoji, "<#"+o.ID+">")
 					}
-				case gokord.ApplicationCommandPermissionTypeRole:
+				case types.ApplicationCommandPermissionRole:
 					if o.ID == i.GuildID {
 						roles += fmt.Sprintf(format, emoji, "@everyone")
 					} else {
@@ -385,9 +382,9 @@ var (
 				}
 			}
 
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Embeds: []*channel.MessageEmbed{
 						{
 							Title:       "Permissions overview",
@@ -432,9 +429,9 @@ var (
 				}
 			}
 
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					Content: content,
 				},
 			})
@@ -450,32 +447,32 @@ var (
 			// As you can see, the response type names used here are pretty self-explanatory,
 			// but for those who want more information see the official documentation
 			switch i.ApplicationCommandData().Options[0].IntValue() {
-			case int64(gokord.InteractionResponseChannelMessageWithSource):
+			case int64(types.InteractionResponseChannelMessageWithSource):
 				content =
 					"You just responded to an interaction, sent a message and showed the original one. " +
 						"Congratulations!"
 				content +=
 					"\nAlso... you can edit your response, wait 5 seconds and this message will be changed"
 			default:
-				err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-					Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+					Type: types.InteractionResponse(i.ApplicationCommandData().Options[0].IntValue()),
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+					s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 				}
 				return
 			}
 
-			err := s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseType(i.ApplicationCommandData().Options[0].IntValue()),
-				Data: &interactions.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponse(i.ApplicationCommandData().Options[0].IntValue()),
+				Data: &interaction.InteractionResponseData{
 					Content: content,
 				},
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+				s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -484,17 +481,17 @@ var (
 				content := content + "\n\nWell, now you know how to create and edit responses. " +
 					"But you still don't know how to delete them... so... wait 10 seconds and this " +
 					"message will be deleted."
-				_, err = s.InteractionResponseEdit(i.Interaction, &channel.WebhookEdit{
+				_, err = s.InteractionAPI().ResponseEdit(i.Interaction, &channel.WebhookEdit{
 					Content: &content,
 				})
 				if err != nil {
-					s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+					s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
 					})
 					return
 				}
 				time.Sleep(time.Second * 10)
-				s.InteractionResponseDelete(i.Interaction)
+				s.InteractionAPI().ResponseDelete(i.Interaction)
 			})
 		},
 		"followups": func(s *gokord.Session, i *gokord.InteractionCreate) {
@@ -502,9 +499,9 @@ var (
 			// but work as they are created by webhooks and their functionality
 			// is for handling additional messages after sending a response.
 
-			s.InteractionRespond(i.Interaction, &interactions.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interactions.InteractionResponseData{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.InteractionResponseData{
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
@@ -512,11 +509,11 @@ var (
 					Content: "Surprise!",
 				},
 			})
-			msg, err := s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+			msg, err := s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Followup message has been created, after 5 seconds it will be edited",
 			})
 			if err != nil {
-				s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+				s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
 				})
 				return
@@ -524,15 +521,15 @@ var (
 			time.Sleep(time.Second * 5)
 
 			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-			s.FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
+			s.InteractionAPI().FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
 				Content: &content,
 			})
 
 			time.Sleep(time.Second * 10)
 
-			s.FollowupMessageDelete(i.Interaction, msg.ID)
+			s.InteractionAPI().FollowupMessageDelete(i.Interaction, msg.ID)
 
-			s.FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+			s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 					"take a unicorn :unicorn: as reward!\n" +
 					"Also, as bonus... look at the original interaction response :D",
@@ -559,9 +556,9 @@ func main() {
 	}
 
 	log.Println("Adding commands...")
-	registeredCommands := make([]*interactions.Command, len(commands))
+	registeredCommands := make([]*interaction.Command, len(commands))
 	for i, v := range commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
+		cmd, err := s.InteractionAPI().CommandCreate(s.State.User.ID, *GuildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -581,13 +578,13 @@ func main() {
 		// // We are doing this from the returned commands on line 375, because using
 		// // this will delete all the commands, which might not be desirable, so we
 		// // are deleting only the commands that we added.
-		// registeredCommands, err := s.ApplicationCommands(s.State.User.ID, *GuildID)
+		// registeredCommands, err := s.ApplicationCommands(s.State.Get.ID, *GuildID)
 		// if err != nil {
 		// 	log.Fatalf("Could not fetch registered commands: %v", err)
 		// }
 
 		for _, v := range registeredCommands {
-			err := s.ApplicationCommandDelete(s.State.User.ID, *GuildID, v.ID)
+			err := s.InteractionAPI().CommandDelete(s.State.User.ID, *GuildID, v.ID)
 			if err != nil {
 				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 			}

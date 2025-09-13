@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/logger"
 )
 
@@ -23,13 +26,11 @@ const VERSION = "0.30.0+v" + discord.APIVersion
 // Or if it is an OAuth2 token, it must be prefixed with "Bearer "
 //
 //	e.g. "Bearer ..."
-func New(token string) (s *Session, err error) {
-	// Create an empty Session interface.
-	s = &Session{
+func New(token string) *Session {
+	s := &Session{
 		State:                              NewState(),
-		Ratelimiter:                        NewRatelimiter(),
+		RateLimiter:                        discord.NewRateLimiter(),
 		StateEnabled:                       true,
-		Compress:                           true,
 		ShouldReconnectOnError:             true,
 		ShouldReconnectVoiceOnSessionError: true,
 		ShouldRetryOnRateLimit:             true,
@@ -52,7 +53,73 @@ func New(token string) (s *Session, err error) {
 	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
 	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 	s.Identify.Token = token
-	s.Token = token
 
-	return
+	return s
+}
+
+// MemberPermissions calculates the permissions for a user.Member.
+// https://support.discord.com/hc/en-us/articles/206141927-How-is-the-permission-hierarchy-structured-
+func MemberPermissions(guild *guild.Guild, channel *channel.Channel, userID string, roles []string) int64 {
+	if userID == guild.OwnerID {
+		return discord.PermissionAll
+	}
+
+	var perms int64
+	for _, role := range guild.Roles {
+		if role.ID == guild.ID {
+			perms |= role.Permissions
+			break
+		}
+	}
+
+	for _, role := range guild.Roles {
+		for _, roleID := range roles {
+			if role.ID == roleID {
+				perms |= role.Permissions
+				break
+			}
+		}
+	}
+
+	if perms&discord.PermissionAdministrator == discord.PermissionAdministrator {
+		perms |= discord.PermissionAll
+	}
+
+	// Apply @everyone overrides from the channel.
+	for _, overwrite := range channel.PermissionOverwrites {
+		if guild.ID == overwrite.ID {
+			perms &= ^overwrite.Deny
+			perms |= overwrite.Allow
+			break
+		}
+	}
+
+	var denies, allows int64
+	// Member overwrites can override role overrides, so do two passes
+	for _, overwrite := range channel.PermissionOverwrites {
+		for _, roleID := range roles {
+			if overwrite.Type == types.PermissionOverwriteRole && roleID == overwrite.ID {
+				denies |= overwrite.Deny
+				allows |= overwrite.Allow
+				break
+			}
+		}
+	}
+
+	perms &= ^denies
+	perms |= allows
+
+	for _, overwrite := range channel.PermissionOverwrites {
+		if overwrite.Type == types.PermissionOverwriteMember && overwrite.ID == userID {
+			perms &= ^overwrite.Deny
+			perms |= overwrite.Allow
+			break
+		}
+	}
+
+	if perms&discord.PermissionAdministrator == discord.PermissionAdministrator {
+		perms |= discord.PermissionAllChannel
+	}
+
+	return perms
 }

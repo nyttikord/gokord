@@ -8,7 +8,7 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/interactions"
+	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/invite"
@@ -388,7 +388,7 @@ type WebhooksUpdate struct {
 
 // InteractionCreate is the data for a InteractionCreate event
 type InteractionCreate struct {
-	*interactions.Interaction
+	*interaction.Interaction
 }
 
 // UnmarshalJSON is a helper function to unmarshal Interaction object.
@@ -412,7 +412,7 @@ type InviteDelete struct {
 
 // ApplicationCommandPermissionsUpdate is the data for an ApplicationCommandPermissionsUpdate event
 type ApplicationCommandPermissionsUpdate struct {
-	*interactions.GuildCommandPermissions
+	*interaction.GuildCommandPermissions
 }
 
 // AutoModerationRuleCreate is the data for an AutoModerationRuleCreate event.
