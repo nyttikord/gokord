@@ -74,7 +74,7 @@ type CommandInteractionDataResolved struct {
 	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
 }
 
-// Type returns the type of InteractionData.
+// Type returns the type of Data.
 func (CommandInteractionData) Type() types.Interaction {
 	return types.InteractionApplicationCommand
 }

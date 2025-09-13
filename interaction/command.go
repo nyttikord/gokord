@@ -22,8 +22,6 @@ type Command struct {
 	DefaultMemberPermissions *int64 `json:"default_member_permissions,string,omitempty"`
 	NSFW                     *bool  `json:"nsfw,omitempty"`
 
-	// Deprecated: use Contexts instead.
-	DMPermission     *bool                       `json:"dm_permission,omitempty"`
 	Contexts         *[]types.InteractionContext `json:"contexts,omitempty"`
 	IntegrationTypes *[]types.Integration        `json:"integration_types,omitempty"`
 

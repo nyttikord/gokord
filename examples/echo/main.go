@@ -39,9 +39,9 @@ func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) 
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
-		Data: &interaction.InteractionResponseData{
+		Data: &interaction.ResponseData{
 			Content: builder.String(),
 		},
 	})
@@ -90,7 +90,7 @@ func main() {
 			return
 		}
 
-		data := i.ApplicationCommandData()
+		data := i.CommandData()
 		if data.Name != "echo" {
 			return
 		}

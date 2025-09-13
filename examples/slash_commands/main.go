@@ -225,17 +225,17 @@ var (
 
 	commandHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"basic-command": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command",
 				},
 			})
 		},
 		"basic-command-with-files": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
 					Files: []*channel.File{
 						{
@@ -255,9 +255,9 @@ var (
 			if r, ok := responses[i.Locale]; ok {
 				response = r
 			}
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: response,
 				},
 			})
@@ -267,7 +267,7 @@ var (
 		},
 		"options": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			// Access options in the order provided by the user.
-			options := i.ApplicationCommandData().Options
+			options := i.CommandData().Options
 
 			// Or convert the slice into a map
 			optionMap := make(map[string]*interaction.CommandInteractionDataOption, len(options))
@@ -320,10 +320,10 @@ var (
 				msgformat += "> role-option: <@&%s>\n"
 			}
 
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				// Ignore type for now, they will be discussed in "responses"
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: fmt.Sprintf(
 						msgformat,
 						margs...,
@@ -332,13 +332,13 @@ var (
 			})
 		},
 		"permission-overview": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			perms, err := s.InteractionAPI().CommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
+			perms, err := s.InteractionAPI().CommandPermissions(s.State.User.ID, i.GuildID, i.CommandData().ID)
 
 			var restError *gokord.RESTError
 			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discord.ErrCodeUnknownApplicationCommandPermissions {
-				s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: ":x: No permission overwrites",
 					},
 				})
@@ -382,9 +382,9 @@ var (
 				}
 			}
 
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Embeds: []*channel.MessageEmbed{
 						{
 							Title:       "Permissions overview",
@@ -410,7 +410,7 @@ var (
 			})
 		},
 		"subcommands": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			options := i.ApplicationCommandData().Options
+			options := i.CommandData().Options
 			content := ""
 
 			// As you can see, names of subcommands (nested, top-level)
@@ -429,9 +429,9 @@ var (
 				}
 			}
 
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: content,
 				},
 			})
@@ -446,7 +446,7 @@ var (
 			content := ""
 			// As you can see, the response type names used here are pretty self-explanatory,
 			// but for those who want more information see the official documentation
-			switch i.ApplicationCommandData().Options[0].IntValue() {
+			switch i.CommandData().Options[0].IntValue() {
 			case int64(types.InteractionResponseChannelMessageWithSource):
 				content =
 					"You just responded to an interaction, sent a message and showed the original one. " +
@@ -454,8 +454,8 @@ var (
 				content +=
 					"\nAlso... you can edit your response, wait 5 seconds and this message will be changed"
 			default:
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
-					Type: types.InteractionResponse(i.ApplicationCommandData().Options[0].IntValue()),
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+					Type: types.InteractionResponse(i.CommandData().Options[0].IntValue()),
 				})
 				if err != nil {
 					s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
@@ -465,9 +465,9 @@ var (
 				return
 			}
 
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
-				Type: types.InteractionResponse(i.ApplicationCommandData().Options[0].IntValue()),
-				Data: &interaction.InteractionResponseData{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				Type: types.InteractionResponse(i.CommandData().Options[0].IntValue()),
+				Data: &interaction.ResponseData{
 					Content: content,
 				},
 			})
@@ -499,9 +499,9 @@ var (
 			// but work as they are created by webhooks and their functionality
 			// is for handling additional messages after sending a response.
 
-			s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					// Note: this isn't documented, but you can use that if you want to.
 					// This flag just allows you to create messages visible only for the caller of the command
 					// (user who triggered the command)
@@ -540,7 +540,7 @@ var (
 
 func init() {
 	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+		if h, ok := commandHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}
 	})

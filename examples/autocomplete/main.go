@@ -70,10 +70,10 @@ var (
 		"single-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
-				data := i.ApplicationCommandData()
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				data := i.CommandData()
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
 							"You picked %q autocompletion",
 							// Autocompleted options do not affect usual flow of handling application command. They are ordinary options at this stage
@@ -86,7 +86,7 @@ var (
 				}
 			// Autocomplete options introduce a new interaction type (8) for returning custom autocomplete results.
 			case types.InteractionApplicationCommandAutocomplete:
-				data := i.ApplicationCommandData()
+				data := i.CommandData()
 				choices := []*interaction.CommandOptionChoice{
 					{
 						Name:  "Autocomplete",
@@ -118,9 +118,9 @@ var (
 					})
 				}
 
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 					},
 				})
@@ -132,10 +132,10 @@ var (
 		"multi-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
-				data := i.ApplicationCommandData()
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				data := i.CommandData()
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
 							"Option 1: %s\nOption 2: %s",
 							data.Options[0].StringValue(),
@@ -147,7 +147,7 @@ var (
 					panic(err)
 				}
 			case types.InteractionApplicationCommandAutocomplete:
-				data := i.ApplicationCommandData()
+				data := i.CommandData()
 				var choices []*interaction.CommandOptionChoice
 				switch {
 				// In this case there are multiple autocomplete options. The Focused field shows which option user is focused on.
@@ -204,9 +204,9 @@ var (
 					}
 				}
 
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Choices: choices,
 					},
 				})
@@ -221,7 +221,7 @@ var (
 func main() {
 	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) { log.Println("Bot is up!") })
 	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+		if h, ok := commandHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}
 	})

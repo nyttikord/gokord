@@ -22,7 +22,7 @@ type Requester struct {
 }
 
 // Respond creates the response to an interaction.Interaction.
-func (s Requester) Respond(interaction *interaction.Interaction, resp *interaction.InteractionResponse, options ...discord.RequestOption) error {
+func (s Requester) Respond(interaction *interaction.Interaction, resp *interaction.Response, options ...discord.RequestOption) error {
 	endpoint := discord.EndpointInteractionResponse(interaction.ID, interaction.Token)
 
 	if resp.Data != nil && len(resp.Data.Files) > 0 {

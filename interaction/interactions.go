@@ -18,15 +18,15 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// InteractionDeadline is the time allowed to respond to an interaction.
-const InteractionDeadline = time.Second * 3
+// Deadline is the time allowed to respond to an interaction.
+const Deadline = time.Second * 3
 
 // Interaction represents data of an interaction.
 type Interaction struct {
 	ID        string            `json:"id"`
 	AppID     string            `json:"application_id"`
 	Type      types.Interaction `json:"type"`
-	Data      InteractionData   `json:"data"`
+	Data      Data              `json:"data"`
 	GuildID   string            `json:"guild_id"`
 	ChannelID string            `json:"channel_id"`
 
@@ -98,7 +98,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		}
 		i.Data = v
 	case types.InteractionMessageComponent:
-		v := MessageComponentInteractionData{}
+		v := MessageComponentData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
 			return err
@@ -115,25 +115,25 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
-// MessageComponentData is helper function to assert the inner InteractionData to MessageComponentInteractionData.
+// MessageComponentData is helper function to assert the inner Data to MessageComponentData.
 // Make sure to check that the Type of the interaction is types.InteractionMessageComponent before calling.
-func (i *Interaction) MessageComponentData() (data MessageComponentInteractionData) {
+func (i *Interaction) MessageComponentData() (data MessageComponentData) {
 	if i.Type != types.InteractionMessageComponent {
 		panic("MessageComponentData called on interaction of type " + i.Type.String())
 	}
-	return i.Data.(MessageComponentInteractionData)
+	return i.Data.(MessageComponentData)
 }
 
-// ApplicationCommandData is helper function to assert the inner InteractionData to CommandInteractionData.
+// CommandData is helper function to assert the inner Data to CommandInteractionData.
 // Make sure to check that the Type of the interaction is types.InteractionApplicationCommand before calling.
-func (i *Interaction) ApplicationCommandData() (data CommandInteractionData) {
+func (i *Interaction) CommandData() (data CommandInteractionData) {
 	if i.Type != types.InteractionApplicationCommand && i.Type != types.InteractionApplicationCommandAutocomplete {
-		panic("ApplicationCommandData called on interaction of type " + i.Type.String())
+		panic("CommandData called on interaction of type " + i.Type.String())
 	}
 	return i.Data.(CommandInteractionData)
 }
 
-// ModalSubmitData is helper function to assert the inner InteractionData to ModalSubmitInteractionData.
+// ModalSubmitData is helper function to assert the inner Data to ModalSubmitInteractionData.
 // Make sure to check that the Type of the interaction is types.InteractionModalSubmit before calling.
 func (i *Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
 	if i.Type != types.InteractionModalSubmit {
@@ -142,24 +142,24 @@ func (i *Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
 	return i.Data.(ModalSubmitInteractionData)
 }
 
-// InteractionData is a common interface for all types of interaction data.
-type InteractionData interface {
+// Data is a common interface for all types of interaction data.
+type Data interface {
 	Type() types.Interaction
 }
 
-// MessageComponentInteractionData contains the data of component.Message Interaction.
-type MessageComponentInteractionData struct {
-	CustomID      string                                  `json:"custom_id"`
-	ComponentType types.Component                         `json:"component_type"`
-	Resolved      MessageComponentInteractionDataResolved `json:"resolved"`
+// MessageComponentData contains the data of component.Message Interaction.
+type MessageComponentData struct {
+	CustomID      string                       `json:"custom_id"`
+	ComponentType types.Component              `json:"component_type"`
+	Resolved      MessageComponentDataResolved `json:"resolved"`
 
 	// Note: Only filled when ComponentType is types.SelectMenu.
 	// Otherwise, is nil.
 	Values []string `json:"values"`
 }
 
-// MessageComponentInteractionDataResolved contains the resolved data of selected option.
-type MessageComponentInteractionDataResolved struct {
+// MessageComponentDataResolved contains the resolved data of selected option.
+type MessageComponentDataResolved struct {
 	Users    map[string]*user.User       `json:"users"`
 	Members  map[string]*user.Member     `json:"members"`
 	Roles    map[string]*guild.Role      `json:"roles"`
@@ -167,7 +167,7 @@ type MessageComponentInteractionDataResolved struct {
 }
 
 // Type returns the type of interaction data.
-func (MessageComponentInteractionData) Type() types.Interaction {
+func (MessageComponentData) Type() types.Interaction {
 	return types.InteractionMessageComponent
 }
 
@@ -182,14 +182,14 @@ func (ModalSubmitInteractionData) Type() types.Interaction {
 	return types.InteractionModalSubmit
 }
 
-// InteractionResponse represents a response for an Interaction event.
-type InteractionResponse struct {
+// Response represents a response for an Interaction event.
+type Response struct {
 	Type types.InteractionResponse `json:"type,omitempty"`
-	Data *InteractionResponseData  `json:"data,omitempty"`
+	Data *ResponseData             `json:"data,omitempty"`
 }
 
-// InteractionResponseData is response data for an Interaction.
-type InteractionResponseData struct {
+// ResponseData is response data for an Interaction.
+type ResponseData struct {
 	TTS             bool                            `json:"tts"`
 	Content         string                          `json:"content"`
 	Components      []component.Message             `json:"components"`

@@ -39,9 +39,9 @@ func init() {
 var (
 	componentsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"fd_no": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
 					Flags:   channel.MessageFlagsEphemeral,
 					Components: []component.Message{
@@ -81,9 +81,9 @@ var (
 			}
 		},
 		"fd_yes": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
 					Flags: channel.MessageFlagsEphemeral,
@@ -116,22 +116,22 @@ var (
 			}
 		},
 		"select": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			var response *interaction.InteractionResponse
+			var response *interaction.Response
 
 			data := i.MessageComponentData()
 			switch data.Values[0] {
 			case "go":
-				response = &interaction.InteractionResponse{
+				response = &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: "This is the way.",
 						Flags:   channel.MessageFlagsEphemeral,
 					},
 				}
 			default:
-				response = &interaction.InteractionResponse{
+				response = &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: "It is not the way to go.",
 						Flags:   channel.MessageFlagsEphemeral,
 					},
@@ -156,9 +156,9 @@ var (
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
 
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -176,9 +176,9 @@ var (
 			}
 		},
 		"channel_select": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
 						"If you want to know more, check out the links below",
 					Components: []component.Message{
@@ -222,9 +222,9 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"buttons": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Are you comfortable with buttons and other message components?",
 					Flags:   channel.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
@@ -279,12 +279,12 @@ var (
 			}
 		},
 		"selects": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			var response *interaction.InteractionResponse
-			switch i.ApplicationCommandData().Options[0].Name {
+			var response *interaction.Response
+			switch i.CommandData().Options[0].Name {
 			case "single":
-				response = &interaction.InteractionResponse{
+				response = &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
 						Flags:   channel.MessageFlagsEphemeral,
 						Components: []component.Message{
@@ -332,9 +332,9 @@ var (
 				}
 			case "multi":
 				minValues := 1
-				response = &interaction.InteractionResponse{
+				response = &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
 						Flags: channel.MessageFlagsEphemeral,
@@ -399,9 +399,9 @@ var (
 					},
 				}
 			case "auto-populated":
-				response = &interaction.InteractionResponse{
+				response = &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
-					Data: &interaction.InteractionResponseData{
+					Data: &interaction.ResponseData{
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
 						Flags: channel.MessageFlagsEphemeral,
@@ -436,7 +436,7 @@ func main() {
 	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
 		switch i.Type {
 		case types.InteractionApplicationCommand:
-			if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
+			if h, ok := commandsHandlers[i.CommandData().Name]; ok {
 				h(s, i)
 			}
 		case types.InteractionMessageComponent:

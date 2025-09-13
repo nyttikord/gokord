@@ -71,9 +71,9 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"rickroll-em": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: "Operation rickroll has begun",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -83,7 +83,7 @@ var (
 			}
 
 			ch, err := s.UserAPI().ChannelCreate(
-				i.ApplicationCommandData().TargetID,
+				i.CommandData().TargetID,
 			)
 			if err != nil {
 				_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
@@ -103,11 +103,11 @@ var (
 			}
 		},
 		"google-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: searchLink(
-						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
+						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
 						"https://google.com/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
@@ -117,11 +117,11 @@ var (
 			}
 		},
 		"stackoverflow-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: searchLink(
-						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
+						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
 						"https://stackoverflow.com/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
@@ -131,11 +131,11 @@ var (
 			}
 		},
 		"godoc-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: searchLink(
-						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
+						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
 						"https://pkg.go.dev/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
@@ -145,11 +145,11 @@ var (
 			}
 		},
 		"discordjs-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: searchLink(
-						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
+						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
 						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
@@ -159,11 +159,11 @@ var (
 			}
 		},
 		"discordpy-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					Content: searchLink(
-						i.ApplicationCommandData().Resolved.Messages[i.ApplicationCommandData().TargetID].Content,
+						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
 						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
@@ -181,7 +181,7 @@ func main() {
 	})
 
 	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
-		if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
+		if h, ok := commandsHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}
 	})
