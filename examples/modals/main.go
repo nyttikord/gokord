@@ -53,7 +53,7 @@ var (
 					Components: []component.Component{
 						&component.Label{
 							Label: "What is your opinion on them?",
-							Component: component.TextInput{
+							Component: &component.TextInput{
 								CustomID:    "opinion",
 								Style:       component.TextInputShort,
 								Placeholder: "Don't be shy, share your opinion with us",
@@ -64,7 +64,7 @@ var (
 						},
 						&component.Label{
 							Label: "What would you suggest to improve them?",
-							Component: component.TextInput{
+							Component: &component.TextInput{
 								CustomID: "suggestions",
 
 								Style:     component.TextInputParagraph,

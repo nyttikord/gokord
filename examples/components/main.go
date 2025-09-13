@@ -47,7 +47,7 @@ var (
 					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "📜",
 									},
@@ -55,7 +55,7 @@ var (
 									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#buttons",
 								},
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🔧",
 									},
@@ -63,7 +63,7 @@ var (
 									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🦫",
 									},
@@ -90,7 +90,7 @@ var (
 					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🔧",
 									},
@@ -98,7 +98,7 @@ var (
 									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🦫",
 									},
@@ -184,7 +184,7 @@ var (
 					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "📜",
 									},
@@ -192,7 +192,7 @@ var (
 									Style: component.ButtonStyleLink,
 									URL:   "https://discord.com/developers/docs/interactions/message-components#select-menus",
 								},
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🔧",
 									},
@@ -200,7 +200,7 @@ var (
 									Style: component.ButtonStyleLink,
 									URL:   "https://discord.gg/discord-developers",
 								},
-								component.Button{
+								&component.Button{
 									Emoji: &emoji.Component{
 										Name: "🦫",
 									},
@@ -232,7 +232,7 @@ var (
 						// ActionRow is a container of all buttons within the same row.
 						&component.ActionsRow{
 							Components: []component.Message{
-								component.Button{
+								&component.Button{
 									// Label is what the user will see on the button.
 									Label: "Yes",
 									// Style provides coloring of the button. There are not so many styles tho.
@@ -242,13 +242,13 @@ var (
 									// CustomID is a thing telling Discord which data to send when this button will be pressed.
 									CustomID: "fd_yes",
 								},
-								component.Button{
+								&component.Button{
 									Label:    "No",
 									Style:    component.ButtonStyleDanger,
 									Disabled: false,
 									CustomID: "fd_no",
 								},
-								component.Button{
+								&component.Button{
 									Label:    "I don't know",
 									Style:    component.ButtonStyleLink,
 									Disabled: false,
@@ -263,7 +263,7 @@ var (
 						// The message may have multiple actions rows.
 						&component.ActionsRow{
 							Components: []component.Message{
-								component.Button{
+								&component.Button{
 									Label:    "Discord Developers server",
 									Style:    component.ButtonStyleLink,
 									Disabled: false,
@@ -290,7 +290,7 @@ var (
 						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
-									component.SelectMenu{
+									&component.SelectMenu{
 										// Select menu, as other components, must have a customID, so we set it to this value.
 										CustomID:    "select",
 										Placeholder: "Choose your favorite programming language 👇",
@@ -341,7 +341,7 @@ var (
 						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
-									component.SelectMenu{
+									&component.SelectMenu{
 										CustomID:    "stackoverflow_tags",
 										Placeholder: "Select tags to search on StackOverflow",
 										// This is where confusion comes from. If you don't specify these things you will get single item select.
@@ -408,7 +408,7 @@ var (
 						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
-									component.SelectMenu{
+									&component.SelectMenu{
 										MenuType:     types.SelectMenuChannel,
 										CustomID:     "channel_select",
 										Placeholder:  "Pick your favorite channel!",

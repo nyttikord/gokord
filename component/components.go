@@ -88,18 +88,18 @@ type Button struct {
 	ID int `json:"id,omitempty"`
 }
 
-func (b Button) MarshalJSON() ([]byte, error) {
+func (b *Button) MarshalJSON() ([]byte, error) {
 	if b.Style == 0 {
 		b.Style = ButtonStylePrimary
 	}
 	return toJson(b)
 }
 
-func (Button) Type() types.Component {
+func (*Button) Type() types.Component {
 	return types.ComponentButton
 }
 
-func (b Button) message() {}
+func (b *Button) message() {}
 
 // SelectMenuOption represents an option for a SelectMenu.
 type SelectMenuOption struct {
@@ -152,20 +152,20 @@ type SelectMenu struct {
 	ID int `json:"id,omitempty"`
 }
 
-func (s SelectMenu) Type() types.Component {
+func (s *SelectMenu) Type() types.Component {
 	if s.MenuType != 0 {
 		return types.Component(s.MenuType)
 	}
 	return types.ComponentSelectMenu
 }
 
-func (s SelectMenu) MarshalJSON() ([]byte, error) {
+func (s *SelectMenu) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
-func (s SelectMenu) message() {}
+func (s *SelectMenu) message() {}
 
-func (s SelectMenu) modal() {}
+func (s *SelectMenu) modal() {}
 
 // TextInput represents text input Component.
 type TextInput struct {
@@ -181,15 +181,15 @@ type TextInput struct {
 	ID int `json:"id,omitempty"`
 }
 
-func (TextInput) Type() types.Component {
+func (*TextInput) Type() types.Component {
 	return types.ComponentTextInput
 }
 
-func (m TextInput) MarshalJSON() ([]byte, error) {
+func (m *TextInput) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
 
-func (TextInput) modal() {}
+func (*TextInput) modal() {}
 
 // TextInputStyle is style of text in TextInput Component.
 type TextInputStyle uint
@@ -225,15 +225,15 @@ type TextDisplay struct {
 	Content string `json:"content"`
 }
 
-func (TextDisplay) Type() types.Component {
+func (*TextDisplay) Type() types.Component {
 	return types.ComponentTextDisplay
 }
 
-func (t TextDisplay) MarshalJSON() ([]byte, error) {
+func (t *TextDisplay) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
 
-func (TextDisplay) message() {}
+func (*TextDisplay) message() {}
 
 // Thumbnail can be used as an accessory for a Section component.
 type Thumbnail struct {
@@ -244,15 +244,15 @@ type Thumbnail struct {
 	Spoiler     bool              `json:"spoiler,omitempty"`
 }
 
-func (Thumbnail) Type() types.Component {
+func (*Thumbnail) Type() types.Component {
 	return types.ComponentThumbnail
 }
 
-func (t Thumbnail) MarshalJSON() ([]byte, error) {
+func (t *Thumbnail) MarshalJSON() ([]byte, error) {
 	return toJson(t)
 }
 
-func (Thumbnail) message() {}
+func (*Thumbnail) message() {}
 
 // MediaGallery is a top-level Component allows you to group images, videos or gifs into a gallery grid.
 type MediaGallery struct {
@@ -262,15 +262,15 @@ type MediaGallery struct {
 	Items []MediaGalleryItem `json:"items"`
 }
 
-func (MediaGallery) Type() types.Component {
+func (*MediaGallery) Type() types.Component {
 	return types.ComponentMediaGallery
 }
 
-func (m MediaGallery) MarshalJSON() ([]byte, error) {
+func (m *MediaGallery) MarshalJSON() ([]byte, error) {
 	return toJson(m)
 }
 
-func (MediaGallery) message() {}
+func (*MediaGallery) message() {}
 
 // MediaGalleryItem represents an item used in MediaGallery.
 type MediaGalleryItem struct {
@@ -288,15 +288,15 @@ type File struct {
 	Spoiler bool              `json:"spoiler"`
 }
 
-func (File) Type() types.Component {
+func (*File) Type() types.Component {
 	return types.ComponentFile
 }
 
-func (f File) MarshalJSON() ([]byte, error) {
+func (f *File) MarshalJSON() ([]byte, error) {
 	return toJson(f)
 }
 
-func (File) message() {}
+func (*File) message() {}
 
 // SeparatorSpacingSize represents spacing size around the Separator.
 type SeparatorSpacingSize uint
@@ -315,15 +315,15 @@ type Separator struct {
 	Spacing *SeparatorSpacingSize `json:"spacing,omitempty"`
 }
 
-func (Separator) Type() types.Component {
+func (*Separator) Type() types.Component {
 	return types.ComponentSeparator
 }
 
-func (s Separator) MarshalJSON() ([]byte, error) {
+func (s *Separator) MarshalJSON() ([]byte, error) {
 	return toJson(s)
 }
 
-func (Separator) message() {}
+func (*Separator) message() {}
 
 // Container is a top-level layout Component.
 // Containers are visually distinct from surrounding components and have an optional customizable color bar (similar to
