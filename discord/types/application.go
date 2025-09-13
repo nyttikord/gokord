@@ -1,17 +1,17 @@
 // Package types contains every type constant documented in the Discord API.
 //
-// For example, Channel represents the type of channel.Channel and ChannelGuildText is the type of classical channel
-// guild text.
+// For example, Channel represents the type of channel.Channel and ChannelGuildText is the type of classical guild text
+// channel.
 package types
 
-// Integration specifies where the application can be installed and its available interaction contexts.
-type Integration uint
+// IntegrationInstall specifies where the application can be installed and its available interaction contexts.
+type IntegrationInstall uint
 
 const (
-	// IntegrationGuildInstall indicates that the app is installable to guilds.
-	IntegrationGuildInstall Integration = 0
-	// IntegrationUserInstall indicates that the app is installable to users.
-	IntegrationUserInstall Integration = 1
+	// IntegrationInstallGuild indicates that the app is installable to guilds.
+	IntegrationInstallGuild IntegrationInstall = 0
+	// IntegrationInstallUser indicates that the app is installable to users.
+	IntegrationInstallUser IntegrationInstall = 1
 )
 
 // RoleConnectionMetadata represents the type of application role connection metadata.

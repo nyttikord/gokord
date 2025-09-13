@@ -10,8 +10,9 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// An Invite stores all data related to a specific Discord Guild or Channel invite.
+// Invite stores all data related to a specific Discord Guild or Channel invite.
 type Invite struct {
+	Type              types.Invite             `json:"type"`
 	Guild             *guild.Guild             `json:"guild"`
 	Channel           *channel.Channel         `json:"channel"`
 	Inviter           *user.User               `json:"inviter"`

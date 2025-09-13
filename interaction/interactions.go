@@ -60,8 +60,8 @@ type Interaction struct {
 	// Note: this field is only filled when the Interaction was invoked in a guild.Guild.
 	GuildLocale *discord.Locale `json:"guild_locale"`
 
-	Context                      types.InteractionContext     `json:"context"`
-	AuthorizingIntegrationOwners map[types.Integration]string `json:"authorizing_integration_owners"`
+	Context                      types.InteractionContext            `json:"context"`
+	AuthorizingIntegrationOwners map[types.IntegrationInstall]string `json:"authorizing_integration_owners"`
 
 	Token   string `json:"token"`
 	Version int    `json:"version"`

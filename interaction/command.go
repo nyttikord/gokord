@@ -23,7 +23,7 @@ type Command struct {
 	NSFW                     *bool  `json:"nsfw,omitempty"`
 
 	Contexts         *[]types.InteractionContext `json:"contexts,omitempty"`
-	IntegrationTypes *[]types.Integration        `json:"integration_types,omitempty"`
+	IntegrationTypes *[]types.IntegrationInstall `json:"integration_types,omitempty"`
 
 	// Note: Chat commands only.
 	// Otherwise, it mustn't be set.

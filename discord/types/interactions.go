@@ -2,11 +2,11 @@ package types
 
 import "fmt"
 
-// Command represents the type of gokord.Command.
+// Command represents the type of interaction.Command.
 type Command uint8
 
 const (
-	// CommandChat is default command type. They are slash commands (i.e. called directly from the chat).
+	// CommandChat is default command type (i.e. called directly from the chat).
 	CommandChat Command = 1
 	// CommandUser adds command to user context menu.
 	CommandUser Command = 2
@@ -14,7 +14,7 @@ const (
 	CommandMessage Command = 3
 )
 
-// CommandOption indicates the type of gokord.CommandOption.
+// CommandOption indicates the type of interaction.CommandOption.
 type CommandOption uint8
 
 const (

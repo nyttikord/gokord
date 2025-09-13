@@ -1,24 +1,6 @@
 package types
 
-// AutoModerationRuleEvent indicates in what event context a guild.AutoModerationRule should be checked.
-type AutoModerationRuleEvent int
-
-const (
-	// AutoModerationRuleEventMessageSend is checked when a member sends or edits a message in the guild
-	AutoModerationRuleEventMessageSend AutoModerationRuleEvent = 1
-)
-
-// AutoModerationRuleTrigger represents the type of content which can trigger the guild.AutoModerationRule.
-type AutoModerationRuleTrigger int
-
-const (
-	AutoModerationRuleTriggerKeyword       AutoModerationRuleTrigger = 1
-	AutoModerationRuleTriggerHarmfulLink   AutoModerationRuleTrigger = 2
-	AutoModerationRuleTriggerSpam          AutoModerationRuleTrigger = 3
-	AutoModerationRuleTriggerKeywordPreset AutoModerationRuleTrigger = 4
-)
-
-// AutoModerationAction represents an action which will execute whenever a guild.AutoModerationAction is triggered.
+// AutoModerationAction if the type of action which will execute whenever a guild.AutoModerationAction is triggered.
 type AutoModerationAction int
 
 const (

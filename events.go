@@ -5,7 +5,6 @@ import (
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/interaction"
@@ -435,7 +434,7 @@ type AutoModerationActionExecution struct {
 	GuildID              string                          `json:"guild_id"`
 	Action               guild.AutoModerationAction      `json:"action"`
 	RuleID               string                          `json:"rule_id"`
-	RuleTriggerType      types.AutoModerationRuleTrigger `json:"rule_trigger_type"`
+	RuleTriggerType      guild.AutoModerationRuleTrigger `json:"rule_trigger_type"`
 	UserID               string                          `json:"user_id"`
 	ChannelID            string                          `json:"channel_id"`
 	MessageID            string                          `json:"message_id"`

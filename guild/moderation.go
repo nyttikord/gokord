@@ -12,19 +12,37 @@ type Ban struct {
 	User   *user.User `json:"user"`
 }
 
+// AutoModerationRuleEvent indicates in what event context a guild.AutoModerationRule should be checked.
+type AutoModerationRuleEvent int
+
+const (
+	// AutoModerationRuleEventMessageSend is checked when a member sends or edits a message in the guild
+	AutoModerationRuleEventMessageSend AutoModerationRuleEvent = 1
+)
+
+// AutoModerationRuleTrigger represents the type of content which can trigger the guild.AutoModerationRule.
+type AutoModerationRuleTrigger int
+
+const (
+	AutoModerationRuleTriggerKeyword       AutoModerationRuleTrigger = 1
+	AutoModerationRuleTriggerHarmfulLink   AutoModerationRuleTrigger = 2
+	AutoModerationRuleTriggerSpam          AutoModerationRuleTrigger = 3
+	AutoModerationRuleTriggerKeywordPreset AutoModerationRuleTrigger = 4
+)
+
 // AutoModerationRule stores data for an auto moderation rule.
 type AutoModerationRule struct {
-	ID              string                          `json:"id,omitempty"`
-	GuildID         string                          `json:"guild_id,omitempty"`
-	Name            string                          `json:"name,omitempty"`
-	CreatorID       string                          `json:"creator_id,omitempty"`
-	EventType       types.AutoModerationRuleEvent   `json:"event_type,omitempty"`
-	TriggerType     types.AutoModerationRuleTrigger `json:"trigger_type,omitempty"`
-	TriggerMetadata *AutoModerationTriggerMetadata  `json:"trigger_metadata,omitempty"`
-	Actions         []AutoModerationAction          `json:"actions,omitempty"`
-	Enabled         *bool                           `json:"enabled,omitempty"`
-	ExemptRoles     *[]string                       `json:"exempt_roles,omitempty"`
-	ExemptChannels  *[]string                       `json:"exempt_channels,omitempty"`
+	ID              string                         `json:"id,omitempty"`
+	GuildID         string                         `json:"guild_id,omitempty"`
+	Name            string                         `json:"name,omitempty"`
+	CreatorID       string                         `json:"creator_id,omitempty"`
+	EventType       AutoModerationRuleEvent        `json:"event_type,omitempty"`
+	TriggerType     AutoModerationRuleTrigger      `json:"trigger_type,omitempty"`
+	TriggerMetadata *AutoModerationTriggerMetadata `json:"trigger_metadata,omitempty"`
+	Actions         []AutoModerationAction         `json:"actions,omitempty"`
+	Enabled         *bool                          `json:"enabled,omitempty"`
+	ExemptRoles     *[]string                      `json:"exempt_roles,omitempty"`
+	ExemptChannels  *[]string                      `json:"exempt_channels,omitempty"`
 }
 
 // AutoModerationKeywordPreset represents an internally pre-defined word set.
@@ -161,13 +179,13 @@ const (
 	AuditLogChangeKeyDescription AuditLogChangeKey = "description"
 	// AuditLogChangeKeyDiscoverySplashHash is sent when discovery splash changed (string) - Guild
 	AuditLogChangeKeyDiscoverySplashHash AuditLogChangeKey = "discovery_splash_hash"
-	// AuditLogChangeKeyEnableEmoticons is sent when integration emoticons enabled/disabled (bool) - types.Integration
+	// AuditLogChangeKeyEnableEmoticons is sent when integration emoticons enabled/disabled (bool) - types.IntegrationInstall
 	AuditLogChangeKeyEnableEmoticons AuditLogChangeKey = "enable_emoticons"
 	// AuditLogChangeKeyEntityType is sent when entity type of guild scheduled event was changed (int) - ScheduledEvent
 	AuditLogChangeKeyEntityType AuditLogChangeKey = "entity_type"
-	// AuditLogChangeKeyExpireBehavior is sent when integration expiring subscriber behavior changed (int) - types.Integration
+	// AuditLogChangeKeyExpireBehavior is sent when integration expiring subscriber behavior changed (int) - types.IntegrationInstall
 	AuditLogChangeKeyExpireBehavior AuditLogChangeKey = "expire_behavior"
-	// AuditLogChangeKeyExpireGracePeriod is sent when integration expire grace period changed (int) - types.Integration
+	// AuditLogChangeKeyExpireGracePeriod is sent when integration expire grace period changed (int) - types.IntegrationInstall
 	AuditLogChangeKeyExpireGracePeriod AuditLogChangeKey = "expire_grace_period"
 	// AuditLogChangeKeyExplicitContentFilter is sent when change in whose messages are scanned and deleted for explicit
 	// content in the server is made (int) - Guild

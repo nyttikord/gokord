@@ -361,7 +361,7 @@ type MessageInteractionMetadata struct {
 	// User who triggered the gokord.Interaction.
 	User *user.User `json:"user"`
 	// IDs for installation context(s) related to an gokord.Interaction.
-	AuthorizingIntegrationOwners map[types.Integration]string `json:"authorizing_integration_owners"`
+	AuthorizingIntegrationOwners map[types.IntegrationInstall]string `json:"authorizing_integration_owners"`
 	// ID of the original response Message.
 	// NOTE: present only on followup messages.
 	OriginalResponseMessageID string `json:"original_response_message_id,omitempty"`
