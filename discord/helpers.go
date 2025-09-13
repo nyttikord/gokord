@@ -4,10 +4,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord/types"
-	"github.com/nyttikord/gokord/guild"
 )
 
 // AvatarURL returns the URL to get the avatar from a hash.
