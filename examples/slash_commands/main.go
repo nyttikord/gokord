@@ -136,8 +136,8 @@ var (
 				{
 					Type:        types.CommandOptionChannel,
 					Name:        "channel-option",
-					Description: "Get option",
-					// Get type mask
+					Description: "Application option",
+					// Application type mask
 					ChannelTypes: []types.Channel{
 						types.ChannelGuildText,
 						types.ChannelGuildVoice,
@@ -147,7 +147,7 @@ var (
 				{
 					Type:        types.CommandOptionUser,
 					Name:        "user-option",
-					Description: "Get option",
+					Description: "Application option",
 					Required:    false,
 				},
 				{
@@ -205,7 +205,7 @@ var (
 					Type:        types.CommandOptionInteger,
 					Choices: []*interaction.CommandOptionChoice{
 						{
-							Name:  "Get message with source",
+							Name:  "Application message with source",
 							Value: 4,
 						},
 						{
@@ -281,7 +281,7 @@ var (
 			msgformat := "You learned how to use command options! " +
 				"Take a look at the value(s) you entered:\n"
 
-			// Get the value from the option map.
+			// Application the value from the option map.
 			// When the option exists, ok = true
 			if option, ok := optionMap["string-option"]; ok {
 				// Option values must be type asserted from interface{}.
@@ -578,7 +578,7 @@ func main() {
 		// // We are doing this from the returned commands on line 375, because using
 		// // this will delete all the commands, which might not be desirable, so we
 		// // are deleting only the commands that we added.
-		// registeredCommands, err := s.ApplicationCommands(s.State.Get.ID, *GuildID)
+		// registeredCommands, err := s.ApplicationCommands(s.State.Application.ID, *GuildID)
 		// if err != nil {
 		// 	log.Fatalf("Could not fetch registered commands: %v", err)
 		// }

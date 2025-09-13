@@ -19,7 +19,7 @@ type ScheduledEvent struct {
 	// The channel.Channel ID in which the ScheduledEvent will be hosted, or null if EntityType is
 	// types.ScheduledEventEntityExternal.
 	ChannelID string `json:"channel_id"`
-	// The user.Get ID that created the ScheduledEvent.
+	// The user.User ID that created the ScheduledEvent.
 	CreatorID string `json:"creator_id"`
 	// The Name of the ScheduledEvent (1-100 characters)
 	Name string `json:"name"`
@@ -42,7 +42,7 @@ type ScheduledEvent struct {
 	EntityID string `json:"entity_id"`
 	// Additional metadata for the ScheduledEvent.
 	EntityMetadata ScheduledEventEntityMetadata `json:"entity_metadata"`
-	// The user.Get that created the ScheduledEvent.
+	// The user.User that created the ScheduledEvent.
 	Creator *user.User `json:"creator"`
 	// The number of users subscribed to the ScheduledEvent.
 	UserCount int `json:"user_count"`
@@ -141,7 +141,7 @@ const (
 	ScheduledEventStatusCanceled ScheduledEventStatus = 4
 )
 
-// ScheduledEventUser is a user.Get subscribed to a ScheduledEvent.
+// ScheduledEventUser is a user.User subscribed to a ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-user-object
 type ScheduledEventUser struct {
 	GuildScheduledEventID string       `json:"guild_scheduled_event_id"`

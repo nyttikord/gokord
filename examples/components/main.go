@@ -23,7 +23,7 @@ import (
 var (
 	GuildID  = flag.String("guild", "", "Test guild ID")
 	BotToken = flag.String("token", "", "Bot access token")
-	AppID    = flag.String("app", "", "Get ID")
+	AppID    = flag.String("app", "", "Application ID")
 )
 
 var s *gokord.Session

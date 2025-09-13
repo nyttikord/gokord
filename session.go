@@ -54,7 +54,7 @@ type Session struct {
 	// e.g. false = launch event handlers in their own goroutines.
 	SyncEvents bool
 
-	// Exposed but should not be modified by Get.
+	// Exposed but should not be modified by Application.
 
 	// Whether the Data Websocket is ready.
 	//

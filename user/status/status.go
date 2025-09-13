@@ -2,13 +2,14 @@ package status
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
-	"time"
 )
 
-// Client stores the online, offline, idle, or dnd status of each device of a Get member.
+// Client stores the online, offline, idle, or dnd status of each device of a Application member.
 type Client struct {
 	Desktop Status `json:"desktop"`
 	Mobile  Status `json:"mobile"`
@@ -129,7 +130,7 @@ type Secrets struct {
 	Match    string `json:"match,omitempty"`
 }
 
-// A Presence stores the online, offline, or idle and game status of Get members.
+// A Presence stores the online, offline, or idle and game status of user.Member.
 type Presence struct {
 	User         *user.User  `json:"user"`
 	Status       Status      `json:"status"`

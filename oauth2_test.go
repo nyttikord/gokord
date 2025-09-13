@@ -18,18 +18,18 @@ func ExampleApplication() {
 	// Create a new Discordgo session
 	dg := gokord.New(Token)
 
-	// Create an new Get
+	// Create an new Application
 	ap := &application.Application{}
 	ap.Name = "TestApp"
 	ap.Description = "TestDesc"
 	ap, err := dg.ApplicationAPI().Create(ap)
 	log.Printf("ApplicationCreate: err: %+v, app: %+v\n", err, ap)
 
-	// Get a specific Get by it's ID
-	ap, err = dg.ApplicationAPI().Get(ap.ID)
-	log.Printf("Get: err: %+v, app: %+v\n", err, ap)
+	// Application a specific Application by it's ID
+	ap, err = dg.ApplicationAPI().Application(ap.ID)
+	log.Printf("Application: err: %+v, app: %+v\n", err, ap)
 
-	// Update an existing Get with new values
+	// Update an existing Application with new values
 	ap.Description = "Whooooa"
 	ap, err = dg.ApplicationAPI().Update(ap.ID, ap)
 	log.Printf("ApplicationUpdate: err: %+v, app: %+v\n", err, ap)
@@ -38,11 +38,11 @@ func ExampleApplication() {
 	bot, err := dg.ApplicationAPI().BotCreate(ap.ID)
 	log.Printf("BotCreate: err: %+v, bot: %+v\n", err, bot)
 
-	// Get a list of all applications for the authenticated user
-	apps, err := dg.ApplicationAPI().GetAll()
-	log.Printf("GetAll: err: %+v, apps : %+v\n", err, apps)
+	// Application a list of all applications for the authenticated user
+	apps, err := dg.ApplicationAPI().Applications()
+	log.Printf("Applications: err: %+v, apps : %+v\n", err, apps)
 	for k, v := range apps {
-		log.Printf("GetAll: %d : %+v\n", k, v)
+		log.Printf("Applications: %d : %+v\n", k, v)
 	}
 
 	// Delete the application we created.

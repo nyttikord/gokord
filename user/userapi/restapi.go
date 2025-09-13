@@ -16,8 +16,8 @@ type Requester struct {
 	discord.Requester
 }
 
-// Get returns the user.Get details of the given userID (can be @me to be the current user.User ID).
-func (s Requester) Get(userID string, options ...discord.RequestOption) (*user.User, error) {
+// User returns the user.User details of the given userID (can be @me to be the current user.User ID).
+func (s Requester) User(userID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointUser(userID),

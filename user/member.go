@@ -22,7 +22,7 @@ const (
 	MemberFlagStartedOnboarding MemberFlags = 1 << 3
 )
 
-// A Member stores user information for Get members. A guild
+// A Member stores user information for user.Member. A guild
 // member represents a certain user's presence in a guild.
 type Member struct {
 	// The guild ID on which the member exists.

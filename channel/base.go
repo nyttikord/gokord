@@ -103,7 +103,7 @@ type Channel struct {
 	// For threads - id of the Channel thread was created in.
 	ParentID string `json:"parent_id"`
 
-	// Amount of seconds a user.Get has to wait before sending another Message or creating another thread (0-21600).
+	// Amount of seconds a user.User has to wait before sending another Message or creating another thread (0-21600).
 	//
 	// Bots, as well as users with the permission discord.PermissionManageMessages or discord.PermissionManageChannels,
 	// are unaffected

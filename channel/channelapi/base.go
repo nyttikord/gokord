@@ -23,8 +23,8 @@ type Requester struct {
 	discord.Requester
 }
 
-// Get returns the channel.Channel with the given ID.
-func (s Requester) Get(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
+// Channel returns the channel.Channel with the given ID.
+func (s Requester) Channel(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointChannel(channelID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -34,8 +34,8 @@ func (s Requester) Get(channelID string, options ...discord.RequestOption) (*cha
 	return &c, s.Unmarshal(body, &c)
 }
 
-// Edit edits the given channel.Channel and returns the updated channel.Channel data.
-func (s Requester) Edit(channelID string, data *channel.Edit, options ...discord.RequestOption) (*channel.Channel, error) {
+// ChannelEdit edits the given channel.Channel and returns the updated channel.Channel data.
+func (s Requester) ChannelEdit(channelID string, data *channel.Edit, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodPatch, discord.EndpointChannel(channelID), data, options...)
 	if err != nil {
 		return nil, err
@@ -46,8 +46,8 @@ func (s Requester) Edit(channelID string, data *channel.Edit, options ...discord
 
 }
 
-// Delete deletes the given channel.Channel.
-func (s Requester) Delete(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
+// ChannelDelete deletes the given channel.Channel.
+func (s Requester) ChannelDelete(channelID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := s.Request(http.MethodDelete, discord.EndpointChannel(channelID), nil, options...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s Requester) Delete(channelID string, options ...discord.RequestOption) (*
 	return &c, s.Unmarshal(body, &c)
 }
 
-// Typing broadcasts to all members that authenticated user.Get is typing in the given channel.Channel.
+// Typing broadcasts to all members that authenticated user.User is typing in the given channel.Channel.
 func (s Requester) Typing(channelID string, options ...discord.RequestOption) error {
 	_, err := s.Request(http.MethodPost, discord.EndpointChannelTyping(channelID), nil, options...)
 	return err

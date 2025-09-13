@@ -79,7 +79,7 @@ type MessageAllowedMentions struct {
 	// This cannot be used when specifying types.AllowedMentionRoles in the Parse slice.
 	Roles []string `json:"roles,omitempty"`
 
-	// A list of user.Get IDs to allow.
+	// A list of user.User IDs to allow.
 	// This cannot be used when specifying types.AllowedMentionUsers in the Parse slice.
 	Users []string `json:"users,omitempty"`
 

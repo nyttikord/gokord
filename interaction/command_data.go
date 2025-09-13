@@ -65,7 +65,7 @@ func (d CommandInteractionData) GetOption(name string) (option *CommandInteracti
 // CommandInteractionDataResolved contains resolved data of Command execution.
 type CommandInteractionDataResolved struct {
 	Users map[string]*user.User `json:"users"`
-	// Partial user.Member are missing user.Get, Deaf and Mute fields.
+	// Partial user.Member are missing user.User, Deaf and Mute fields.
 	Members map[string]*user.Member `json:"members"`
 	Roles   map[string]*guild.Role  `json:"roles"`
 	// Partial channel.Channel only have ID, Name, Type and Permissions fields.
@@ -204,9 +204,9 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 	return &guild.Role{ID: roleID}
 }
 
-// UserValue is a utility function for casting CommandOption value to user.Get.
+// UserValue is a utility function for casting CommandOption value to user.User.
 //
-// s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.Get's data.
+// s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.User's data.
 func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
 	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())

@@ -68,7 +68,7 @@ func (s *Requester) Entitlements(appID string, filterOptions *premium.Entitlemen
 	return e, s.Unmarshal(body, &e)
 }
 
-// EntitlementConsume marks a given One-Time Purchase for the user.Get as consumed.
+// EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
 func (s *Requester) EntitlementConsume(appID, entitlementID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPost,
@@ -80,7 +80,7 @@ func (s *Requester) EntitlementConsume(appID, entitlementID string, options ...d
 	return err
 }
 
-// EntitlementTestCreate creates a test premium.Entitlement to a given premium.SKU for a given guild.Guild or user.Get.
+// EntitlementTestCreate creates a test premium.Entitlement to a given premium.SKU for a given guild.Guild or user.User.
 //
 // Discord will act as though that user or guild has premium.Entitlement to your premium offering.
 func (s *Requester) EntitlementTestCreate(appID string, data *premium.EntitlementTest, options ...discord.RequestOption) error {
@@ -90,7 +90,7 @@ func (s *Requester) EntitlementTestCreate(appID string, data *premium.Entitlemen
 
 // EntitlementTestDelete deletes a currently-active test premium.Entitlement.
 //
-// Discord will act as though that user.Get or guild.Guild no longer has premium.Entitlement to your premium offering.
+// Discord will act as though that user.User or guild.Guild no longer has premium.Entitlement to your premium offering.
 func (s *Requester) EntitlementTestDelete(appID, entitlementID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,

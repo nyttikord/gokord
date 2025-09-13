@@ -439,10 +439,10 @@ type requestGuildMembersOp struct {
 
 // RequestGuildMembers requests guild members from the gateway
 // The gateway responds with GuildMembersChunk events
-// guildID   : Single Get ID to request members of
+// guildID   : Single guild ID to request members of
 // query     : String that username starts with, leave empty to return all members
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Get Members Chunk response
+// nonce     : Nonce to identify the guild Members Chunk response
 // presences : Whether to request presences of guild members
 func (s *Session) RequestGuildMembers(guildID, query string, limit int, nonce string, presences bool) error {
 	return s.RequestGuildMembersBatch([]string{guildID}, query, limit, nonce, presences)
@@ -450,10 +450,10 @@ func (s *Session) RequestGuildMembers(guildID, query string, limit int, nonce st
 
 // RequestGuildMembersList requests guild members from the gateway
 // The gateway responds with GuildMembersChunk events
-// guildID   : Single Get ID to request members of
+// guildID   : Single guild ID to request members of
 // userIDs   : IDs of users to fetch
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Get Members Chunk response
+// nonce     : Nonce to identify the guild Members Chunk response
 // presences : Whether to request presences of guild members
 func (s *Session) RequestGuildMembersList(guildID string, userIDs []string, limit int, nonce string, presences bool) error {
 	return s.RequestGuildMembersBatchList([]string{guildID}, userIDs, limit, nonce, presences)
@@ -464,7 +464,7 @@ func (s *Session) RequestGuildMembersList(guildID string, userIDs []string, limi
 // guildID   : Slice of guild IDs to request members of
 // query     : String that username starts with, leave empty to return all members
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Get Members Chunk response
+// nonce     : Nonce to identify the guild Members Chunk response
 // presences : Whether to request presences of guild members
 //
 // NOTE: this function is deprecated, please use RequestGuildMembers instead
@@ -485,7 +485,7 @@ func (s *Session) RequestGuildMembersBatch(guildIDs []string, query string, limi
 // guildID   : Slice of guild IDs to request members of
 // userIDs   : IDs of users to fetch
 // limit     : Max number of items to return, or 0 to request all members matched
-// nonce     : Nonce to identify the Get Members Chunk response
+// nonce     : Nonce to identify the guild Members Chunk response
 // presences : Whether to request presences of guild members
 //
 // NOTE: this function is deprecated, please use RequestGuildMembersList instead
@@ -690,8 +690,8 @@ type voiceChannelJoinOp struct {
 
 // ChannelVoiceJoin joins the session user to a voice channel.
 //
-//	gID     : Get ID of the channel to join.
-//	cID     : Get ID of the channel to join.
+//	gID     : guild ID of the channel to join.
+//	cID     : channel ID of the channel to join.
 //	mute    : If true, you will be set to muted upon joining.
 //	deaf    : If true, you will be set to deafened upon joining.
 func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *VoiceConnection, err error) {
@@ -736,8 +736,8 @@ func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *Voi
 //
 // This should only be used when the VoiceServerUpdate will be intercepted and used elsewhere.
 //
-//	gID     : Get ID of the channel to join.
-//	cID     : Get ID of the channel to join, leave empty to disconnect.
+//	gID     : guild ID of the channel to join.
+//	cID     : channel ID of the channel to join, leave empty to disconnect.
 //	mute    : If true, you will be set to muted upon joining.
 //	deaf    : If true, you will be set to deafened upon joining.
 func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err error) {
@@ -788,7 +788,7 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 
 // onVoiceServerUpdate handles the Voice Server Update data websocket event.
 //
-// This is also fired if the Get's voice region changes while connected
+// This is also fired if the guild's voice region changes while connected
 // to a voice channel.  In that case, need to re-establish connection to
 // the new region endpoint.
 func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {

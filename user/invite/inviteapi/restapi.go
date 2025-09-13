@@ -90,8 +90,7 @@ func (r Requester) InviteDelete(inviteID string, options ...discord.RequestOptio
 	return &i, r.Unmarshal(body, &i)
 }
 
-// InviteAccept accepts an Invite to a Get or Get
-// inviteID : The invite code
+// InviteAccept accepts an invite.Invite
 func (r Requester) InviteAccept(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID("POST", discord.EndpointInvite(inviteID), nil, discord.EndpointInvite(""), options...)
 	if err != nil {

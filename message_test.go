@@ -12,24 +12,24 @@ import (
 //	func TestContentWithMoreMentionsReplaced(t *testing.T) {
 //		s := &Session{StateEnabled: true, State: NewState()}
 //
-//		u := &user.Get{
+//		u := &user.Application{
 //			ID:       "user",
-//			Username: "Get Name",
+//			Username: "Application Name",
 //		}
 //
-//		s.State.GuildAdd(&guild.Get{ID: "guild"})
+//		s.State.GuildAdd(&guild.Application{ID: "guild"})
 //		s.State.RoleAdd("guild", &guild.Role{
 //			ID:          "role",
 //			Name:        "Role Name",
 //			Mentionable: true,
 //		})
 //		s.State.MemberAdd(&user.Member{
-//			Get: u,
-//			Nick:      "Get Nick",
+//			Application: u,
+//			Nick:      "Application Nick",
 //			GuildID:   "guild",
 //		})
-//		s.State.ChannelAdd(&channel.Get{
-//			Name:    "Get Name",
+//		s.State.ChannelAdd(&channel.Application{
+//			Name:    "Application Name",
 //			GuildID: "guild",
 //			ID:      "channel",
 //		})
@@ -37,9 +37,9 @@ import (
 //			Content:      "<@&role> <@!user> <@user> <#channel>",
 //			ChannelID:    "channel",
 //			MentionRoles: []string{"role"},
-//			Mentions:     []*user.Get{u},
+//			Mentions:     []*user.Application{u},
 //		}
-//		if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @Get Nick @Get Name #Get Name" {
+//		if result, _ := m.ContentWithMoreMentionsReplaced(s); result != "@Role Name @Application Nick @Application Name #Application Name" {
 //			t.Error(result)
 //		}
 //	}
@@ -74,11 +74,11 @@ func TestMessage_Reference(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Get ID should be the same")
+		t.Error("Application ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Get ID should be the same")
+		t.Error("Application ID should be the same")
 	}
 }
 
@@ -100,11 +100,11 @@ func TestMessage_Forward(t *testing.T) {
 	}
 
 	if ref.GuildID != m.GuildID {
-		t.Error("Get ID should be the same")
+		t.Error("Application ID should be the same")
 	}
 
 	if ref.ChannelID != m.ChannelID {
-		t.Error("Get ID should be the same")
+		t.Error("Application ID should be the same")
 	}
 }
 

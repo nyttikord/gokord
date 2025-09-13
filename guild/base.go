@@ -136,13 +136,13 @@ type Guild struct {
 	// The ID of the AFK voice channel.Channel.
 	AfkChannelID string `json:"afk_channel_id"`
 
-	// The user.Get ID of the owner of the Guild.
+	// The user.User ID of the owner of the Guild.
 	OwnerID string `json:"owner_id"`
 
 	// If we are the owner of the Guild
 	Owner bool `json:"owner"`
 
-	// The time at which the current user.Get joined the Guild.
+	// The time at which the current user.User joined the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
@@ -154,7 +154,7 @@ type Guild struct {
 	// The hash of the Guild's Splash.
 	Splash string `json:"splash"`
 
-	// The timeout, in seconds, before a user.Get is considered AFK in voice.
+	// The timeout, in seconds, before a user.User is considered AFK in voice.
 	AfkTimeout int `json:"afk_timeout"`
 
 	// The number of Members in the Guild.
@@ -208,7 +208,7 @@ type Guild struct {
 	// state-cached guilds.
 	Channels []*channel.Channel `json:"channels"`
 
-	// A list of all active Threads in the Guild that current user.Get has permission to view.
+	// A list of all active Threads in the Guild that current user.User has permission to view.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events and thus is only present in
 	// state-cached guilds.
@@ -294,7 +294,7 @@ type Guild struct {
 	// Note: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 
-	// Permissions of our user.Get.
+	// Permissions of our user.User.
 	Permissions int64 `json:"permissions,string"`
 
 	// StageInstances in the Guild.
@@ -317,7 +317,7 @@ func (g *Guild) BannerURL(size string) string {
 	return discord.BannerURL(g.Banner, discord.EndpointGuildBanner(g.ID, g.Banner), discord.EndpointGuildBannerAnimated(g.ID, g.Banner), size)
 }
 
-// A Preview holds data related to a specific public Discord Guild, even if the user.Get is not in the Guild.
+// A Preview holds data related to a specific public Discord Guild, even if the user.User is not in the Guild.
 type Preview struct {
 	// The ID of the Guild.
 	ID string `json:"id"`
@@ -378,10 +378,10 @@ type Template struct {
 	// The number of times this Template has been used.
 	UsageCount int `json:"usage_count"`
 
-	// The ID of the user.Get who created the Template.
+	// The ID of the user.User who created the Template.
 	CreatorID string `json:"creator_id"`
 
-	// The user.Get who created the Template.
+	// The user.User who created the Template.
 	Creator *user.User `json:"creator"`
 
 	// The timestamp of when the Template was created.

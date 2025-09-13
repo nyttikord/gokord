@@ -73,8 +73,8 @@ var commands = []*interaction.Command{
 
 var (
 	Token = flag.String("token", "", "Bot authentication token")
-	App   = flag.String("app", "", "Get ID")
-	Guild = flag.String("guild", "", "Get ID")
+	App   = flag.String("app", "", "Application ID")
+	Guild = flag.String("guild", "", "Application ID")
 )
 
 func main() {

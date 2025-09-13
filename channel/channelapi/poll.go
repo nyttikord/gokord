@@ -8,7 +8,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// PollAnswerVoters returns user.Get who voted for a particular channel.PollAnswer in a channel.Poll on the given
+// PollAnswerVoters returns user.User who voted for a particular channel.PollAnswer in a channel.Poll on the given
 // channel.Message.
 func (s Requester) PollAnswerVoters(channelID, messageID string, answerID int, options ...discord.RequestOption) ([]*user.User, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointPollAnswerVoters(channelID, messageID, answerID), nil, options...)

@@ -35,33 +35,33 @@ type ThreadMetadata struct {
 	Invitable bool `json:"invitable"`
 }
 
-// ThreadMember is used to indicate whether a user.Get has joined a thread or not.
+// ThreadMember is used to indicate whether a user.User has joined a thread or not.
 //
 // NOTE: ID and UserID are empty (omitted) on the user.Member sent within each thread in the GUILD_CREATE event.
 type ThreadMember struct {
 	// The id of the thread.
 	ID string `json:"id,omitempty"`
-	// The id of the user.Get.
+	// The id of the user.User.
 	UserID string `json:"user_id,omitempty"`
 	// The time the current user last joined the thread.
 	JoinTimestamp time.Time `json:"join_timestamp"`
 	// Any user-thread settings, currently only used for notifications.
 	Flags int `json:"flags"`
-	// Additional information about the user.Get.
+	// Additional information about the user.User.
 	//
 	// NOTE: only present if the withMember parameter is set to true when calling Session.ThreadMembers or
 	// Session.ThreadMember.
 	Member *user.Member `json:"member,omitempty"`
 }
 
-// ThreadsList represents a list of threads alongisde with ThreadMember for the current user.Get.
+// ThreadsList represents a list of threads alongisde with ThreadMember for the current user.User.
 type ThreadsList struct {
 	Threads []*Channel      `json:"threads"`
 	Members []*ThreadMember `json:"members"`
 	HasMore bool            `json:"has_more"`
 }
 
-// AddedThreadMember holds information about the user.Get who was added to the thread
+// AddedThreadMember holds information about the user.User who was added to the thread
 type AddedThreadMember struct {
 	*ThreadMember
 	Member   *user.Member     `json:"member"`

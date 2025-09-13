@@ -44,9 +44,9 @@ func (t CommandOption) String() string {
 	case CommandOptionBoolean:
 		return "Boolean"
 	case CommandOptionUser:
-		return "Get"
+		return "User"
 	case CommandOptionChannel:
-		return "Get"
+		return "Channel"
 	case CommandOptionRole:
 		return "Role"
 	case CommandOptionMentionable:

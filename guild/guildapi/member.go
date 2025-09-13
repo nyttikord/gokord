@@ -43,7 +43,7 @@ func (r Requester) Bans(guildID string, limit int, beforeID, afterID string, opt
 	return b, r.Unmarshal(body, &b)
 }
 
-// BanCreate bans the given user.Get from the given guild.Guild.
+// BanCreate bans the given user.User from the given guild.Guild.
 //
 // days is the number of days of previous comments to delete.
 //
@@ -52,7 +52,7 @@ func (r Requester) BanCreate(guildID, userID string, days int, options ...discor
 	return r.BanCreateWithReason(guildID, userID, "", days, options...)
 }
 
-// Ban finds ban by given guild.Guild and user.Get id and returns guild.Ban structure
+// Ban finds ban by given guild.Guild and user.User id and returns guild.Ban structure
 func (r Requester) Ban(guildID, userID string, options ...discord.RequestOption) (*guild.Ban, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuildBan(guildID, userID), nil, options...)
 	if err != nil {
@@ -63,7 +63,7 @@ func (r Requester) Ban(guildID, userID string, options ...discord.RequestOption)
 	return &b, r.Unmarshal(body, &b)
 }
 
-// BanCreateWithReason bans the given user.Get from the given guild.Guild also providing a reason.
+// BanCreateWithReason bans the given user.User from the given guild.Guild also providing a reason.
 //
 // Note: See BanCreate.
 func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int, options ...discord.RequestOption) error {
@@ -85,7 +85,7 @@ func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int,
 	return err
 }
 
-// BanDelete unbans the given user.Get from the given guild.Guild
+// BanDelete unbans the given user.User from the given guild.Guild
 func (r Requester) BanDelete(guildID, userID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
 		http.MethodDelete,
@@ -171,7 +171,7 @@ func (r Requester) Member(guildID, userID string, options ...discord.RequestOpti
 	return &m, err
 }
 
-// MemberAdd force joins a user.Get to the guild.Guild with the given data.
+// MemberAdd force joins a user.User to the guild.Guild with the given data.
 func (r Requester) MemberAdd(guildID, userID string, data *guild.MemberAddParams, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
 		http.MethodPut,
@@ -183,12 +183,12 @@ func (r Requester) MemberAdd(guildID, userID string, data *guild.MemberAddParams
 	return err
 }
 
-// MemberKick kicks the given user.Get from the given guild.Guild.
+// MemberKick kicks the given user.User from the given guild.Guild.
 func (r Requester) MemberKick(guildID, userID string, options ...discord.RequestOption) error {
 	return r.MemberKickWithReason(guildID, userID, "", options...)
 }
 
-// MemberKickWithReason removes the given user.Get from the given guild.Guild with the given reason.
+// MemberKickWithReason removes the given user.User from the given guild.Guild with the given reason.
 func (r Requester) MemberKickWithReason(guildID, userID, reason string, options ...discord.RequestOption) error {
 	uri := discord.EndpointGuildMember(guildID, userID)
 	if reason != "" {
