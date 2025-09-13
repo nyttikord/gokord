@@ -105,7 +105,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		}
 		i.Data = v
 	case types.InteractionModalSubmit:
-		v := ModalSubmitInteractionData{}
+		v := ModalSubmitData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
 			return err
@@ -133,13 +133,13 @@ func (i *Interaction) CommandData() (data CommandInteractionData) {
 	return i.Data.(CommandInteractionData)
 }
 
-// ModalSubmitData is helper function to assert the inner Data to ModalSubmitInteractionData.
+// ModalSubmitData is helper function to assert the inner Data to ModalSubmitData.
 // Make sure to check that the Type of the interaction is types.InteractionModalSubmit before calling.
-func (i *Interaction) ModalSubmitData() (data ModalSubmitInteractionData) {
+func (i *Interaction) ModalSubmitData() (data ModalSubmitData) {
 	if i.Type != types.InteractionModalSubmit {
 		panic("ModalSubmitData called on interaction of type " + i.Type.String())
 	}
-	return i.Data.(ModalSubmitInteractionData)
+	return i.Data.(ModalSubmitData)
 }
 
 // Data is a common interface for all types of interaction data.
@@ -171,14 +171,14 @@ func (MessageComponentData) Type() types.Interaction {
 	return types.InteractionMessageComponent
 }
 
-// ModalSubmitInteractionData contains the data of modal submit Interaction.
-type ModalSubmitInteractionData struct {
+// ModalSubmitData contains the data of modal submit Interaction.
+type ModalSubmitData struct {
 	CustomID   string            `json:"custom_id"`
 	Components []component.Modal `json:"-"`
 }
 
 // Type returns the type of interaction data.
-func (ModalSubmitInteractionData) Type() types.Interaction {
+func (ModalSubmitData) Type() types.Interaction {
 	return types.InteractionModalSubmit
 }
 
