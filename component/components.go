@@ -27,13 +27,6 @@ type Modal interface {
 	modal()
 }
 
-func toJson(m Component) ([]byte, error) {
-	return json.Marshal(struct {
-		Component
-		Type types.Component `json:"type"`
-	}{m, m.Type()})
-}
-
 // ActionsRow is a top-level container Component for displaying a row of interactive components.
 type ActionsRow struct {
 	// Can contain Button, SelectMenu and TextInput.
@@ -45,7 +38,13 @@ type ActionsRow struct {
 }
 
 func (r *ActionsRow) MarshalJSON() ([]byte, error) {
-	return toJson(r)
+	return json.Marshal(struct {
+		ActionsRow
+		Type types.Component `json:"type"`
+	}{
+		ActionsRow: *r,
+		Type:       r.Type(),
+	})
 }
 
 func (r *ActionsRow) Type() types.Component {
@@ -92,7 +91,13 @@ func (b *Button) MarshalJSON() ([]byte, error) {
 	if b.Style == 0 {
 		b.Style = ButtonStylePrimary
 	}
-	return toJson(b)
+	return json.Marshal(struct {
+		Button
+		Type types.Component `json:"type"`
+	}{
+		Button: *b,
+		Type:   b.Type(),
+	})
 }
 
 func (*Button) Type() types.Component {
@@ -160,7 +165,13 @@ func (s *SelectMenu) Type() types.Component {
 }
 
 func (s *SelectMenu) MarshalJSON() ([]byte, error) {
-	return toJson(s)
+	return json.Marshal(struct {
+		SelectMenu
+		Type types.Component `json:"type"`
+	}{
+		SelectMenu: *s,
+		Type:       s.Type(),
+	})
 }
 
 func (s *SelectMenu) message() {}
@@ -186,7 +197,13 @@ func (*TextInput) Type() types.Component {
 }
 
 func (m *TextInput) MarshalJSON() ([]byte, error) {
-	return toJson(m)
+	return json.Marshal(struct {
+		TextInput
+		Type types.Component `json:"type"`
+	}{
+		TextInput: *m,
+		Type:      m.Type(),
+	})
 }
 
 func (*TextInput) modal() {}
@@ -215,7 +232,13 @@ func (*Section) Type() types.Component {
 }
 
 func (s *Section) MarshalJSON() ([]byte, error) {
-	return toJson(s)
+	return json.Marshal(struct {
+		Section
+		Type types.Component `json:"type"`
+	}{
+		Section: *s,
+		Type:    s.Type(),
+	})
 }
 
 func (*Section) message() {}
@@ -230,7 +253,13 @@ func (*TextDisplay) Type() types.Component {
 }
 
 func (t *TextDisplay) MarshalJSON() ([]byte, error) {
-	return toJson(t)
+	return json.Marshal(struct {
+		TextDisplay
+		Type types.Component `json:"type"`
+	}{
+		TextDisplay: *t,
+		Type:        t.Type(),
+	})
 }
 
 func (*TextDisplay) message() {}
@@ -249,7 +278,13 @@ func (*Thumbnail) Type() types.Component {
 }
 
 func (t *Thumbnail) MarshalJSON() ([]byte, error) {
-	return toJson(t)
+	return json.Marshal(struct {
+		Thumbnail
+		Type types.Component `json:"type"`
+	}{
+		Thumbnail: *t,
+		Type:      t.Type(),
+	})
 }
 
 func (*Thumbnail) message() {}
@@ -267,7 +302,13 @@ func (*MediaGallery) Type() types.Component {
 }
 
 func (m *MediaGallery) MarshalJSON() ([]byte, error) {
-	return toJson(m)
+	return json.Marshal(struct {
+		MediaGallery
+		Type types.Component `json:"type"`
+	}{
+		MediaGallery: *m,
+		Type:         m.Type(),
+	})
 }
 
 func (*MediaGallery) message() {}
@@ -293,7 +334,13 @@ func (*File) Type() types.Component {
 }
 
 func (f *File) MarshalJSON() ([]byte, error) {
-	return toJson(f)
+	return json.Marshal(struct {
+		File
+		Type types.Component `json:"type"`
+	}{
+		File: *f,
+		Type: f.Type(),
+	})
 }
 
 func (*File) message() {}
@@ -320,7 +367,13 @@ func (*Separator) Type() types.Component {
 }
 
 func (s *Separator) MarshalJSON() ([]byte, error) {
-	return toJson(s)
+	return json.Marshal(struct {
+		Separator
+		Type types.Component `json:"type"`
+	}{
+		Separator: *s,
+		Type:      s.Type(),
+	})
 }
 
 func (*Separator) message() {}
@@ -341,7 +394,13 @@ func (*Container) Type() types.Component {
 }
 
 func (c *Container) MarshalJSON() ([]byte, error) {
-	return toJson(c)
+	return json.Marshal(struct {
+		Container
+		Type types.Component `json:"type"`
+	}{
+		Container: *c,
+		Type:      c.Type(),
+	})
 }
 
 func (*Container) message() {}
@@ -385,7 +444,13 @@ func (*Label) Type() types.Component {
 }
 
 func (l *Label) MarshalJSON() ([]byte, error) {
-	return toJson(l)
+	return json.Marshal(struct {
+		Label
+		Type types.Component `json:"type"`
+	}{
+		Label: *l,
+		Type:  l.Type(),
+	})
 }
 
 func (*Label) modal() {}
