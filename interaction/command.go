@@ -13,7 +13,7 @@ type Command struct {
 	ApplicationID     string                     `json:"application_id,omitempty"`
 	GuildID           string                     `json:"guild_id,omitempty"`
 	Version           string                     `json:"version,omitempty"`
-	Type              types.ApplicationCommand   `json:"type,omitempty"`
+	Type              types.Command              `json:"type,omitempty"`
 	Name              string                     `json:"name"`
 	NameLocalizations *map[discord.Locale]string `json:"name_localizations,omitempty"`
 
@@ -40,11 +40,11 @@ type Command struct {
 
 // CommandOption represents an option/subcommand/subcommands group.
 type CommandOption struct {
-	Type                     types.ApplicationCommandOption `json:"type"`
-	Name                     string                         `json:"name"`
-	NameLocalizations        map[discord.Locale]string      `json:"name_localizations,omitempty"`
-	Description              string                         `json:"description,omitempty"`
-	DescriptionLocalizations map[discord.Locale]string      `json:"description_localizations,omitempty"`
+	Type                     types.CommandOption       `json:"type"`
+	Name                     string                    `json:"name"`
+	NameLocalizations        map[discord.Locale]string `json:"name_localizations,omitempty"`
+	Description              string                    `json:"description,omitempty"`
+	DescriptionLocalizations map[discord.Locale]string `json:"description_localizations,omitempty"`
 	// Note: This feature was on the API, but at some point developers decided to remove it.
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
@@ -57,13 +57,13 @@ type CommandOption struct {
 	Autocomplete bool `json:"autocomplete"`
 	// Note: mutually exclusive with Autocomplete.
 	Choices []*CommandOptionChoice `json:"choices"`
-	// Minimal value of types.ApplicationCommandOptionInteger/types.ApplicationCommandOptionNumber.
+	// Minimal value of types.CommandOptionInteger/types.CommandOptionNumber.
 	MinValue *float64 `json:"min_value,omitempty"`
-	// Maximum value of types.ApplicationCommandOptionInteger/types.ApplicationCommandOptionNumber.
+	// Maximum value of types.CommandOptionInteger/types.CommandOptionNumber.
 	MaxValue float64 `json:"max_value,omitempty"`
-	// Minimum length of types.ApplicationCommandOptionString.
+	// Minimum length of types.CommandOptionString.
 	MinLength *int `json:"min_length,omitempty"`
-	// Maximum length of types.ApplicationCommandOptionString.
+	// Maximum length of types.CommandOptionString.
 	MaxLength int `json:"max_length,omitempty"`
 }
 
@@ -76,9 +76,9 @@ type CommandOptionChoice struct {
 
 // CommandPermissions represents a single user.Get or guild.Role permission for a Command.
 type CommandPermissions struct {
-	ID         string                             `json:"id"`
-	Type       types.ApplicationCommandPermission `json:"type"`
-	Permission bool                               `json:"permission"`
+	ID         string                  `json:"id"`
+	Type       types.CommandPermission `json:"type"`
+	Permission bool                    `json:"permission"`
 }
 
 // GuildAllChannelsID is a helper function which returns guild_id-1.

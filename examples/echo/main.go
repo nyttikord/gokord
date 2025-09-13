@@ -59,13 +59,13 @@ var commands = []*interaction.Command{
 			{
 				Name:        "message",
 				Description: "Contents of the message",
-				Type:        types.ApplicationCommandOptionString,
+				Type:        types.CommandOptionString,
 				Required:    true,
 			},
 			{
 				Name:        "author",
 				Description: "Whether to prepend message's author",
-				Type:        types.ApplicationCommandOptionBoolean,
+				Type:        types.CommandOptionBoolean,
 			},
 		},
 	},

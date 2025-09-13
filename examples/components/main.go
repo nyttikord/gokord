@@ -458,17 +458,17 @@ func main() {
 		Name: "selects",
 		Options: []*interaction.CommandOption{
 			{
-				Type:        types.ApplicationCommandOptionSubCommand,
+				Type:        types.CommandOptionSubCommand,
 				Name:        "multi",
 				Description: "Multi-item select menu",
 			},
 			{
-				Type:        types.ApplicationCommandOptionSubCommand,
+				Type:        types.CommandOptionSubCommand,
 				Name:        "single",
 				Description: "Single-item select menu",
 			},
 			{
-				Type:        types.ApplicationCommandOptionSubCommand,
+				Type:        types.CommandOptionSubCommand,
 				Name:        "auto-populated",
 				Description: "Automatically populated select menu, which lets you pick a member, channel or role",
 			},

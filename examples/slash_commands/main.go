@@ -76,7 +76,7 @@ var (
 					DescriptionLocalizations: map[discord.Locale]string{
 						discord.LocaleChineseCN: "这是一个本地化的选项",
 					},
-					Type: types.ApplicationCommandOptionInteger,
+					Type: types.CommandOptionInteger,
 					Choices: []*interaction.CommandOptionChoice{
 						{
 							Name: "First",
@@ -102,13 +102,13 @@ var (
 			Options: []*interaction.CommandOption{
 
 				{
-					Type:        types.ApplicationCommandOptionString,
+					Type:        types.CommandOptionString,
 					Name:        "string-option",
 					Description: "String option",
 					Required:    true,
 				},
 				{
-					Type:        types.ApplicationCommandOptionInteger,
+					Type:        types.CommandOptionInteger,
 					Name:        "integer-option",
 					Description: "Integer option",
 					MinValue:    &integerOptionMinValue,
@@ -116,14 +116,14 @@ var (
 					Required:    true,
 				},
 				{
-					Type:        types.ApplicationCommandOptionNumber,
+					Type:        types.CommandOptionNumber,
 					Name:        "number-option",
 					Description: "Float option",
 					MaxValue:    10.1,
 					Required:    true,
 				},
 				{
-					Type:        types.ApplicationCommandOptionBoolean,
+					Type:        types.CommandOptionBoolean,
 					Name:        "bool-option",
 					Description: "Boolean option",
 					Required:    true,
@@ -134,7 +134,7 @@ var (
 				// The same concept applies to Discord's Slash-commands API
 
 				{
-					Type:        types.ApplicationCommandOptionChannel,
+					Type:        types.CommandOptionChannel,
 					Name:        "channel-option",
 					Description: "Get option",
 					// Get type mask
@@ -145,13 +145,13 @@ var (
 					Required: false,
 				},
 				{
-					Type:        types.ApplicationCommandOptionUser,
+					Type:        types.CommandOptionUser,
 					Name:        "user-option",
 					Description: "Get option",
 					Required:    false,
 				},
 				{
-					Type:        types.ApplicationCommandOptionRole,
+					Type:        types.CommandOptionRole,
 					Name:        "role-option",
 					Description: "Role option",
 					Required:    false,
@@ -178,10 +178,10 @@ var (
 						{
 							Name:        "nested-subcommand",
 							Description: "Nested subcommand",
-							Type:        types.ApplicationCommandOptionSubCommand,
+							Type:        types.CommandOptionSubCommand,
 						},
 					},
-					Type: types.ApplicationCommandOptionSubCommandGroup,
+					Type: types.CommandOptionSubCommandGroup,
 				},
 				// Also, you can create both subcommand groups and subcommands
 				// in the command at the same time. But, there's some limits to
@@ -191,7 +191,7 @@ var (
 				{
 					Name:        "subcommand",
 					Description: "Top-level subcommand",
-					Type:        types.ApplicationCommandOptionSubCommand,
+					Type:        types.CommandOptionSubCommand,
 				},
 			},
 		},
@@ -202,7 +202,7 @@ var (
 				{
 					Name:        "resp-type",
 					Description: "Response type",
-					Type:        types.ApplicationCommandOptionInteger,
+					Type:        types.CommandOptionInteger,
 					Choices: []*interaction.CommandOptionChoice{
 						{
 							Name:  "Get message with source",
@@ -363,9 +363,9 @@ var (
 				}
 
 				switch o.Type {
-				case types.ApplicationCommandPermissionUser:
+				case types.CommandPermissionUser:
 					users += fmt.Sprintf(format, emoji, "<@!"+o.ID+">")
-				case types.ApplicationCommandPermissionChannel:
+				case types.CommandPermissionChannel:
 					allChannels, _ := interaction.GuildAllChannelsID(i.GuildID)
 
 					if o.ID == allChannels {
@@ -373,7 +373,7 @@ var (
 					} else {
 						channels += fmt.Sprintf(format, emoji, "<#"+o.ID+">")
 					}
-				case types.ApplicationCommandPermissionRole:
+				case types.CommandPermissionRole:
 					if o.ID == i.GuildID {
 						roles += fmt.Sprintf(format, emoji, "@everyone")
 					} else {

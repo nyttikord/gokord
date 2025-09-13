@@ -46,27 +46,27 @@ var (
 	commands = []interaction.Command{
 		{
 			Name: "rickroll-em",
-			Type: types.ApplicationCommandUser,
+			Type: types.CommandUser,
 		},
 		{
 			Name: "google-it",
-			Type: types.ApplicationCommandMessage,
+			Type: types.CommandMessage,
 		},
 		{
 			Name: "stackoverflow-it",
-			Type: types.ApplicationCommandMessage,
+			Type: types.CommandMessage,
 		},
 		{
 			Name: "godoc-it",
-			Type: types.ApplicationCommandMessage,
+			Type: types.CommandMessage,
 		},
 		{
 			Name: "discordjs-it",
-			Type: types.ApplicationCommandMessage,
+			Type: types.CommandMessage,
 		},
 		{
 			Name: "discordpy-it",
-			Type: types.ApplicationCommandMessage,
+			Type: types.CommandMessage,
 		},
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){

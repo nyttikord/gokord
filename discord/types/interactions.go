@@ -2,71 +2,71 @@ package types
 
 import "fmt"
 
-// ApplicationCommand represents the type of gokord.ApplicationCommand.
-type ApplicationCommand uint8
+// Command represents the type of gokord.Command.
+type Command uint8
 
 const (
-	// ApplicationCommandChat is default command type. They are slash commands (i.e. called directly from the chat).
-	ApplicationCommandChat ApplicationCommand = 1
-	// ApplicationCommandUser adds command to user context menu.
-	ApplicationCommandUser ApplicationCommand = 2
-	// ApplicationCommandMessage adds command to message context menu.
-	ApplicationCommandMessage ApplicationCommand = 3
+	// CommandChat is default command type. They are slash commands (i.e. called directly from the chat).
+	CommandChat Command = 1
+	// CommandUser adds command to user context menu.
+	CommandUser Command = 2
+	// CommandMessage adds command to message context menu.
+	CommandMessage Command = 3
 )
 
-// ApplicationCommandOption indicates the type of gokord.ApplicationCommandOption.
-type ApplicationCommandOption uint8
+// CommandOption indicates the type of gokord.CommandOption.
+type CommandOption uint8
 
 const (
-	ApplicationCommandOptionSubCommand      ApplicationCommandOption = 1
-	ApplicationCommandOptionSubCommandGroup ApplicationCommandOption = 2
-	ApplicationCommandOptionString          ApplicationCommandOption = 3
-	ApplicationCommandOptionInteger         ApplicationCommandOption = 4
-	ApplicationCommandOptionBoolean         ApplicationCommandOption = 5
-	ApplicationCommandOptionUser            ApplicationCommandOption = 6
-	ApplicationCommandOptionChannel         ApplicationCommandOption = 7
-	ApplicationCommandOptionRole            ApplicationCommandOption = 8
-	ApplicationCommandOptionMentionable     ApplicationCommandOption = 9
-	ApplicationCommandOptionNumber          ApplicationCommandOption = 10
-	ApplicationCommandOptionAttachment      ApplicationCommandOption = 11
+	CommandOptionSubCommand      CommandOption = 1
+	CommandOptionSubCommandGroup CommandOption = 2
+	CommandOptionString          CommandOption = 3
+	CommandOptionInteger         CommandOption = 4
+	CommandOptionBoolean         CommandOption = 5
+	CommandOptionUser            CommandOption = 6
+	CommandOptionChannel         CommandOption = 7
+	CommandOptionRole            CommandOption = 8
+	CommandOptionMentionable     CommandOption = 9
+	CommandOptionNumber          CommandOption = 10
+	CommandOptionAttachment      CommandOption = 11
 )
 
-func (t ApplicationCommandOption) String() string {
+func (t CommandOption) String() string {
 	switch t {
-	case ApplicationCommandOptionSubCommand:
+	case CommandOptionSubCommand:
 		return "SubCommand"
-	case ApplicationCommandOptionSubCommandGroup:
+	case CommandOptionSubCommandGroup:
 		return "SubCommandGroup"
-	case ApplicationCommandOptionString:
+	case CommandOptionString:
 		return "String"
-	case ApplicationCommandOptionInteger:
+	case CommandOptionInteger:
 		return "Integer"
-	case ApplicationCommandOptionBoolean:
+	case CommandOptionBoolean:
 		return "Boolean"
-	case ApplicationCommandOptionUser:
+	case CommandOptionUser:
 		return "Get"
-	case ApplicationCommandOptionChannel:
+	case CommandOptionChannel:
 		return "Get"
-	case ApplicationCommandOptionRole:
+	case CommandOptionRole:
 		return "Role"
-	case ApplicationCommandOptionMentionable:
+	case CommandOptionMentionable:
 		return "Mentionable"
-	case ApplicationCommandOptionNumber:
+	case CommandOptionNumber:
 		return "Number"
-	case ApplicationCommandOptionAttachment:
+	case CommandOptionAttachment:
 		return "Attachment"
 	}
-	return fmt.Sprintf("ApplicationCommandOption(%d)", t)
+	return fmt.Sprintf("CommandOption(%d)", t)
 }
 
-// ApplicationCommandPermission indicates whether a gokord.ApplicationCommandPermissions permission is user or role based.
-type ApplicationCommandPermission uint8
+// CommandPermission indicates whether a gokord.ApplicationCommandPermissions permission is user or role based.
+type CommandPermission uint8
 
-// Get command permission types.
+// User command permission types.
 const (
-	ApplicationCommandPermissionRole    ApplicationCommandPermission = 1
-	ApplicationCommandPermissionUser    ApplicationCommandPermission = 2
-	ApplicationCommandPermissionChannel ApplicationCommandPermission = 3
+	CommandPermissionRole    CommandPermission = 1
+	CommandPermissionUser    CommandPermission = 2
+	CommandPermissionChannel CommandPermission = 3
 )
 
 // Interaction indicates the type of gokord.Interaction event.
@@ -86,7 +86,7 @@ func (t Interaction) String() string {
 	case InteractionPing:
 		return "Ping"
 	case InteractionApplicationCommand:
-		return "ApplicationCommand"
+		return "Command"
 	case InteractionMessageComponent:
 		return "Message"
 	case InteractionModalSubmit:

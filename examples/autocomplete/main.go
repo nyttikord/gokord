@@ -32,12 +32,12 @@ var (
 		{
 			Name:        "single-autocomplete",
 			Description: "Showcase of single autocomplete option",
-			Type:        types.ApplicationCommandChat,
+			Type:        types.CommandChat,
 			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option",
 					Description:  "Autocomplete option",
-					Type:         types.ApplicationCommandOptionString,
+					Type:         types.CommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},
@@ -46,19 +46,19 @@ var (
 		{
 			Name:        "multi-autocomplete",
 			Description: "Showcase of multiple autocomplete option",
-			Type:        types.ApplicationCommandChat,
+			Type:        types.CommandChat,
 			Options: []*interaction.CommandOption{
 				{
 					Name:         "autocomplete-option-1",
 					Description:  "Autocomplete option 1",
-					Type:         types.ApplicationCommandOptionString,
+					Type:         types.CommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},
 				{
 					Name:         "autocomplete-option-2",
 					Description:  "Autocomplete option 2",
-					Type:         types.ApplicationCommandOptionString,
+					Type:         types.CommandOptionString,
 					Required:     true,
 					Autocomplete: true,
 				},

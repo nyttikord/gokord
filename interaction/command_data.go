@@ -40,7 +40,7 @@ type UserGetter interface {
 type CommandInteractionData struct {
 	ID          string                          `json:"id"`
 	Name        string                          `json:"name"`
-	CommandType types.ApplicationCommand        `json:"type"`
+	CommandType types.Command                   `json:"type"`
 	Resolved    *CommandInteractionDataResolved `json:"resolved"`
 
 	// Slash command options
@@ -81,8 +81,8 @@ func (CommandInteractionData) Type() types.Interaction {
 
 // CommandInteractionDataOption represents an option of a slash Command.
 type CommandInteractionDataOption struct {
-	Name string                         `json:"name"`
-	Type types.ApplicationCommandOption `json:"type"`
+	Name string              `json:"name"`
+	Type types.CommandOption `json:"type"`
 	// Note: Contains the value specified by Type.
 	Value   interface{}                     `json:"value,omitempty"`
 	Options []*CommandInteractionDataOption `json:"options,omitempty"`
@@ -105,7 +105,7 @@ func (o CommandInteractionDataOption) GetOption(name string) (option *CommandInt
 
 // IntValue is a utility function for casting CommandOption value to integer
 func (o CommandInteractionDataOption) IntValue() int64 {
-	if o.Type != types.ApplicationCommandOptionInteger {
+	if o.Type != types.CommandOptionInteger {
 		panic("IntValue called on data option of type " + o.Type.String())
 	}
 	return int64(o.Value.(float64))
@@ -113,7 +113,7 @@ func (o CommandInteractionDataOption) IntValue() int64 {
 
 // UintValue is a utility function for casting CommandOption value to unsigned integer
 func (o CommandInteractionDataOption) UintValue() uint64 {
-	if o.Type != types.ApplicationCommandOptionInteger {
+	if o.Type != types.CommandOptionInteger {
 		panic("UintValue called on data option of type " + o.Type.String())
 	}
 	return uint64(o.Value.(float64))
@@ -121,7 +121,7 @@ func (o CommandInteractionDataOption) UintValue() uint64 {
 
 // FloatValue is a utility function for casting CommandOption value to float
 func (o CommandInteractionDataOption) FloatValue() float64 {
-	if o.Type != types.ApplicationCommandOptionNumber {
+	if o.Type != types.CommandOptionNumber {
 		panic("FloatValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(float64)
@@ -129,7 +129,7 @@ func (o CommandInteractionDataOption) FloatValue() float64 {
 
 // StringValue is a utility function for casting CommandOption value to string
 func (o CommandInteractionDataOption) StringValue() string {
-	if o.Type != types.ApplicationCommandOptionString {
+	if o.Type != types.CommandOptionString {
 		panic("StringValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(string)
@@ -137,7 +137,7 @@ func (o CommandInteractionDataOption) StringValue() string {
 
 // BoolValue is a utility function for casting CommandOption value to bool
 func (o CommandInteractionDataOption) BoolValue() bool {
-	if o.Type != types.ApplicationCommandOptionBoolean {
+	if o.Type != types.CommandOptionBoolean {
 		panic("BoolValue called on data option of type " + o.Type.String())
 	}
 	return o.Value.(bool)
@@ -150,7 +150,7 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 // state is another ChannelGetter representing the internal state of the application (implemented by gokord.State), if
 // not nil, it is called before s.
 func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateChannelGetter) *channel.Channel {
-	if o.Type != types.ApplicationCommandOptionChannel {
+	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
 	chanID := o.Value.(string)
@@ -180,7 +180,7 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateC
 // state is a RoleGetter representing the internal state of the application (implemented by gokord.State), if
 // not nil, it is called before s.
 func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state RoleGetter) *guild.Role {
-	if o.Type != types.ApplicationCommandOptionRole && o.Type != types.ApplicationCommandOptionMentionable {
+	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}
 	roleID := o.Value.(string)
@@ -208,7 +208,7 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 //
 // s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.Get's data.
 func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
-	if o.Type != types.ApplicationCommandOptionUser && o.Type != types.ApplicationCommandOptionMentionable {
+	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
 	userID := o.Value.(string)
