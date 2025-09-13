@@ -1,9 +1,15 @@
 package discord
 
+import "fmt"
+
 // An APIErrorMessage is an api error message returned from discord
 type APIErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+func (e APIErrorMessage) Error() string {
+	return fmt.Sprintf("Discord API error %d: %s", e.Code, e.Message)
 }
 
 const (

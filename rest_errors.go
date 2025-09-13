@@ -3,6 +3,7 @@ package gokord
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -47,8 +48,11 @@ func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTErro
 
 // Error returns a Rest API Error with its status code and body.
 func (r RESTError) Error() string {
-	//TODO: better display with discord/errors.go
-	return "HTTP " + r.Response.Status + ", " + string(r.ResponseBody)
+	base := fmt.Sprintf("[HTTP %d]", r.Response.StatusCode)
+	if r.Message != nil {
+		return fmt.Sprintf("%s %s", base, r.Message.Error())
+	}
+	return fmt.Sprintf("%s %s", base, r.ResponseBody)
 }
 
 // RateLimitError is returned when a request exceeds a rate limit and Session.ShouldRetryOnRateLimit is false.
