@@ -22,7 +22,7 @@ func ExampleApplication() {
 	ap := &application.Application{}
 	ap.Name = "TestApp"
 	ap.Description = "TestDesc"
-	ap, err := dg.ApplicationAPI().Create(ap)
+	ap, err := dg.ApplicationAPI().ApplicationCreate(ap)
 	log.Printf("ApplicationCreate: err: %+v, app: %+v\n", err, ap)
 
 	// Application a specific Application by it's ID
@@ -31,7 +31,7 @@ func ExampleApplication() {
 
 	// Update an existing Application with new values
 	ap.Description = "Whooooa"
-	ap, err = dg.ApplicationAPI().Update(ap.ID, ap)
+	ap, err = dg.ApplicationAPI().ApplicationUpdate(ap.ID, ap)
 	log.Printf("ApplicationUpdate: err: %+v, app: %+v\n", err, ap)
 
 	// create a new bot account for this application
@@ -46,7 +46,7 @@ func ExampleApplication() {
 	}
 
 	// Delete the application we created.
-	err = dg.ApplicationAPI().Delete(ap.ID)
+	err = dg.ApplicationAPI().ApplicationDelete(ap.ID)
 	log.Printf("Delete: err: %+v\n", err)
 
 	return

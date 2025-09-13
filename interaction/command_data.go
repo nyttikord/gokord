@@ -10,8 +10,8 @@ import (
 
 // ChannelGetter represents a type fetching channel.Channel.
 type ChannelGetter interface {
-	// Get returns the channel.Channel with the given ID.
-	Get(string, ...discord.RequestOption) (*channel.Channel, error)
+	// Channel returns the channel.Channel with the given ID.
+	Channel(string, ...discord.RequestOption) (*channel.Channel, error)
 }
 
 type StateChannelGetter interface {
@@ -32,8 +32,8 @@ type RolesGetter interface {
 
 // UserGetter represents a type fetching user.User.
 type UserGetter interface {
-	// Get returns the user.User with the given ID.
-	Get(string, ...discord.RequestOption) (*user.User, error)
+	// User returns the user.User with the given ID.
+	User(string, ...discord.RequestOption) (*user.User, error)
 }
 
 // CommandInteractionData contains the data of Command Interaction.
@@ -165,7 +165,7 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateC
 			return ch
 		}
 	}
-	ch, err := s.Get(chanID)
+	ch, err := s.Channel(chanID)
 	if err != nil {
 		return &channel.Channel{ID: chanID}
 	}
@@ -217,7 +217,7 @@ func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
 		return &user.User{ID: userID}
 	}
 
-	u, err := s.Get(userID)
+	u, err := s.User(userID)
 	if err != nil {
 		return &user.User{ID: userID}
 	}

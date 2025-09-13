@@ -74,7 +74,7 @@ func (r Requester) Invites(guildID string, options ...discord.RequestOption) ([]
 
 // Icon returns an image.Image of a guild.Guild icon.
 func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Get(guildID, options...)
+	g, err := r.Guild(guildID, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image
 
 // Splash returns an image.Image of a guild.Guild splash image.
 func (r Requester) Splash(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Get(guildID, options...)
+	g, err := r.Guild(guildID, options...)
 	if err != nil {
 		return nil, err
 	}

@@ -52,7 +52,7 @@ func main() {
 			if time.Since(games[m.ChannelID]) >= timeout {
 				archived := true
 				locked := true
-				_, err := s.ChannelAPI().Edit(m.ChannelID, &channel.Edit{
+				_, err := s.ChannelAPI().ChannelEdit(m.ChannelID, &channel.Edit{
 					Archived: &archived,
 					Locked:   &locked,
 				})

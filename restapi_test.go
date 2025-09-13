@@ -249,7 +249,7 @@ func TestWithContext(t *testing.T) {
 	})
 
 	// Run any client method using WithContext.
-	_, err := session.UserAPI().Get("", discord.WithContext(ctx))
+	_, err := session.UserAPI().User("", discord.WithContext(ctx))
 
 	// Verify that the assertion code was actually run.
 	if !errors.Is(err, testErr) {

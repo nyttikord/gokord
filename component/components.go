@@ -165,12 +165,11 @@ func (s SelectMenu) MarshalJSON() ([]byte, error) {
 
 func (s SelectMenu) message() {}
 
-func (s SelectMenu) modal() {} // for types.SelectMenuString
+func (s SelectMenu) modal() {}
 
 // TextInput represents text input Component.
 type TextInput struct {
 	CustomID    string         `json:"custom_id"`
-	Label       string         `json:"label"`
 	Style       TextInputStyle `json:"style"`
 	Placeholder string         `json:"placeholder,omitempty"`
 	Value       string         `json:"value,omitempty"`
@@ -375,10 +374,10 @@ type ResolvedUnfurledMediaItem struct {
 // It wraps modal components with text as a label and optional description.
 type Label struct {
 	// Unique identifier for the Component; autopopulated through increment if not provided.
-	ID          int     `json:"id,omitempty"`
-	Label       string  `json:"label"`
-	Description string  `json:"description,omitempty"`
-	Component   Message `json:"component"`
+	ID          int    `json:"id,omitempty"`
+	Label       string `json:"label"`
+	Description string `json:"description,omitempty"`
+	Component   Modal  `json:"component"`
 }
 
 func (*Label) Type() types.Component {

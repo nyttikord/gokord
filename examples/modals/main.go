@@ -45,34 +45,31 @@ var (
 	}
 	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
 		"modals-survey": func(s *gokord.Session, i *gokord.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.InteractionResponse{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseModal,
-				Data: &interaction.InteractionResponseData{
+				Data: &interaction.ResponseData{
 					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
 					Title:    "Modals survey",
-					Components: []component.Message{
-						&component.ActionsRow{
-							Components: []component.Modal{
-								component.TextInput{
-									CustomID:    "opinion",
-									Label:       "What is your opinion on them?",
-									Style:       component.TextInputShort,
-									Placeholder: "Don't be shy, share your opinion with us",
-									Required:    true,
-									MaxLength:   300,
-									MinLength:   10,
-								},
+					Components: []component.Component{
+						&component.Label{
+							Label: "What is your opinion on them?",
+							Component: component.TextInput{
+								CustomID:    "opinion",
+								Style:       component.TextInputShort,
+								Placeholder: "Don't be shy, share your opinion with us",
+								Required:    true,
+								MaxLength:   300,
+								MinLength:   10,
 							},
 						},
-						component.ActionsRow{
-							Components: []component.Message{
-								component.TextInput{
-									CustomID:  "suggestions",
-									Label:     "What would you suggest to improve them?",
-									Style:     component.TextInputParagraph,
-									Required:  false,
-									MaxLength: 2000,
-								},
+						&component.Label{
+							Label: "What would you suggest to improve them?",
+							Component: component.TextInput{
+								CustomID: "suggestions",
+
+								Style:     component.TextInputParagraph,
+								Required:  false,
+								MaxLength: 2000,
 							},
 						},
 					},
@@ -92,14 +89,14 @@ func main() {
 
 	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
 		switch i.Type {
-		case gokord.InteractionApplicationCommand:
-			if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
+		case types.InteractionApplicationCommand:
+			if h, ok := commandsHandlers[i.CommandData().Name]; ok {
 				h(s, i)
 			}
-		case gokord.InteractionModalSubmit:
-			err := s.InteractionRespond(i.Interaction, &interaction.InteractionResponse{
-				Type: gokord.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.InteractionResponseData{
+		case types.InteractionModalSubmit:
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				Type: types.InteractionResponseChannelMessageWithSource,
+				Data: &interaction.ResponseData{
 					Content: "Thank you for taking your time to fill this survey",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
@@ -114,11 +111,11 @@ func main() {
 			}
 
 			userid := strings.Split(data.CustomID, "_")[2]
-			_, err = s.ChannelMessageSend(*ResultsChannel, fmt.Sprintf(
+			_, err = s.ChannelAPI().MessageSend(*ResultsChannel, fmt.Sprintf(
 				"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 				userid,
-				data.Components[0].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
-				data.Components[1].(*component.ActionsRow).Components[0].(*component.TextInput).Value,
+				data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
+				data.Components[1].(*component.Label).Component.(*component.TextInput).Value,
 			))
 			if err != nil {
 				panic(err)
@@ -129,7 +126,7 @@ func main() {
 	cmdIDs := make(map[string]string, len(commands))
 
 	for _, cmd := range commands {
-		rcmd, err := s.ApplicationCommandCreate(*AppID, *GuildID, &cmd)
+		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -153,7 +150,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.ApplicationCommandDelete(*AppID, *GuildID, id)
+		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

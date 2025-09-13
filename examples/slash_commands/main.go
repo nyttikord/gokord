@@ -51,7 +51,6 @@ var (
 			Name:                     "permission-overview",
 			Description:              "Command for demonstration of default command permissions",
 			DefaultMemberPermissions: &defaultMemberPermissions,
-			DMPermission:             &dmPermission,
 		},
 		{
 			Name:        "basic-command-with-files",

@@ -44,7 +44,7 @@ var (
 				Data: &interaction.ResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
 					Flags:   channel.MessageFlagsEphemeral,
-					Components: []component.Message{
+					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
 								component.Button{
@@ -87,7 +87,7 @@ var (
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
 						"But now, when you know how buttons work, let's move onto select menus (execute `/selects single`)",
 					Flags: channel.MessageFlagsEphemeral,
-					Components: []component.Message{
+					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
 								component.Button{
@@ -181,7 +181,7 @@ var (
 				Data: &interaction.ResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
 						"If you want to know more, check out the links below",
-					Components: []component.Message{
+					Components: []component.Component{
 						&component.ActionsRow{
 							Components: []component.Message{
 								component.Button{
@@ -228,7 +228,7 @@ var (
 					Content: "Are you comfortable with buttons and other message components?",
 					Flags:   channel.MessageFlagsEphemeral,
 					// Buttons and other components are specified in Components field.
-					Components: []component.Message{
+					Components: []component.Component{
 						// ActionRow is a container of all buttons within the same row.
 						&component.ActionsRow{
 							Components: []component.Message{
@@ -287,7 +287,7 @@ var (
 					Data: &interaction.ResponseData{
 						Content: "Now let's take a look on selects. This is single item select menu.",
 						Flags:   channel.MessageFlagsEphemeral,
-						Components: []component.Message{
+						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
 									component.SelectMenu{
@@ -338,7 +338,7 @@ var (
 						Content: "Now let's see how the multi-item select menu works: " +
 							"try generating your own stackoverflow search link",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []component.Message{
+						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
 									component.SelectMenu{
@@ -405,7 +405,7 @@ var (
 						Content: "The tastiest things are left for the end. Meet auto populated select menus.\n" +
 							"By setting `MenuType` on the select menu you can tell Discord to automatically populate the menu with entities of your choice: roles, members, channels. Try one below.",
 						Flags: channel.MessageFlagsEphemeral,
-						Components: []component.Message{
+						Components: []component.Component{
 							&component.ActionsRow{
 								Components: []component.Message{
 									component.SelectMenu{

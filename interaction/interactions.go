@@ -173,8 +173,8 @@ func (MessageComponentData) Type() types.Interaction {
 
 // ModalSubmitInteractionData contains the data of modal submit Interaction.
 type ModalSubmitInteractionData struct {
-	CustomID   string              `json:"custom_id"`
-	Components []component.Message `json:"-"`
+	CustomID   string            `json:"custom_id"`
+	Components []component.Modal `json:"-"`
 }
 
 // Type returns the type of interaction data.
@@ -192,7 +192,7 @@ type Response struct {
 type ResponseData struct {
 	TTS             bool                            `json:"tts"`
 	Content         string                          `json:"content"`
-	Components      []component.Message             `json:"components"`
+	Components      []component.Component           `json:"components"`
 	Embeds          []*channel.MessageEmbed         `json:"embeds"`
 	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Files           []*channel.File                 `json:"-"`
