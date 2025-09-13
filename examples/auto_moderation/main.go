@@ -31,8 +31,8 @@ func main() {
 	enabled := true
 	rule, err := session.GuildAPI().AutoModerationRuleCreate(*GuildID, &guild.AutoModerationRule{
 		Name:        "Auto Moderation example",
-		EventType:   types.AutoModerationRuleEventMessageSend,
-		TriggerType: types.AutoModerationRuleTriggerKeywordPreset,
+		EventType:   guild.AutoModerationRuleEventMessageSend,
+		TriggerType: guild.AutoModerationRuleTriggerKeywordPreset,
 		TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 			KeywordFilter: []string{"*cat*"},
 			RegexPatterns: []string{"(c|b)at"},
