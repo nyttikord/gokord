@@ -29,8 +29,8 @@ type Modal interface {
 
 func toJson(m Component) ([]byte, error) {
 	return json.Marshal(struct {
-		Component
-		Type types.Component `json:"type"`
+		Component `json:"-"`
+		Type      types.Component `json:"type"`
 	}{m, m.Type()})
 }
 
