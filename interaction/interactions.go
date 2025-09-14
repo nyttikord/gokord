@@ -14,6 +14,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
 )
@@ -105,6 +106,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		}
 		i.Data = v
 	case types.InteractionModalSubmit:
+		logger.Log(logger.LevelInfo, 0, "modal submit")
 		v := ModalSubmitData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
@@ -180,6 +182,27 @@ type ModalSubmitData struct {
 // Type returns the type of interaction data.
 func (ModalSubmitData) Type() types.Interaction {
 	return types.InteractionModalSubmit
+}
+
+func (d *ModalSubmitData) UnmarshalJSON(data []byte) error {
+	println("before")
+	type t ModalSubmitData
+	var v struct {
+		t 
+		RawComponents []component.Unmarshalable `json:"components"`
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	println("after first unmarshalling")
+	*d = ModalSubmitData(v.t)
+	d.Components = make([]component.Modal, len(v.RawComponents))
+	for i, r := range v.RawComponents {
+		d.Components[i] = r.Component.(component.Modal)
+	}
+	println("finished")
+	return nil
 }
 
 // Response represents a response for an Interaction event.

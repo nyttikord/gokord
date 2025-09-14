@@ -95,15 +95,6 @@ func (b *Button) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (b *Button) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*b = *c.(*Button)
-	return nil
-}
-
 func (*Button) Type() types.Component {
 	return types.ComponentButton
 }
@@ -164,15 +155,6 @@ func (t *TextDisplay) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (t *TextDisplay) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*t = *c.(*TextDisplay)
-	return nil
-}
-
 func (*TextDisplay) message() {}
 
 // Thumbnail can be used as an accessory for a Section component.
@@ -198,15 +180,6 @@ func (t *Thumbnail) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (t *Thumbnail) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*t = *c.(*Thumbnail)
-	return nil
-}
-
 func (*Thumbnail) message() {}
 
 // MediaGallery is a top-level Component allows you to group images, videos or gifs into a gallery grid.
@@ -229,15 +202,6 @@ func (m *MediaGallery) MarshalJSON() ([]byte, error) {
 		MediaGallery: *m,
 		Type:         m.Type(),
 	})
-}
-
-func (m *MediaGallery) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*m = *c.(*MediaGallery)
-	return nil
 }
 
 func (*MediaGallery) message() {}
@@ -272,15 +236,6 @@ func (f *File) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (f *File) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*f = *c.(*File)
-	return nil
-}
-
 func (*File) message() {}
 
 // SeparatorSpacingSize represents spacing size around the Separator.
@@ -312,15 +267,6 @@ func (s *Separator) MarshalJSON() ([]byte, error) {
 		Separator: *s,
 		Type:      s.Type(),
 	})
-}
-
-func (s *Separator) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*s = *c.(*Separator)
-	return nil
 }
 
 func (*Separator) message() {}

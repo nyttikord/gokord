@@ -50,7 +50,7 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 }
 
 func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
-	s.LogDebug("%8s     :: %s", method, urlStr)
+	s.LogDebug("%s :: %s", method, urlStr)
 	s.LogDebug("PAYLOAD :: %s", string(b))
 
 	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))

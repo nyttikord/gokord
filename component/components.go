@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/nyttikord/gokord/discord/types"
-	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -16,22 +15,33 @@ var (
 // Component represents every component.
 type Component interface {
 	json.Marshaler
-	json.Unmarshaler
 	Type() types.Component
 }
 
+type Unmarshalable struct {
+	Component
+}
+
+// UnmarshalJSON converts json bytes to a valid Component 
+func (un *Unmarshalable) UnmarshalJSON(data []byte) error {
+	var err error
+	un.Component, err = unmarshalComponent(data)
+	return err
+}
+
 func unmarshalComponent(data []byte) (Component, error) {
-	logger.Log(logger.LevelDebug, 0, "called for %s", data)
-	var t struct {
+	var v struct {
 		Type types.Component `json:"type"`
 	}
-	err := json.Unmarshal(data, &t)
+	println("in before")
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
+	println("in after")
 
 	var c Component
-	switch t.Type {
+	switch v.Type {
 	case types.ComponentActionsRow:
 		c = &ActionsRow{}
 	case types.ComponentButton:
@@ -58,8 +68,9 @@ func unmarshalComponent(data []byte) (Component, error) {
 	case types.ComponentLabel:
 		c = &Label{}
 	default:
-		return nil, errors.Join(ErrUnknownComponents, fmt.Errorf("uknown type %d", t.Type))
+		return nil, fmt.Errorf("c.nown component type: %d", v.Type)
 	}
-	err = json.Unmarshal(data, c)
-	return c, err
+	println("in last marshal")
+	return c, json.Unmarshal(data, c)
 }
+

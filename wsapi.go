@@ -199,8 +199,6 @@ func (s *Session) Open() error {
 // listen polls the websocket connection for events, it will stop when the
 // listening channel is closed, or an error occurs.
 func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
-	s.LogDebug("called")
-
 	for {
 		messageType, message, err := wsConn.ReadMessage()
 
@@ -259,8 +257,6 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // is still connected.  If you do not send these heartbeats Discord will
 // disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartbeatIntervalMsec time.Duration) {
-	s.LogDebug("called")
-
 	if listening == nil || wsConn == nil {
 		return
 	}

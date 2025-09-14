@@ -5,6 +5,7 @@ import (
 
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
+	//"github.com/nyttikord/gokord/logger"
 )
 
 // Modal is implemented by all modal components.
@@ -81,15 +82,6 @@ func (s *SelectMenu) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (s *SelectMenu) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*s = *c.(*SelectMenu)
-	return nil
-}
-
 func (s *SelectMenu) message() {}
 
 func (s *SelectMenu) modal() {}
@@ -120,15 +112,6 @@ func (t *TextInput) MarshalJSON() ([]byte, error) {
 		TextInput: *t,
 		Type:      t.Type(),
 	})
-}
-
-func (t *TextInput) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
-	if err != nil {
-		return err
-	}
-	*t = *c.(*TextInput)
-	return nil
 }
 
 func (*TextInput) modal() {}
@@ -167,11 +150,20 @@ func (l *Label) MarshalJSON() ([]byte, error) {
 }
 
 func (l *Label) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
+	println("label before")
+	type t Label 
+	var v struct {
+		t 
+		RawComponent Unmarshalable `json:"component"`
+	}
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	*l = *c.(*Label)
+	println("label after first unmarshalling")
+	*l = Label(v.t)
+	l.Component = v.RawComponent.Component.(Modal)
+	println("label finished")
 	return nil
 }
 
