@@ -50,7 +50,7 @@ func newRestError(req *http.Request, resp *http.Response, body []byte) *RESTErro
 func (r RESTError) Error() string {
 	base := fmt.Sprintf("[HTTP %d]", r.Response.StatusCode)
 	if r.Message != nil {
-		return fmt.Sprintf("%s %s", base, r.Message.Error())
+		return fmt.Sprintf("%s %s\n%s", base, r.Message.Error(), r.ResponseBody)
 	}
 	return fmt.Sprintf("%s %s", base, r.ResponseBody)
 }

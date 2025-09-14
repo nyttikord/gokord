@@ -13,7 +13,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 )
 
-func unmarshal(data []byte, v interface{}) error {
+func unmarshal(data []byte, v any) error {
 	err := json.Unmarshal(data, v)
 	if err != nil {
 		return errors.Join(ErrJSONUnmarshal, err)
@@ -22,15 +22,15 @@ func unmarshal(data []byte, v interface{}) error {
 	return nil
 }
 
-func (s *Session) Unmarshal(bytes []byte, i interface{}) error {
+func (s *Session) Unmarshal(bytes []byte, i any) error {
 	return unmarshal(bytes, i)
 }
 
-func (s *Session) Request(method, urlStr string, data interface{}, options ...discord.RequestOption) ([]byte, error) {
+func (s *Session) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
 	return s.RequestWithBucketID(method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
 }
 
-func (s *Session) RequestWithBucketID(method, urlStr string, data interface{}, bucketID string, options ...discord.RequestOption) ([]byte, error) {
+func (s *Session) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
 	var body []byte
 	if data != nil {
 		var err error
@@ -116,12 +116,6 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		return nil, err
 	}
 
-	s.LogDebug("API RESPONSE  STATUS :: %s\n", resp.Status)
-	for k, v := range resp.Header {
-		s.LogDebug("API RESPONSE  HEADER :: [%s] = %+v\n", k, v)
-	}
-	s.LogDebug("API RESPONSE    BODY :: [%s]\n\n\n", response)
-
 	switch resp.StatusCode {
 	case http.StatusOK:
 	case http.StatusCreated:
@@ -164,5 +158,5 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		err = newRestError(req, resp, response)
 	}
 
-	return response, nil
+	return response, err 
 }

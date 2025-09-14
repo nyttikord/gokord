@@ -175,8 +175,7 @@ func (s *Session) Open() error {
 		// This is not fatal, but it does not follow their API documentation.
 		s.LogWarn("Expected READY/RESUMED, instead got:\n%#v\n", e)
 	}
-	s.LogDebug("First Packet:\n%#v\n", e)
-
+	
 	s.LogDebug("We are now connected to Discord, emitting connect event")
 	s.handleEvent(connectEventType, &Connect{})
 
@@ -570,7 +569,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 		return e, err
 	}
 
-	s.LogDebug("Op: %d, Seq: %d, Type: %s, Data: %s\n\n", e.Operation, e.Sequence, e.Type, string(e.RawData))
+	//s.LogDebug("Op: %d, Seq: %d, Type: %s, Data: %s\n\n", e.Operation, e.Sequence, e.Type, string(e.RawData))
 
 	// Ping request.
 	// Must respond with a heartbeat packet within 5 seconds

@@ -18,7 +18,7 @@ type EventHandler interface {
 	// Handle is called whenever an event of Type() happens.
 	// It is the receivers responsibility to type assert that the interface
 	// is the expected struct.
-	Handle(*Session, interface{})
+	Handle(*Session, any)
 }
 
 // EventInterfaceProvider is an interface for providing empty interfaces for
@@ -30,22 +30,22 @@ type EventInterfaceProvider interface {
 	// New returns a new instance of the struct this event handler handles.
 	// This is called once per event.
 	// The struct is provided to all handlers of the same Type.
-	New() interface{}
+	New() any
 }
 
-// interfaceEventType is the event handler type for interface{} events.
+// interfaceEventType is the event handler type for any events.
 const interfaceEventType = "__INTERFACE__"
 
-// interfaceEventHandler is an event handler for interface{} events.
-type interfaceEventHandler func(*Session, interface{})
+// interfaceEventHandler is an event handler for any events.
+type interfaceEventHandler func(*Session, any)
 
-// Type returns the event type for interface{} events.
+// Type returns the event type for any events.
 func (eh interfaceEventHandler) Type() string {
 	return interfaceEventType
 }
 
-// Handle is the handler for an interface{} event.
-func (eh interfaceEventHandler) Handle(s *Session, i interface{}) {
+// Handle is the handler for an any event.
+func (eh interfaceEventHandler) Handle(s *Session, i any) {
 	eh(s, i)
 }
 
@@ -61,7 +61,6 @@ func registerInterfaceProvider(eh EventInterfaceProvider) {
 		// fmt.Errorf("event %s already registered", eh.Type())
 	}
 	registeredInterfaceProviders[eh.Type()] = eh
-	return
 }
 
 // eventHandlerInstance is a wrapper around an event handler, as functions
@@ -129,7 +128,7 @@ func (s *Session) addEventHandlerOnce(eventHandler EventHandler) func() {
 //
 // The return value of this method is a function, that when called will remove the
 // event handler.
-func (s *Session) AddHandler(handler interface{}) func() {
+func (s *Session) AddHandler(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
@@ -143,7 +142,7 @@ func (s *Session) AddHandler(handler interface{}) func() {
 // AddHandlerOnce allows you to add an event handler that will be fired the next time
 // the Discord WSAPI event that matches the function fires.
 // See AddHandler for more details.
-func (s *Session) AddHandlerOnce(handler interface{}) func() {
+func (s *Session) AddHandlerOnce(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
@@ -175,7 +174,7 @@ func (s *Session) removeEventHandlerInstance(t string, ehi *eventHandlerInstance
 }
 
 // Handles calling permanent and once handlers for an event type.
-func (s *Session) handle(t string, i interface{}) {
+func (s *Session) handle(t string, i any) {
 	for _, eh := range s.handlers[t] {
 		if s.SyncEvents {
 			eh.eventHandler.Handle(s, i)
@@ -197,15 +196,15 @@ func (s *Session) handle(t string, i interface{}) {
 }
 
 // Handles an event type by calling internal methods, firing handlers and firing the
-// interface{} event.
-func (s *Session) handleEvent(t string, i interface{}) {
+// any event.
+func (s *Session) handleEvent(t string, i any) {
 	s.handlersMu.RLock()
 	defer s.handlersMu.RUnlock()
 
 	// All events are dispatched internally first.
 	s.onInterface(i)
 
-	// Then they are dispatched to anyone handling interface{} events.
+	// Then they are dispatched to anyone handling any events.
 	s.handle(interfaceEventType, i)
 
 	// Finally they are dispatched to any typed handlers.
@@ -229,7 +228,7 @@ func setGuildIds(g *guild.Guild) {
 }
 
 // onInterface handles all internal events and routes them to the appropriate internal handler.
-func (s *Session) onInterface(i interface{}) {
+func (s *Session) onInterface(i any) {
 	switch t := i.(type) {
 	case *Ready:
 		for _, g := range t.Guilds {
