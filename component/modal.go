@@ -9,8 +9,7 @@ import (
 
 // Modal is implemented by all modal components.
 type Modal interface {
-	json.Marshaler
-	Type() types.Component
+	Component
 	modal()
 }
 
@@ -82,6 +81,15 @@ func (s *SelectMenu) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (s *SelectMenu) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*s = *c.(*SelectMenu)
+	return nil
+}
+
 func (s *SelectMenu) message() {}
 
 func (s *SelectMenu) modal() {}
@@ -104,14 +112,23 @@ func (*TextInput) Type() types.Component {
 	return types.ComponentTextInput
 }
 
-func (m *TextInput) MarshalJSON() ([]byte, error) {
+func (t *TextInput) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		TextInput
 		Type types.Component `json:"type"`
 	}{
-		TextInput: *m,
-		Type:      m.Type(),
+		TextInput: *t,
+		Type:      t.Type(),
 	})
+}
+
+func (t *TextInput) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*t = *c.(*TextInput)
+	return nil
 }
 
 func (*TextInput) modal() {}
@@ -147,6 +164,15 @@ func (l *Label) MarshalJSON() ([]byte, error) {
 		Label: *l,
 		Type:  l.Type(),
 	})
+}
+
+func (l *Label) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*l = *c.(*Label)
+	return nil
 }
 
 func (*Label) modal() {}

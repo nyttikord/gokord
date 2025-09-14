@@ -9,8 +9,7 @@ import (
 
 // Message is implemented by all message components.
 type Message interface {
-	json.Marshaler
-	Type() types.Component
+	Component
 	message()
 }
 
@@ -32,6 +31,15 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 		ActionsRow: *r,
 		Type:       r.Type(),
 	})
+}
+
+func (r *ActionsRow) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*r = *c.(*ActionsRow)
+	return nil
 }
 
 func (r *ActionsRow) Type() types.Component {
@@ -87,6 +95,15 @@ func (b *Button) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (b *Button) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*b = *c.(*Button)
+	return nil
+}
+
 func (*Button) Type() types.Component {
 	return types.ComponentButton
 }
@@ -117,6 +134,15 @@ func (s *Section) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (s *Section) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*s = *c.(*Section)
+	return nil
+}
+
 func (*Section) message() {}
 
 // TextDisplay is a top-level Component that allows you to add markdown-formatted text to the Message.
@@ -136,6 +162,15 @@ func (t *TextDisplay) MarshalJSON() ([]byte, error) {
 		TextDisplay: *t,
 		Type:        t.Type(),
 	})
+}
+
+func (t *TextDisplay) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*t = *c.(*TextDisplay)
+	return nil
 }
 
 func (*TextDisplay) message() {}
@@ -163,6 +198,15 @@ func (t *Thumbnail) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (t *Thumbnail) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*t = *c.(*Thumbnail)
+	return nil
+}
+
 func (*Thumbnail) message() {}
 
 // MediaGallery is a top-level Component allows you to group images, videos or gifs into a gallery grid.
@@ -185,6 +229,15 @@ func (m *MediaGallery) MarshalJSON() ([]byte, error) {
 		MediaGallery: *m,
 		Type:         m.Type(),
 	})
+}
+
+func (m *MediaGallery) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*m = *c.(*MediaGallery)
+	return nil
 }
 
 func (*MediaGallery) message() {}
@@ -217,6 +270,15 @@ func (f *File) MarshalJSON() ([]byte, error) {
 		File: *f,
 		Type: f.Type(),
 	})
+}
+
+func (f *File) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*f = *c.(*File)
+	return nil
 }
 
 func (*File) message() {}
@@ -252,6 +314,15 @@ func (s *Separator) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (s *Separator) UnmarshalJSON(data []byte) error {
+	c, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*s = *c.(*Separator)
+	return nil
+}
+
 func (*Separator) message() {}
 
 // Container is a top-level layout Component.
@@ -277,6 +348,15 @@ func (c *Container) MarshalJSON() ([]byte, error) {
 		Container: *c,
 		Type:      c.Type(),
 	})
+}
+
+func (c *Container) UnmarshalJSON(data []byte) error {
+	cm, err := unmarshalComponent(data)
+	if err != nil {
+		return err
+	}
+	*c = *cm.(*Container)
+	return nil
 }
 
 func (*Container) message() {}
