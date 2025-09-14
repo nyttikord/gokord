@@ -38,8 +38,6 @@ type resumePacket struct {
 // Open creates a websocket connection to Discord.
 // See: https://discord.com/developers/docs/topics/gateway#connecting
 func (s *Session) Open() error {
-	s.LogDebug("called")
-
 	var err error
 
 	// Prevent Open or other major Session functions from
@@ -189,19 +187,18 @@ func (s *Session) Open() error {
 	// Create listening chan outside of listen, as it needs to happen inside the
 	// mutex lock and needs to exist before calling heartbeat and listen
 	// go rountines.
-	s.listening = make(chan interface{})
+	s.listening = make(chan any)
 
 	// Start sending heartbeats and reading messages from Discord.
 	go s.heartbeat(s.wsConn, s.listening, h.HeartbeatInterval)
 	go s.listen(s.wsConn, s.listening)
 
-	s.LogDebug("exiting")
 	return nil
 }
 
 // listen polls the websocket connection for events, it will stop when the
 // listening channel is closed, or an error occurs.
-func (s *Session) listen(wsConn *websocket.Conn, listening <-chan interface{}) {
+func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 	s.LogDebug("called")
 
 	for {
@@ -261,7 +258,7 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // heartbeat sends regular heartbeats to Discord so it knows the client
 // is still connected.  If you do not send these heartbeats Discord will
 // disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}, heartbeatIntervalMsec time.Duration) {
+func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartbeatIntervalMsec time.Duration) {
 	s.LogDebug("called")
 
 	if listening == nil || wsConn == nil {
@@ -501,7 +498,7 @@ func (s *Session) RequestGuildMembersBatchList(guildIDs []string, userIDs []stri
 }
 
 // GatewayWriteStruct allows for sending raw gateway structs over the gateway.
-func (s *Session) GatewayWriteStruct(data interface{}) (err error) {
+func (s *Session) GatewayWriteStruct(data any) (err error) {
 	s.RLock()
 	defer s.RUnlock()
 	if s.wsConn == nil {
@@ -823,8 +820,6 @@ type identifyOp struct {
 
 // identify sends the identify packet to the gateway
 func (s *Session) identify() error {
-	s.LogDebug("called")
-
 	// TODO: Below block should be refactored so ShardID and ShardCount
 	// can be deprecated and their usage moved to the Session.Identify
 	// struct
@@ -838,7 +833,6 @@ func (s *Session) identify() error {
 
 	// Send Identify packet to Discord
 	op := identifyOp{2, s.Identify}
-	s.LogDebug("Identify Packet: \n%#v", op)
 	s.wsMutex.Lock()
 	err := s.wsConn.WriteJSON(op)
 	s.wsMutex.Unlock()

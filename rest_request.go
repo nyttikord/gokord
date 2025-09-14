@@ -50,8 +50,8 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 }
 
 func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
-	s.LogDebug("API REQUEST %8s :: %s\n", method, urlStr)
-	s.LogDebug("API REQUEST  PAYLOAD :: [%s]\n", string(b))
+	s.LogDebug("%8s     :: %s", method, urlStr)
+	s.LogDebug("PAYLOAD :: %s", string(b))
 
 	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
 	if err != nil {
@@ -87,10 +87,6 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		opt(cfg)
 	}
 	req = cfg.Request
-
-	for k, v := range req.Header {
-		s.LogDebug("API REQUEST   HEADER :: [%s] = %+v\n", k, v)
-	}
 
 	resp, err := cfg.Client.Do(req)
 	if err != nil {
