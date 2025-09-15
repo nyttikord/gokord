@@ -8,7 +8,7 @@ import (
 	//"github.com/nyttikord/gokord/logger"
 )
 
-// Modal is implemented by all modal components.
+// Modal is implemented by every modal Component.
 type Modal interface {
 	Component
 	modal()
@@ -34,11 +34,12 @@ type SelectMenuDefaultValue struct {
 
 // SelectMenu represents select menu Component.
 type SelectMenu struct {
-	// Type of the SelectMenu.
+	// MenuType is the type of the SelectMenu (gokord combined every SelectMenu Component in one struct).
 	MenuType types.SelectMenu `json:"type,omitempty"`
 	// CustomID is a developer-defined identifier for the SelectMenu.
 	CustomID string `json:"custom_id,omitempty"`
-	// The text which will be shown in the menu if there's no default options or all options was deselected and Component was closed.
+	// Placeholder is the text shown in the menu if there's no default options or all options was deselected and
+	// Component was closed.
 	Placeholder string `json:"placeholder"`
 	// This value determines the minimal amount of selected items in the menu.
 	MinValues *int `json:"min_values,omitempty"`
@@ -53,7 +54,7 @@ type SelectMenu struct {
 	Options []SelectMenuOption `json:"options,omitempty"`
 	// The list of value(s) selected from the predefined options.
 	//
-	// NOTE: This will only exist if the Interaction was a ModalSubmit otherwise you should (still) be using
+	// NOTE: This will only exist if the interaction.Interaction is from a Modal otherwise you should (still) be using
 	// gokord.InteractionResponse.MessageComponentData()
 	Values   []string `json:"values,omitempty"`
 	Disabled bool     `json:"disabled"`
@@ -88,13 +89,16 @@ func (s *SelectMenu) modal() {}
 
 // TextInput represents text input Component.
 type TextInput struct {
-	CustomID    string         `json:"custom_id"`
-	Style       TextInputStyle `json:"style"`
-	Placeholder string         `json:"placeholder,omitempty"`
-	Value       string         `json:"value,omitempty"`
-	Required    bool           `json:"required"`
-	MinLength   int            `json:"min_length,omitempty"`
-	MaxLength   int            `json:"max_length,omitempty"`
+	// CustomID is a developer-defined identifier for the TextInput.
+	CustomID string         `json:"custom_id"`
+	Style    TextInputStyle `json:"style"`
+	// Placeholder is the text shown if there is no value in the TextInput.
+	Placeholder string `json:"placeholder,omitempty"`
+	// Value is the default value of the TextInput.
+	Value     string `json:"value,omitempty"`
+	Required  bool   `json:"required"`
+	MinLength int    `json:"min_length,omitempty"`
+	MaxLength int    `json:"max_length,omitempty"`
 
 	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
@@ -129,8 +133,11 @@ const (
 // It wraps modal components with text as a label and optional description.
 type Label struct {
 	// Unique identifier for the Component; autopopulated through increment if not provided.
-	ID          int    `json:"id,omitempty"`
-	Label       string `json:"label"`
+	ID int `json:"id,omitempty"`
+	// Label is the bold text shown above the Component in the modal.
+	Label string `json:"label"`
+	// Description is the text shown below the Label and above the Component in the modal.
+	// Not required.
 	Description string `json:"description,omitempty"`
 	Component   Modal  `json:"component"`
 }
@@ -153,7 +160,7 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 	type t Label
 	var v struct {
 		t
-		RawComponent Unmarshalable `json:"component"`
+		RawComponent Unmarshaler `json:"component"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {

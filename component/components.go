@@ -1,3 +1,4 @@
+// Package component contains everything related to Component including Modal component and Message component.
 package component
 
 import (
@@ -13,17 +14,21 @@ var (
 )
 
 // Component represents every component.
+//
+// NOTE to gokord contributors: when you are implementing a new component, don't forget to create a custom UnmarshalJSON
+// if you are using an interface as a value type.
 type Component interface {
 	json.Marshaler
 	Type() types.Component
 }
 
-type Unmarshalable struct {
+// Unmarshaler is used to convert raw json bytes into a valid Component
+type Unmarshaler struct {
 	Component
 }
 
-// UnmarshalJSON converts json bytes to a valid Component
-func (un *Unmarshalable) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON converts json bytes into a valid Component
+func (un *Unmarshaler) UnmarshalJSON(data []byte) error {
 	var err error
 	un.Component, err = unmarshalComponent(data)
 	return err

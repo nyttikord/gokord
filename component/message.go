@@ -7,7 +7,7 @@ import (
 	"github.com/nyttikord/gokord/emoji"
 )
 
-// Message is implemented by all message components.
+// Message is implemented by every message Component.
 type Message interface {
 	Component
 	message()
@@ -15,7 +15,7 @@ type Message interface {
 
 // ActionsRow is a top-level container Component for displaying a row of interactive components.
 type ActionsRow struct {
-	// Can contain Button, SelectMenu and TextInput.
+	// Components holds Message component to display
 	//
 	// NOTE: maximum of 5.
 	Components []Message `json:"components"`
@@ -37,7 +37,7 @@ func (r *ActionsRow) UnmarshalJSON(data []byte) error {
 	type t ActionsRow
 	var v struct {
 		t
-		RawComponents []Unmarshalable `json:"component"`
+		RawComponents []Unmarshaler `json:"component"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -114,9 +114,11 @@ func (b *Button) message() {}
 type Section struct {
 	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
-	// Array of text display components; max of 3.
+	// Array of text display components.
+	//
+	// NOTE: maximum of 3.
 	Components []Message `json:"components"`
-	// Can be Button or Thumbnail
+	// Can be Button or Thumbnail.
 	Accessory Message `json:"accessory"`
 }
 
@@ -138,8 +140,8 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 	type t Section
 	var v struct {
 		t
-		RawComponents []Unmarshalable `json:"component"`
-		RawAccessory  Unmarshalable   `json:"accessory"`
+		RawComponents []Unmarshaler `json:"components"`
+		RawAccessory  Unmarshaler   `json:"accessory"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
@@ -206,7 +208,9 @@ func (*Thumbnail) message() {}
 type MediaGallery struct {
 	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
-	// Array of media gallery items; max of 10.
+	// Array of media gallery items.
+	//
+	// NOTE: maximum of 10.
 	Items []MediaGalleryItem `json:"items"`
 }
 
@@ -320,7 +324,7 @@ func (c *Container) UnmarshalJSON(data []byte) error {
 	type t Container
 	var v struct {
 		t
-		RawComponents []Unmarshalable `json:"component"`
+		RawComponents []Unmarshaler `json:"component"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {

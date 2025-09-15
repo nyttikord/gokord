@@ -14,7 +14,6 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
 )
@@ -106,7 +105,6 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		}
 		i.Data = v
 	case types.InteractionModalSubmit:
-		logger.Log(logger.LevelInfo, 0, "modal submit")
 		v := ModalSubmitData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
@@ -119,7 +117,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 
 // MessageComponentData is helper function to assert the inner Data to MessageComponentData.
 // Make sure to check that the Type of the interaction is types.InteractionMessageComponent before calling.
-func (i *Interaction) MessageComponentData() (data MessageComponentData) {
+func (i *Interaction) MessageComponentData() MessageComponentData {
 	if i.Type != types.InteractionMessageComponent {
 		panic("MessageComponentData called on interaction of type " + i.Type.String())
 	}
@@ -128,7 +126,7 @@ func (i *Interaction) MessageComponentData() (data MessageComponentData) {
 
 // CommandData is helper function to assert the inner Data to CommandInteractionData.
 // Make sure to check that the Type of the interaction is types.InteractionApplicationCommand before calling.
-func (i *Interaction) CommandData() (data CommandInteractionData) {
+func (i *Interaction) CommandData() CommandInteractionData {
 	if i.Type != types.InteractionApplicationCommand && i.Type != types.InteractionApplicationCommandAutocomplete {
 		panic("CommandData called on interaction of type " + i.Type.String())
 	}
@@ -137,7 +135,7 @@ func (i *Interaction) CommandData() (data CommandInteractionData) {
 
 // ModalSubmitData is helper function to assert the inner Data to ModalSubmitData.
 // Make sure to check that the Type of the interaction is types.InteractionModalSubmit before calling.
-func (i *Interaction) ModalSubmitData() (data ModalSubmitData) {
+func (i *Interaction) ModalSubmitData() ModalSubmitData {
 	if i.Type != types.InteractionModalSubmit {
 		panic("ModalSubmitData called on interaction of type " + i.Type.String())
 	}
@@ -185,23 +183,20 @@ func (ModalSubmitData) Type() types.Interaction {
 }
 
 func (d *ModalSubmitData) UnmarshalJSON(data []byte) error {
-	println("before")
 	type t ModalSubmitData
 	var v struct {
 		t
-		RawComponents []component.Unmarshalable `json:"components"`
+		RawComponents []component.Unmarshaler `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	println("after first unmarshalling")
 	*d = ModalSubmitData(v.t)
 	d.Components = make([]component.Modal, len(v.RawComponents))
 	for i, r := range v.RawComponents {
 		d.Components[i] = r.Component.(component.Modal)
 	}
-	println("finished")
 	return nil
 }
 
