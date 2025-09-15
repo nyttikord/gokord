@@ -22,7 +22,7 @@ type Unmarshalable struct {
 	Component
 }
 
-// UnmarshalJSON converts json bytes to a valid Component 
+// UnmarshalJSON converts json bytes to a valid Component
 func (un *Unmarshalable) UnmarshalJSON(data []byte) error {
 	var err error
 	un.Component, err = unmarshalComponent(data)
@@ -33,12 +33,10 @@ func unmarshalComponent(data []byte) (Component, error) {
 	var v struct {
 		Type types.Component `json:"type"`
 	}
-	println("in before")
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return nil, err
 	}
-	println("in after")
 
 	var c Component
 	switch v.Type {
@@ -68,9 +66,7 @@ func unmarshalComponent(data []byte) (Component, error) {
 	case types.ComponentLabel:
 		c = &Label{}
 	default:
-		return nil, fmt.Errorf("c.nown component type: %d", v.Type)
+		return nil, fmt.Errorf("unknown component type: %d", v.Type)
 	}
-	println("in last marshal")
 	return c, json.Unmarshal(data, c)
 }
-

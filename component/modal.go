@@ -150,20 +150,17 @@ func (l *Label) MarshalJSON() ([]byte, error) {
 }
 
 func (l *Label) UnmarshalJSON(data []byte) error {
-	println("label before")
-	type t Label 
+	type t Label
 	var v struct {
-		t 
+		t
 		RawComponent Unmarshalable `json:"component"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	println("label after first unmarshalling")
 	*l = Label(v.t)
 	l.Component = v.RawComponent.Component.(Modal)
-	println("label finished")
 	return nil
 }
 

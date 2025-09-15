@@ -154,5 +154,5 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		err = newRestError(req, resp, response)
 	}
 
-	return response, err 
+	return response, err
 }

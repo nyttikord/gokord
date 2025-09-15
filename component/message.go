@@ -34,11 +34,20 @@ func (r *ActionsRow) MarshalJSON() ([]byte, error) {
 }
 
 func (r *ActionsRow) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
+	type t ActionsRow
+	var v struct {
+		t
+		RawComponents []Unmarshalable `json:"component"`
+	}
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	*r = *c.(*ActionsRow)
+	*r = ActionsRow(v.t)
+	r.Components = make([]Message, len(v.RawComponents))
+	for i, vr := range v.RawComponents {
+		r.Components[i] = vr.Component.(Message)
+	}
 	return nil
 }
 
@@ -126,11 +135,22 @@ func (s *Section) MarshalJSON() ([]byte, error) {
 }
 
 func (s *Section) UnmarshalJSON(data []byte) error {
-	c, err := unmarshalComponent(data)
+	type t Section
+	var v struct {
+		t
+		RawComponents []Unmarshalable `json:"component"`
+		RawAccessory  Unmarshalable   `json:"accessory"`
+	}
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	*s = *c.(*Section)
+	*s = Section(v.t)
+	s.Components = make([]Message, len(v.RawComponents))
+	for i, vr := range v.RawComponents {
+		s.Components[i] = vr.Component.(Message)
+	}
+	s.Accessory = v.RawAccessory.Component.(Message)
 	return nil
 }
 
@@ -297,11 +317,20 @@ func (c *Container) MarshalJSON() ([]byte, error) {
 }
 
 func (c *Container) UnmarshalJSON(data []byte) error {
-	cm, err := unmarshalComponent(data)
+	type t Container
+	var v struct {
+		t
+		RawComponents []Unmarshalable `json:"component"`
+	}
+	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
 	}
-	*c = *cm.(*Container)
+	*c = Container(v.t)
+	c.Components = make([]Message, len(v.RawComponents))
+	for i, vr := range v.RawComponents {
+		c.Components[i] = vr.Component.(Message)
+	}
 	return nil
 }
 

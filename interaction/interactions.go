@@ -188,7 +188,7 @@ func (d *ModalSubmitData) UnmarshalJSON(data []byte) error {
 	println("before")
 	type t ModalSubmitData
 	var v struct {
-		t 
+		t
 		RawComponents []component.Unmarshalable `json:"components"`
 	}
 	err := json.Unmarshal(data, &v)
