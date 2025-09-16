@@ -83,3 +83,12 @@ func WithContext(ctx context.Context) RequestOption {
 		cfg.Request = cfg.Request.WithContext(ctx)
 	}
 }
+
+// WithComponents allows to use Components v2 in Webhooks
+func WithComponents() RequestOption {
+	return func(cfg *RequestConfig) {
+		query := cfg.Request.URL.Query()
+		query.Add("with_components", "true")
+		cfg.Request.URL.RawQuery = query.Encode()
+	}
+}
