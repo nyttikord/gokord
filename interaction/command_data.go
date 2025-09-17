@@ -51,15 +51,13 @@ type CommandInteractionData struct {
 }
 
 // GetOption finds and returns an CommandOption by its name.
-func (d CommandInteractionData) GetOption(name string) (option *CommandInteractionDataOption) {
+func (d CommandInteractionData) GetOption(name string) *CommandInteractionDataOption {
 	for _, opt := range d.Options {
 		if opt.Name == name {
-			option = opt
-			break
+			return opt
 		}
 	}
-
-	return
+	return nil
 }
 
 // CommandInteractionDataResolved contains resolved data of Command execution.
@@ -83,27 +81,25 @@ func (CommandInteractionData) Type() types.Interaction {
 type CommandInteractionDataOption struct {
 	Name string              `json:"name"`
 	Type types.CommandOption `json:"type"`
-	// Note: Contains the value specified by Type.
+	// NOTE: Contains the value specified by Type.
 	Value   interface{}                     `json:"value,omitempty"`
 	Options []*CommandInteractionDataOption `json:"options,omitempty"`
 
-	// Note: autocomplete Interaction only.
+	// NOTE: autocomplete Interaction only.
 	Focused bool `json:"focused,omitempty"`
 }
 
 // GetOption finds and returns an CommandOption by its name.
-func (o CommandInteractionDataOption) GetOption(name string) (option *CommandInteractionDataOption) {
+func (o CommandInteractionDataOption) GetOption(name string) *CommandInteractionDataOption {
 	for _, opt := range o.Options {
 		if opt.Name == name {
-			option = opt
-			break
+			return opt
 		}
 	}
-
-	return
+	return nil
 }
 
-// IntValue is a utility function for casting CommandOption value to integer
+// IntValue is a utility function for casting CommandOption value to integer.
 func (o CommandInteractionDataOption) IntValue() int64 {
 	if o.Type != types.CommandOptionInteger {
 		panic("IntValue called on data option of type " + o.Type.String())
@@ -111,7 +107,7 @@ func (o CommandInteractionDataOption) IntValue() int64 {
 	return int64(o.Value.(float64))
 }
 
-// UintValue is a utility function for casting CommandOption value to unsigned integer
+// UintValue is a utility function for casting CommandOption value to unsigned integer.
 func (o CommandInteractionDataOption) UintValue() uint64 {
 	if o.Type != types.CommandOptionInteger {
 		panic("UintValue called on data option of type " + o.Type.String())
@@ -119,7 +115,7 @@ func (o CommandInteractionDataOption) UintValue() uint64 {
 	return uint64(o.Value.(float64))
 }
 
-// FloatValue is a utility function for casting CommandOption value to float
+// FloatValue is a utility function for casting CommandOption value to float.
 func (o CommandInteractionDataOption) FloatValue() float64 {
 	if o.Type != types.CommandOptionNumber {
 		panic("FloatValue called on data option of type " + o.Type.String())
@@ -127,7 +123,7 @@ func (o CommandInteractionDataOption) FloatValue() float64 {
 	return o.Value.(float64)
 }
 
-// StringValue is a utility function for casting CommandOption value to string
+// StringValue is a utility function for casting CommandOption value to string.
 func (o CommandInteractionDataOption) StringValue() string {
 	if o.Type != types.CommandOptionString {
 		panic("StringValue called on data option of type " + o.Type.String())
@@ -135,7 +131,7 @@ func (o CommandInteractionDataOption) StringValue() string {
 	return o.Value.(string)
 }
 
-// BoolValue is a utility function for casting CommandOption value to bool
+// BoolValue is a utility function for casting CommandOption value to bool.
 func (o CommandInteractionDataOption) BoolValue() bool {
 	if o.Type != types.CommandOptionBoolean {
 		panic("BoolValue called on data option of type " + o.Type.String())

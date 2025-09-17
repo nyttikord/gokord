@@ -65,7 +65,7 @@ func (s Requester) ResponseDelete(interaction *interaction.Interaction, options 
 // FollowupMessageCreate creates the followup message for an interaction.Interaction.
 //
 // wait if the function waits for server confirmation of message send and ensures that the return struct is populated
-// (it is nil otherwise)
+// (it is nil otherwise).
 func (s Requester) FollowupMessageCreate(interaction *interaction.Interaction, wait bool, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
 	return s.ChannelAPI().WebhookExecute(interaction.AppID, interaction.Token, wait, data, options...)
 }

@@ -140,7 +140,7 @@ func (s Requester) CommandPermissions(appID, guildID, cmdID string, options ...d
 //
 // guildID is the guild.Guild containing the interaction.Command. (I don't know if this is required.)
 //
-// Note: Requires OAuth2 token with applications.commands.permissions.update scope.
+// NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
 func (s Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *interaction.CommandPermissionsList, options ...discord.RequestOption) error {
 	_, err := s.Request(
 		http.MethodPut,

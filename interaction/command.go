@@ -7,7 +7,7 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 )
 
-// Command represents an application's slash command.
+// Command represents an application.Application's slash command.
 type Command struct {
 	ID                string                     `json:"id,omitempty"`
 	ApplicationID     string                     `json:"application_id,omitempty"`
@@ -17,21 +17,19 @@ type Command struct {
 	Name              string                     `json:"name"`
 	NameLocalizations *map[discord.Locale]string `json:"name_localizations,omitempty"`
 
-	// Note: DefaultPermission will be soon deprecated. Use DefaultMemberPermissions and Contexts instead.
-	DefaultPermission        *bool  `json:"default_permission,omitempty"`
 	DefaultMemberPermissions *int64 `json:"default_member_permissions,string,omitempty"`
 	NSFW                     *bool  `json:"nsfw,omitempty"`
 
 	Contexts         *[]types.InteractionContext `json:"contexts,omitempty"`
 	IntegrationTypes *[]types.IntegrationInstall `json:"integration_types,omitempty"`
 
-	// Note: Chat commands only.
+	// NOTE: Chat commands only.
 	// Otherwise, it mustn't be set.
 	Description string `json:"description,omitempty"`
-	// Note: Chat commands only.
+	// NOTE: Chat commands only.
 	// Otherwise, it mustn't be set.
 	DescriptionLocalizations *map[discord.Locale]string `json:"description_localizations,omitempty"`
-	// Note: Chat commands only.
+	// NOTE: Chat commands only.
 	// Otherwise, it mustn't be set.
 	Options []*CommandOption `json:"options"`
 }
@@ -43,7 +41,7 @@ type CommandOption struct {
 	NameLocalizations        map[discord.Locale]string `json:"name_localizations,omitempty"`
 	Description              string                    `json:"description,omitempty"`
 	DescriptionLocalizations map[discord.Locale]string `json:"description_localizations,omitempty"`
-	// Note: This feature was on the API, but at some point developers decided to remove it.
+	// NOTE: This feature was on the API, but at some point developers decided to remove it.
 	// So I commented it, until it will be officially on the docs.
 	// Default     bool                              `json:"default"`
 
@@ -51,9 +49,9 @@ type CommandOption struct {
 	Required     bool             `json:"required"`
 	Options      []*CommandOption `json:"options"`
 
-	// Note: mutually exclusive with Choices.
+	// NOTE: mutually exclusive with Choices.
 	Autocomplete bool `json:"autocomplete"`
-	// Note: mutually exclusive with Autocomplete.
+	// NOTE: mutually exclusive with Autocomplete.
 	Choices []*CommandOptionChoice `json:"choices"`
 	// Minimal value of types.CommandOptionInteger/types.CommandOptionNumber.
 	MinValue *float64 `json:"min_value,omitempty"`

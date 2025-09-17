@@ -18,7 +18,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// Deadline is the time allowed to respond to an interaction.
+// Deadline is the time allowed to respond to an Interaction.
 const Deadline = time.Second * 3
 
 // Interaction represents data of an interaction.
@@ -32,22 +32,22 @@ type Interaction struct {
 
 	// The Message on which Interaction was used.
 	//
-	// Note: this field is only filled when a component.Button click triggered the interaction.
+	// NOTE: this field is only filled when a component.Button click triggered the Interaction.
 	// Otherwise, it will be nil.
 	Message *channel.Message `json:"message"`
 
-	// Bitwise set of permissions the app or bot has within the channel.Channel the Interaction was sent from
+	// Bitwise set of permissions the app or bot has within the channel.Channel the Interaction was sent from.
 	AppPermissions int64 `json:"app_permissions,string"`
 
 	// The Member who invoked this Interaction.
 	//
-	// Note: this field is only filled when the slash Command was invoked in a guild.Guild;
+	// NOTE: this field is only filled when the slash Command was invoked in a guild.Guild;
 	// if it was invoked in a DM, the User field will be filled instead.
 	// Make sure to check for nil before using this field.
 	Member *user.Member `json:"member"`
 	// The user.User who invoked this Interaction.
 	//
-	// Note: this field is only filled when the slash Command was invoked in a DM;
+	// NOTE: this field is only filled when the slash Command was invoked in a DM;
 	// if it was invoked in a guild.Guild, the Member field will be filled instead.
 	// Make sure to check for nil before using this field.
 	User *user.User `json:"user"`
@@ -68,7 +68,7 @@ type Interaction struct {
 
 	// Any entitlements for the invoking user.User, representing access to premium SKUs.
 	//
-	// Note: this field is only filled in monetized apps
+	// NOTE: this field is only filled in monetized apps.
 	Entitlements []*premium.Entitlement `json:"entitlements"`
 }
 
@@ -178,7 +178,7 @@ type ModalSubmitData struct {
 }
 
 // Type returns the type of interaction data.
-func (ModalSubmitData) Type() types.Interaction {
+func (*ModalSubmitData) Type() types.Interaction {
 	return types.InteractionModalSubmit
 }
 
@@ -217,15 +217,15 @@ type ResponseData struct {
 	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
 	Poll            *channel.Poll                   `json:"poll,omitempty"`
 
-	// Note: only channel.MessageFlagsSuppressEmbeds and channel.MessageFlagsEphemeral can be set.
+	// NOTE: only channel.MessageFlagsSuppressEmbeds and channel.MessageFlagsEphemeral can be set.
 	Flags channel.MessageFlags `json:"flags,omitempty"`
 
-	// Note: autocomplete Interaction only.
+	// NOTE: autocomplete Interaction only.
 	Choices []*CommandOptionChoice `json:"choices,omitempty"`
 
-	// Note: modal Interaction only.
+	// NOTE: modal Interaction only.
 	CustomID string `json:"custom_id,omitempty"`
-	// Note: modal Interaction only.
+	// NOTE: modal Interaction only.
 	Title string `json:"title,omitempty"`
 }
 
