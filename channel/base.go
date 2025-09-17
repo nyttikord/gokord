@@ -156,7 +156,9 @@ func (c *Channel) Mention() string {
 
 // IsThread is a helper function to determine if Channel is a thread or not
 func (c *Channel) IsThread() bool {
-	return c.Type == types.ChannelGuildPublicThread || c.Type == types.ChannelGuildPrivateThread || c.Type == types.ChannelGuildNewsThread
+	return c.Type == types.ChannelGuildPublicThread ||
+		c.Type == types.ChannelGuildPrivateThread ||
+		c.Type == types.ChannelGuildNewsThread
 }
 
 // Edit holds Channel field data for a channel edit.
@@ -202,11 +204,12 @@ type Follow struct {
 }
 
 // ForumDefaultReaction specifies emoji to use as the default reaction to a forum post.
+//
 // NOTE: Exactly one of EmojiID and EmojiName must be set.
 type ForumDefaultReaction struct {
 	// The id of a guild's custom emoji.
 	EmojiID string `json:"emoji_id,omitempty"`
-	// The unicode character of the emoji.
+	// The Unicode character of the emoji.
 	EmojiName string `json:"emoji_name,omitempty"`
 }
 

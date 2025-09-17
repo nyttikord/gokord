@@ -21,7 +21,7 @@ type Webhook struct {
 	ApplicationID string `json:"application_id,omitempty"`
 }
 
-// WebhookParams is a struct for webhook params, used in the WebhookExecute command.
+// WebhookParams is a struct for webhook params, used in the channelapi.Requester WebhookExecute.
 type WebhookParams struct {
 	Content         string                  `json:"content,omitempty"`
 	Username        string                  `json:"username,omitempty"`

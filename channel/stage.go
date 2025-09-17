@@ -14,10 +14,6 @@ type StageInstance struct {
 	// The privacy level of the Stage instance.
 	// https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level"`
-	// Whether Stage Discovery is disabled.
-	//
-	// Deprecated: Not used anymore.
-	DiscoverableDisabled bool `json:"discoverable_disabled"`
 	// The id of the guild.ScheduledEvent for this Stage instance.
 	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
 }
@@ -41,10 +37,8 @@ type StageInstanceParams struct {
 type StageInstancePrivacyLevel int
 
 const (
-	// StageInstancePrivacyLevelPublic The Stage instance is visible publicly.
-	//
-	// Deprecated: Not possible anymore.
-	StageInstancePrivacyLevelPublic StageInstancePrivacyLevel = 1
+	// NOTE: the Level "1" is not used anymore, so it was deleted.
+
 	// StageInstancePrivacyLevelGuildOnly The Stage instance is visible to only guild members.
 	StageInstancePrivacyLevelGuildOnly StageInstancePrivacyLevel = 2
 )

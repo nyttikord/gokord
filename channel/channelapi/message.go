@@ -217,7 +217,7 @@ func (s Requester) MessageEditEmbed(channelID, messageID string, embed *channel.
 
 // MessageEditEmbeds edits an existing channel.Message, replacing it entirely with the multiple channel.MessageEmbed.
 func (s Requester) MessageEditEmbeds(channelID, messageID string, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds), options...)
+	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds...), options...)
 }
 
 // MessageDelete deletes a channel.Message from the given channel.Channel.
@@ -259,7 +259,7 @@ func (s Requester) MessagesBulkDelete(channelID string, messages []string, optio
 	return err
 }
 
-// MessagePin pins a channel.Message within a given channel.Channel.
+// MessagePin pins a channel.Message within the given channel.Channel.
 func (s Requester) MessagePin(channelID, messageID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodPut,
@@ -271,7 +271,7 @@ func (s Requester) MessagePin(channelID, messageID string, options ...discord.Re
 	return err
 }
 
-// MessageUnpin unpins a channel.Message within a given channel.Channel.
+// MessageUnpin unpins a channel.Message within the given channel.Channel.
 func (s Requester) MessageUnpin(channelID, messageID string, options ...discord.RequestOption) (err error) {
 	_, err = s.RequestWithBucketID(
 		http.MethodDelete,
@@ -283,7 +283,7 @@ func (s Requester) MessageUnpin(channelID, messageID string, options ...discord.
 	return
 }
 
-// MessagesPinned returns all pinned channel.Message within a given channel.Channel.
+// MessagesPinned returns all pinned channel.Message within the given channel.Channel.
 func (s Requester) MessagesPinned(channelID string, options ...discord.RequestOption) ([]*channel.Message, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointChannelMessagesPins(channelID), nil, options...)
 	if err != nil {

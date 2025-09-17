@@ -76,7 +76,7 @@ func (s Requester) Invites(channelID string, options ...discord.RequestOption) (
 
 // InviteCreate creates a new invite.Invite for the given channel.Channel.
 //
-// Note: invite.Invite must have MaxAge, MaxUses and Temporary.
+// NOTE: invite.Invite must have MaxAge, MaxUses and Temporary.
 func (s Requester) InviteCreate(channelID string, i invite.Invite, options ...discord.RequestOption) (*invite.Invite, error) {
 	data := struct {
 		MaxAge    int  `json:"max_age"`
@@ -96,7 +96,7 @@ func (s Requester) InviteCreate(channelID string, i invite.Invite, options ...di
 
 // PermissionSet creates a channel.PermissionOverwrite for the given channel.Channel.
 //
-// Note: This func name may be changed.
+// NOTE: This func name may be changed.
 // Using Set instead of Create because you can both create a new override or update an override with this function.
 func (s Requester) PermissionSet(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64, options ...discord.RequestOption) error {
 	data := struct {
@@ -118,7 +118,7 @@ func (s Requester) PermissionSet(channelID, targetID string, targetType types.Pe
 
 // PermissionDelete deletes a specific channel.PermissionOverwrite for the given channel.Channel.
 //
-// Note: Name of this func may change.
+// NOTE: Name of this func may change.
 func (s Requester) PermissionDelete(channelID, targetID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
 		http.MethodDelete,
@@ -150,7 +150,7 @@ func (s Requester) NewsFollow(channelID, targetID string, options ...discord.Req
 	return &f, json.Unmarshal(body, &f)
 }
 
-// StageInstanceCreate creates and returns a new Stage instance associated to a types.ChannelGuildStageVoice channel.Channel.
+// StageInstanceCreate creates and returns a new Stage instance associated to a types.ChannelGuildStageVoice.
 func (s Requester) StageInstanceCreate(data *channel.StageInstanceParams, options ...discord.RequestOption) (*channel.StageInstance, error) {
 	body, err := s.Request(http.MethodPost, discord.EndpointStageInstances, data, options...)
 	if err != nil {
@@ -161,7 +161,7 @@ func (s Requester) StageInstanceCreate(data *channel.StageInstanceParams, option
 	return &si, s.Unmarshal(body, &si)
 }
 
-// StageInstance will retrieve a Stage instance by the ID of the types.ChannelGuildStageVoice channel.Channel.
+// StageInstance will retrieve a Stage instance by the ID of the types.ChannelGuildStageVoice.
 func (s Requester) StageInstance(channelID string, options ...discord.RequestOption) (*channel.StageInstance, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointStageInstance(channelID), nil, options...)
 	if err != nil {
@@ -172,7 +172,7 @@ func (s Requester) StageInstance(channelID string, options ...discord.RequestOpt
 	return &si, s.Unmarshal(body, &si)
 }
 
-// StageInstanceEdit edits a Stage instance by ID the types.ChannelGuildStageVoice channel.Channel.
+// StageInstanceEdit edits a Stage instance by ID the types.ChannelGuildStageVoice.
 func (s Requester) StageInstanceEdit(channelID string, data *channel.StageInstanceParams, options ...discord.RequestOption) (*channel.StageInstance, error) {
 	body, err := s.Request(http.MethodPatch, discord.EndpointStageInstance(channelID), data, options...)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s Requester) StageInstanceEdit(channelID string, data *channel.StageInstan
 	return &si, s.Unmarshal(body, &si)
 }
 
-// StageInstanceDelete deletes a Stage instance by ID of the types.ChannelGuildStageVoice channel.Channel.
+// StageInstanceDelete deletes a Stage instance by ID of the types.ChannelGuildStageVoice.
 func (s Requester) StageInstanceDelete(channelID string, options ...discord.RequestOption) error {
 	_, err := s.Request(http.MethodDelete, discord.EndpointStageInstance(channelID), nil, options...)
 	return err

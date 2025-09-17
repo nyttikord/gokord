@@ -54,7 +54,7 @@ func (s Requester) ThreadStart(channelID, name string, typ types.Channel, archiv
 	}, options...)
 }
 
-// ForumThreadStartComplex starts a new thread (creates a post) in a types.ChannelGuildForum channel.Channel.
+// ForumThreadStartComplex starts a new thread (creates a post) in a types.ChannelGuildForum.
 func (s Requester) ForumThreadStartComplex(channelID string, threadData *channel.ThreadStart, messageData *channel.MessageSend, options ...discord.RequestOption) (*channel.Channel, error) {
 	endpoint := discord.EndpointChannelThreads(channelID)
 
@@ -91,7 +91,7 @@ func (s Requester) ForumThreadStartComplex(channelID string, threadData *channel
 	return &c, s.Unmarshal(response, &c)
 }
 
-// ForumThreadStart starts a new thread (post) in a types.ChannelGuildForum channel.Channel.
+// ForumThreadStart starts a new thread (post) in a types.ChannelGuildForum.
 //
 // archiveDuration is the auto archive duration in minutes.
 func (s Requester) ForumThreadStart(channelID, name string, archiveDuration int, content string, options ...discord.RequestOption) (th *channel.Channel, err error) {
@@ -101,7 +101,7 @@ func (s Requester) ForumThreadStart(channelID, name string, archiveDuration int,
 	}, &channel.MessageSend{Content: content}, options...)
 }
 
-// ForumThreadStartEmbed starts a new thread (post) in a types.ChannelGuildForum channel.Channel.
+// ForumThreadStartEmbed starts a new thread (post) in a types.ChannelGuildForum.
 //
 // archiveDuration is the auto archive duration in minutes.
 func (s Requester) ForumThreadStartEmbed(channelID, name string, archiveDuration int, embed *channel.MessageEmbed, options ...discord.RequestOption) (*channel.Channel, error) {
@@ -111,7 +111,7 @@ func (s Requester) ForumThreadStartEmbed(channelID, name string, archiveDuration
 	}, &channel.MessageSend{Embeds: []*channel.MessageEmbed{embed}}, options...)
 }
 
-// ForumThreadStartEmbeds starts a new thread (post) in a types.ChannelGuildForum channel.Channel.
+// ForumThreadStartEmbeds starts a new thread (post) in a types.ChannelGuildForum.
 //
 // archiveDuration is the auto archive duration in minutes.
 func (s Requester) ForumThreadStartEmbeds(channelID, name string, archiveDuration int, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Channel, error) {

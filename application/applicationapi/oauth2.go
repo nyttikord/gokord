@@ -113,7 +113,7 @@ func (s Requester) Assets(appID string, options ...discord.RequestOption) ([]*ap
 
 // BotCreate creates an application.Application Bot Account.
 //
-// Note: func name may change, if I can think up something better.
+// NOTE: func name may change, if I can think up something better.
 func (s Requester) BotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodPost,

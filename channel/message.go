@@ -79,7 +79,7 @@ type Message struct {
 	// Channels specifically mentioned in this Message.
 	//
 	// Not all channel mentions in a message will appear.
-	// Only textual channels that are visible to everyone in a lurkable guild.Guild will ever be included.
+	// Only textual channels that are visible to everyone in a lurkable guild.Guild will be included.
 	// Only crossposted messages (via Channel Following) currently include this at all.
 	MentionChannels []*Channel `json:"mention_channels"`
 
@@ -90,7 +90,9 @@ type Message struct {
 	Application *MessageApplication `json:"application"`
 
 	// MessageReference contains reference data sent with crossposted or reply messages.
-	// This does not contain the reference *to* this Message; this is for when *this* Message references another.
+	// This does not contain the reference *to* this Message;
+	// this is for when *this* Message references another.
+	//
 	// To generate a reference to this message, use Message.Reference.
 	MessageReference *MessageReference `json:"message_reference"`
 
@@ -108,18 +110,16 @@ type Message struct {
 	// NOTE: This field is only returned when referenced when MessageReference.Type is types.MessageReferenceForward.
 	MessageSnapshots []MessageSnapshot `json:"message_snapshots"`
 
-	// Interaction is sent when the Message is a response to an Interaction, without an existing Message.
+	// InteractionMetadata is sent when the Message is a response to an interaction.Interaction, without an existing
+	// Message.
 	// This means responses to Message component interactions do not include this property,
 	// instead including a MessageReference, as components exist on preexisting messages.
-	//
-	// Deprecated: use InteractionMetadata.
-	Interaction *MessageInteraction `json:"interaction"`
-
 	InteractionMetadata *MessageInteractionMetadata `json:"interaction_metadata"`
 
 	// The flags of the Message, which describe extra features of a Message.
-	// This is a combination of bit masks; the presence of a certain permission can
-	// be checked by performing a bitwise AND between this int and the flag.
+	//
+	// This is a combination of bit masks; the presence of a certain permission can be checked by performing a bitwise
+	// AND between this int and the flag.
 	Flags MessageFlags `json:"flags"`
 
 	// The thread that was started from this Message, includes thread member object.
@@ -132,7 +132,7 @@ type Message struct {
 	Poll *Poll `json:"poll"`
 }
 
-// GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns a Slice of the Emoji struct.
+// GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a message and returns them.
 func (m *Message) GetCustomEmojis() []*emoji.Emoji {
 	var toReturn []*emoji.Emoji
 	emojis := emoji.Regex.FindAllString(m.Content, -1)
@@ -150,7 +150,7 @@ func (m *Message) GetCustomEmojis() []*emoji.Emoji {
 	return toReturn
 }
 
-// MessageFlags is the flags of Message
+// MessageFlags is the flags of Message.
 // https://discord.com/developers/docs/resources/channel#message-object-message-flags
 type MessageFlags int
 
@@ -161,8 +161,6 @@ const (
 	MessageFlagsIsCrossPosted MessageFlags = 1 << 1
 	// MessageFlagsSuppressEmbeds do not include any embeds when serializing this message.
 	MessageFlagsSuppressEmbeds MessageFlags = 1 << 2
-	// TODO: deprecated, remove when compatibility is not needed
-	MessageFlagsSupressEmbeds MessageFlags = 1 << 2
 	// MessageFlagsSourceMessageDeleted the source message for this crosspost has been deleted (via Channel Following).
 	MessageFlagsSourceMessageDeleted MessageFlags = 1 << 3
 	// MessageFlagsUrgent this message came from the urgent message system.
@@ -341,18 +339,7 @@ var PatternChannels = regexp.MustCompile("<#[^>]*>")
 //	return
 //}
 
-// MessageInteraction contains information about the gokord.Interaction which generated the Message.
-type MessageInteraction struct {
-	ID   string            `json:"id"`
-	Type types.Interaction `json:"type"`
-	Name string            `json:"name"`
-	User *user.User        `json:"user"`
-
-	// Member is only present when the interaction is from a guild.Guild.
-	Member *user.Member `json:"member"`
-}
-
-// MessageInteractionMetadata contains metadata of gokord.Interaction, including relevant user.User info.
+// MessageInteractionMetadata contains metadata of interaction.Interaction, including relevant user.User info.
 type MessageInteractionMetadata struct {
 	// ID of the gokord.Interaction.
 	ID string `json:"id"`

@@ -8,7 +8,8 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
-// ThreadStart stores all parameters you can use with MessageThreadStartComplex or ThreadStartComplex
+// ThreadStart stores all parameters you can use with channelapi.Requester MessageThreadStartComplex or
+// ThreadStartComplex.
 type ThreadStart struct {
 	Name                string        `json:"name"`
 	AutoArchiveDuration int           `json:"auto_archive_duration,omitempty"`
@@ -49,19 +50,19 @@ type ThreadMember struct {
 	Flags int `json:"flags"`
 	// Additional information about the user.User.
 	//
-	// NOTE: only present if the withMember parameter is set to true when calling Session.ThreadMembers or
-	// Session.ThreadMember.
+	// NOTE: only present if the withMember parameter is set to true when calling gokord.Session ThreadMembers or
+	// ThreadMember.
 	Member *user.Member `json:"member,omitempty"`
 }
 
-// ThreadsList represents a list of threads alongisde with ThreadMember for the current user.User.
+// ThreadsList represents a list of threads alongside with ThreadMember for the current user.User.
 type ThreadsList struct {
 	Threads []*Channel      `json:"threads"`
 	Members []*ThreadMember `json:"members"`
 	HasMore bool            `json:"has_more"`
 }
 
-// AddedThreadMember holds information about the user.User who was added to the thread
+// AddedThreadMember holds information about the user.User who was added to the thread.
 type AddedThreadMember struct {
 	*ThreadMember
 	Member   *user.Member     `json:"member"`
