@@ -10,8 +10,9 @@ const (
 	MembershipStateAccepted MembershipState = 2
 )
 
-// A TeamMember struct stores values for a single Team Member, extending the normal User data - note that the user field
-// is partial.
+// A TeamMember struct stores values for a single Team Member, extending the normal User data.
+//
+// The User field is partial.
 type TeamMember struct {
 	User            *user.User      `json:"user"`
 	TeamID          string          `json:"team_id"`

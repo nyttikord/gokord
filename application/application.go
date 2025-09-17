@@ -1,3 +1,4 @@
+// Package application handles everything related with Discord's Application and Team.
 package application
 
 import (
