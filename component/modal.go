@@ -55,7 +55,7 @@ type SelectMenu struct {
 	// The list of value(s) selected from the predefined options.
 	//
 	// NOTE: This will only exist if the interaction.Interaction is from a Modal otherwise you should (still) be using
-	// gokord.InteractionResponse.MessageComponentData()
+	// interaction.Response MessageComponentData
 	Values   []string `json:"values,omitempty"`
 	Disabled bool     `json:"disabled"`
 

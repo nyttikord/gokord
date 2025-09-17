@@ -15,7 +15,7 @@ type Message interface {
 
 // ActionsRow is a top-level container Component for displaying a row of interactive components.
 type ActionsRow struct {
-	// Components holds Message component to display
+	// Components holds Message component to display.
 	//
 	// NOTE: maximum of 5.
 	Components []Message `json:"components"`
@@ -82,10 +82,12 @@ type Button struct {
 	Disabled bool             `json:"disabled"`
 	Emoji    *emoji.Component `json:"emoji,omitempty"`
 
-	// NOTE: Only button with ButtonStyleLink style can have link. Also, URL is mutually exclusive with CustomID.
+	// NOTE: Only button with ButtonStyleLink style can have link.
+	// Also, URL is mutually exclusive with CustomID.
 	URL      string `json:"url,omitempty"`
 	CustomID string `json:"custom_id,omitempty"`
-	// Identifier for a purchasable premium.SKU. Only available when using ButtonStylePremium.
+	// Identifier for a purchasable premium.SKU.
+	// Only available when using ButtonStylePremium.
 	SKUID string `json:"sku_id,omitempty"`
 	// Unique identifier for the Component; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`

@@ -22,56 +22,49 @@ type Component interface {
 	Type() types.Component
 }
 
-// Unmarshaler is used to convert raw json bytes into a valid Component
+// Unmarshaler is used to convert raw json bytes into a valid Component.
 type Unmarshaler struct {
 	Component
 }
 
-// UnmarshalJSON converts json bytes into a valid Component
+// UnmarshalJSON converts json bytes into a valid Component.
 func (un *Unmarshaler) UnmarshalJSON(data []byte) error {
-	var err error
-	un.Component, err = unmarshalComponent(data)
-	return err
-}
-
-func unmarshalComponent(data []byte) (Component, error) {
 	var v struct {
 		Type types.Component `json:"type"`
 	}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var c Component
 	switch v.Type {
 	case types.ComponentActionsRow:
-		c = &ActionsRow{}
+		un.Component = &ActionsRow{}
 	case types.ComponentButton:
-		c = &Button{}
+		un.Component = &Button{}
 	case types.ComponentSelectMenu, types.ComponentChannelSelectMenu, types.ComponentUserSelectMenu,
 		types.ComponentRoleSelectMenu, types.ComponentMentionableSelectMenu:
-		c = &SelectMenu{}
+		un.Component = &SelectMenu{}
 	case types.ComponentTextInput:
-		c = &TextInput{}
+		un.Component = &TextInput{}
 	case types.ComponentSection:
-		c = &Section{}
+		un.Component = &Section{}
 	case types.ComponentTextDisplay:
-		c = &TextDisplay{}
+		un.Component = &TextDisplay{}
 	case types.ComponentThumbnail:
-		c = &Thumbnail{}
+		un.Component = &Thumbnail{}
 	case types.ComponentMediaGallery:
-		c = &MediaGallery{}
+		un.Component = &MediaGallery{}
 	case types.ComponentFile:
-		c = &File{}
+		un.Component = &File{}
 	case types.ComponentSeparator:
-		c = &Separator{}
+		un.Component = &Separator{}
 	case types.ComponentContainer:
-		c = &Container{}
+		un.Component = &Container{}
 	case types.ComponentLabel:
-		c = &Label{}
+		un.Component = &Label{}
 	default:
-		return nil, fmt.Errorf("unknown component type: %d", v.Type)
+		return fmt.Errorf("unknown component type: %d", v.Type)
 	}
-	return c, json.Unmarshal(data, c)
+	return json.Unmarshal(data, un.Component)
 }
