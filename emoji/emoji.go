@@ -19,12 +19,12 @@ type Emoji struct {
 	Available     bool       `json:"available"`
 }
 
-// Regex is the regexp.Regexp used to find and identify emojis in messages
 var (
+	// Regex is the regexp.Regexp used to find and identify emojis in messages
 	Regex = regexp.MustCompile(`<(a|):[A-Za-z0-9_~]+:[0-9]{18,20}>`)
 )
 
-// MessageFormat returns a correctly formatted Emoji for use in channel.Message content and channel.MessageEmbed
+// MessageFormat returns a correctly formatted Emoji for use in channel.Message content and channel.MessageEmbed.
 func (e *Emoji) MessageFormat() string {
 	if e.ID != "" && e.Name != "" {
 		if e.Animated {
@@ -50,17 +50,20 @@ func (e *Emoji) APIName() string {
 
 // Params represents parameters needed to create or update an Emoji.
 type Params struct {
-	// Name of the emoji
+	// Name of the Emoji.
 	Name string `json:"name,omitempty"`
 	// A base64 encoded emoji image, has to be smaller than 256KB.
+	//
 	// NOTE: can be only set on creation.
 	Image string `json:"image,omitempty"`
-	// Roles for which this emoji will be available.
+	// Roles for which this Emoji will be available.
+	//
 	// NOTE: can not be used with application emoji endpoints.
 	Roles []string `json:"roles,omitempty"`
 }
 
-// Component represents button Emoji, if it does have one.
+// Component represents component.Button's Emoji, if it does have one.
+// Also used by channel.Poll.
 type Component struct {
 	Name     string `json:"name,omitempty"`
 	ID       string `json:"id,omitempty"`

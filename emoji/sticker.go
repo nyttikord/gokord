@@ -8,12 +8,12 @@ import (
 // StickerFormat is the file format of the Sticker.
 type StickerFormat int
 
-// Defines all known Sticker types.
+// Defines all known Sticker format.
 const (
-	StickerFormatTypePNG    StickerFormat = 1
-	StickerFormatTypeAPNG   StickerFormat = 2
-	StickerFormatTypeLottie StickerFormat = 3
-	StickerFormatTypeGIF    StickerFormat = 4
+	StickerFormatPNG    StickerFormat = 1
+	StickerFormatAPNG   StickerFormat = 2
+	StickerFormatLottie StickerFormat = 3
+	StickerFormatGIF    StickerFormat = 4
 )
 
 // Sticker represents a sticker object that can be sent in a channel.Message.
