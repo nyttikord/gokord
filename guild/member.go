@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// MemberParams stores data needed to update a user.Member
+// MemberParams stores data needed to update a user.Member.
 // https://discord.com/developers/docs/resources/guild#modify-guild-member
 type MemberParams struct {
 	// Value to set user.Member's nickname to.
@@ -63,7 +63,7 @@ func (p MemberParams) MarshalJSON() (res []byte, err error) {
 
 // MemberAddParams stores data needed to add a user.Member to a Guild.
 //
-// Note: All fields are optional, except AccessToken.
+// NOTE: All fields are optional, except AccessToken.
 type MemberAddParams struct {
 	// Valid access_token for the user.
 	AccessToken string `json:"access_token"`

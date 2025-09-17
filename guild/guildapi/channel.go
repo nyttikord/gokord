@@ -27,7 +27,7 @@ func (r Requester) Channels(guildID string, options ...discord.RequestOption) ([
 	return st, r.Unmarshal(body, &st)
 }
 
-// ChannelCreateData is provided to Session.GuildChannelCreateComplex
+// ChannelCreateData is provided to Requester.ChannelCreateComplex
 type ChannelCreateData struct {
 	Name                 string                         `json:"name"`
 	Type                 types.Channel                  `json:"type"`
@@ -41,7 +41,7 @@ type ChannelCreateData struct {
 	NSFW                 bool                           `json:"nsfw,omitempty"`
 }
 
-// ChannelCreateComplex creates a new channel.Channel in the given guild.Guild
+// ChannelCreateComplex creates a new channel.Channel in the given guild.Guild.
 func (r Requester) ChannelCreateComplex(guildID string, data ChannelCreateData, options ...discord.RequestOption) (*channel.Channel, error) {
 	body, err := r.Request(http.MethodPost, discord.EndpointGuildChannels(guildID), data, options...)
 	if err != nil {

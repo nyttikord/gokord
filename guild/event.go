@@ -35,7 +35,7 @@ type ScheduledEvent struct {
 	Status ScheduledEventStatus `json:"status"`
 	// Type of the entity where ScheduledEvent would be hosted.
 	//
-	// Note: See field requirements.
+	// NOTE: See field requirements.
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
 	EntityType types.ScheduledEventEntity `json:"entity_type"`
 	// The ID of an entity associated with a ScheduledEvent.
@@ -48,7 +48,7 @@ type ScheduledEvent struct {
 	UserCount int `json:"user_count"`
 	// The cover Image hash of the ScheduledEvent.
 	//
-	// Note: See https://discord.com/developers/docs/reference#image-formatting for more information about image
+	// NOTE: See https://discord.com/developers/docs/reference#image-formatting for more information about image
 	// formatting.
 	Image string `json:"image"`
 }
@@ -56,12 +56,12 @@ type ScheduledEvent struct {
 // ScheduledEventParams are the parameters allowed for creating or updating a ScheduledEvent.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 type ScheduledEventParams struct {
-	// The channel.Channel ID in which the ScheduledEvent will be hosted, or null if EntityType is
+	// The channel.Channel ID in which the ScheduledEvent will be hosted, or nil if EntityType is
 	// types.ScheduledEventEntityExternal.
 	ChannelID string `json:"channel_id,omitempty"`
-	// The Name of the ScheduledEvent (1-100 characters)
+	// The Name of the ScheduledEvent (1-100 characters).
 	Name string `json:"name,omitempty"`
-	// The Description of the ScheduledEvent (1-1000 characters)
+	// The Description of the ScheduledEvent (1-1000 characters).
 	Description string `json:"description,omitempty"`
 	// The time the ScheduledEvent will start.
 	ScheduledStartTime *time.Time `json:"scheduled_start_time,omitempty"`
@@ -73,33 +73,31 @@ type ScheduledEventParams struct {
 	Status ScheduledEventStatus `json:"status,omitempty"`
 	// Type of the entity where ScheduledEvent would be hosted.
 	//
-	// Note: See field requirements
+	// NOTE: See field requirements
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
 	EntityType types.ScheduledEventEntity `json:"entity_type,omitempty"`
 	// Additional metadata for the ScheduledEvent.
 	EntityMetadata *ScheduledEventEntityMetadata `json:"entity_metadata,omitempty"`
 	// The cover Image hash of the ScheduledEvent.
 	//
-	// Note: See https://discord.com/developers/docs/reference#image-formatting for more information about image
+	// NOTE: See https://discord.com/developers/docs/reference#image-formatting for more information about image
 	// formatting.
 	Image string `json:"image,omitempty"`
 }
 
-// MarshalJSON is a helper function to marshal ScheduledEventParams
+// MarshalJSON is a helper function to marshal ScheduledEventParams.
 func (p ScheduledEventParams) MarshalJSON() ([]byte, error) {
-	type guildScheduledEventParams ScheduledEventParams
-
 	if p.EntityType == types.ScheduledEventEntityExternal && p.ChannelID == "" {
 		return json.Marshal(struct {
-			guildScheduledEventParams
+			ScheduledEventParams
 			ChannelID json.RawMessage `json:"channel_id"`
 		}{
-			guildScheduledEventParams: guildScheduledEventParams(p),
-			ChannelID:                 json.RawMessage("null"),
+			ScheduledEventParams: p,
+			ChannelID:            json.RawMessage("null"),
 		})
 	}
 
-	return json.Marshal(guildScheduledEventParams(p))
+	return json.Marshal(p)
 }
 
 // ScheduledEventEntityMetadata holds additional metadata for ScheduledEvent.
@@ -131,13 +129,13 @@ const (
 type ScheduledEventStatus int
 
 const (
-	// ScheduledEventStatusScheduled represents the current event is in scheduled state
+	// ScheduledEventStatusScheduled represents the current event is in scheduled state.
 	ScheduledEventStatusScheduled ScheduledEventStatus = 1
-	// ScheduledEventStatusActive represents the current event is in active state
+	// ScheduledEventStatusActive represents the current event is in active state.
 	ScheduledEventStatusActive ScheduledEventStatus = 2
-	// ScheduledEventStatusCompleted represents the current event is in completed state
+	// ScheduledEventStatusCompleted represents the current event is in completed state.
 	ScheduledEventStatusCompleted ScheduledEventStatus = 3
-	// ScheduledEventStatusCanceled represents the current event is in canceled state
+	// ScheduledEventStatusCanceled represents the current event is in canceled state.
 	ScheduledEventStatusCanceled ScheduledEventStatus = 4
 )
 

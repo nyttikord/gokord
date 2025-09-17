@@ -16,7 +16,7 @@ const (
 	RoleFlagInPrompt RoleFlags = 1 << 0
 )
 
-// A Role stores information about Discord Guild user.Member roles.
+// A Role stores information about Discord Guild user.Member role.
 type Role struct {
 	// The ID of the Role.
 	ID string `json:"id"`
@@ -24,18 +24,20 @@ type Role struct {
 	// The Name of the Role.
 	Name string `json:"name"`
 
-	// Whether this Role is managed by a types.Integration, and thus cannot be manually added to, or taken from, members.
+	// Whether this Role is managed by a user.Integration, and thus cannot be manually added to, or taken from,
+	// user.Member.
 	Managed bool `json:"managed"`
 
 	// Whether this Role is Mentionable.
 	Mentionable bool `json:"mentionable"`
 
-	// Whether this Role is hoisted (shows up separately in member list).
+	// Whether this Role is hoisted (shows up separately in user.Member list).
 	Hoist bool `json:"hoist"`
 
 	// The hex Color of this Role.
 	//
-	// Deprecated: use Role.Colors
+	// Deprecated: use Role.Colors.
+	// Will be removed after the 1.0.0.
 	Color int `json:"color"`
 
 	// The Role's Colors
@@ -83,25 +85,25 @@ func (r *Role) IconURL(size string) string {
 	return URL
 }
 
-// RoleParams represents the parameters needed to create or update a Role
+// RoleParams represents the parameters needed to create or update a Role.
 type RoleParams struct {
-	// The Role's Name
+	// The Role's Name.
 	Name string `json:"name,omitempty"`
-	// The Color the Role should have (as a decimal, not hex)
+	// The Color the Role should have (as a decimal, not hex).
 	Color *int `json:"color,omitempty"`
-	// Whether to display the Role's users separately
+	// Whether to display the Role's users separately.
 	Hoist *bool `json:"hoist,omitempty"`
-	// The overall Permissions number of the Role
+	// The overall Permissions number of the Role.
 	Permissions *int64 `json:"permissions,omitempty,string"`
-	// Whether this Role is Mentionable
+	// Whether this Role is Mentionable.
 	Mentionable *bool `json:"mentionable,omitempty"`
 	// The Role's UnicodeEmoji.
 	//
-	// Note: can only be set if the guild has the FeatureRoleIcons feature.
+	// NOTE: can only be set if the guild has the FeatureRoleIcons feature.
 	UnicodeEmoji *string `json:"unicode_emoji,omitempty"`
 	// The Role's Icon image encoded in base64.
 	//
-	// Note: can only be set if the guild has the FeatureRoleIcons feature.
+	// NOTE: can only be set if the guild has the FeatureRoleIcons feature.
 	Icon *string `json:"icon,omitempty"`
 }
 

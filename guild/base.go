@@ -123,10 +123,10 @@ type Guild struct {
 	// The ID of the Guild.
 	ID string `json:"id"`
 
-	// The Name of the Guild. (2–100 characters)
+	// The Name of the Guild (2–100 characters).
 	Name string `json:"name"`
 
-	// The hash of the Guild's icon.
+	// The hash of the Guild's Icon.
 	// Use Guild.IconURL to retrieve the icon itself.
 	Icon string `json:"icon"`
 
@@ -286,12 +286,12 @@ type Guild struct {
 
 	// Approximate number of Members in this Guild.
 	//
-	// Note: returned from the GET /guild/<id> endpoint when with_counts is true.
+	// NOTE: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximateMemberCount int `json:"approximate_member_count"`
 
 	// Approximate number of non-offline Members in this Guild.
 	//
-	// Note: returned from the GET /guild/<id> endpoint when with_counts is true.
+	// NOTE: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 
 	// Permissions of our user.User.
@@ -428,7 +428,7 @@ type UserGuild struct {
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 }
 
-// A Params stores all the data needed to update discord Guild settings
+// A Params stores all the data needed to update discord Guild settings.
 type Params struct {
 	Name                        string             `json:"name,omitempty"`
 	Region                      string             `json:"region,omitempty"`

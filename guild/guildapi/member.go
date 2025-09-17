@@ -47,12 +47,12 @@ func (r Requester) Bans(guildID string, limit int, beforeID, afterID string, opt
 //
 // days is the number of days of previous comments to delete.
 //
-// Note: See BanCreate.
+// NOTE: See BanCreate.
 func (r Requester) BanCreate(guildID, userID string, days int, options ...discord.RequestOption) error {
 	return r.BanCreateWithReason(guildID, userID, "", days, options...)
 }
 
-// Ban finds ban by given guild.Guild and user.User id and returns guild.Ban structure
+// Ban finds ban by given guild.Guild and user.User id and returns guild.Ban.
 func (r Requester) Ban(guildID, userID string, options ...discord.RequestOption) (*guild.Ban, error) {
 	body, err := r.Request(http.MethodGet, discord.EndpointGuildBan(guildID, userID), nil, options...)
 	if err != nil {
@@ -65,7 +65,7 @@ func (r Requester) Ban(guildID, userID string, options ...discord.RequestOption)
 
 // BanCreateWithReason bans the given user.User from the given guild.Guild also providing a reason.
 //
-// Note: See BanCreate.
+// NOTE: See BanCreate.
 func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int, options ...discord.RequestOption) error {
 	uri := discord.EndpointGuildBan(guildID, userID)
 
@@ -85,7 +85,7 @@ func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int,
 	return err
 }
 
-// BanDelete unbans the given user.User from the given guild.Guild
+// BanDelete unbans the given user.User from the given guild.Guild.
 func (r Requester) BanDelete(guildID, userID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
 		http.MethodDelete,
@@ -218,7 +218,7 @@ func (r Requester) MemberEdit(guildID, userID string, data *guild.MemberParams, 
 
 // MemberMove moves a user.Member from one voice channel.Channel to another/none.
 //
-// Note: I am not entirely set on the name of this function, and it may change.
+// NOTE: I am not entirely set on the name of this function, and it may change.
 func (r Requester) MemberMove(guildID string, userID string, channelID *string, options ...discord.RequestOption) error {
 	data := struct {
 		ChannelID *string `json:"channel_id"`
@@ -236,7 +236,7 @@ func (r Requester) MemberMove(guildID string, userID string, channelID *string, 
 
 // MemberNickname updates the nickname of a user.Member in a guild.Guild.
 //
-// Note: To reset the nickname, set it to an empty string.
+// NOTE: To reset the nickname, set it to an empty string.
 func (r Requester) MemberNickname(guildID, userID, nickname string, options ...discord.RequestOption) error {
 	data := struct {
 		Nick string `json:"nick"`
@@ -274,7 +274,7 @@ func (r Requester) MemberMute(guildID string, userID string, mute bool, options 
 
 // MemberTimeout times out a user.Member in a guild.Guild.
 //
-// Note: Set until to nil to remove timeout.
+// NOTE: Set until to nil to remove timeout.
 func (r Requester) MemberTimeout(guildID string, userID string, until *time.Time, options ...discord.RequestOption) error {
 	data := struct {
 		CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
