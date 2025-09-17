@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-// customRateLimit holds information for defining a custom rate limit
+// customRateLimit holds information for defining a custom rate limit.
 type customRateLimit struct {
 	suffix   string
 	requests int
 	reset    time.Duration
 }
 
-// RateLimiter holds all rate limit buckets
+// RateLimiter holds rate limit buckets.
 type RateLimiter struct {
 	sync.Mutex
 	global           *int64
@@ -26,9 +26,8 @@ type RateLimiter struct {
 	customRateLimits []*customRateLimit
 }
 
-// NewRateLimiter returns a new RateLimiter
+// NewRateLimiter returns a new RateLimiter.
 func NewRateLimiter() *RateLimiter {
-
 	return &RateLimiter{
 		buckets: make(map[string]*Bucket),
 		global:  new(int64),
@@ -42,7 +41,7 @@ func NewRateLimiter() *RateLimiter {
 	}
 }
 
-// GetBucket retrieves or creates a bucket
+// GetBucket retrieves or creates a Bucket in the RateLimiter.
 func (r *RateLimiter) GetBucket(key string) *Bucket {
 	r.Lock()
 	defer r.Unlock()
@@ -69,10 +68,9 @@ func (r *RateLimiter) GetBucket(key string) *Bucket {
 	return b
 }
 
-// GetWaitTime returns the duration you should wait for a Bucket
+// GetWaitTime returns the duration you should wait for a Bucket.
 func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
-	// If we ran out of calls and the reset time is still ahead of us
-	// then we need to take it easy and relax a little
+	// If we ran out of calls and the reset time is still ahead of us then we need to take it easy and relax a little.
 	if b.Remaining < minRemaining && b.reset.After(time.Now()) {
 		return b.reset.Sub(time.Now())
 	}
@@ -86,12 +84,12 @@ func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 	return 0
 }
 
-// LockBucket locks until a request can be made
+// LockBucket locks until a request can be made.
 func (r *RateLimiter) LockBucket(bucketID string) *Bucket {
 	return r.LockBucketObject(r.GetBucket(bucketID))
 }
 
-// LockBucketObject locks an already resolved bucket until a request can be made
+// LockBucketObject locks an already resolved bucket until a request can be made.
 func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	b.Lock()
 
@@ -103,7 +101,7 @@ func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	return b
 }
 
-// Bucket represents a rate limit bucket, each bucket gets rate limited individually (-global rate limits)
+// Bucket represents a rate limit bucket, each bucket gets rate limited individually (except for global rate limits).
 type Bucket struct {
 	sync.Mutex
 	Key       string
@@ -147,7 +145,7 @@ func (b *Bucket) Release(headers http.Header) error {
 	// If global is set, then it will block all buckets until after Retry-After
 	// If Retry-After without global is provided it will use that for the new reset
 	// time since it's more accurate than X-RateLimit-Reset.
-	// If Retry-After after is not proided, it will update the reset time from X-RateLimit-Reset
+	// If Retry-After after is not provided, it will update the reset time from X-RateLimit-Reset
 	if resetAfter != "" {
 		parsedAfter, err := strconv.ParseFloat(resetAfter, 64)
 		if err != nil {
@@ -176,7 +174,7 @@ func (b *Bucket) Release(headers http.Header) error {
 		}
 
 		// Calculate the time until reset and add it to the current local time
-		// some extra time is added because without it i still encountered 429's.
+		// some extra time is added because without it is still encountered 429's.
 		// The added amount is the lowest amount that gave no 429's
 		// in 1k requests
 		whole, frac := math.Modf(unix)

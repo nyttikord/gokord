@@ -27,10 +27,6 @@ const (
 	IntentGuildMessagePolls           Intent = 1 << 24
 	IntentDirectMessagePolls          Intent = 1 << 25
 
-	// TODO: remove when compatibility is not needed
-
-	IntentGuildBans Intent = IntentGuildModeration
-
 	IntentsGuilds                 Intent = 1 << 0
 	IntentsGuildMembers           Intent = 1 << 1
 	IntentsGuildBans              Intent = 1 << 2
@@ -50,7 +46,7 @@ const (
 	IntentsGuildScheduledEvents   Intent = 1 << 16
 
 	IntentsAllWithoutPrivileged = IntentGuilds |
-		IntentGuildBans |
+		IntentGuildModeration |
 		IntentGuildEmojis |
 		IntentGuildIntegrations |
 		IntentGuildWebhooks |
@@ -73,10 +69,3 @@ const (
 
 	IntentsNone Intent = 0
 )
-
-// MakeIntent used to help convert a gateway intent value for use in the Identify structure;
-// this was useful to help support the use of a pointer type when intents were optional.
-// This is now a no-op, and is not necessary to use.
-func MakeIntent(intents Intent) Intent {
-	return intents
-}

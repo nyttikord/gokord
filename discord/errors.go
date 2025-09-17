@@ -2,7 +2,7 @@ package discord
 
 import "fmt"
 
-// An APIErrorMessage is an api error message returned from discord
+// An APIErrorMessage is an error message returned from the Discord API.
 type APIErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`

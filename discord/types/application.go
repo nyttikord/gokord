@@ -2,6 +2,9 @@
 //
 // For example, Channel represents the type of channel.Channel and ChannelGuildText is the type of classical guild text
 // channel.
+//
+// Flags and specific stuff are not included in this package.
+// Only global constant used in multiple files are located here.
 package types
 
 // IntegrationInstall specifies where the application can be installed and its available interaction contexts.

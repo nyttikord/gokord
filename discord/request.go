@@ -19,7 +19,7 @@ type Requester interface {
 	RequestRaw(method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
-	// VoiceRegions returns the VoiceRegion
+	// VoiceRegions returns the VoiceRegion.
 	VoiceRegions(options ...RequestOption) ([]*VoiceRegion, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i interface{}) error
@@ -33,8 +33,10 @@ type RequestConfig struct {
 	Client                 *http.Client
 }
 
-// RequestOption is a function which mutates request configuration.
+// RequestOption is a function which modifies how the request is handled.
 // It can be supplied as an argument to any REST method.
+//
+// You can call WithContext to use a context.Context during the request.
 type RequestOption func(cfg *RequestConfig)
 
 // WithClient changes the HTTP client used for the request.
@@ -46,7 +48,7 @@ func WithClient(client *http.Client) RequestOption {
 	}
 }
 
-// WithRetryOnRatelimit controls whether session will retry the request on rate limit.
+// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
 func WithRetryOnRatelimit(retry bool) RequestOption {
 	return func(cfg *RequestConfig) {
 		cfg.ShouldRetryOnRateLimit = retry
@@ -67,7 +69,7 @@ func WithHeader(key, value string) RequestOption {
 	}
 }
 
-// WithAuditLogReason changes audit Log reason associated with the request.
+// WithAuditLogReason changes audit log reason associated with the request.
 func WithAuditLogReason(reason string) RequestOption {
 	return WithHeader("X-Audit-Log-Reason", reason)
 }
@@ -77,7 +79,7 @@ func WithLocale(locale Locale) RequestOption {
 	return WithHeader("X-Discord-Locale", string(locale))
 }
 
-// WithContext changes context of the request.
+// WithContext changes context.Context of the request.
 func WithContext(ctx context.Context) RequestOption {
 	return func(cfg *RequestConfig) {
 		cfg.Request = cfg.Request.WithContext(ctx)

@@ -2,9 +2,6 @@ package discord
 
 // Text permissions
 const (
-	// Deprecated: PermissionReadMessages has been replaced with PermissionViewChannel for text and voice channels
-	PermissionReadMessages = 1 << 10
-
 	// PermissionSendMessages allows for sending messages in a channel and creating threads in a forum (does not allow
 	// sending messages in threads).
 	PermissionSendMessages = 1 << 11
@@ -97,7 +94,8 @@ const (
 	// Deprecated: PermissionUseActivities has been replaced by PermissionUseEmbeddedActivities.
 	PermissionUseActivities = 1 << 39
 
-	// PermissionUseEmbeddedActivities allows for using Activities (applications with the EMBEDDED flag) in a voice channel.
+	// PermissionUseEmbeddedActivities allows for using Activities (applications with the EMBEDDED flag) in a voice
+	// channel.
 	PermissionUseEmbeddedActivities = 1 << 39
 
 	// PermissionUseSoundboard allows for using soundboard in a voice channel.
@@ -120,9 +118,6 @@ const (
 
 	// PermissionManageWebhooks allows management and editing of webhooks.
 	PermissionManageWebhooks = 1 << 29
-
-	// Deprecated: PermissionManageEmojis has been replaced by PermissionManageGuildExpressions.
-	PermissionManageEmojis = 1 << 30
 
 	// PermissionManageGuildExpressions allows for editing and deleting emojis, stickers, and soundboard sounds created
 	// by all users.
@@ -156,9 +151,6 @@ const (
 
 	// PermissionManageChannels allows management and editing of channels.
 	PermissionManageChannels = 1 << 4
-
-	// Deprecated: PermissionManageServer has been replaced by PermissionManageGuild.
-	PermissionManageServer = 1 << 5
 
 	// PermissionManageGuild allows management and editing of the guild.
 	PermissionManageGuild = 1 << 5
