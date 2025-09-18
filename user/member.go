@@ -6,11 +6,10 @@ import (
 	"github.com/nyttikord/gokord/discord"
 )
 
-// MemberFlags represent flags of a guild member.
+// MemberFlags represent flags of a guild.Guild Member.
 // https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
 type MemberFlags int
 
-// Block containing known MemberFlags values.
 const (
 	// MemberFlagDidRejoin indicates whether the Member has left and rejoined the guild.
 	MemberFlagDidRejoin MemberFlags = 1 << 0
@@ -22,64 +21,64 @@ const (
 	MemberFlagStartedOnboarding MemberFlags = 1 << 3
 )
 
-// A Member stores user information for user.Member. A guild
-// member represents a certain user's presence in a guild.
+// Member stores user information for a guild.Guild member.
+// This represents a certain user.User's presence in a guild.Guild.
 type Member struct {
-	// The guild ID on which the member exists.
+	// The GuildID on which the Member exists.
 	GuildID string `json:"guild_id"`
 
-	// The time at which the member joined the guild.
+	// The time at which the Member joined the guild.Guild.
 	JoinedAt time.Time `json:"joined_at"`
 
-	// The nickname of the member, if they have one.
+	// The nickname of the Member, if they have one.
 	Nick string `json:"nick"`
 
-	// Whether the member is deafened at a guild level.
+	// Whether the Member is deafened at a guild.Guild level.
 	Deaf bool `json:"deaf"`
 
-	// Whether the member is muted at a guild level.
+	// Whether the Member is muted at a guild.Guild level.
 	Mute bool `json:"mute"`
 
-	// The hash of the avatar for the guild member, if any.
+	// The hash of the Avatar for the guild.Guild Member, if any.
 	Avatar string `json:"avatar"`
 
-	// The hash of the banner for the guild member, if any.
+	// The hash of the Banner for the guild.Guild Member, if any.
 	Banner string `json:"banner"`
 
-	// The underlying user on which the member is based.
+	// The underlying user.User on which the Member is based.
 	User *User `json:"user"`
 
-	// A list of IDs of the roles which are possessed by the member.
+	// A list of IDs of the Roles which are possessed by the Member.
 	Roles []string `json:"roles"`
 
-	// When the user used their Nitro boost on the server
+	// Time since the Member used their Nitro boost on the guild.Guild.
 	PremiumSince *time.Time `json:"premium_since"`
 
-	// The flags of this member. This is a combination of bit masks; the presence of a certain
-	// flag can be checked by performing a bitwise AND between this int and the flag.
+	// The flags of this member.
+	// This is a combination of bit masks; the presence of a certain flag can be checked by performing a bitwise AND
+	// between this int and the flag.
 	Flags MemberFlags `json:"flags"`
 
-	// Is true while the member hasn't accepted the membership screen.
+	// Is true while the Member hasn't accepted the membership screen.
 	Pending bool `json:"pending"`
 
-	// Total permissions of the member in the channel, including overrides, returned when in the interaction object.
+	// Total Permissions of the Member in the channel, including overrides (only returned from an interaction.Interaction).
 	Permissions int64 `json:"permissions,string"`
 
-	// The time at which the member's timeout will expire.
-	// Time in the past or nil if the user is not timed out.
+	// The time at which the Member's timeout will expire.
+	// Time in the past or nil if the Member is not timed out.
 	CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 }
 
-// Mention creates a member mention
+// Mention creates a Member mention.
 func (m *Member) Mention() string {
 	return "<@!" + m.User.ID + ">"
 }
 
-// AvatarURL returns the URL of the member's avatar
+// AvatarURL returns the URL of the Member.Avatar
 //
-//	size:    The size of the user's avatar as a power of two
-//	         if size is an empty string, no size parameter will
-//	         be added to the URL.
+// size is the size of the avatar as a power of two if size is an empty string, no size parameter will be added to the
+// URL (between 16 and 4096).
 func (m *Member) AvatarURL(size string) string {
 	if m.Avatar == "" {
 		return m.User.AvatarURL(size)
@@ -90,10 +89,10 @@ func (m *Member) AvatarURL(size string) string {
 
 }
 
-// BannerURL returns the URL of the member's banner image.
+// BannerURL returns the URL of the Member.Banner.
 //
-//	size:    The size of the desired banner image as a power of two
-//	         Image size can be any power of two between 16 and 4096.
+// size is the size of the banner as a power of two if size is an empty string, no size parameter will be added to the
+// URL (between 16 and 4096).
 func (m *Member) BannerURL(size string) string {
 	if m.Banner == "" {
 		return m.User.BannerURL(size)
@@ -106,8 +105,7 @@ func (m *Member) BannerURL(size string) string {
 	)
 }
 
-// DisplayName returns the member's guild nickname if they have one,
-// otherwise it returns their discord display name.
+// DisplayName returns the member's guild nickname if they have one, otherwise it returns their discord display name.
 func (m *Member) DisplayName() string {
 	if m.Nick != "" {
 		return m.Nick
@@ -115,7 +113,7 @@ func (m *Member) DisplayName() string {
 	return m.User.DisplayName()
 }
 
-// A VoiceState stores the voice states of Guilds
+// VoiceState stores the voice states of guild.Guild.
 type VoiceState struct {
 	GuildID                 string     `json:"guild_id"`
 	ChannelID               string     `json:"channel_id"`

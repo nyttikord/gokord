@@ -31,7 +31,7 @@ func (r Requester) Invite(inviteID string, options ...discord.RequestOption) (*i
 	return &i, r.Unmarshal(body, &i)
 }
 
-// InviteWithCounts returns the invite.Invite including approximate member counts.
+// InviteWithCounts returns the invite.Invite including approximate user.Member counts.
 func (r Requester) InviteWithCounts(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID(
 		http.MethodGet,
@@ -48,11 +48,11 @@ func (r Requester) InviteWithCounts(inviteID string, options ...discord.RequestO
 	return &i, r.Unmarshal(body, &i)
 }
 
-// InviteComplex returns the invite.Invite the given invite including specified fields.
+// InviteComplex returns the invite.Invite the given ID including specified fields.
 //
 // If specified, it includes specified guild scheduled event with guildScheduledEventID.
-// withCounts indicates whether to include approximate member counts or not.
-// withExpiration indicates whether to include expiration time or not.
+// withCounts indicates whether to include approximate user.Member counts.
+// withExpiration indicates whether to include expiration time.
 func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCounts, withExpiration bool, options ...discord.RequestOption) (*invite.Invite, error) {
 	endpoint := discord.EndpointInvite(inviteID)
 	v := url.Values{}
@@ -90,7 +90,7 @@ func (r Requester) InviteDelete(inviteID string, options ...discord.RequestOptio
 	return &i, r.Unmarshal(body, &i)
 }
 
-// InviteAccept accepts an invite.Invite
+// InviteAccept accepts an invite.Invite.
 func (r Requester) InviteAccept(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID("POST", discord.EndpointInvite(inviteID), nil, discord.EndpointInvite(""), options...)
 	if err != nil {

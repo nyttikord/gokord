@@ -1,27 +1,29 @@
+// Package user contains everything related to Discord User, guild.Guild Member and Integration.
+//
+// Use userapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package user
 
 import (
 	"time"
 )
 
-// ExpireBehavior of Integration
+// ExpireBehavior of an Integration.
 // https://discord.com/developers/docs/resources/guild#integration-object-integration-expire-behaviors
 type ExpireBehavior int
 
-// Block of valid ExpireBehaviors
 const (
 	ExpireBehaviorRemoveRole ExpireBehavior = 0
 	ExpireBehaviorKick       ExpireBehavior = 1
 )
 
-// IntegrationAccount is integration account information
-// sent by the UserConnections endpoint
+// IntegrationAccount is integration account information sent while fetching the Connection.
 type IntegrationAccount struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-// Integration stores integration information
+// Integration stores integration information.
 type Integration struct {
 	ID                string             `json:"id"`
 	Name              string             `json:"name"`
@@ -37,7 +39,7 @@ type Integration struct {
 	SyncedAt          time.Time          `json:"synced_at"`
 }
 
-// Connection is a Connection returned from the UserConnections endpoint
+// Connection is a connection returned from the UserConnections endpoint.
 type Connection struct {
 	ID           string         `json:"id"`
 	Name         string         `json:"name"`

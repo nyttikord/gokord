@@ -1,3 +1,4 @@
+// Package invite contains the Invite... and that's all...
 package invite
 
 import (
@@ -10,7 +11,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// Invite stores all data related to a specific Discord Guild or Channel invite.
+// Invite stores all data related to a specific Discord guild.Guild or channel.Channel invite.
 type Invite struct {
 	Type              types.Invite             `json:"type"`
 	Guild             *guild.Guild             `json:"guild"`

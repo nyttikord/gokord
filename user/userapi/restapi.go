@@ -33,7 +33,7 @@ func (s Requester) User(userID string, options ...discord.RequestOption) (*user.
 	return &u, s.Unmarshal(body, &u)
 }
 
-// AvatarDecode returns an image.Image of a user.User's Avatar.
+// AvatarDecode returns an image.Image of a user.User Avatar.
 func (s Requester) AvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
 	body, err := s.RequestWithBucketID(
 		http.MethodGet,
@@ -50,9 +50,9 @@ func (s Requester) AvatarDecode(u *user.User, options ...discord.RequestOption) 
 	return img, err
 }
 
-// Update updates current user settings.
+// Update updates current user.User settings.
 //
-// Note: Avatar must be either the hash/id of existing Avatar or
+// NOTE: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
 func (s Requester) Update(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
@@ -88,7 +88,7 @@ func (s Requester) Connections(options ...discord.RequestOption) ([]*user.Connec
 	return conn, s.Unmarshal(response, &conn)
 }
 
-// ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User
+// ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User.
 func (s Requester) ChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	data := struct {
 		RecipientID string `json:"recipient_id"`
