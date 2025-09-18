@@ -1,3 +1,7 @@
+// Package interaction contains everything linked with interactions like... Command or Interaction.
+//
+// Use interactionapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package interaction
 
 import (

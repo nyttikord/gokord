@@ -1,4 +1,7 @@
 // Package application handles everything related with Discord's Application and Team.
+//
+// Use applicationapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package application
 
 import (

@@ -1,5 +1,8 @@
 // Package guild contains every data structures linked to guilds like... Guild or ScheduledEvent.
 // It also has helping functions not using gokord.Session.
+//
+// Use guildapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package guild
 
 import (

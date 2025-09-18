@@ -110,7 +110,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		if err != nil {
 			return err
 		}
-		i.Data = v
+		i.Data = &v
 	}
 	return nil
 }
@@ -135,11 +135,11 @@ func (i *Interaction) CommandData() CommandInteractionData {
 
 // ModalSubmitData is helper function to assert the inner Data to ModalSubmitData.
 // Make sure to check that the Type of the interaction is types.InteractionModalSubmit before calling.
-func (i *Interaction) ModalSubmitData() ModalSubmitData {
+func (i *Interaction) ModalSubmitData() *ModalSubmitData {
 	if i.Type != types.InteractionModalSubmit {
 		panic("ModalSubmitData called on interaction of type " + i.Type.String())
 	}
-	return i.Data.(ModalSubmitData)
+	return i.Data.(*ModalSubmitData)
 }
 
 // Data is a common interface for all types of interaction data.

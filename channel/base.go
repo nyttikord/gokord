@@ -1,5 +1,8 @@
 // Package channel contains every data structures linked with channels like... Channel or Message.
 // It also has helping functions not using gokord.Session.
+//
+// Use channelapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package channel
 
 import (

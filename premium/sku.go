@@ -1,4 +1,7 @@
 // Package premium contains everything related with premium things in your application.Application.
+//
+// Use premiumapi.Requester to interact with this.
+// You can get this with gokord.Session.
 package premium
 
 import (
