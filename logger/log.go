@@ -1,3 +1,4 @@
+// Package logger provides a general Logger interface to log information and useful constant to color messages.
 package logger
 
 import (
@@ -7,6 +8,7 @@ import (
 	"strings"
 )
 
+// Logger is an interface describing a custom logger implementation.
 type Logger interface {
 	// Log the message if level is equal to or greater than previously defined
 	//
@@ -22,12 +24,17 @@ type Logger interface {
 	ChangeLevel(level Level)
 }
 
+// Level is the level of the log.
 type Level int
 
 const (
+	// LevelDebug is for logging development information.
 	LevelDebug Level = 0
-	LevelInfo  Level = 1
-	LevelWarn  Level = 2
+	// LevelInfo is for logging information.
+	LevelInfo Level = 1
+	// LevelWarn is for logging a warning, an information that is not average, but not as critical as an error.
+	LevelWarn Level = 2
+	// LevelError for logging an error that has been intercepted by your application.
 	LevelError Level = 3
 )
 
