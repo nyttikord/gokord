@@ -143,9 +143,7 @@ func (s Requester) WebhookDeleteWithToken(webhookID, token string, options ...di
 	return &w, s.Unmarshal(body, &w)
 }
 
-func (s Requester) webhookExecute(webhookID, token string, wait bool, threadID string, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
-	uri := discord.EndpointWebhookToken(webhookID, token)
-
+func (s Requester) webhookExecute(method, uri, bucket string, wait bool, threadID string, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
 	v := url.Values{}
 	if wait {
 		v.Set("wait", "true")
@@ -170,9 +168,9 @@ func (s Requester) webhookExecute(webhookID, token string, wait bool, threadID s
 			return nil, encodeErr
 		}
 
-		response, err = s.RequestRaw(http.MethodPost, uri, contentType, body, uri, 0, options...)
+		response, err = s.RequestRaw(method, uri, contentType, body, bucket, 0, options...)
 	} else {
-		response, err = s.Request(http.MethodPost, uri, data, options...)
+		response, err = s.RequestWithBucketID(method, uri, data, bucket, options...)
 	}
 	if !wait || err != nil {
 		return nil, err
@@ -187,7 +185,15 @@ func (s Requester) webhookExecute(webhookID, token string, wait bool, threadID s
 // wait if must waits for server confirmation of message send and ensures that the return struct is populated (it is nil
 // otherwise)
 func (s Requester) WebhookExecute(webhookID, token string, wait bool, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.webhookExecute(webhookID, token, wait, "", data, options...)
+	return s.webhookExecute(
+		http.MethodPost,
+		discord.EndpointWebhookToken(webhookID, token),
+		discord.EndpointWebhookToken("", ""),
+		wait,
+		"",
+		data,
+		options...,
+	)
 }
 
 // WebhookThreadExecute executes a channel.Webhook in a thread.
@@ -195,9 +201,17 @@ func (s Requester) WebhookExecute(webhookID, token string, wait bool, data *chan
 // wait if must waits for server confirmation of message send and ensures that the return struct is populated (it is nil
 // otherwise)
 //
-// Note: The thread will automatically be unarchived.
+// NOTE: The thread will automatically be unarchived.
 func (s Requester) WebhookThreadExecute(webhookID, token string, wait bool, threadID string, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.webhookExecute(webhookID, token, wait, threadID, data, options...)
+	return s.webhookExecute(
+		http.MethodPost,
+		discord.EndpointWebhookToken(webhookID, token),
+		discord.EndpointWebhookToken("", ""),
+		wait,
+		threadID,
+		data,
+		options...,
+	)
 }
 
 // WebhookMessage gets a channel.Webhook channel.Message.
@@ -219,34 +233,31 @@ func (s Requester) WebhookMessage(webhookID, token, messageID string, options ..
 
 // WebhookMessageEdit edits a channel.Webhook channel.Message and returns the updated channel.Message.
 func (s Requester) WebhookMessageEdit(webhookID, token, messageID string, data *channel.WebhookEdit, options ...discord.RequestOption) (*channel.Message, error) {
-	uri := discord.EndpointWebhookMessage(webhookID, token, messageID)
-
-	var err error
-	var response []byte
-	if len(data.Files) > 0 {
-		var contentType string
-		var body []byte
-		contentType, body, err = channel.MultipartBodyWithJSON(data, data.Files)
-		if err != nil {
-			return nil, err
-		}
-
-		response, err = s.RequestRaw(http.MethodPatch, uri, contentType, body, uri, 0, options...)
-	} else {
-		response, err = s.RequestWithBucketID(
-			http.MethodPatch,
-			uri,
-			data,
-			discord.EndpointWebhookToken("", ""),
-			options...,
-		)
+	d := &channel.WebhookParams{
+		Files:           data.Files,
+		AllowedMentions: data.AllowedMentions,
 	}
-	if err != nil {
-		return nil, err
+	if data.Content != nil {
+		d.Content = *data.Content
 	}
-
-	var m channel.Message
-	return &m, s.Unmarshal(response, &m)
+	if data.Files != nil {
+		d.Components = *data.Components
+	}
+	if data.Embeds != nil {
+		d.Embeds = *data.Embeds
+	}
+	if data.Attachments != nil {
+		d.Attachments = *data.Attachments
+	}
+	return s.webhookExecute(
+		http.MethodPatch,
+		discord.EndpointWebhookMessage(webhookID, token, messageID),
+		discord.EndpointWebhookToken("", ""),
+		false,
+		"",
+		d,
+		options...,
+	)
 }
 
 // WebhookMessageDelete deletes a channel.Webhook channel.Message.
