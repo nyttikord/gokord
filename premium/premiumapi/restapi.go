@@ -17,7 +17,7 @@ type Requester struct {
 	discord.Requester
 }
 
-// SKUs returns all premium.SKU for a given application.
+// SKUs returns all premium.SKU for a given application.Application.
 func (s *Requester) SKUs(appID string, options ...discord.RequestOption) ([]*premium.SKU, error) {
 	body, err := s.Request(http.MethodGet, discord.EndpointApplicationSKUs(appID), nil, options...)
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *Requester) SKUs(appID string, options ...discord.RequestOption) ([]*pre
 	return skus, s.Unmarshal(body, &skus)
 }
 
-// Entitlements returns all premium.Entitlement for a given app, active and expired.
+// Entitlements returns all premium.Entitlement for a given application.Application, active and expired.
 //
 // filterOptions is the optional filter options; otherwise set it to nil.
 func (s *Requester) Entitlements(appID string, filterOptions *premium.EntitlementFilterOptions, options ...discord.RequestOption) ([]*premium.Entitlement, error) {
