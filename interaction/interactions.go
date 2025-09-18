@@ -44,12 +44,16 @@ type Interaction struct {
 	// NOTE: this field is only filled when the slash Command was invoked in a guild.Guild;
 	// if it was invoked in a DM, the User field will be filled instead.
 	// Make sure to check for nil before using this field.
+	//
+	// See GetUser to directly get a nil-safe user.User.
 	Member *user.Member `json:"member"`
 	// The user.User who invoked this Interaction.
 	//
 	// NOTE: this field is only filled when the slash Command was invoked in a DM;
 	// if it was invoked in a guild.Guild, the Member field will be filled instead.
 	// Make sure to check for nil before using this field.
+	//
+	// See GetUser to directly get a nil-safe user.User.
 	User *user.User `json:"user"`
 
 	// The user.User's discord client discord.Locale.
@@ -72,22 +76,18 @@ type Interaction struct {
 	Entitlements []*premium.Entitlement `json:"entitlements"`
 }
 
-type interaction Interaction
-
-type rawInteraction struct {
-	interaction
-	Data json.RawMessage `json:"data"`
-}
-
 // UnmarshalJSON is a method for unmarshalling JSON object to Interaction.
 func (i *Interaction) UnmarshalJSON(raw []byte) error {
-	var tmp rawInteraction
+	var tmp struct {
+		Interaction
+		Data json.RawMessage `json:"data"`
+	}
 	err := json.Unmarshal(raw, &tmp)
 	if err != nil {
 		return err
 	}
 
-	*i = Interaction(tmp.interaction)
+	*i = tmp.Interaction
 
 	switch tmp.Type {
 	case types.InteractionApplicationCommand, types.InteractionApplicationCommandAutocomplete:
@@ -140,6 +140,14 @@ func (i *Interaction) ModalSubmitData() *ModalSubmitData {
 		panic("ModalSubmitData called on interaction of type " + i.Type.String())
 	}
 	return i.Data.(*ModalSubmitData)
+}
+
+// GetUser returns the user.User of the Interaction.
+func (i *Interaction) GetUser() *user.User {
+	if i.Member == nil {
+		return i.User
+	}
+	return i.Member.User
 }
 
 // Data is a common interface for all types of interaction data.
