@@ -62,7 +62,7 @@ func main() {
 			}
 		}
 	})
-	s.Identify.Intents = discord.MakeIntent(discord.IntentsAllWithoutPrivileged)
+	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 
 	err := s.Open()
 	if err != nil {
