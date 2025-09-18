@@ -151,6 +151,10 @@ func (s Requester) webhookExecute(webhookID, token string, wait bool, threadID s
 		v.Set("wait", "true")
 	}
 
+	if data.Components != nil && len(data.Components) > 0 {
+		v.Set("with_components", "true")
+	}
+
 	if threadID != "" {
 		v.Set("thread_id", threadID)
 	}
@@ -166,9 +170,9 @@ func (s Requester) webhookExecute(webhookID, token string, wait bool, threadID s
 			return nil, encodeErr
 		}
 
-		response, err = s.RequestRaw("POST", uri, contentType, body, uri, 0, options...)
+		response, err = s.RequestRaw(http.MethodPost, uri, contentType, body, uri, 0, options...)
 	} else {
-		response, err = s.Request("POST", uri, data, options...)
+		response, err = s.Request(http.MethodPost, uri, data, options...)
 	}
 	if !wait || err != nil {
 		return nil, err
