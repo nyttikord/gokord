@@ -96,14 +96,14 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		if err != nil {
 			return err
 		}
-		i.Data = v
+		i.Data = &v
 	case types.InteractionMessageComponent:
 		v := MessageComponentData{}
 		err = json.Unmarshal(tmp.Data, &v)
 		if err != nil {
 			return err
 		}
-		i.Data = v
+		i.Data = &v
 	case types.InteractionModalSubmit:
 		v := ModalSubmitData{}
 		err = json.Unmarshal(tmp.Data, &v)
@@ -117,20 +117,20 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 
 // MessageComponentData is helper function to assert the inner Data to MessageComponentData.
 // Make sure to check that the Type of the interaction is types.InteractionMessageComponent before calling.
-func (i *Interaction) MessageComponentData() MessageComponentData {
+func (i *Interaction) MessageComponentData() *MessageComponentData {
 	if i.Type != types.InteractionMessageComponent {
 		panic("MessageComponentData called on interaction of type " + i.Type.String())
 	}
-	return i.Data.(MessageComponentData)
+	return i.Data.(*MessageComponentData)
 }
 
 // CommandData is helper function to assert the inner Data to CommandInteractionData.
 // Make sure to check that the Type of the interaction is types.InteractionApplicationCommand before calling.
-func (i *Interaction) CommandData() CommandInteractionData {
+func (i *Interaction) CommandData() *CommandInteractionData {
 	if i.Type != types.InteractionApplicationCommand && i.Type != types.InteractionApplicationCommandAutocomplete {
 		panic("CommandData called on interaction of type " + i.Type.String())
 	}
-	return i.Data.(CommandInteractionData)
+	return i.Data.(*CommandInteractionData)
 }
 
 // ModalSubmitData is helper function to assert the inner Data to ModalSubmitData.
@@ -175,7 +175,7 @@ type MessageComponentDataResolved struct {
 }
 
 // Type returns the type of interaction data.
-func (MessageComponentData) Type() types.Interaction {
+func (*MessageComponentData) Type() types.Interaction {
 	return types.InteractionMessageComponent
 }
 

@@ -51,7 +51,7 @@ type CommandInteractionData struct {
 }
 
 // GetOption finds and returns an CommandOption by its name.
-func (d CommandInteractionData) GetOption(name string) *CommandInteractionDataOption {
+func (d *CommandInteractionData) GetOption(name string) *CommandInteractionDataOption {
 	for _, opt := range d.Options {
 		if opt.Name == name {
 			return opt
@@ -73,7 +73,7 @@ type CommandInteractionDataResolved struct {
 }
 
 // Type returns the type of Data.
-func (CommandInteractionData) Type() types.Interaction {
+func (*CommandInteractionData) Type() types.Interaction {
 	return types.InteractionApplicationCommand
 }
 
