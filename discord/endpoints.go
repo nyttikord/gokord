@@ -4,7 +4,7 @@ package discord
 import "strconv"
 
 // APIVersion is the Discord API version used for the REST and Websocket API.
-const APIVersion = "10"
+var APIVersion = "10"
 
 var (
 	EndpointStatus     = "https://status.discord.com/api/v2/"
@@ -244,3 +244,27 @@ var (
 	EndpointOAuth2ApplicationsBot   = func(aID string) string { return EndpointOAuth2Applications + "/" + aID + "/bot" }
 	EndpointOAuth2ApplicationAssets = func(aID string) string { return EndpointOAuth2Applications + "/" + aID + "/assets" }
 )
+
+// ChangeAPIVersion to use a custom one.
+// It modifies the constant APIVersion and every endpoint.
+//
+// v is the api version like "10".
+func ChangeAPIVersion(v string) {
+	APIVersion = v
+	EndpointAPI = EndpointDiscord + "api/v" + APIVersion + "/"
+	EndpointGuilds = EndpointAPI + "guilds/"
+	EndpointChannels = EndpointAPI + "channels/"
+	EndpointUsers = EndpointAPI + "users/"
+	EndpointGateway = EndpointAPI + "gateway"
+	EndpointGatewayBot = EndpointGateway + "/bot"
+	EndpointWebhooks = EndpointAPI + "webhooks/"
+	EndpointStickers = EndpointAPI + "stickers/"
+	EndpointStageInstances = EndpointAPI + "stage-instances"
+	EndpointSKUs = EndpointAPI + "skus"
+	EndpointVoice = EndpointAPI + "/voice/"
+	EndpointVoiceRegions = EndpointVoice + "regions"
+	EndpointGuildCreate = EndpointAPI + "guilds"
+	EndpointApplications = EndpointAPI + "applications"
+	EndpointOAuth2 = EndpointAPI + "oauth2/"
+	EndpointOAuth2Applications = EndpointOAuth2 + "applications"
+}
