@@ -3,10 +3,6 @@ package state
 import (
 	"errors"
 	"sync"
-
-	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/user"
 )
 
 // ErrStateNotFound is returned when the state cache requested is not found
@@ -17,15 +13,12 @@ type State interface {
 	// GetMutex returns sync.RWMutex associated with the State.
 	GetMutex() *sync.RWMutex
 
-	// GetGuilds returns the guild.Guild cached.
-	GetGuilds() []*guild.Guild
-
-	// MemberAdd adds a user.Member to the State.
-	MemberAdd(*user.Member) error
-	// ChannelAdd adds a channel.Channel to the State.
-	ChannelAdd(*channel.Channel) error
-	// Guild returns the guild.Guild cached.
-	Guild(string) (*guild.Guild, error)
+	// MemberState returns the State for user.Member.
+	MemberState() Member
+	// ChannelState returns the State for channel package.
+	ChannelState() Channel
+	// GuildState returns the State for guild package.
+	GuildState() Guild
 
 	// GetMaxMessageCount returns how many messages per channel the State will store.
 	GetMaxMessageCount() int

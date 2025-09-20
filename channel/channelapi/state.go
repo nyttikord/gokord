@@ -52,7 +52,7 @@ func (s *State) ChannelAdd(channel *channel.Channel) error {
 		return nil
 	}
 
-	g, err := s.Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(channel.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
@@ -92,7 +92,7 @@ func (s *State) ChannelRemove(channel *channel.Channel) error {
 		return nil
 	}
 
-	guild, err := s.Guild(channel.GuildID)
+	guild, err := s.GuildState().Guild(channel.GuildID)
 	if err != nil {
 		return err
 	}

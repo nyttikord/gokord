@@ -28,14 +28,14 @@ func (s *State) GuildAdd(guild *guild.Guild) {
 	// Update the channels to point to the right guild
 	for _, c := range guild.Channels {
 		s.GetMutex().Unlock() // unlock to let it adds the channel
-		s.ChannelAdd(c)
+		s.ChannelState().ChannelAdd(c)
 		s.GetMutex().Lock()
 	}
 
 	// Add all the threads to the state in case of thread sync list.
 	for _, t := range guild.Threads {
 		s.GetMutex().Unlock() // unlock to let it adds the thread
-		s.ChannelAdd(t)
+		s.ChannelState().ChannelAdd(t)
 		s.GetMutex().Lock()
 	}
 

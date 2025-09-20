@@ -41,10 +41,6 @@ type State struct {
 	TrackRoles         bool
 	TrackVoice         bool
 	TrackPresences     bool
-
-	guildMap   map[string]*guild.Guild
-	channelMap map[string]*channel.Channel
-	memberMap  map[string]map[string]*user.Member
 }
 
 func (s *State) GetMaxMessageCount() int {
@@ -91,20 +87,16 @@ func (s *State) GetMutex() *sync.RWMutex {
 	return &s.RWMutex
 }
 
-func (s *State) GetGuilds() []*guild.Guild {
-	return s.Guilds
+func (s *State) MemberState() state.Member {
+	return s.session.UserAPI().State
 }
 
-func (s *State) MemberAdd(m *user.Member) error {
-	return s.session.UserAPI().State.MemberAdd(m)
+func (s *State) ChannelState() state.Channel {
+	return s.session.ChannelAPI().State
 }
 
-func (s *State) ChannelAdd(c *channel.Channel) error {
-	return s.session.ChannelAPI().State.ChannelAdd(c)
-}
-
-func (s *State) Guild(id string) (*guild.Guild, error) {
-	return s.session.GuildAPI().State.Guild(id)
+func (s *State) GuildState() state.Guild {
+	return s.session.GuildAPI().State
 }
 
 // NewState creates an empty state.
@@ -123,120 +115,7 @@ func NewState() *State {
 		TrackRoles:         true,
 		TrackVoice:         true,
 		TrackPresences:     true,
-		guildMap:           make(map[string]*guild.Guild),
-		channelMap:         make(map[string]*channel.Channel),
-		memberMap:          make(map[string]map[string]*user.Member),
 	}
-}
-
-func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
-	guild, ok := s.guildMap[guildID]
-	if !ok {
-		return ErrStateNotFound
-	}
-
-	for i, p := range guild.Presences {
-		if p.User.ID == presence.User.ID {
-			//guild.Presences[i] = presence
-
-			//Update status
-			guild.Presences[i].Activities = presence.Activities
-			if presence.Status != "" {
-				guild.Presences[i].Status = presence.Status
-			}
-			if presence.ClientStatus.Desktop != "" {
-				guild.Presences[i].ClientStatus.Desktop = presence.ClientStatus.Desktop
-			}
-			if presence.ClientStatus.Mobile != "" {
-				guild.Presences[i].ClientStatus.Mobile = presence.ClientStatus.Mobile
-			}
-			if presence.ClientStatus.Web != "" {
-				guild.Presences[i].ClientStatus.Web = presence.ClientStatus.Web
-			}
-
-			//Update the optionally sent user information
-			//ID Is a mandatory field so you should not need to check if it is empty
-			guild.Presences[i].User.ID = presence.User.ID
-
-			if presence.User.Avatar != "" {
-				guild.Presences[i].User.Avatar = presence.User.Avatar
-			}
-			if presence.User.Discriminator != "" {
-				guild.Presences[i].User.Discriminator = presence.User.Discriminator
-			}
-			if presence.User.Email != "" {
-				guild.Presences[i].User.Email = presence.User.Email
-			}
-			if presence.User.Token != "" {
-				guild.Presences[i].User.Token = presence.User.Token
-			}
-			if presence.User.Username != "" {
-				guild.Presences[i].User.Username = presence.User.Username
-			}
-
-			return nil
-		}
-	}
-
-	guild.Presences = append(guild.Presences, presence)
-	return nil
-}
-
-// PresenceAdd adds a presence to the current world state, or
-// updates it if it already existuserapis.
-func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	return s.presenceAdd(guildID, presence)
-}
-
-// PresenceRemove removes a presence from the current world state.
-func (s *State) PresenceRemove(guildID string, presence *status.Presence) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	for i, p := range guild.Presences {
-		if p.User.ID == presence.User.ID {
-			guild.Presences = append(guild.Presences[:i], guild.Presences[i+1:]...)
-			return nil
-		}
-	}
-
-	return ErrStateNotFound
-}
-
-// Presence gets a presence by ID from a guild.
-func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, p := range guild.Presences {
-		if p.User.ID == userID {
-			return p, nil
-		}
-	}
-
-	return nil, ErrStateNotFound
 }
 
 // Emoji returns an emoji for a guild and emoji id.
@@ -245,7 +124,7 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		return nil, ErrNilState
 	}
 
-	guild, err := s.Guild(guildID)
+	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +132,7 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 	s.RLock()
 	defer s.RUnlock()
 
-	for _, e := range guild.Emojis {
+	for _, e := range g.Emojis {
 		if e.ID == emojiID {
 			return e, nil
 		}
@@ -268,7 +147,7 @@ func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
 		return ErrNilState
 	}
 
-	guild, err := s.Guild(guildID)
+	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return err
 	}
@@ -276,14 +155,14 @@ func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
 	s.Lock()
 	defer s.Unlock()
 
-	for i, e := range guild.Emojis {
+	for i, e := range g.Emojis {
 		if e.ID == emoji.ID {
-			guild.Emojis[i] = emoji
+			g.Emojis[i] = emoji
 			return nil
 		}
 	}
 
-	guild.Emojis = append(guild.Emojis, emoji)
+	g.Emojis = append(g.Emojis, emoji)
 	return nil
 }
 
@@ -298,7 +177,7 @@ func (s *State) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
 }
 
 func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
-	guild, err := s.Guild(update.GuildID)
+	g, err := s.GuildState().Guild(update.GuildID)
 	if err != nil {
 		return err
 	}
@@ -308,21 +187,21 @@ func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
 
 	// Handle Leaving Application
 	if update.ChannelID == "" {
-		for i, state := range guild.VoiceStates {
-			if state.UserID == update.UserID {
-				guild.VoiceStates = append(guild.VoiceStates[:i], guild.VoiceStates[i+1:]...)
+		for i, st := range g.VoiceStates {
+			if st.UserID == update.UserID {
+				g.VoiceStates = append(g.VoiceStates[:i], g.VoiceStates[i+1:]...)
 				return nil
 			}
 		}
 	} else {
-		for i, state := range guild.VoiceStates {
-			if state.UserID == update.UserID {
-				guild.VoiceStates[i] = update.VoiceState
+		for i, st := range g.VoiceStates {
+			if st.UserID == update.UserID {
+				g.VoiceStates[i] = update.VoiceState
 				return nil
 			}
 		}
 
-		guild.VoiceStates = append(guild.VoiceStates, update.VoiceState)
+		g.VoiceStates = append(g.VoiceStates, update.VoiceState)
 	}
 
 	return nil
@@ -334,14 +213,14 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 		return nil, ErrNilState
 	}
 
-	guild, err := s.Guild(guildID)
+	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, state := range guild.VoiceStates {
-		if state.UserID == userID {
-			return state, nil
+	for _, st := range g.VoiceStates {
+		if st.UserID == userID {
+			return st, nil
 		}
 	}
 
@@ -392,7 +271,7 @@ func (s *State) onReady(se *Session, r *Ready) (err error) {
 }
 
 // OnInterface handles all events related to states.
-func (s *State) OnInterface(se *Session, i interface{}) (err error) {
+func (s *State) OnInterface(se *Session, i interface{}) error {
 	if s == nil {
 		return ErrNilState
 	}
@@ -406,165 +285,173 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 		return nil
 	}
 
+	var err error
 	switch t := i.(type) {
 	case *GuildCreate:
-		err = s.GuildAdd(t.Guild)
+		s.GuildState().GuildAdd(t.Guild)
 	case *GuildUpdate:
-		err = s.GuildAdd(t.Guild)
+		s.GuildState().GuildAdd(t.Guild)
 	case *GuildDelete:
 		var old *guild.Guild
-		old, err = s.Guild(t.ID)
+		old, err = s.GuildState().Guild(t.ID)
 		if err == nil {
 			oldCopy := *old
 			t.BeforeDelete = &oldCopy
 		}
 
-		err = s.GuildRemove(t.Guild)
+		err = s.GuildState().GuildRemove(t.Guild)
 	case *GuildMemberAdd:
-		var guild *guild.Guild
+		var g *guild.Guild
 		// Updates the MemberCount of the guild.
-		guild, err = s.Guild(t.Member.GuildID)
+		g, err = s.GuildState().Guild(t.Member.GuildID)
 		if err != nil {
 			return err
 		}
-		guild.MemberCount++
+		g.MemberCount++
 
 		// Caches member if tracking is enabled.
 		if s.TrackMembers {
-			err = s.MemberAdd(t.Member)
+			err = s.MemberState().MemberAdd(t.Member)
 		}
 	case *GuildMemberUpdate:
 		if s.TrackMembers {
 			var old *user.Member
-			old, err = s.Member(t.GuildID, t.User.ID)
+			old, err = s.MemberState().Member(t.GuildID, t.User.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
 
-			err = s.MemberAdd(t.Member)
+			err = s.MemberState().MemberAdd(t.Member)
 		}
 	case *GuildMemberRemove:
-		var guild *guild.Guild
-		// Updates the MemberCount of the guild.
-		guild, err = s.Guild(t.Member.GuildID)
+		var g *guild.Guild
+		// Updates the MemberCount of the g.
+		g, err = s.GuildState().Guild(t.Member.GuildID)
 		if err != nil {
 			return err
 		}
-		guild.MemberCount--
+		g.MemberCount--
 
 		// Removes member from the cache if tracking is enabled.
 		if s.TrackMembers {
-			old, err := s.Member(t.Member.GuildID, t.Member.User.ID)
+			var old *user.Member
+			old, err = s.MemberState().Member(t.Member.GuildID, t.Member.User.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
 
-			err = s.MemberRemove(t.Member)
+			err = s.MemberState().MemberRemove(t.Member)
 		}
 	case *GuildMembersChunk:
 		if s.TrackMembers {
 			for i := range t.Members {
 				t.Members[i].GuildID = t.GuildID
-				err = s.MemberAdd(t.Members[i])
+				err = s.MemberState().MemberAdd(t.Members[i])
 			}
 		}
 
 		if s.TrackPresences {
 			for _, p := range t.Presences {
-				err = s.PresenceAdd(t.GuildID, p)
+				err = s.MemberState().PresenceAdd(t.GuildID, p)
 			}
 		}
 	case *GuildRoleCreate:
 		if s.TrackRoles {
-			err = s.RoleAdd(t.GuildID, t.Role)
+			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
 	case *GuildRoleUpdate:
 		if s.TrackRoles {
-			old, err := s.Role(t.GuildID, t.Role.ID)
+			var old *guild.Role
+			old, err = s.GuildState().Role(t.GuildID, t.Role.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
 
-			err = s.RoleAdd(t.GuildID, t.Role)
+			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
 	case *GuildRoleDelete:
 		if s.TrackRoles {
-			old, err := s.Role(t.GuildID, t.RoleID)
+			var old *guild.Role
+			old, err = s.GuildState().Role(t.GuildID, t.RoleID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
 
-			err = s.RoleRemove(t.GuildID, t.RoleID)
+			err = s.GuildState().RoleRemove(t.GuildID, t.RoleID)
 		}
 	case *GuildEmojisUpdate:
 		if s.TrackEmojis {
-			var guild *guild.Guild
-			guild, err = s.Guild(t.GuildID)
+			var g *guild.Guild
+			g, err = s.GuildState().Guild(t.GuildID)
 			if err != nil {
 				return err
 			}
 			s.Lock()
 			defer s.Unlock()
-			guild.Emojis = t.Emojis
+			g.Emojis = t.Emojis
 		}
 	case *GuildStickersUpdate:
 		if s.TrackStickers {
-			var guild *guild.Guild
-			guild, err = s.Guild(t.GuildID)
+			var g *guild.Guild
+			g, err = s.GuildState().Guild(t.GuildID)
 			if err != nil {
 				return err
 			}
 			s.Lock()
 			defer s.Unlock()
-			guild.Stickers = t.Stickers
+			g.Stickers = t.Stickers
 		}
 	case *ChannelCreate:
 		if s.TrackChannels {
-			err = s.ChannelAdd(t.Channel)
+			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *ChannelUpdate:
 		if s.TrackChannels {
-			old, err := s.Channel(t.ID)
+			var old *channel.Channel
+			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			err = s.ChannelAdd(t.Channel)
+			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *ChannelDelete:
 		if s.TrackChannels {
-			old, err := s.Channel(t.ID)
+			var old *channel.Channel
+			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			err = s.ChannelRemove(t.Channel)
+			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
 	case *ThreadCreate:
 		if s.TrackThreads {
-			err = s.ChannelAdd(t.Channel)
+			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *ThreadUpdate:
 		if s.TrackThreads {
-			old, err := s.Channel(t.ID)
+			var old *channel.Channel
+			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			err = s.ChannelAdd(t.Channel)
+			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *ThreadDelete:
 		if s.TrackThreads {
-			old, err := s.Channel(t.ID)
+			var old *channel.Channel
+			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			err = s.ChannelRemove(t.Channel)
+			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
 	case *ThreadMemberUpdate:
 		if s.TrackThreads {
@@ -580,34 +467,34 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 		}
 	case *MessageCreate:
 		if s.MaxMessageCount != 0 {
-			err = s.MessageAdd(t.Message)
+			err = s.ChannelState().MessageAdd(t.Message)
 		}
 	case *MessageUpdate:
 		if s.MaxMessageCount != 0 {
 			var old *channel.Message
-			old, err = s.Message(t.ChannelID, t.ID)
+			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
 
-			err = s.MessageAdd(t.Message)
+			err = s.ChannelState().MessageAdd(t.Message)
 		}
 	case *MessageDelete:
 		if s.MaxMessageCount != 0 {
 			var old *channel.Message
-			old, err = s.Message(t.ChannelID, t.ID)
+			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
 
-			err = s.MessageRemove(t.Message)
+			err = s.ChannelState().MessageRemove(t.Message)
 		}
 	case *MessageDeleteBulk:
 		if s.MaxMessageCount != 0 {
 			for _, mID := range t.Messages {
-				s.messageRemoveByID(t.ChannelID, mID)
+				s.ChannelState().messageRemoveByID(t.ChannelID, mID)
 			}
 		}
 	case *VoiceStateUpdate:
@@ -623,15 +510,15 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 		}
 	case *PresenceUpdate:
 		if s.TrackPresences {
-			s.PresenceAdd(t.GuildID, &t.Presence)
+			err = s.MemberState().PresenceAdd(t.GuildID, &t.Presence)
 		}
 		if s.TrackMembers {
 			if t.Status == status.Offline {
-				return
+				return err
 			}
 
 			var m *user.Member
-			m, err = s.Member(t.GuildID, t.User.ID)
+			m, err = s.MemberState().Member(t.GuildID, t.User.ID)
 
 			if err != nil {
 				// Member not found; this is a user coming online
@@ -645,12 +532,12 @@ func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 				}
 			}
 
-			err = s.MemberAdd(m)
+			err = s.MemberState().MemberAdd(m)
 		}
 
 	}
 
-	return
+	return nil
 }
 
 // UserChannelPermissions returns the permission of a user in a channel.
@@ -661,22 +548,22 @@ func (s *State) UserChannelPermissions(userID, channelID string) (apermissions i
 		return 0, ErrNilState
 	}
 
-	channel, err := s.Channel(channelID)
+	c, err := s.ChannelState().Channel(channelID)
 	if err != nil {
 		return
 	}
 
-	guild, err := s.Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(c.GuildID)
 	if err != nil {
 		return
 	}
 
-	member, err := s.Member(guild.ID, userID)
+	member, err := s.MemberState().Member(g.ID, userID)
 	if err != nil {
 		return
 	}
 
-	return MemberPermissions(guild, channel, userID, member.Roles), nil
+	return MemberPermissions(g, c, userID, member.Roles), nil
 }
 
 // MessagePermissions returns the permissions of the author of the message
@@ -690,17 +577,17 @@ func (s *State) MessagePermissions(message *channel.Message) (apermissions int64
 		return 0, ErrMessageIncompletePermissions
 	}
 
-	channel, err := s.Channel(message.ChannelID)
+	c, err := s.ChannelState().Channel(message.ChannelID)
 	if err != nil {
 		return
 	}
 
-	guild, err := s.Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(c.GuildID)
 	if err != nil {
 		return
 	}
 
-	return MemberPermissions(guild, channel, message.Author.ID, message.Member.Roles), nil
+	return MemberPermissions(g, c, message.Author.ID, message.Member.Roles), nil
 }
 
 // UserColor returns the color of a user in a channel.
@@ -713,22 +600,22 @@ func (s *State) UserColor(userID, channelID string) int {
 		return 0
 	}
 
-	channel, err := s.Channel(channelID)
+	c, err := s.ChannelState().Channel(channelID)
 	if err != nil {
 		return 0
 	}
 
-	guild, err := s.Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(c.GuildID)
 	if err != nil {
 		return 0
 	}
 
-	member, err := s.Member(guild.ID, userID)
+	member, err := s.MemberState().Member(g.ID, userID)
 	if err != nil {
 		return 0
 	}
 
-	return firstRoleColorColor(guild, member.Roles)
+	return firstRoleColorColor(g, member.Roles)
 }
 
 // MessageColor returns the color of the author's name as displayed
@@ -742,17 +629,17 @@ func (s *State) MessageColor(message *channel.Message) int {
 		return 0
 	}
 
-	channel, err := s.Channel(message.ChannelID)
+	c, err := s.ChannelState().Channel(message.ChannelID)
 	if err != nil {
 		return 0
 	}
 
-	guild, err := s.Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(c.GuildID)
 	if err != nil {
 		return 0
 	}
 
-	return firstRoleColorColor(guild, message.Member.Roles)
+	return firstRoleColorColor(g, message.Member.Roles)
 }
 
 func firstRoleColorColor(g *guild.Guild, memberRoles []string) int {
@@ -780,7 +667,7 @@ func firstRoleColorColor(g *guild.Guild, memberRoles []string) int {
 
 // ThreadListSync syncs guild threads with provided ones.
 func (s *State) ThreadListSync(tls *ThreadListSync) error {
-	g, err := s.Guild(tls.GuildID)
+	g, err := s.GuildState().Guild(tls.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
