@@ -67,8 +67,12 @@ func (s Requester) CommandDelete(appID, guildID, cmdID string, options ...discor
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
+	bucket := discord.EndpointApplicationGlobalCommand(appID, "")
+	if guildID != "" {
+		bucket = discord.EndpointApplicationGuildCommand(appID, guildID, "")
+	}
 
-	_, err := s.Request(http.MethodDelete, endpoint, nil, options...)
+	_, err := s.RequestWithBucketID(http.MethodDelete, endpoint, nil, bucket, options...)
 	return err
 }
 
