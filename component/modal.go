@@ -129,6 +129,29 @@ const (
 	TextInputParagraph TextInputStyle = 2
 )
 
+// TextDisplay is a top-level Component that allows you to add markdown-formatted text to the Message.
+type TextDisplay struct {
+	Content string `json:"content"`
+}
+
+func (*TextDisplay) Type() types.Component {
+	return types.ComponentTextDisplay
+}
+
+func (t *TextDisplay) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		TextDisplay
+		Type types.Component `json:"type"`
+	}{
+		TextDisplay: *t,
+		Type:        t.Type(),
+	})
+}
+
+func (*TextDisplay) message() {}
+
+func (*TextDisplay) modal() {}
+
 // Label is a top-level layout Component.
 // It wraps modal components with text as a label and optional description.
 type Label struct {
