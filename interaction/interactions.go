@@ -78,8 +78,9 @@ type Interaction struct {
 
 // UnmarshalJSON is a method for unmarshalling JSON object to Interaction.
 func (i *Interaction) UnmarshalJSON(raw []byte) error {
+	type in Interaction
 	var tmp struct {
-		Interaction
+		in
 		Data json.RawMessage `json:"data"`
 	}
 	err := json.Unmarshal(raw, &tmp)
@@ -87,7 +88,7 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
-	*i = tmp.Interaction
+	*i = Interaction(tmp.in)
 
 	switch tmp.Type {
 	case types.InteractionApplicationCommand, types.InteractionApplicationCommandAutocomplete:
