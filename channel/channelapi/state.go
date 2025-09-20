@@ -136,3 +136,102 @@ func (s *State) Channel(channelID string) (*channel.Channel, error) {
 func (s *State) PrivateChannels() []*channel.Channel {
 	return s.privateChannels
 }
+
+// MessageAdd adds a message to the current world state, or updates it if it exists.
+// If the channel cannot be found, the message is discarded.
+// Messages are kept in state up to s.MaxMessageCount per channel.
+func (s *State) MessageAdd(message *channel.Message) error {
+	c, err := s.Channel(message.ChannelID)
+	if err != nil {
+		return err
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	// If the message exists, merge in the new message contents.
+	for _, m := range c.Messages {
+		if m.ID == message.ID {
+			if message.Content != "" {
+				m.Content = message.Content
+			}
+			if message.EditedTimestamp != nil {
+				m.EditedTimestamp = message.EditedTimestamp
+			}
+			if message.Mentions != nil {
+				m.Mentions = message.Mentions
+			}
+			if message.Embeds != nil {
+				m.Embeds = message.Embeds
+			}
+			if message.Attachments != nil {
+				m.Attachments = message.Attachments
+			}
+			if !message.Timestamp.IsZero() {
+				m.Timestamp = message.Timestamp
+			}
+			if message.Author != nil {
+				m.Author = message.Author
+			}
+			if message.Components != nil {
+				m.Components = message.Components
+			}
+
+			return nil
+		}
+	}
+
+	c.Messages = append(c.Messages, message)
+
+	if len(c.Messages) > s.GetMaxMessageCount() {
+		c.Messages = c.Messages[len(c.Messages)-s.GetMaxMessageCount():]
+	}
+
+	return nil
+}
+
+// MessageRemove removes a message from the world state.
+func (s *State) MessageRemove(message *channel.Message) error {
+	return s.messageRemoveByID(message.ChannelID, message.ID)
+}
+
+// messageRemoveByID removes a message by channelID and messageID from the world state.
+func (s *State) messageRemoveByID(channelID, messageID string) error {
+	c, err := s.Channel(channelID)
+	if err != nil {
+		return err
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	for i, m := range c.Messages {
+		if m.ID == messageID {
+			c.Messages = append(c.Messages[:i], c.Messages[i+1:]...)
+
+			return nil
+		}
+	}
+
+	return state.ErrStateNotFound
+}
+
+// Message gets a message by channel and message ID.
+func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
+
+	c, err := s.Channel(channelID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.GetMutex().RLock()
+	defer s.GetMutex().RUnlock()
+
+	for _, m := range c.Messages {
+		if m.ID == messageID {
+			return m, nil
+		}
+	}
+
+	return nil, state.ErrStateNotFound
+}

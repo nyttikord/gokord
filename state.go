@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -298,93 +297,6 @@ func (s *State) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
 	return nil
 }
 
-// MessageAdd adds a message to the current world state, or updates it if it exists.
-// If the channel cannot be found, the message is discarded.
-// Messages are kept in state up to s.MaxMessageCount per channel.
-func (s *State) MessageAdd(message *channel.Message) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	c, err := s.Channel(message.ChannelID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	// If the message exists, merge in the new message contents.
-	for _, m := range c.Messages {
-		if m.ID == message.ID {
-			if message.Content != "" {
-				m.Content = message.Content
-			}
-			if message.EditedTimestamp != nil {
-				m.EditedTimestamp = message.EditedTimestamp
-			}
-			if message.Mentions != nil {
-				m.Mentions = message.Mentions
-			}
-			if message.Embeds != nil {
-				m.Embeds = message.Embeds
-			}
-			if message.Attachments != nil {
-				m.Attachments = message.Attachments
-			}
-			if !message.Timestamp.IsZero() {
-				m.Timestamp = message.Timestamp
-			}
-			if message.Author != nil {
-				m.Author = message.Author
-			}
-			if message.Components != nil {
-				m.Components = message.Components
-			}
-
-			return nil
-		}
-	}
-
-	c.Messages = append(c.Messages, message)
-
-	if len(c.Messages) > s.MaxMessageCount {
-		c.Messages = c.Messages[len(c.Messages)-s.MaxMessageCount:]
-	}
-
-	return nil
-}
-
-// MessageRemove removes a message from the world state.
-func (s *State) MessageRemove(message *channel.Message) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	return s.messageRemoveByID(message.ChannelID, message.ID)
-}
-
-// messageRemoveByID removes a message by channelID and messageID from the world state.
-func (s *State) messageRemoveByID(channelID, messageID string) error {
-	c, err := s.Channel(channelID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	for i, m := range c.Messages {
-		if m.ID == messageID {
-			c.Messages = append(c.Messages[:i], c.Messages[i+1:]...)
-
-			return nil
-		}
-	}
-
-	return ErrStateNotFound
-}
-
 func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
 	guild, err := s.Guild(update.GuildID)
 	if err != nil {
@@ -430,29 +342,6 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 	for _, state := range guild.VoiceStates {
 		if state.UserID == userID {
 			return state, nil
-		}
-	}
-
-	return nil, ErrStateNotFound
-}
-
-// Message gets a message by channel and message ID.
-func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	c, err := s.Channel(channelID)
-	if err != nil {
-		return nil, err
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	for _, m := range c.Messages {
-		if m.ID == messageID {
-			return m, nil
 		}
 	}
 
