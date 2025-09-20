@@ -14,20 +14,17 @@ import (
 )
 
 // ErrNilState is returned when the state is nil.
-var ErrNilState = errors.New("state not instantiated, please use discordgo.New() or assign Session.State")
+var ErrNilState = errors.New("state not instantiated")
 
-// ErrStateNotFound is returned when the state cache
-// requested is not found
+// ErrStateNotFound is returned when the state cache requested is not found
 var ErrStateNotFound = errors.New("state cache not found")
 
-// ErrMessageIncompletePermissions is returned when the message
-// requested for permissions does not contain enough data to
+// ErrMessageIncompletePermissions is returned when the message requested for permissions does not contain enough data to
 // generate the permissions.
 var ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
 
 // A State contains the current known state.
-// As discord sends this in a READY blob, it seems reasonable to simply
-// use that struct as the data store.
+// As discord sends this in a READY blob, it seems reasonable to simply use that struct as the data store.
 type State struct {
 	sync.RWMutex
 	Ready
@@ -47,6 +44,54 @@ type State struct {
 	guildMap   map[string]*guild.Guild
 	channelMap map[string]*channel.Channel
 	memberMap  map[string]map[string]*user.Member
+}
+
+func (s *State) GetMaxMessageCount() int {
+	return s.MaxMessageCount
+}
+
+func (s *State) AreChannelsTracked() bool {
+	return s.TrackChannels
+}
+
+func (s *State) AreThreadsTracked() bool {
+	return s.TrackThreads
+}
+
+func (s *State) AreEmojisTracked() bool {
+	return s.TrackEmojis
+}
+
+func (s *State) AreStickersTracked() bool {
+	return s.TrackStickers
+}
+
+func (s *State) AreMembersTracked() bool {
+	return s.TrackMembers
+}
+
+func (s *State) AreThreadMembersTracked() bool {
+	return s.TrackThreadMembers
+}
+
+func (s *State) AreRolesTracked() bool {
+	return s.TrackRoles
+}
+
+func (s *State) AreVoiceTracked() bool {
+	return s.TrackVoice
+}
+
+func (s *State) ArePresencesTracked() bool {
+	return s.TrackPresences
+}
+
+func (s *State) GetMutex() *sync.RWMutex {
+	return &s.RWMutex
+}
+
+func (s *State) GetGuilds() []*guild.Guild {
+	return s.Guilds
 }
 
 // NewState creates an empty state.
@@ -77,117 +122,6 @@ func (s *State) createMemberMap(guild *guild.Guild) {
 		members[m.User.ID] = m
 	}
 	s.memberMap[guild.ID] = members
-}
-
-// GuildAdd adds a guild to the current world state, or
-// updates it if it already exists.
-func (s *State) GuildAdd(guild *guild.Guild) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	// Update the channels to point to the right guild, adding them to the channelMap as we go
-	for _, c := range guild.Channels {
-		s.channelMap[c.ID] = c
-	}
-
-	// Add all the threads to the state in case of thread sync list.
-	for _, t := range guild.Threads {
-		s.channelMap[t.ID] = t
-	}
-
-	// If this guild contains a new member slice, we must regenerate the member map so the pointers stay valid
-	if guild.Members != nil {
-		s.createMemberMap(guild)
-	} else if _, ok := s.memberMap[guild.ID]; !ok {
-		// Even if we have no new member slice, we still initialize the member map for this guild if it doesn't exist
-		s.memberMap[guild.ID] = make(map[string]*user.Member)
-	}
-
-	if g, ok := s.guildMap[guild.ID]; ok {
-		// We are about to replace `g` in the state with `guild`, but first we need to
-		// make sure we preserve any fields that the `guild` doesn't contain from `g`.
-		if guild.MemberCount == 0 {
-			guild.MemberCount = g.MemberCount
-		}
-		if guild.Roles == nil {
-			guild.Roles = g.Roles
-		}
-		if guild.Emojis == nil {
-			guild.Emojis = g.Emojis
-		}
-		if guild.Members == nil {
-			guild.Members = g.Members
-		}
-		if guild.Presences == nil {
-			guild.Presences = g.Presences
-		}
-		if guild.Channels == nil {
-			guild.Channels = g.Channels
-		}
-		if guild.Threads == nil {
-			guild.Threads = g.Threads
-		}
-		if guild.VoiceStates == nil {
-			guild.VoiceStates = g.VoiceStates
-		}
-		*g = *guild
-		return nil
-	}
-
-	s.Guilds = append(s.Guilds, guild)
-	s.guildMap[guild.ID] = guild
-
-	return nil
-}
-
-// GuildRemove removes a guild from current world state.
-func (s *State) GuildRemove(guild *guild.Guild) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	_, err := s.Guild(guild.ID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	delete(s.guildMap, guild.ID)
-
-	for i, g := range s.Guilds {
-		if g.ID == guild.ID {
-			s.Guilds = append(s.Guilds[:i], s.Guilds[i+1:]...)
-			return nil
-		}
-	}
-
-	return nil
-}
-
-// Guild gets a guild by ID.
-// Useful for querying if @me is in a guild:
-//
-//	   _, err := discordgo.Session.State.Application(guildID)
-//		  isInGuild := err == nil
-func (s *State) Guild(guildID string) (*guild.Guild, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	if g, ok := s.guildMap[guildID]; ok {
-		return g, nil
-	}
-
-	return nil, ErrStateNotFound
 }
 
 func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
@@ -393,79 +327,6 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	m, ok := members[userID]
 	if ok {
 		return m, nil
-	}
-
-	return nil, ErrStateNotFound
-}
-
-// RoleAdd adds a role to the current world state, or
-// updates it if it already exists.
-func (s *State) RoleAdd(guildID string, role *guild.Role) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	for i, r := range guild.Roles {
-		if r.ID == role.ID {
-			guild.Roles[i] = role
-			return nil
-		}
-	}
-
-	guild.Roles = append(guild.Roles, role)
-	return nil
-}
-
-// RoleRemove removes a role from current world state by ID.
-func (s *State) RoleRemove(guildID, roleID string) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	for i, r := range guild.Roles {
-		if r.ID == roleID {
-			guild.Roles = append(guild.Roles[:i], guild.Roles[i+1:]...)
-			return nil
-		}
-	}
-
-	return ErrStateNotFound
-}
-
-// Role gets a role by ID from a guild.
-func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	for _, r := range guild.Roles {
-		if r.ID == roleID {
-			return r, nil
-		}
 	}
 
 	return nil, ErrStateNotFound
