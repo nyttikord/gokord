@@ -14,6 +14,7 @@ import (
 // Requester handles everything inside the user package.
 type Requester struct {
 	discord.Requester
+	State *State
 }
 
 // User returns the user.User details of the given userID (can be @me to be the current user.User ID).

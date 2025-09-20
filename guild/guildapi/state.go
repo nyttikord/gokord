@@ -13,6 +13,13 @@ type State struct {
 	guildMap map[string]*guild.Guild
 }
 
+func NewState(state state.State) *State {
+	return &State{
+		State:    state,
+		guildMap: make(map[string]*guild.Guild),
+	}
+}
+
 // GuildAdd adds a guild.Guild to the current State, or updates it if it already exists.
 func (s *State) GuildAdd(guild *guild.Guild) {
 	s.GetMutex().Lock()
@@ -31,15 +38,6 @@ func (s *State) GuildAdd(guild *guild.Guild) {
 		s.ChannelAdd(t)
 		s.GetMutex().Lock()
 	}
-
-	// i don't know if this part is useful
-	//// If this guild contains a new member slice, we must regenerate the member map so the pointers stay valid
-	//if guild.Members != nil {
-	//	s.createMemberMap(guild)
-	//} else if _, ok := s.memberMap[guild.ID]; !ok {
-	//	// Even if we have no new member slice, we still initialize the member map for this guild if it doesn't exist
-	//	s.memberMap[guild.ID] = make(map[string]*user.Member)
-	//}
 
 	if g, ok := s.guildMap[guild.ID]; ok {
 		// We are about to replace `g` in the state with `guild`, but first we need to

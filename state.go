@@ -28,6 +28,7 @@ var ErrMessageIncompletePermissions = errors.New("message incomplete, unable to 
 type State struct {
 	sync.RWMutex
 	Ready
+	session Session
 
 	// MaxMessageCount represents how many messages per channel the state will store.
 	MaxMessageCount    int
@@ -94,6 +95,14 @@ func (s *State) GetGuilds() []*guild.Guild {
 	return s.Guilds
 }
 
+func (s *State) MemberAdd(m *user.Member) error {
+	return s.session.UserAPI().State.MemberAdd(m)
+}
+
+func (s *State) Guild(id string) (*guild.Guild, error) {
+	return s.session.GuildAPI().State.Guild(id)
+}
+
 // NewState creates an empty state.
 func NewState() *State {
 	return &State{
@@ -114,14 +123,6 @@ func NewState() *State {
 		channelMap:         make(map[string]*channel.Channel),
 		memberMap:          make(map[string]map[string]*user.Member),
 	}
-}
-
-func (s *State) createMemberMap(guild *guild.Guild) {
-	members := make(map[string]*user.Member)
-	for _, m := range guild.Members {
-		members[m.User.ID] = m
-	}
-	s.memberMap[guild.ID] = members
 }
 
 func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
@@ -229,104 +230,6 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 		if p.User.ID == userID {
 			return p, nil
 		}
-	}
-
-	return nil, ErrStateNotFound
-}
-
-// TODO: Consider moving user state update methods onto *Application.
-
-func (s *State) memberAdd(member *user.Member) error {
-	guild, ok := s.guildMap[member.GuildID]
-	if !ok {
-		return ErrStateNotFound
-	}
-
-	members, ok := s.memberMap[member.GuildID]
-	if !ok {
-		return ErrStateNotFound
-	}
-
-	m, ok := members[member.User.ID]
-	if !ok {
-		members[member.User.ID] = member
-		guild.Members = append(guild.Members, member)
-	} else {
-		// We are about to replace `m` in the state with `member`, but first we need to
-		// make sure we preserve any fields that the `member` doesn't contain from `m`.
-		if member.JoinedAt.IsZero() {
-			member.JoinedAt = m.JoinedAt
-		}
-		*m = *member
-	}
-	return nil
-}
-
-// MemberAdd adds a member to the current world state, or
-// updates it if it already exists.
-func (s *State) MemberAdd(member *user.Member) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	return s.memberAdd(member)
-}
-
-// MemberRemove removes a member from current world state.
-func (s *State) MemberRemove(member *user.Member) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	guild, err := s.Guild(member.GuildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	members, ok := s.memberMap[member.GuildID]
-	if !ok {
-		return ErrStateNotFound
-	}
-
-	_, ok = members[member.User.ID]
-	if !ok {
-		return ErrStateNotFound
-	}
-	delete(members, member.User.ID)
-
-	for i, m := range guild.Members {
-		if m.User.ID == member.User.ID {
-			guild.Members = append(guild.Members[:i], guild.Members[i+1:]...)
-			return nil
-		}
-	}
-
-	return ErrStateNotFound
-}
-
-// Member gets a member by ID from a guild.
-func (s *State) Member(guildID, userID string) (*user.Member, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	members, ok := s.memberMap[guildID]
-	if !ok {
-		return nil, ErrStateNotFound
-	}
-
-	m, ok := members[userID]
-	if ok {
-		return m, nil
 	}
 
 	return nil, ErrStateNotFound

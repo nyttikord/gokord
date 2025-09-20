@@ -10,7 +10,6 @@ import (
 
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite"
 )
 
@@ -24,13 +23,6 @@ var (
 type Requester struct {
 	discord.Requester
 	State *State
-}
-
-func NewState(state state.State) *State {
-	return &State{
-		State:    state,
-		guildMap: make(map[string]*guild.Guild),
-	}
 }
 
 // UserGuilds returns an array of guild.UserGuild structures for all guilds.

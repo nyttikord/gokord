@@ -23,7 +23,9 @@ type State interface {
 	// MemberAdd adds a user.Member to the State.
 	MemberAdd(*user.Member) error
 	// ChannelAdd adds a channel.Channel to the State.
-	ChannelAdd(*channel.Channel)
+	ChannelAdd(*channel.Channel) error
+	// Guild returns the guild.Guild cached.
+	Guild(string) (*guild.Guild, error)
 
 	// GetMaxMessageCount returns how many messages per channel the State will store.
 	GetMaxMessageCount() int

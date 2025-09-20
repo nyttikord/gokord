@@ -190,7 +190,7 @@ type IdentifyProperties struct {
 
 // UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() userapi.Requester {
-	return userapi.Requester{Requester: s}
+	return userapi.Requester{Requester: s, State: userapi.NewState(s.State)}
 }
 
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
