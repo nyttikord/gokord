@@ -28,6 +28,14 @@ type Channel interface {
 	MessageAdd(*channel.Message) error
 	MessageRemove(*channel.Message) error
 	Message(string, string) (*channel.Message, error)
+
+	ThreadListSync(string, []string, []*channel.Channel, []*channel.ThreadMember) error
+	ThreadMembersUpdate(string, string, int, []channel.AddedThreadMember, []string) error
+	ThreadMemberUpdate(*channel.ThreadMember) error
+
+	// internal use
+	AppendGuildChannel(c *channel.Channel)
+	MessageRemoveByID(string, string) error
 }
 
 type Guild interface {

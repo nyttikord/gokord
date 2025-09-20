@@ -31,7 +31,11 @@ func (s *State) createMemberMap(g *guild.Guild) {
 	s.memberMap[g.ID] = members
 }
 
-func (s *State) memberAdd(member *user.Member) error {
+// MemberAdd adds a member to the current world state, or updates it if it already exists.
+func (s *State) MemberAdd(member *user.Member) error {
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
@@ -58,14 +62,6 @@ func (s *State) memberAdd(member *user.Member) error {
 		*m = *member
 	}
 	return nil
-}
-
-// MemberAdd adds a member to the current world state, or updates it if it already exists.
-func (s *State) MemberAdd(member *user.Member) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	return s.memberAdd(member)
 }
 
 // MemberRemove removes a member from current world state.
@@ -120,7 +116,12 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	return nil, state.ErrStateNotFound
 }
 
-func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
+// PresenceAdd adds a presence to the current world state, or
+// updates it if it already existuserapis.
+func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
@@ -174,15 +175,6 @@ func (s *State) presenceAdd(guildID string, presence *status.Presence) error {
 
 	g.Presences = append(g.Presences, presence)
 	return nil
-}
-
-// PresenceAdd adds a presence to the current world state, or
-// updates it if it already existuserapis.
-func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	return s.presenceAdd(guildID, presence)
 }
 
 // PresenceRemove removes a presence from the current world state.

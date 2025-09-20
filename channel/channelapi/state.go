@@ -24,6 +24,11 @@ func NewState(state state.State) *State {
 	}
 }
 
+// AppendGuildChannel is for internal use only.
+func (s *State) AppendGuildChannel(c *channel.Channel) {
+	s.channelMap[c.ID] = c
+}
+
 // ChannelAdd adds a channel to the current world state, or updates it if it already exists.
 // Channels may exist either as PrivateChannels or inside a guild.
 func (s *State) ChannelAdd(channel *channel.Channel) error {
@@ -192,11 +197,12 @@ func (s *State) MessageAdd(message *channel.Message) error {
 
 // MessageRemove removes a message from the world state.
 func (s *State) MessageRemove(message *channel.Message) error {
-	return s.messageRemoveByID(message.ChannelID, message.ID)
+	return s.MessageRemoveByID(message.ChannelID, message.ID)
 }
 
-// messageRemoveByID removes a message by channelID and messageID from the world state.
-func (s *State) messageRemoveByID(channelID, messageID string) error {
+// MessageRemoveByID removes a message by channelID and messageID from the world state.
+// Internal use only.
+func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	c, err := s.Channel(channelID)
 	if err != nil {
 		return err
@@ -234,4 +240,106 @@ func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 	}
 
 	return nil, state.ErrStateNotFound
+}
+
+// ThreadListSync syncs guild threads with provided ones.
+// TODO: use gokord.ThreadListSync when event will be remade
+func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*channel.Channel, members []*channel.ThreadMember) error {
+	g, err := s.GuildState().Guild(guildID)
+	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrGuildNotCached)
+		}
+		return err
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	// This algorithm filters out archived or
+	// threads which are children of channels in channelIDs
+	// and then it adds all synced threads to guild threads and cache
+	index := 0
+outer:
+	for _, t := range g.Threads {
+		if !t.ThreadMetadata.Archived && channelIDs != nil {
+			for _, v := range channelIDs {
+				if t.ParentID == v {
+					delete(s.channelMap, t.ID)
+					continue outer
+				}
+			}
+			g.Threads[index] = t
+			index++
+		} else {
+			delete(s.channelMap, t.ID)
+		}
+	}
+	g.Threads = g.Threads[:index]
+	for _, t := range threads {
+		s.channelMap[t.ID] = t
+		g.Threads = append(g.Threads, t)
+	}
+
+	for _, m := range members {
+		if c, ok := s.channelMap[m.ID]; ok {
+			c.Member = m
+		}
+	}
+
+	return nil
+}
+
+// ThreadMembersUpdate updates thread members list
+// TODO: use gokord.ThreadMembersUpdate when event will be remade
+func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
+	thread, err := s.Channel(id)
+	if err != nil {
+		return err
+	}
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	for idx, member := range thread.Members {
+		for _, removedMember := range removedMembers {
+			if member.ID == removedMember {
+				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
+				break
+			}
+		}
+	}
+
+	for _, addedMember := range addedMembers {
+		thread.Members = append(thread.Members, addedMember.ThreadMember)
+		if addedMember.Member != nil {
+			s.GetMutex().Unlock() // unlock to add the member
+			err = s.MemberState().MemberAdd(addedMember.Member)
+			s.GetMutex().Lock()
+			if err != nil {
+				return err
+			}
+		}
+		if addedMember.Presence != nil {
+			s.GetMutex().Unlock() // unlock to add the presence
+			err = s.MemberState().PresenceAdd(guildID, addedMember.Presence)
+			s.GetMutex().Lock()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	thread.MemberCount = count
+
+	return nil
+}
+
+// ThreadMemberUpdate sets or updates member data for the current user.
+func (s *State) ThreadMemberUpdate(tm *channel.ThreadMember) error {
+	thread, err := s.Channel(tm.ID)
+	if err != nil {
+		return err
+	}
+
+	thread.Member = tm
+	return nil
 }

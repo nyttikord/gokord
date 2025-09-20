@@ -228,11 +228,7 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 }
 
 // OnReady takes a Ready event and updates all internal state.
-func (s *State) onReady(se *Session, r *Ready) (err error) {
-	if s == nil {
-		return ErrNilState
-	}
-
+func (s *State) onReady(se *Session, r *Ready) error {
 	s.Lock()
 	defer s.Unlock()
 
@@ -255,16 +251,13 @@ func (s *State) onReady(se *Session, r *Ready) (err error) {
 	s.Ready = *r
 
 	for _, g := range s.Guilds {
-		s.guildMap[g.ID] = g
-		s.createMemberMap(g)
-
-		for _, c := range g.Channels {
-			s.channelMap[c.ID] = c
-		}
+		s.GuildState().GuildAdd(g)
 	}
 
 	for _, c := range s.PrivateChannels {
-		s.channelMap[c.ID] = c
+		if err := s.ChannelState().ChannelAdd(c); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -455,15 +448,15 @@ func (s *State) OnInterface(se *Session, i interface{}) error {
 		}
 	case *ThreadMemberUpdate:
 		if s.TrackThreads {
-			err = s.ThreadMemberUpdate(t)
+			err = s.ChannelState().ThreadMemberUpdate(t.ThreadMember)
 		}
 	case *ThreadMembersUpdate:
 		if s.TrackThreadMembers {
-			err = s.ThreadMembersUpdate(t)
+			err = s.ChannelState().ThreadMembersUpdate(t.ID, t.GuildID, t.MemberCount, t.AddedMembers, t.RemovedMembers)
 		}
 	case *ThreadListSync:
 		if s.TrackThreads {
-			err = s.ThreadListSync(t)
+			err = s.ChannelState().ThreadListSync(t.GuildID, t.ChannelIDs, t.Threads, t.Members)
 		}
 	case *MessageCreate:
 		if s.MaxMessageCount != 0 {
@@ -494,7 +487,10 @@ func (s *State) OnInterface(se *Session, i interface{}) error {
 	case *MessageDeleteBulk:
 		if s.MaxMessageCount != 0 {
 			for _, mID := range t.Messages {
-				s.ChannelState().messageRemoveByID(t.ChannelID, mID)
+				err = s.ChannelState().MessageRemoveByID(t.ChannelID, mID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	case *VoiceStateUpdate:
@@ -663,100 +659,4 @@ func firstRoleColorColor(g *guild.Guild, memberRoles []string) int {
 	}
 
 	return 0
-}
-
-// ThreadListSync syncs guild threads with provided ones.
-func (s *State) ThreadListSync(tls *ThreadListSync) error {
-	g, err := s.GuildState().Guild(tls.GuildID)
-	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
-			return errors.Join(err, ErrGuildNotCached)
-		}
-		return err
-	}
-
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	// This algorithm filters out archived or
-	// threads which are children of channels in channelIDs
-	// and then it adds all synced threads to guild threads and cache
-	index := 0
-outer:
-	for _, t := range g.Threads {
-		if !t.ThreadMetadata.Archived && tls.ChannelIDs != nil {
-			for _, v := range tls.ChannelIDs {
-				if t.ParentID == v {
-					delete(s.channelMap, t.ID)
-					continue outer
-				}
-			}
-			g.Threads[index] = t
-			index++
-		} else {
-			delete(s.channelMap, t.ID)
-		}
-	}
-	g.Threads = g.Threads[:index]
-	for _, t := range tls.Threads {
-		s.channelMap[t.ID] = t
-		g.Threads = append(g.Threads, t)
-	}
-
-	for _, m := range tls.Members {
-		if c, ok := s.channelMap[m.ID]; ok {
-			c.Member = m
-		}
-	}
-
-	return nil
-}
-
-// ThreadMembersUpdate updates thread members list
-func (s *State) ThreadMembersUpdate(tmu *ThreadMembersUpdate) error {
-	thread, err := s.Channel(tmu.ID)
-	if err != nil {
-		return err
-	}
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	for idx, member := range thread.Members {
-		for _, removedMember := range tmu.RemovedMembers {
-			if member.ID == removedMember {
-				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
-				break
-			}
-		}
-	}
-
-	for _, addedMember := range tmu.AddedMembers {
-		thread.Members = append(thread.Members, addedMember.ThreadMember)
-		if addedMember.Member != nil {
-			err = s.memberAdd(addedMember.Member)
-			if err != nil {
-				return err
-			}
-		}
-		if addedMember.Presence != nil {
-			err = s.presenceAdd(tmu.GuildID, addedMember.Presence)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	thread.MemberCount = tmu.MemberCount
-
-	return nil
-}
-
-// ThreadMemberUpdate sets or updates member data for the current user.
-func (s *State) ThreadMemberUpdate(mu *ThreadMemberUpdate) error {
-	thread, err := s.Channel(mu.ID)
-	if err != nil {
-		return err
-	}
-
-	thread.Member = mu.ThreadMember
-	return nil
 }
