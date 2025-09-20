@@ -31,7 +31,7 @@ func (s *State) createMemberMap(g *guild.Guild) {
 	s.memberMap[g.ID] = members
 }
 
-// MemberAdd adds a member to the current world state, or updates it if it already exists.
+// MemberAdd adds a user.Member to the current State, or updates it if it already exists.
 func (s *State) MemberAdd(member *user.Member) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
@@ -64,7 +64,7 @@ func (s *State) MemberAdd(member *user.Member) error {
 	return nil
 }
 
-// MemberRemove removes a member from current world state.
+// MemberRemove removes a user.Member from current State.
 func (s *State) MemberRemove(member *user.Member) error {
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *State) MemberRemove(member *user.Member) error {
 	return state.ErrStateNotFound
 }
 
-// Member gets a member by ID from a guild.
+// Member returns the user.Member from a guild.Guild.
 func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
@@ -116,8 +116,7 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	return nil, state.ErrStateNotFound
 }
 
-// PresenceAdd adds a presence to the current world state, or
-// updates it if it already existuserapis.
+// PresenceAdd adds a status.Presence to the current State, or updates it if it already exists.
 func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
@@ -177,7 +176,7 @@ func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	return nil
 }
 
-// PresenceRemove removes a presence from the current world state.
+// PresenceRemove removes a status.Presence from the current State.
 func (s *State) PresenceRemove(guildID string, presence *status.Presence) error {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
@@ -197,7 +196,7 @@ func (s *State) PresenceRemove(guildID string, presence *status.Presence) error 
 	return state.ErrStateNotFound
 }
 
-// Presence gets a presence by ID from a guild.
+// Presence returns the status.Presence from a guild.Guild.
 func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {

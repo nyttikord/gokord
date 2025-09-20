@@ -29,8 +29,8 @@ func (s *State) AppendGuildChannel(c *channel.Channel) {
 	s.channelMap[c.ID] = c
 }
 
-// ChannelAdd adds a channel to the current world state, or updates it if it already exists.
-// Channels may exist either as PrivateChannels or inside a guild.
+// ChannelAdd adds a channel.Channel to the current State, or updates it if it already exists.
+// Channels may exist either as PrivateChannels or inside a guild.Guild.
 func (s *State) ChannelAdd(channel *channel.Channel) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
@@ -76,7 +76,7 @@ func (s *State) ChannelAdd(channel *channel.Channel) error {
 	return nil
 }
 
-// ChannelRemove removes a channel from current world state.
+// ChannelRemove removes a channel.Channel from current State.
 func (s *State) ChannelRemove(channel *channel.Channel) error {
 	_, err := s.Channel(channel.ID)
 	if err != nil {
@@ -126,7 +126,7 @@ func (s *State) ChannelRemove(channel *channel.Channel) error {
 	return nil
 }
 
-// Channel gets a channel by ID, it will look in all guilds and private channels.
+// Channel returns the channel.Channel.
 func (s *State) Channel(channelID string) (*channel.Channel, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
@@ -138,13 +138,14 @@ func (s *State) Channel(channelID string) (*channel.Channel, error) {
 	return nil, state.ErrStateNotFound
 }
 
+// PrivateChannels returns all private channels.
 func (s *State) PrivateChannels() []*channel.Channel {
 	return s.privateChannels
 }
 
-// MessageAdd adds a message to the current world state, or updates it if it exists.
+// MessageAdd adds a channel.Message to the current State, or updates it if it exists.
 // If the channel cannot be found, the message is discarded.
-// Messages are kept in state up to s.MaxMessageCount per channel.
+// Messages are kept in state up to state.State GetMaxMessageCount per channel.
 func (s *State) MessageAdd(message *channel.Message) error {
 	c, err := s.Channel(message.ChannelID)
 	if err != nil {
@@ -195,13 +196,12 @@ func (s *State) MessageAdd(message *channel.Message) error {
 	return nil
 }
 
-// MessageRemove removes a message from the world state.
+// MessageRemove removes a channel.Message from the current State.
 func (s *State) MessageRemove(message *channel.Message) error {
 	return s.MessageRemoveByID(message.ChannelID, message.ID)
 }
 
-// MessageRemoveByID removes a message by channelID and messageID from the world state.
-// Internal use only.
+// MessageRemoveByID removes a channel.Message by channelID and messageID from the current State.
 func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	c, err := s.Channel(channelID)
 	if err != nil {
@@ -214,7 +214,6 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	for i, m := range c.Messages {
 		if m.ID == messageID {
 			c.Messages = append(c.Messages[:i], c.Messages[i+1:]...)
-
 			return nil
 		}
 	}
@@ -224,7 +223,6 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 
 // Message gets a message by channel and message ID.
 func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
-
 	c, err := s.Channel(channelID)
 	if err != nil {
 		return nil, err
@@ -259,6 +257,8 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	// This algorithm filters out archived or
 	// threads which are children of channels in channelIDs
 	// and then it adds all synced threads to guild threads and cache
+
+	// THIS CODE IS UGLY BUT I DON'T HAVE THE STRENGTH TO FIX IT YET
 	index := 0
 outer:
 	for _, t := range g.Threads {
@@ -290,7 +290,7 @@ outer:
 	return nil
 }
 
-// ThreadMembersUpdate updates thread members list
+// ThreadMembersUpdate updates thread members list.
 // TODO: use gokord.ThreadMembersUpdate when event will be remade
 func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
 	thread, err := s.Channel(id)

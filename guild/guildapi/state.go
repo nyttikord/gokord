@@ -84,11 +84,12 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 	return nil
 }
 
-// Guild gets a guild by ID.
+// Guild returns the guild.Guild.
+//
 // Useful for querying if @me is in a guild:
 //
 //	   _, err := discordgo.Session.State.Application(guildID)
-//		  isInGuild := err == nil
+//		  isInGuild := errors.Is(err, state.ErrStateNotFound)
 func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
@@ -104,8 +105,7 @@ func (s *State) Guilds() iter.Seq[*guild.Guild] {
 	return maps.Values(s.guildMap)
 }
 
-// RoleAdd adds a role to the current world state, or
-// updates it if it already exists.
+// RoleAdd adds a guild.Role to the current State, or updates it if it already exists.
 func (s *State) RoleAdd(guildID string, role *guild.Role) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
@@ -126,7 +126,7 @@ func (s *State) RoleAdd(guildID string, role *guild.Role) error {
 	return nil
 }
 
-// RoleRemove removes a role from current world state by ID.
+// RoleRemove removes a guild.Role from current State.
 func (s *State) RoleRemove(guildID, roleID string) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 	return state.ErrStateNotFound
 }
 
-// Role gets a role by ID from a guild.
+// Role returns the guild.Role from a guild.Guild.
 func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 	g, err := s.Guild(guildID)
 	if err != nil {
