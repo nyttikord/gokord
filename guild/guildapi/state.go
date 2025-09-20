@@ -39,38 +39,38 @@ func (s *State) GuildAdd(guild *guild.Guild) {
 		s.GetMutex().Lock()
 	}
 
-	if g, ok := s.guildMap[guild.ID]; ok {
-		// We are about to replace `g` in the state with `guild`, but first we need to
-		// make sure we preserve any fields that the `guild` doesn't contain from `g`.
-		if guild.MemberCount == 0 {
-			guild.MemberCount = g.MemberCount
-		}
-		if guild.Roles == nil {
-			guild.Roles = g.Roles
-		}
-		if guild.Emojis == nil {
-			guild.Emojis = g.Emojis
-		}
-		if guild.Members == nil {
-			guild.Members = g.Members
-		}
-		if guild.Presences == nil {
-			guild.Presences = g.Presences
-		}
-		if guild.Channels == nil {
-			guild.Channels = g.Channels
-		}
-		if guild.Threads == nil {
-			guild.Threads = g.Threads
-		}
-		if guild.VoiceStates == nil {
-			guild.VoiceStates = g.VoiceStates
-		}
-		*g = *guild
+	g, ok := s.guildMap[guild.ID]
+	if !ok {
+		s.guildMap[guild.ID] = guild
 		return
 	}
-
-	s.guildMap[guild.ID] = guild
+	// We are about to replace `g` in the state with `guild`, but first we need to
+	// make sure we preserve any fields that the `guild` doesn't contain from `g`.
+	if guild.MemberCount == 0 {
+		guild.MemberCount = g.MemberCount
+	}
+	if guild.Roles == nil {
+		guild.Roles = g.Roles
+	}
+	if guild.Emojis == nil {
+		guild.Emojis = g.Emojis
+	}
+	if guild.Members == nil {
+		guild.Members = g.Members
+	}
+	if guild.Presences == nil {
+		guild.Presences = g.Presences
+	}
+	if guild.Channels == nil {
+		guild.Channels = g.Channels
+	}
+	if guild.Threads == nil {
+		guild.Threads = g.Threads
+	}
+	if guild.VoiceStates == nil {
+		guild.VoiceStates = g.VoiceStates
+	}
+	*g = *guild
 }
 
 // GuildRemove removes a guild.Guild from current State.

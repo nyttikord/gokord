@@ -200,7 +200,7 @@ func (s *Session) GuildAPI() guildapi.Requester {
 
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() channelapi.Requester {
-	return channelapi.Requester{Requester: s}
+	return channelapi.Requester{Requester: s, State: channelapi.NewState(s.State)}
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.

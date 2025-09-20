@@ -21,6 +21,7 @@ var (
 // Requester handles everything inside the channel package.
 type Requester struct {
 	discord.Requester
+	State *State
 }
 
 // Channel returns the channel.Channel with the given ID.

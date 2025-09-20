@@ -9,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
 )
@@ -97,6 +98,10 @@ func (s *State) GetGuilds() []*guild.Guild {
 
 func (s *State) MemberAdd(m *user.Member) error {
 	return s.session.UserAPI().State.MemberAdd(m)
+}
+
+func (s *State) ChannelAdd(c *channel.Channel) error {
+	return s.session.ChannelAPI().State.ChannelAdd(c)
 }
 
 func (s *State) Guild(id string) (*guild.Guild, error) {
@@ -230,219 +235,6 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 		if p.User.ID == userID {
 			return p, nil
 		}
-	}
-
-	return nil, ErrStateNotFound
-}
-
-// ChannelAdd adds a channel to the current world state, or
-// updates it if it already exists.
-// Channels may exist either as PrivateChannels or inside
-// a guild.
-func (s *State) ChannelAdd(channel *channel.Channel) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	// If the channel exists, replace it
-	if c, ok := s.channelMap[channel.ID]; ok {
-		if channel.Messages == nil {
-			channel.Messages = c.Messages
-		}
-		if channel.PermissionOverwrites == nil {
-			channel.PermissionOverwrites = c.PermissionOverwrites
-		}
-		if channel.ThreadMetadata == nil {
-			channel.ThreadMetadata = c.ThreadMetadata
-		}
-
-		*c = *channel
-		return nil
-	}
-
-	if channel.Type == types.ChannelDM || channel.Type == types.ChannelGroupDM {
-		s.PrivateChannels = append(s.PrivateChannels, channel)
-		s.channelMap[channel.ID] = channel
-		return nil
-	}
-
-	guild, ok := s.guildMap[channel.GuildID]
-	if !ok {
-		return ErrStateNotFound
-	}
-
-	if channel.IsThread() {
-		guild.Threads = append(guild.Threads, channel)
-	} else {
-		guild.Channels = append(guild.Channels, channel)
-	}
-
-	s.channelMap[channel.ID] = channel
-
-	return nil
-}
-
-// ChannelRemove removes a channel from current world state.
-func (s *State) ChannelRemove(channel *channel.Channel) error {
-	if s == nil {
-		return ErrNilState
-	}
-
-	_, err := s.Channel(channel.ID)
-	if err != nil {
-		return err
-	}
-
-	if channel.Type == types.ChannelDM || channel.Type == types.ChannelGroupDM {
-		s.Lock()
-		defer s.Unlock()
-
-		for i, c := range s.PrivateChannels {
-			if c.ID == channel.ID {
-				s.PrivateChannels = append(s.PrivateChannels[:i], s.PrivateChannels[i+1:]...)
-				break
-			}
-		}
-		delete(s.channelMap, channel.ID)
-		return nil
-	}
-
-	guild, err := s.Guild(channel.GuildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	if channel.IsThread() {
-		for i, t := range guild.Threads {
-			if t.ID == channel.ID {
-				guild.Threads = append(guild.Threads[:i], guild.Threads[i+1:]...)
-				break
-			}
-		}
-	} else {
-		for i, c := range guild.Channels {
-			if c.ID == channel.ID {
-				guild.Channels = append(guild.Channels[:i], guild.Channels[i+1:]...)
-				break
-			}
-		}
-	}
-
-	delete(s.channelMap, channel.ID)
-
-	return nil
-}
-
-// ThreadListSync syncs guild threads with provided ones.
-func (s *State) ThreadListSync(tls *ThreadListSync) error {
-	guild, err := s.Guild(tls.GuildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	// This algorithm filters out archived or
-	// threads which are children of channels in channelIDs
-	// and then it adds all synced threads to guild threads and cache
-	index := 0
-outer:
-	for _, t := range guild.Threads {
-		if !t.ThreadMetadata.Archived && tls.ChannelIDs != nil {
-			for _, v := range tls.ChannelIDs {
-				if t.ParentID == v {
-					delete(s.channelMap, t.ID)
-					continue outer
-				}
-			}
-			guild.Threads[index] = t
-			index++
-		} else {
-			delete(s.channelMap, t.ID)
-		}
-	}
-	guild.Threads = guild.Threads[:index]
-	for _, t := range tls.Threads {
-		s.channelMap[t.ID] = t
-		guild.Threads = append(guild.Threads, t)
-	}
-
-	for _, m := range tls.Members {
-		if c, ok := s.channelMap[m.ID]; ok {
-			c.Member = m
-		}
-	}
-
-	return nil
-}
-
-// ThreadMembersUpdate updates thread members list
-func (s *State) ThreadMembersUpdate(tmu *ThreadMembersUpdate) error {
-	thread, err := s.Channel(tmu.ID)
-	if err != nil {
-		return err
-	}
-	s.Lock()
-	defer s.Unlock()
-
-	for idx, member := range thread.Members {
-		for _, removedMember := range tmu.RemovedMembers {
-			if member.ID == removedMember {
-				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
-				break
-			}
-		}
-	}
-
-	for _, addedMember := range tmu.AddedMembers {
-		thread.Members = append(thread.Members, addedMember.ThreadMember)
-		if addedMember.Member != nil {
-			err = s.memberAdd(addedMember.Member)
-			if err != nil {
-				return err
-			}
-		}
-		if addedMember.Presence != nil {
-			err = s.presenceAdd(tmu.GuildID, addedMember.Presence)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	thread.MemberCount = tmu.MemberCount
-
-	return nil
-}
-
-// ThreadMemberUpdate sets or updates member data for the current user.
-func (s *State) ThreadMemberUpdate(mu *ThreadMemberUpdate) error {
-	thread, err := s.Channel(mu.ID)
-	if err != nil {
-		return err
-	}
-
-	thread.Member = mu.ThreadMember
-	return nil
-}
-
-// Channel gets a channel by ID, it will look in all guilds and private channels.
-func (s *State) Channel(channelID string) (*channel.Channel, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	if c, ok := s.channelMap[channelID]; ok {
-		return c, nil
 	}
 
 	return nil, ErrStateNotFound
@@ -1095,4 +887,100 @@ func firstRoleColorColor(g *guild.Guild, memberRoles []string) int {
 	}
 
 	return 0
+}
+
+// ThreadListSync syncs guild threads with provided ones.
+func (s *State) ThreadListSync(tls *ThreadListSync) error {
+	g, err := s.Guild(tls.GuildID)
+	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrGuildNotCached)
+		}
+		return err
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	// This algorithm filters out archived or
+	// threads which are children of channels in channelIDs
+	// and then it adds all synced threads to guild threads and cache
+	index := 0
+outer:
+	for _, t := range g.Threads {
+		if !t.ThreadMetadata.Archived && tls.ChannelIDs != nil {
+			for _, v := range tls.ChannelIDs {
+				if t.ParentID == v {
+					delete(s.channelMap, t.ID)
+					continue outer
+				}
+			}
+			g.Threads[index] = t
+			index++
+		} else {
+			delete(s.channelMap, t.ID)
+		}
+	}
+	g.Threads = g.Threads[:index]
+	for _, t := range tls.Threads {
+		s.channelMap[t.ID] = t
+		g.Threads = append(g.Threads, t)
+	}
+
+	for _, m := range tls.Members {
+		if c, ok := s.channelMap[m.ID]; ok {
+			c.Member = m
+		}
+	}
+
+	return nil
+}
+
+// ThreadMembersUpdate updates thread members list
+func (s *State) ThreadMembersUpdate(tmu *ThreadMembersUpdate) error {
+	thread, err := s.Channel(tmu.ID)
+	if err != nil {
+		return err
+	}
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	for idx, member := range thread.Members {
+		for _, removedMember := range tmu.RemovedMembers {
+			if member.ID == removedMember {
+				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
+				break
+			}
+		}
+	}
+
+	for _, addedMember := range tmu.AddedMembers {
+		thread.Members = append(thread.Members, addedMember.ThreadMember)
+		if addedMember.Member != nil {
+			err = s.memberAdd(addedMember.Member)
+			if err != nil {
+				return err
+			}
+		}
+		if addedMember.Presence != nil {
+			err = s.presenceAdd(tmu.GuildID, addedMember.Presence)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	thread.MemberCount = tmu.MemberCount
+
+	return nil
+}
+
+// ThreadMemberUpdate sets or updates member data for the current user.
+func (s *State) ThreadMemberUpdate(mu *ThreadMemberUpdate) error {
+	thread, err := s.Channel(mu.ID)
+	if err != nil {
+		return err
+	}
+
+	thread.Member = mu.ThreadMember
+	return nil
 }
