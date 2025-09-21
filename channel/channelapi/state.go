@@ -33,6 +33,7 @@ func NewState(state state.State) *State {
 }
 
 // AppendGuildChannel is for internal use only.
+// Use ChannelAdd instead.
 func (s *State) AppendGuildChannel(c *channel.Channel) {
 	s.channelMap[c.ID] = c
 }

@@ -10,11 +10,9 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
-// A State contains the current known state.
-// As discord sends this in a READY blob, it seems reasonable to simply use that struct as the data store.
+// State contains the current known state.
 type State struct {
 	sync.RWMutex
-	Ready
 	session *Session
 
 	// MaxMessageCount represents how many messages per channel the state will store.
@@ -70,18 +68,26 @@ func (s *State) ArePresencesTracked() bool {
 	return s.TrackPresences
 }
 
+// GetMutex returns the sync.RWMutex of the State.
+// You do not have to modify this.
 func (s *State) GetMutex() *sync.RWMutex {
 	return &s.RWMutex
 }
 
+// MemberState returns the state.State related to user.Member.
+// Use Session.UserAPI().State instead.
 func (s *State) MemberState() state.Member {
 	return s.session.UserAPI().State
 }
 
+// ChannelState returns the state.State related to channel.Channel.
+// Use Session.ChannelAPI().State instead.
 func (s *State) ChannelState() state.Channel {
 	return s.session.ChannelAPI().State
 }
 
+// GuildState returns the state.State related to guild.Guild.
+// Use Session.GuildAPI().State instead.
 func (s *State) GuildState() state.Guild {
 	return s.session.GuildAPI().State
 }
@@ -89,10 +95,6 @@ func (s *State) GuildState() state.Guild {
 // NewState creates an empty state.
 func NewState(s *Session) *State {
 	return &State{
-		Ready: Ready{
-			PrivateChannels: []*channel.Channel{},
-			Guilds:          []*guild.Guild{},
-		},
 		session:            s,
 		TrackChannels:      true,
 		TrackThreads:       true,
@@ -161,26 +163,27 @@ func (s *State) onReady(se *Session, r *Ready) error {
 	// We must track at least the current user for Voice, even
 	// if state is disabled, store the bare essentials.
 	if !se.StateEnabled {
-		ready := Ready{
-			Version:     r.Version,
-			SessionID:   r.SessionID,
-			User:        r.User,
-			Shard:       r.Shard,
-			Application: r.Application,
-		}
-
-		s.Ready = ready
+		// this is an old code and as stated as above, we must track current user for voice, but I don't know how this is
+		// used to achieve this
+		// it looks like that this code does nothing
+		//ready := Ready{
+		//	Version:     r.Version,
+		//	SessionID:   r.SessionID,
+		//	User:        r.User,
+		//	Shard:       r.Shard,
+		//	Application: r.Application,
+		//}
+		//
+		//s.ready = ready
 
 		return nil
 	}
 
-	s.Ready = *r
-
-	for _, g := range s.Guilds {
+	for _, g := range r.Guilds {
 		s.GuildState().GuildAdd(g)
 	}
 
-	for _, c := range s.PrivateChannels {
+	for _, c := range r.PrivateChannels {
 		if err := s.ChannelState().ChannelAdd(c); err != nil {
 			return err
 		}
@@ -189,7 +192,7 @@ func (s *State) onReady(se *Session, r *Ready) error {
 	return nil
 }
 
-// onInterface handles all events related to states.
+// onInterface handles all events related to State.
 func (s *State) onInterface(se *Session, i interface{}) error {
 	r, ok := i.(*Ready)
 	if ok {

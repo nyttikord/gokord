@@ -1,3 +1,9 @@
+// Package state contains interfaces and variables used by every State.
+//
+// You can get a state with gokord.Session:
+//
+//	var s *gokord.Session
+//	s.GuildAPI().State // state related to guilds
 package state
 
 import (
