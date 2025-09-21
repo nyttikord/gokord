@@ -305,7 +305,7 @@ var (
 			}
 
 			if opt, ok := optionMap["channel-option"]; ok {
-				margs = append(margs, opt.ChannelValue(s.ChannelAPI(), s.State).ID)
+				margs = append(margs, opt.ChannelValue(s.ChannelAPI(), s.ChannelAPI().State).ID)
 				msgformat += "> channel-option: <#%s>\n"
 			}
 
@@ -315,7 +315,7 @@ var (
 			}
 
 			if opt, ok := optionMap["role-option"]; ok {
-				margs = append(margs, opt.RoleValue("", s.GuildAPI(), s.State).ID)
+				margs = append(margs, opt.RoleValue("", s.GuildAPI(), s.GuildAPI().State).ID)
 				msgformat += "> role-option: <@&%s>\n"
 			}
 

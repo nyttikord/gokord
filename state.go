@@ -3,6 +3,7 @@ package gokord
 import (
 	"sync"
 
+	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -13,7 +14,11 @@ import (
 // State contains the current known state.
 type State struct {
 	sync.RWMutex
-	session *Session
+	session     *Session
+	User        *user.User
+	SessionID   string
+	Shard       *[2]int
+	Application *application.Application
 
 	// MaxMessageCount represents how many messages per channel the state will store.
 	MaxMessageCount    int
@@ -160,21 +165,12 @@ func (s *State) onReady(se *Session, r *Ready) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// We must track at least the current user for Voice, even
-	// if state is disabled, store the bare essentials.
+	// We must store the bare essentials like the current user.User or the SessionID.
 	if !se.StateEnabled {
-		// this is an old code and as stated as above, we must track current user for voice, but I don't know how this is
-		// used to achieve this
-		// it looks like that this code does nothing
-		//ready := Ready{
-		//	Version:     r.Version,
-		//	SessionID:   r.SessionID,
-		//	User:        r.User,
-		//	Shard:       r.Shard,
-		//	Application: r.Application,
-		//}
-		//
-		//s.ready = ready
+		s.SessionID = r.SessionID
+		s.User = r.User
+		s.Shard = r.Shard
+		s.Application = r.Application
 
 		return nil
 	}

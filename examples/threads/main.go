@@ -32,7 +32,7 @@ func main() {
 	})
 	s.AddHandler(func(s *gokord.Session, m *gokord.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
-			if ch, err := s.State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
+			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
 				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
 					Name:                "Pong game with " + m.Author.Username,
 					AutoArchiveDuration: 60,
