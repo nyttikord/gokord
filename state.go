@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
@@ -104,56 +103,6 @@ func NewState() *State {
 		TrackVoice:         true,
 		TrackPresences:     true,
 	}
-}
-
-// Emoji returns an emoji for a guild and emoji id.
-func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
-	g, err := s.GuildState().Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-
-	for _, e := range g.Emojis {
-		if e.ID == emojiID {
-			return e, nil
-		}
-	}
-
-	return nil, state.ErrStateNotFound
-}
-
-// EmojiAdd adds an emoji to the current world state.
-func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
-	g, err := s.GuildState().Guild(guildID)
-	if err != nil {
-		return err
-	}
-
-	s.Lock()
-	defer s.Unlock()
-
-	for i, e := range g.Emojis {
-		if e.ID == emoji.ID {
-			g.Emojis[i] = emoji
-			return nil
-		}
-	}
-
-	g.Emojis = append(g.Emojis, emoji)
-	return nil
-}
-
-// EmojisAdd adds multiple emojis to the world state.
-func (s *State) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
-	for _, e := range emojis {
-		if err := s.EmojiAdd(guildID, e); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {

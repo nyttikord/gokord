@@ -17,7 +17,7 @@ type State interface {
 	MemberState() Member
 	// ChannelState returns the State for channel package.
 	ChannelState() Channel
-	// GuildState returns the State for guild package.
+	// GuildState returns the State for guild package and emoji package.
 	GuildState() Guild
 
 	// GetMaxMessageCount returns how many messages per channel the State will store.

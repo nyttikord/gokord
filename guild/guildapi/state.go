@@ -4,6 +4,7 @@ import (
 	"iter"
 	"maps"
 
+	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 )
@@ -163,4 +164,54 @@ func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 	}
 
 	return nil, state.ErrStateNotFound
+}
+
+// Emoji returns an emoji.Emoji in the guild.Guild.
+func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
+	g, err := s.Guild(guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.GetMutex().RLock()
+	defer s.GetMutex().RUnlock()
+
+	for _, e := range g.Emojis {
+		if e.ID == emojiID {
+			return e, nil
+		}
+	}
+
+	return nil, state.ErrStateNotFound
+}
+
+// EmojiAdd adds an emoji.Emoji to the current State.
+func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
+	g, err := s.Guild(guildID)
+	if err != nil {
+		return err
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	for i, e := range g.Emojis {
+		if e.ID == emoji.ID {
+			g.Emojis[i] = emoji
+			return nil
+		}
+	}
+
+	g.Emojis = append(g.Emojis, emoji)
+	return nil
+}
+
+// EmojisAdd adds multiple emoji.Emoji to the current State.
+func (s *State) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
+	for _, e := range emojis {
+		if err := s.EmojiAdd(guildID, e); err != nil {
+			return err
+		}
+	}
+	return nil
 }
