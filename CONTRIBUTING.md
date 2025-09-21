@@ -45,7 +45,7 @@ Structures and functions under the same endpoint (e.g., `/guild` or `/channel`) 
 endpoint's name.
 For example, `Role` is in the `guild` package because we must call `/guild/roles` to get a role.
 
-If the package has specific REST method, it has a subpackage called `nameapi` (e.g., `guildapi` or `channelapi`)
+If the package has specific REST method, it has a subpackage called `endpointapi` (e.g., `guildapi` or `channelapi`)
 containing every these REST method.
 In this package, the `Requester` struct implements `discord.Requester` and it is used to send the requests to the Discord
 API.

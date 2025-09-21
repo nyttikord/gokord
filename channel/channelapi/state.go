@@ -275,32 +275,54 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	// This algorithm filters out archived or
-	// threads which are children of channels in channelIDs
-	// and then it adds all synced threads to guild threads and cache
-
-	// THIS CODE IS UGLY BUT I DON'T HAVE THE STRENGTH TO FIX IT YET
-	index := 0
-outer:
-	for _, t := range g.Threads {
-		if !t.ThreadMetadata.Archived && channelIDs != nil {
-			for _, v := range channelIDs {
-				if t.ParentID == v {
-					delete(s.channelMap, t.ID)
-					continue outer
-				}
-			}
-			g.Threads[index] = t
-			index++
-		} else {
-			delete(s.channelMap, t.ID)
+	ths := make(map[string]*channel.Channel, len(g.Threads))
+	// converting channelIDs to map to have better perf
+	var channels map[string]string
+	if channelIDs != nil {
+		channels = make(map[string]string, len(channelIDs))
+		for _, id := range channelIDs {
+			channels[id] = id
 		}
 	}
-	g.Threads = g.Threads[:index]
-	for _, t := range threads {
-		s.channelMap[t.ID] = t
-		g.Threads = append(g.Threads, t)
+	// removing from map archived/deleted thread and saving untouched threads
+	for _, c := range s.channelMap {
+		if c.GuildID == guildID && c.IsThread() {
+			// if thread is in sync list
+			ok := true
+			if channels != nil {
+				_, ok = channels[c.ID]
+			}
+			if ok {
+				// cleaning the map from old thread
+				// if the thread continue to exist, it will be added later
+				delete(s.channelMap, c.ID)
+			} else {
+				// saved because we don't want to touch it
+				ths[c.ID] = c
+			}
+		}
 	}
+	// updating guild threads with untouched thread
+	i := 0
+	for _, c := range ths {
+		if i >= len(g.Threads) {
+			g.Threads = append(g.Threads, c)
+		} else {
+			g.Threads[i] = c
+		}
+		i++
+	}
+	// updating guild threads and channel map with touched thread
+	for _, c := range threads {
+		if i >= len(g.Threads) {
+			g.Threads = append(g.Threads, c)
+		} else {
+			g.Threads[i] = c
+		}
+		s.channelMap[c.ID] = c
+		i++
+	}
+	g.Threads = g.Threads[:i]
 
 	for _, m := range members {
 		if c, ok := s.channelMap[m.ID]; ok {
