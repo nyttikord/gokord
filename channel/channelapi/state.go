@@ -5,6 +5,7 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 )
 
@@ -14,7 +15,14 @@ type State struct {
 	privateChannels []*channel.Channel
 }
 
-var ErrGuildNotCached = errors.New("channel's guild not cached")
+var (
+	ErrGuildNotCached   = errors.New("channel's guild not cached")
+	ErrChannelNotCached = errors.New("message or thread's channel not cached")
+	ErrMemberNotCached  = errors.New("member not cached")
+	// ErrMessageIncompletePermissions is returned when the message requested for permissions does not contain enough data to
+	// generate the permissions.
+	ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
+)
 
 func NewState(state state.State) *State {
 	return &State{
@@ -97,8 +105,11 @@ func (s *State) ChannelRemove(channel *channel.Channel) error {
 		return nil
 	}
 
-	guild, err := s.GuildState().Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(channel.GuildID)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrGuildNotCached)
+		}
 		return err
 	}
 
@@ -106,16 +117,16 @@ func (s *State) ChannelRemove(channel *channel.Channel) error {
 	defer s.GetMutex().Unlock()
 
 	if channel.IsThread() {
-		for i, t := range guild.Threads {
+		for i, t := range g.Threads {
 			if t.ID == channel.ID {
-				guild.Threads = append(guild.Threads[:i], guild.Threads[i+1:]...)
+				g.Threads = append(g.Threads[:i], g.Threads[i+1:]...)
 				break
 			}
 		}
 	} else {
-		for i, c := range guild.Channels {
+		for i, c := range g.Channels {
 			if c.ID == channel.ID {
-				guild.Channels = append(guild.Channels[:i], guild.Channels[i+1:]...)
+				g.Channels = append(g.Channels[:i], g.Channels[i+1:]...)
 				break
 			}
 		}
@@ -149,6 +160,9 @@ func (s *State) PrivateChannels() []*channel.Channel {
 func (s *State) MessageAdd(message *channel.Message) error {
 	c, err := s.Channel(message.ChannelID)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrChannelNotCached)
+		}
 		return err
 	}
 
@@ -205,6 +219,9 @@ func (s *State) MessageRemove(message *channel.Message) error {
 func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	c, err := s.Channel(channelID)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrChannelNotCached)
+		}
 		return err
 	}
 
@@ -225,6 +242,9 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 	c, err := s.Channel(channelID)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return nil, errors.Join(err, ErrChannelNotCached)
+		}
 		return nil, err
 	}
 
@@ -295,6 +315,9 @@ outer:
 func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
 	thread, err := s.Channel(id)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrChannelNotCached)
+		}
 		return err
 	}
 	s.GetMutex().Lock()
@@ -337,9 +360,85 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 func (s *State) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 	thread, err := s.Channel(tm.ID)
 	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return errors.Join(err, ErrChannelNotCached)
+		}
 		return err
 	}
 
 	thread.Member = tm
 	return nil
+}
+
+// UserChannelPermissions returns the permission of a user in a channel.
+// userID    : The ID of the user to calculate permissions for.
+// channelID : The ID of the channel to calculate permission for.
+func (s *State) UserChannelPermissions(userID, channelID string) (int64, error) {
+	c, err := s.Channel(channelID)
+	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return 0, errors.Join(err, ErrChannelNotCached)
+		}
+		return 0, err
+	}
+
+	g, err := s.GuildState().Guild(c.GuildID)
+	if err != nil {
+		// checking for state.ErrStateNotFound is useless because it is already checked by Channel
+		return 0, err
+	}
+
+	member, err := s.MemberState().Member(g.ID, userID)
+	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return 0, errors.Join(err, ErrMemberNotCached)
+		}
+		return 0, err
+	}
+
+	return guild.MemberPermissions(g, c, userID, member.Roles), nil
+}
+
+// MessagePermissions returns the permissions of the author of the channel.Message in the channel.Channel in which it
+// was sent.
+func (s *State) MessagePermissions(message *channel.Message) (int64, error) {
+	if message.Author == nil || message.Member == nil {
+		return 0, ErrMessageIncompletePermissions
+	}
+
+	c, err := s.Channel(message.ChannelID)
+	if err != nil {
+		if errors.Is(err, state.ErrStateNotFound) {
+			return 0, errors.Join(err, ErrChannelNotCached)
+		}
+		return 0, err
+	}
+
+	g, err := s.GuildState().Guild(c.GuildID)
+	if err != nil {
+		// checking for state.ErrStateNotFound is useless because it is already checked by Channel
+		return 0, err
+	}
+
+	return guild.MemberPermissions(g, c, message.Author.ID, message.Member.Roles), nil
+}
+
+// MessageColor returns the color of the author's name as displayed in the client associated with this channel.Message.
+// Returns 0 in cases of error, which is the color of @everyone.
+func (s *State) MessageColor(message *channel.Message) int {
+	if message.Member == nil || message.Member.Roles == nil {
+		return 0
+	}
+
+	c, err := s.Channel(message.ChannelID)
+	if err != nil {
+		return 0
+	}
+
+	g, err := s.GuildState().Guild(c.GuildID)
+	if err != nil {
+		return 0
+	}
+
+	return guild.FirstRoleColor(g, message.Member.Roles)
 }

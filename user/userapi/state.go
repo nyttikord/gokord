@@ -211,3 +211,25 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 
 	return nil, state.ErrStateNotFound
 }
+
+// UserColor returns the color of a user.User in a channel.Channel.
+// While colors are defined at a guild.Guild level, determining for a channel.Channel is more useful in message handlers.
+// Returns 0 in cases of error, which is the color of @everyone.
+func (s *State) UserColor(userID, channelID string) int {
+	c, err := s.ChannelState().Channel(channelID)
+	if err != nil {
+		return 0
+	}
+
+	g, err := s.GuildState().Guild(c.GuildID)
+	if err != nil {
+		return 0
+	}
+
+	member, err := s.Member(g.ID, userID)
+	if err != nil {
+		return 0
+	}
+
+	return guild.FirstRoleColor(g, member.Roles)
+}

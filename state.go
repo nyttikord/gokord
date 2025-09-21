@@ -1,8 +1,6 @@
 package gokord
 
 import (
-	"errors"
-	"sort"
 	"sync"
 
 	"github.com/nyttikord/gokord/channel"
@@ -12,16 +10,6 @@ import (
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
 )
-
-// ErrNilState is returned when the state is nil.
-var ErrNilState = errors.New("state not instantiated")
-
-// ErrStateNotFound is returned when the state cache requested is not found
-var ErrStateNotFound = errors.New("state cache not found")
-
-// ErrMessageIncompletePermissions is returned when the message requested for permissions does not contain enough data to
-// generate the permissions.
-var ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
 
 // A State contains the current known state.
 // As discord sends this in a READY blob, it seems reasonable to simply use that struct as the data store.
@@ -120,10 +108,6 @@ func NewState() *State {
 
 // Emoji returns an emoji for a guild and emoji id.
 func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -138,15 +122,11 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		}
 	}
 
-	return nil, ErrStateNotFound
+	return nil, state.ErrStateNotFound
 }
 
 // EmojiAdd adds an emoji to the current world state.
 func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
-	if s == nil {
-		return ErrNilState
-	}
-
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return err
@@ -209,10 +189,6 @@ func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
 
 // VoiceState gets a VoiceState by guild and user ID.
 func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
-	if s == nil {
-		return nil, ErrNilState
-	}
-
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -224,7 +200,7 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 		}
 	}
 
-	return nil, ErrStateNotFound
+	return nil, state.ErrStateNotFound
 }
 
 // OnReady takes a Ready event and updates all internal state.
@@ -263,12 +239,8 @@ func (s *State) onReady(se *Session, r *Ready) error {
 	return nil
 }
 
-// OnInterface handles all events related to states.
-func (s *State) OnInterface(se *Session, i interface{}) error {
-	if s == nil {
-		return ErrNilState
-	}
-
+// onInterface handles all events related to states.
+func (s *State) onInterface(se *Session, i interface{}) error {
 	r, ok := i.(*Ready)
 	if ok {
 		return s.onReady(se, r)
@@ -534,129 +506,4 @@ func (s *State) OnInterface(se *Session, i interface{}) error {
 	}
 
 	return nil
-}
-
-// UserChannelPermissions returns the permission of a user in a channel.
-// userID    : The ID of the user to calculate permissions for.
-// channelID : The ID of the channel to calculate permission for.
-func (s *State) UserChannelPermissions(userID, channelID string) (apermissions int64, err error) {
-	if s == nil {
-		return 0, ErrNilState
-	}
-
-	c, err := s.ChannelState().Channel(channelID)
-	if err != nil {
-		return
-	}
-
-	g, err := s.GuildState().Guild(c.GuildID)
-	if err != nil {
-		return
-	}
-
-	member, err := s.MemberState().Member(g.ID, userID)
-	if err != nil {
-		return
-	}
-
-	return MemberPermissions(g, c, userID, member.Roles), nil
-}
-
-// MessagePermissions returns the permissions of the author of the message
-// in the channel in which it was sent.
-func (s *State) MessagePermissions(message *channel.Message) (apermissions int64, err error) {
-	if s == nil {
-		return 0, ErrNilState
-	}
-
-	if message.Author == nil || message.Member == nil {
-		return 0, ErrMessageIncompletePermissions
-	}
-
-	c, err := s.ChannelState().Channel(message.ChannelID)
-	if err != nil {
-		return
-	}
-
-	g, err := s.GuildState().Guild(c.GuildID)
-	if err != nil {
-		return
-	}
-
-	return MemberPermissions(g, c, message.Author.ID, message.Member.Roles), nil
-}
-
-// UserColor returns the color of a user in a channel.
-// While colors are defined at a Guild level, determining for a channel is more useful in message handlers.
-// 0 is returned in cases of error, which is the color of @everyone.
-// userID    : The ID of the user to calculate the color for.
-// channelID   : The ID of the channel to calculate the color for.
-func (s *State) UserColor(userID, channelID string) int {
-	if s == nil {
-		return 0
-	}
-
-	c, err := s.ChannelState().Channel(channelID)
-	if err != nil {
-		return 0
-	}
-
-	g, err := s.GuildState().Guild(c.GuildID)
-	if err != nil {
-		return 0
-	}
-
-	member, err := s.MemberState().Member(g.ID, userID)
-	if err != nil {
-		return 0
-	}
-
-	return firstRoleColorColor(g, member.Roles)
-}
-
-// MessageColor returns the color of the author's name as displayed
-// in the client associated with this message.
-func (s *State) MessageColor(message *channel.Message) int {
-	if s == nil {
-		return 0
-	}
-
-	if message.Member == nil || message.Member.Roles == nil {
-		return 0
-	}
-
-	c, err := s.ChannelState().Channel(message.ChannelID)
-	if err != nil {
-		return 0
-	}
-
-	g, err := s.GuildState().Guild(c.GuildID)
-	if err != nil {
-		return 0
-	}
-
-	return firstRoleColorColor(g, message.Member.Roles)
-}
-
-func firstRoleColorColor(g *guild.Guild, memberRoles []string) int {
-	roles := guild.Roles(g.Roles)
-	sort.Sort(roles)
-
-	for _, role := range roles {
-		for _, roleID := range memberRoles {
-			if role.ID == roleID {
-				if role.Color != 0 {
-					return role.Color
-				}
-			}
-		}
-	}
-
-	for _, role := range roles {
-		if role.ID == g.ID {
-			return role.Color
-		}
-	}
-
-	return 0
 }
