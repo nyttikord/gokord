@@ -35,6 +35,7 @@ Including events and voice.
 
 Refactor the Websocket API (including events and voice).
 Rewrite how the Session works.
+Rewrite how the State is managed.
 
 This release follows the changes of `0.31.0`.
 It does not add new features, but continue the cleaning of the source code.
