@@ -275,7 +275,8 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	ths := make(map[string]*channel.Channel, len(g.Threads))
+	ths := make([]*channel.Channel, len(g.Threads))
+	messages := make(map[string][]*channel.Message, len(g.Threads))
 	// converting channelIDs to map to have better perf
 	var channels map[string]string
 	if channelIDs != nil {
@@ -285,6 +286,7 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 		}
 	}
 	// removing from map archived/deleted thread and saving untouched threads
+	i := 0
 	for _, c := range s.channelMap {
 		if c.GuildID == guildID && c.IsThread() {
 			// if thread is in sync list
@@ -295,15 +297,19 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 			if ok {
 				// cleaning the map from old thread
 				// if the thread continue to exist, it will be added later
+				// we just save cached messages before
+				messages[c.ID] = c.Messages
 				delete(s.channelMap, c.ID)
 			} else {
 				// saved because we don't want to touch it
-				ths[c.ID] = c
+				ths[i] = c
+				i++
 			}
 		}
 	}
+	ths = ths[:i]
 	// updating guild threads with untouched thread
-	i := 0
+	i = 0
 	for _, c := range ths {
 		if i >= len(g.Threads) {
 			g.Threads = append(g.Threads, c)
@@ -314,6 +320,8 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	}
 	// updating guild threads and channel map with touched thread
 	for _, c := range threads {
+		// we add cached messages if we deleted the thread previously
+		c.Messages = messages[c.ID]
 		if i >= len(g.Threads) {
 			g.Threads = append(g.Threads, c)
 		} else {
