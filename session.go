@@ -114,6 +114,12 @@ type Session struct {
 
 	// Used to make sure gateway websocket writes do not happen concurrently.
 	wsMutex sync.Mutex
+
+	// API with state.State
+
+	userAPI    *userapi.Requester
+	channelAPI *channelapi.Requester
+	guildAPI   *guildapi.Requester
 }
 
 // TooManyRequests holds information received from Discord when receiving an HTTP 429 response.
@@ -189,31 +195,40 @@ type IdentifyProperties struct {
 }
 
 // UserAPI returns an userapi.Requester to interact with the user package.
-func (s *Session) UserAPI() userapi.Requester {
-	return userapi.Requester{Requester: s, State: userapi.NewState(s.State)}
+func (s *Session) UserAPI() *userapi.Requester {
+	if s.userAPI == nil {
+		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.State)}
+	}
+	return s.userAPI
 }
 
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
-func (s *Session) GuildAPI() guildapi.Requester {
-	return guildapi.Requester{Requester: s, State: guildapi.NewState(s.State)}
+func (s *Session) GuildAPI() *guildapi.Requester {
+	if s.guildAPI == nil {
+		s.guildAPI = &guildapi.Requester{Requester: s, State: guildapi.NewState(s.State)}
+	}
+	return s.guildAPI
 }
 
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
-func (s *Session) ChannelAPI() channelapi.Requester {
-	return channelapi.Requester{Requester: s, State: channelapi.NewState(s.State)}
+func (s *Session) ChannelAPI() *channelapi.Requester {
+	if s.channelAPI == nil {
+		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.State)}
+	}
+	return s.channelAPI
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
-func (s *Session) InviteAPI() inviteapi.Requester {
-	return inviteapi.Requester{Requester: s}
+func (s *Session) InviteAPI() *inviteapi.Requester {
+	return &inviteapi.Requester{Requester: s}
 }
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
-func (s *Session) InteractionAPI() interactionapi.Requester {
-	return interactionapi.Requester{API: s}
+func (s *Session) InteractionAPI() *interactionapi.Requester {
+	return &interactionapi.Requester{API: s}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
-func (s *Session) ApplicationAPI() applicationapi.Requester {
-	return applicationapi.Requester{Requester: s}
+func (s *Session) ApplicationAPI() *applicationapi.Requester {
+	return &applicationapi.Requester{Requester: s}
 }

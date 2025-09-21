@@ -9,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
+// Member represents the State related to user.Member (including status.Presence).
 type Member interface {
 	MemberAdd(*user.Member) error
 	MemberRemove(*user.Member) error
@@ -19,6 +20,7 @@ type Member interface {
 	Presence(string, string) (*status.Presence, error)
 }
 
+// Channel represents the State related to channel.Channel (including channel.Message and threads).
 type Channel interface {
 	ChannelAdd(*channel.Channel) error
 	ChannelRemove(*channel.Channel) error
@@ -39,6 +41,7 @@ type Channel interface {
 	AppendGuildChannel(c *channel.Channel)
 }
 
+// Guild represents the State related to guild.Guild (including guild.Role) and emoji.Emoji.
 type Guild interface {
 	GuildAdd(*guild.Guild)
 	GuildRemove(*guild.Guild) error

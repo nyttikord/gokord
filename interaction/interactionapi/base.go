@@ -13,7 +13,7 @@ import (
 // API adds methods to discord.Requester to be used in the interaction package.
 type API interface {
 	discord.Requester
-	ChannelAPI() channelapi.Requester
+	ChannelAPI() *channelapi.Requester
 }
 
 // Requester handles everything inside the interaction package.

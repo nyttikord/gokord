@@ -15,7 +15,7 @@ import (
 type State struct {
 	sync.RWMutex
 	Ready
-	session Session
+	session *Session
 
 	// MaxMessageCount represents how many messages per channel the state will store.
 	MaxMessageCount    int
@@ -87,12 +87,13 @@ func (s *State) GuildState() state.Guild {
 }
 
 // NewState creates an empty state.
-func NewState() *State {
+func NewState(s *Session) *State {
 	return &State{
 		Ready: Ready{
 			PrivateChannels: []*channel.Channel{},
 			Guilds:          []*guild.Guild{},
 		},
+		session:            s,
 		TrackChannels:      true,
 		TrackThreads:       true,
 		TrackEmojis:        true,

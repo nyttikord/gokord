@@ -23,7 +23,6 @@ const VERSION = "0.31.0"
 //	e.g. "Bearer ..."
 func New(token string) *Session {
 	s := &Session{
-		State:                              NewState(),
 		RateLimiter:                        discord.NewRateLimiter(),
 		StateEnabled:                       true,
 		ShouldReconnectOnError:             true,
@@ -39,6 +38,7 @@ func New(token string) *Session {
 		LastHeartbeatAck:                   time.Now().UTC(),
 		stdLogger:                          stdLogger{Level: logger.LevelInfo},
 	}
+	s.State = NewState(s)
 
 	// Initialize the Identify Package with defaults
 	// These can be modified prior to calling Open()
