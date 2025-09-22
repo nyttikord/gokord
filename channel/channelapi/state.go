@@ -278,11 +278,11 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	ths := make([]*channel.Channel, 0, len(g.Threads))
 	messages := make(map[string][]*channel.Message, len(g.Threads))
 	// converting channelIDs to map to have better perf
-	var channels map[string]string
+	var channels map[string]struct{} // stored value is never used, we use it like a set
 	if channelIDs != nil {
-		channels = make(map[string]string, len(channelIDs))
+		channels = make(map[string]struct{}, len(channelIDs))
 		for _, id := range channelIDs {
-			channels[id] = id
+			channels[id] = struct{}{}
 		}
 	}
 	// removing from map archived/deleted thread and saving untouched threads
