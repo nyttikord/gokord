@@ -5,6 +5,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -12,16 +13,6 @@ import (
 type ChannelGetter interface {
 	// Channel returns the channel.Channel with the given ID.
 	Channel(string, ...discord.RequestOption) (*channel.Channel, error)
-}
-
-type StateChannelGetter interface {
-	Channel(string) (*channel.Channel, error)
-}
-
-// RoleGetter represents a type fetching guild.Role.
-type RoleGetter interface {
-	// Role returns the guild.Role in the given guild.Guild gID with the given rID.
-	Role(gID string, rID string) (*guild.Role, error)
 }
 
 // RolesGetter represents a type fetching []*guild.Role.
@@ -143,9 +134,8 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 //
 // s is a ChannelGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // channel.Channel's data.
-// state is another ChannelGetter representing the internal state of the application (implemented by gokord.State), if
-// not nil, it is called before s.
-func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateChannelGetter) *channel.Channel {
+// state is the ChannelAPI state.
+func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state state.Channel) *channel.Channel {
 	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
@@ -173,9 +163,8 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state StateC
 // gID is the guild.Guild ID containing the role.
 // s is a RolesGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // guild.Role's data.
-// state is a RoleGetter representing the internal state of the application (implemented by gokord.State), if
-// not nil, it is called before s.
-func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state RoleGetter) *guild.Role {
+// state is the GuildAPI state.
+func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state state.Guild) *guild.Role {
 	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}

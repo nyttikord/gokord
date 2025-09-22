@@ -22,6 +22,7 @@ var (
 // Requester handles everything inside the guild package.
 type Requester struct {
 	discord.Requester
+	State *State
 }
 
 // UserGuilds returns an array of guild.UserGuild structures for all guilds.

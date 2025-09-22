@@ -92,14 +92,14 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!airhorn") {
 
 		// Find the channel that the message came from.
-		c, err := s.State.Channel(m.ChannelID)
+		c, err := s.ChannelAPI().State.Channel(m.ChannelID)
 		if err != nil {
 			// Could not find channel.
 			return
 		}
 
 		// Find the guild for that channel.
-		g, err := s.State.Guild(c.GuildID)
+		g, err := s.GuildAPI().State.Guild(c.GuildID)
 		if err != nil {
 			// Could not find guild.
 			return
