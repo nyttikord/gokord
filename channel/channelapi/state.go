@@ -307,7 +307,7 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	}
 	// updating guild threads and channel map with touched thread
 	for _, c := range threads {
-		// we add cached messages if we deleted the thread previously
+		// we add cached messages if we have deleted the thread previously
 		c.Messages = messages[c.ID]
 		ths = append(ths, c)
 		s.channelMap[c.ID] = c

@@ -160,27 +160,6 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 
 func (*Section) message() {}
 
-// TextDisplay is a top-level Component that allows you to add markdown-formatted text to the Message.
-type TextDisplay struct {
-	Content string `json:"content"`
-}
-
-func (*TextDisplay) Type() types.Component {
-	return types.ComponentTextDisplay
-}
-
-func (t *TextDisplay) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		TextDisplay
-		Type types.Component `json:"type"`
-	}{
-		TextDisplay: *t,
-		Type:        t.Type(),
-	})
-}
-
-func (*TextDisplay) message() {}
-
 // Thumbnail can be used as an accessory for a Section component.
 type Thumbnail struct {
 	// Unique identifier for the Component; autopopulated through increment if not provided.
