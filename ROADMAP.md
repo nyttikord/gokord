@@ -30,7 +30,7 @@ Subpackages will be created to be more maintainable and to be easier to use.
 
 ## `0.32.0`
 
-**BREAKING CHANGES IN WEBSOCKET API!**
+**BREAKING CHANGES IN WEBSOCKET API AND IN STATE!**
 Including events and voice.
 
 Refactor the Websocket API (including events and voice).
@@ -51,6 +51,8 @@ Imports some features from [`anhgelus/gokord`](https://github.com/anhgelus/gokor
 - components
 
 Provides a new easier way to create a bot.
+
+Rewrite interaction package to use contexts.
 
 ## `1.0.0`
 
