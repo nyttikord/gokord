@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/user/status"
 )
 
@@ -161,7 +162,7 @@ func (s *Session) Open() error {
 	}
 
 	s.LogDebug("We are now connected to Discord, emitting connect event")
-	s.handleEvent(connectEventType, &Connect{})
+	s.EventManager().EmitEvent(s, event.ConnectType, &event.Connect{})
 
 	// A VoiceConnections map is a hard requirement for Voice.
 	// XXX: can this be moved to when opening a voice connection?
@@ -518,7 +519,7 @@ func (s *Session) requestGuildMembers(data requestGuildMembersData) (err error) 
 //
 // If you use the AddHandler() function to register a handler for the
 // "OnEvent" event then all events will be passed to that handler.
-func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
+func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error) {
 	var err error
 	var reader io.Reader
 	reader = bytes.NewBuffer(message)
@@ -542,7 +543,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 	}
 
 	// Decode the event into an Event struct.
-	var e *Event
+	var e *event.Event
 	decoder := json.NewDecoder(reader)
 	if err = decoder.Decode(&e); err != nil {
 		return e, err
@@ -635,13 +636,13 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 		// it's better to pass along what we received than nothing at all.
 		// TODO: Think about that decision :)
 		// Either way, READY events must fire, even with errors.
-		s.handleEvent(e.Type, e.Struct)
+		s.EventManager().EmitEvent(s, e.Type, e.Struct)
 	} else {
 		s.LogWarn("unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
 	}
 
 	// For legacy reasons, we send the raw event also, this could be useful for handling unknown events.
-	s.handleEvent(eventEventType, e)
+	s.EventManager().EmitEvent(s, event.EventType, e)
 
 	return e, nil
 }
@@ -733,7 +734,7 @@ func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err 
 }
 
 // onVoiceStateUpdate handles Voice State Update events on the data websocket.
-func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
+func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
 	// If we don't have a connection for the channel, don't bother
 	if st.ChannelID == "" {
 		return
@@ -765,7 +766,7 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 // This is also fired if the guild's voice region changes while connected
 // to a voice channel.  In that case, need to re-establish connection to
 // the new region endpoint.
-func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
+func (s *Session) onVoiceServerUpdate(st *event.VoiceServerUpdate) {
 	s.LogDebug("called")
 
 	s.RLock()
@@ -929,7 +930,7 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 	s.Unlock()
 
 	s.LogInfo("emit disconnect event")
-	s.handleEvent(disconnectEventType, &Disconnect{})
+	s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
 
 	return
 }

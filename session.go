@@ -1,8 +1,6 @@
 package gokord
 
 import (
-	"encoding/json"
-	"math"
 	"net/http"
 	"sync"
 	"time"
@@ -11,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
@@ -90,15 +89,13 @@ type Session struct {
 	RateLimiter *discord.RateLimiter
 
 	// Event handlers
-	handlersMu   sync.RWMutex
-	handlers     map[string][]*eventHandlerInstance
-	onceHandlers map[string][]*eventHandlerInstance
+	eventManager *event.EventManager
 
 	// The websocket connection.
 	wsConn *websocket.Conn
 
 	// When nil, the session is not listening.
-	listening chan interface{}
+	listening chan any
 
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *int64
@@ -120,32 +117,6 @@ type Session struct {
 	userAPI    *userapi.Requester
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
-}
-
-// TooManyRequests holds information received from Discord when receiving an HTTP 429 response.
-type TooManyRequests struct {
-	Bucket     string        `json:"bucket"`
-	Message    string        `json:"message"`
-	RetryAfter time.Duration `json:"retry_after"`
-}
-
-// UnmarshalJSON helps support translation of a milliseconds-based float into a time.Duration on TooManyRequests.
-func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
-	u := struct {
-		Bucket     string  `json:"bucket"`
-		Message    string  `json:"message"`
-		RetryAfter float64 `json:"retry_after"`
-	}{}
-	err := json.Unmarshal(b, &u)
-	if err != nil {
-		return err
-	}
-
-	t.Bucket = u.Bucket
-	t.Message = u.Message
-	whole, frac := math.Modf(u.RetryAfter)
-	t.RetryAfter = time.Duration(whole)*time.Second + time.Duration(frac*1000)*time.Millisecond
-	return nil
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
@@ -231,4 +202,8 @@ func (s *Session) InteractionAPI() *interactionapi.Requester {
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
 	return &applicationapi.Requester{Requester: s}
+}
+
+func (s *Session) EventManager() *event.EventManager {
+	return s.eventManager
 }

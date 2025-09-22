@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"encoding/json"
 	"math"
 	"net/http"
 	"strconv"
@@ -9,6 +10,32 @@ import (
 	"sync/atomic"
 	"time"
 )
+
+// TooManyRequests holds information received from Discord when receiving an HTTP 429 response.
+type TooManyRequests struct {
+	Bucket     string        `json:"bucket"`
+	Message    string        `json:"message"`
+	RetryAfter time.Duration `json:"retry_after"`
+}
+
+// UnmarshalJSON helps support translation of a milliseconds-based float into a time.Duration on TooManyRequests.
+func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
+	u := struct {
+		Bucket     string  `json:"bucket"`
+		Message    string  `json:"message"`
+		RetryAfter float64 `json:"retry_after"`
+	}{}
+	err := json.Unmarshal(b, &u)
+	if err != nil {
+		return err
+	}
+
+	t.Bucket = u.Bucket
+	t.Message = u.Message
+	whole, frac := math.Modf(u.RetryAfter)
+	t.RetryAfter = time.Duration(whole)*time.Second + time.Duration(frac*1000)*time.Millisecond
+	return nil
+}
 
 // customRateLimit holds information for defining a custom rate limit.
 type customRateLimit struct {

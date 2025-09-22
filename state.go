@@ -5,6 +5,7 @@ import (
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
@@ -113,7 +114,7 @@ func NewState(s *Session) *State {
 	}
 }
 
-func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
+func (s *State) voiceStateUpdate(update *event.VoiceStateUpdate) error {
 	g, err := s.GuildState().Guild(update.GuildID)
 	if err != nil {
 		return err
@@ -161,7 +162,7 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 }
 
 // OnReady takes a Ready event and updates all internal state.
-func (s *State) onReady(se *Session, r *Ready) error {
+func (s *State) onReady(se *Session, r *event.Ready) error {
 	s.Lock()
 	defer s.Unlock()
 
@@ -190,7 +191,7 @@ func (s *State) onReady(se *Session, r *Ready) error {
 
 // onInterface handles all events related to State.
 func (s *State) onInterface(se *Session, i interface{}) error {
-	r, ok := i.(*Ready)
+	r, ok := i.(*event.Ready)
 	if ok {
 		return s.onReady(se, r)
 	}
@@ -201,11 +202,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 	var err error
 	switch t := i.(type) {
-	case *GuildCreate:
+	case *event.GuildCreate:
 		s.GuildState().GuildAdd(t.Guild)
-	case *GuildUpdate:
+	case *event.GuildUpdate:
 		s.GuildState().GuildAdd(t.Guild)
-	case *GuildDelete:
+	case *event.GuildDelete:
 		var old *guild.Guild
 		old, err = s.GuildState().Guild(t.ID)
 		if err == nil {
@@ -214,7 +215,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 		}
 
 		err = s.GuildState().GuildRemove(t.Guild)
-	case *GuildMemberAdd:
+	case *event.GuildMemberAdd:
 		var g *guild.Guild
 		// Updates the MemberCount of the guild.
 		g, err = s.GuildState().Guild(t.Member.GuildID)
@@ -227,7 +228,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 		if s.TrackMembers {
 			err = s.MemberState().MemberAdd(t.Member)
 		}
-	case *GuildMemberUpdate:
+	case *event.GuildMemberUpdate:
 		if s.TrackMembers {
 			var old *user.Member
 			old, err = s.MemberState().Member(t.GuildID, t.User.ID)
@@ -238,7 +239,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.MemberState().MemberAdd(t.Member)
 		}
-	case *GuildMemberRemove:
+	case *event.GuildMemberRemove:
 		var g *guild.Guild
 		// Updates the MemberCount of the g.
 		g, err = s.GuildState().Guild(t.Member.GuildID)
@@ -258,7 +259,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.MemberState().MemberRemove(t.Member)
 		}
-	case *GuildMembersChunk:
+	case *event.GuildMembersChunk:
 		if s.TrackMembers {
 			for i := range t.Members {
 				t.Members[i].GuildID = t.GuildID
@@ -271,11 +272,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 				err = s.MemberState().PresenceAdd(t.GuildID, p)
 			}
 		}
-	case *GuildRoleCreate:
+	case *event.GuildRoleCreate:
 		if s.TrackRoles {
 			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
-	case *GuildRoleUpdate:
+	case *event.GuildRoleUpdate:
 		if s.TrackRoles {
 			var old *guild.Role
 			old, err = s.GuildState().Role(t.GuildID, t.Role.ID)
@@ -286,7 +287,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
-	case *GuildRoleDelete:
+	case *event.GuildRoleDelete:
 		if s.TrackRoles {
 			var old *guild.Role
 			old, err = s.GuildState().Role(t.GuildID, t.RoleID)
@@ -297,7 +298,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.GuildState().RoleRemove(t.GuildID, t.RoleID)
 		}
-	case *GuildEmojisUpdate:
+	case *event.GuildEmojisUpdate:
 		if s.TrackEmojis {
 			var g *guild.Guild
 			g, err = s.GuildState().Guild(t.GuildID)
@@ -308,7 +309,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			defer s.Unlock()
 			g.Emojis = t.Emojis
 		}
-	case *GuildStickersUpdate:
+	case *event.GuildStickersUpdate:
 		if s.TrackStickers {
 			var g *guild.Guild
 			g, err = s.GuildState().Guild(t.GuildID)
@@ -319,11 +320,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			defer s.Unlock()
 			g.Stickers = t.Stickers
 		}
-	case *ChannelCreate:
+	case *event.ChannelCreate:
 		if s.TrackChannels {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
-	case *ChannelUpdate:
+	case *event.ChannelUpdate:
 		if s.TrackChannels {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
@@ -333,7 +334,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			}
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
-	case *ChannelDelete:
+	case *event.ChannelDelete:
 		if s.TrackChannels {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
@@ -343,11 +344,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			}
 			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
-	case *ThreadCreate:
+	case *event.ThreadCreate:
 		if s.TrackThreads {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
-	case *ThreadUpdate:
+	case *event.ThreadUpdate:
 		if s.TrackThreads {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
@@ -357,7 +358,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			}
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
-	case *ThreadDelete:
+	case *event.ThreadDelete:
 		if s.TrackThreads {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
@@ -367,23 +368,23 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			}
 			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
-	case *ThreadMemberUpdate:
+	case *event.ThreadMemberUpdate:
 		if s.TrackThreads {
 			err = s.ChannelState().ThreadMemberUpdate(t.ThreadMember)
 		}
-	case *ThreadMembersUpdate:
+	case *event.ThreadMembersUpdate:
 		if s.TrackThreadMembers {
 			err = s.ChannelState().ThreadMembersUpdate(t.ID, t.GuildID, t.MemberCount, t.AddedMembers, t.RemovedMembers)
 		}
-	case *ThreadListSync:
+	case *event.ThreadListSync:
 		if s.TrackThreads {
 			err = s.ChannelState().ThreadListSync(t.GuildID, t.ChannelIDs, t.Threads, t.Members)
 		}
-	case *MessageCreate:
+	case *event.MessageCreate:
 		if s.MaxMessageCount != 0 {
 			err = s.ChannelState().MessageAdd(t.Message)
 		}
-	case *MessageUpdate:
+	case *event.MessageUpdate:
 		if s.MaxMessageCount != 0 {
 			var old *channel.Message
 			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
@@ -394,7 +395,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.ChannelState().MessageAdd(t.Message)
 		}
-	case *MessageDelete:
+	case *event.MessageDelete:
 		if s.MaxMessageCount != 0 {
 			var old *channel.Message
 			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
@@ -405,7 +406,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.ChannelState().MessageRemove(t.Message)
 		}
-	case *MessageDeleteBulk:
+	case *event.MessageDeleteBulk:
 		if s.MaxMessageCount != 0 {
 			for _, mID := range t.Messages {
 				err = s.ChannelState().MessageRemoveByID(t.ChannelID, mID)
@@ -414,7 +415,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 				}
 			}
 		}
-	case *VoiceStateUpdate:
+	case *event.VoiceStateUpdate:
 		if s.TrackVoice {
 			var old *user.VoiceState
 			old, err = s.VoiceState(t.GuildID, t.UserID)
@@ -425,7 +426,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 
 			err = s.voiceStateUpdate(t)
 		}
-	case *PresenceUpdate:
+	case *event.PresenceUpdate:
 		if s.TrackPresences {
 			err = s.MemberState().PresenceAdd(t.GuildID, &t.Presence)
 		}

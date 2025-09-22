@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 )
 
@@ -109,9 +110,8 @@ func TestOpenClose(t *testing.T) {
 }
 
 func TestAddHandler(t *testing.T) {
-
 	testHandlerCalled := int32(0)
-	testHandler := func(s *Session, m *MessageCreate) {
+	testHandler := func(s *Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
@@ -126,14 +126,14 @@ func TestAddHandler(t *testing.T) {
 	}
 
 	d := Session{}
-	d.AddHandler(testHandler)
-	d.AddHandler(testHandler)
+	d.EventManager().AddHandler(testHandler)
+	d.EventManager().AddHandler(testHandler)
 
-	d.AddHandler(interfaceHandler)
-	d.AddHandler(bogusHandler)
+	d.EventManager().AddHandler(interfaceHandler)
+	d.EventManager().AddHandler(bogusHandler)
 
-	d.handleEvent(messageCreateEventType, &MessageCreate{})
-	d.handleEvent(messageDeleteEventType, &MessageDelete{})
+	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().EmitEvent(&d, event.MessageDeleteType, &event.MessageDelete{})
 
 	<-time.After(500 * time.Millisecond)
 
@@ -155,18 +155,18 @@ func TestAddHandler(t *testing.T) {
 func TestRemoveHandler(t *testing.T) {
 
 	testHandlerCalled := int32(0)
-	testHandler := func(s *Session, m *MessageCreate) {
+	testHandler := func(s *Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
 	d := Session{}
-	r := d.AddHandler(testHandler)
+	r := d.EventManager().AddHandler(testHandler)
 
-	d.handleEvent(messageCreateEventType, &MessageCreate{})
+	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
 
 	r()
 
-	d.handleEvent(messageCreateEventType, &MessageCreate{})
+	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
 
 	<-time.After(500 * time.Millisecond)
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 func unmarshal(data []byte, v any) error {
@@ -125,7 +126,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 			err = fmt.Errorf("exceeded max HTTP retries %s, %s", resp.Status, response)
 		}
 	case http.StatusTooManyRequests: // rate limiting
-		rl := TooManyRequests{}
+		rl := discord.TooManyRequests{}
 		err = json.Unmarshal(response, &rl)
 		if err != nil {
 			s.LogError(err, "rate limit unmarshal error")
@@ -134,7 +135,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 
 		if cfg.ShouldRetryOnRateLimit {
 			s.LogInfo("Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
-			s.handleEvent(rateLimitEventType, &RateLimit{TooManyRequests: &rl, URL: urlStr})
+			s.EventManager().EmitEvent(s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
 			// we can make the above smarter
@@ -142,7 +143,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 
 			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence, options...)
 		} else {
-			err = &RateLimitError{&RateLimit{TooManyRequests: &rl, URL: urlStr}}
+			err = &RateLimitError{&event.RateLimit{TooManyRequests: &rl, URL: urlStr}}
 		}
 	case http.StatusUnauthorized:
 		if strings.Index(s.Identify.Token, "Bot ") != 0 {
