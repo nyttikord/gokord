@@ -11,6 +11,7 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -126,6 +127,8 @@ func TestAddHandler(t *testing.T) {
 	}
 
 	d := Session{}
+	d.eventManager = event.NewManager(&d, d.onInterface, d.onReady)
+	d.stdLogger = stdLogger{Level: logger.LevelDebug}
 	d.EventManager().AddHandler(testHandler)
 	d.EventManager().AddHandler(testHandler)
 
@@ -153,13 +156,14 @@ func TestAddHandler(t *testing.T) {
 }
 
 func TestRemoveHandler(t *testing.T) {
-
 	testHandlerCalled := int32(0)
 	testHandler := func(s *Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
 	d := Session{}
+	d.eventManager = event.NewManager(&d, d.onInterface, d.onReady)
+	d.stdLogger = stdLogger{Level: logger.LevelDebug}
 	r := d.EventManager().AddHandler(testHandler)
 
 	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
