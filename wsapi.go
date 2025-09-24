@@ -173,7 +173,7 @@ func (s *Session) Open() error {
 
 	// Create listening chan outside of listen, as it needs to happen inside the
 	// mutex lock and needs to exist before calling heartbeat and listen
-	// go rountines.
+	// goroutines.
 	s.listening = make(chan any)
 
 	// Start sending heartbeats and reading messages from Discord.
@@ -190,17 +190,16 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 		messageType, message, err := wsConn.ReadMessage()
 
 		if err != nil {
-			// Detect if we have been closed manually. If a Close() has already
-			// happened, the websocket we are listening on will be different to
-			// the current session.
+			// Detect if we have been closed manually.
+			// If a Close() has already happened, the websocket we are listening on will be different to the current
+			// session.
 			s.RLock()
 			sameConnection := s.wsConn == wsConn
 			s.RUnlock()
 
 			if sameConnection {
 				s.LogWarn("error reading from gateway %s websocket, %s", s.gateway, err)
-				// There has been an error reading, close the websocket so that
-				// OnDisconnect event is emitted.
+				// There has been an error reading, close the websocket so that OnDisconnect event is emitted.
 				err = s.Close()
 				if err != nil {
 					s.LogWarn("error closing session connection, %s", err)
@@ -216,7 +215,10 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 		case <-listening:
 			return
 		default:
-			s.onEvent(messageType, message)
+			_, err = s.onEvent(messageType, message)
+			if err != nil {
+				s.LogError(err, "handling event")
+			}
 		}
 	}
 }
@@ -231,7 +233,7 @@ type helloOp struct {
 }
 
 // FailedHeartbeatAcks is the Number of heartbeat intervals to wait until forcing a connection restart.
-const FailedHeartbeatAcks time.Duration = 5 * time.Millisecond
+const FailedHeartbeatAcks = 5 * time.Millisecond
 
 // HeartbeatLatency returns the latency between heartbeat acknowledgement and heartbeat send.
 func (s *Session) HeartbeatLatency() time.Duration {
@@ -575,7 +577,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	}
 
 	// Invalid Session
-	// Must respond with a Identify packet.
+	// Must respond with an Identify packet.
 	if e.Operation == 9 {
 		s.LogInfo("Closing and reconnecting in response to Op9")
 		s.CloseWithCode(websocket.CloseServiceRestart)
@@ -621,28 +623,23 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	atomic.StoreInt64(s.sequence, e.Sequence)
 
 	// Map event to registered event handlers and pass it along to any registered handlers.
-	if eh, ok := registeredInterfaceProviders[e.Type]; ok {
+	if eh, ok := event.GetInterfaceProvider(e.Type); ok {
 		e.Struct = eh.New()
 
 		// Attempt to unmarshal our event.
 		if err = json.Unmarshal(e.RawData, e.Struct); err != nil {
-			s.LogError(err, "unmarshalling %s event, %s", e.Type)
+			s.LogWarn("failed to unmarshal %s event, data: %s", e.Type, e.RawData)
+			// READY events are always emitted
+			if e.Type != event.ReadyType {
+				return nil, err
+			}
 		}
 
-		// Send event to any registered event handlers for it's type.
-		// Because the above doesn't cancel this, in case of an error
-		// the struct could be partially populated or at default values.
-		// However, most errors are due to a single field and I feel
-		// it's better to pass along what we received than nothing at all.
-		// TODO: Think about that decision :)
-		// Either way, READY events must fire, even with errors.
 		s.EventManager().EmitEvent(s, e.Type, e.Struct)
 	} else {
 		s.LogWarn("unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
+		s.EventManager().EmitEvent(s, event.EventType, e)
 	}
-
-	// For legacy reasons, we send the raw event also, this could be useful for handling unknown events.
-	s.EventManager().EmitEvent(s, event.EventType, e)
 
 	return e, nil
 }

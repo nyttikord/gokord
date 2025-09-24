@@ -89,7 +89,7 @@ type Session struct {
 	RateLimiter *discord.RateLimiter
 
 	// Event handlers
-	eventManager *event.EventManager
+	eventManager *event.Manager
 
 	// The websocket connection.
 	wsConn *websocket.Conn
@@ -204,6 +204,6 @@ func (s *Session) ApplicationAPI() *applicationapi.Requester {
 	return &applicationapi.Requester{Requester: s}
 }
 
-func (s *Session) EventManager() *event.EventManager {
+func (s *Session) EventManager() *event.Manager {
 	return s.eventManager
 }

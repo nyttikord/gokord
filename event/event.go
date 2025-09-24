@@ -15,7 +15,7 @@ import (
 // Session represents a gokord.Session used in events.
 type Session interface {
 	logger.Logger
-	EventManager() *EventManager
+	EventManager() *Manager
 
 	// ChannelAPI returns a channelapi.Requester to interact with the channel package.
 	ChannelAPI() *channelapi.Requester
@@ -31,7 +31,7 @@ type Session interface {
 	ApplicationAPI() *applicationapi.Requester
 }
 
-type EventManager struct {
+type Manager struct {
 	sync.RWMutex
 	logger.Logger
 
@@ -44,8 +44,8 @@ type EventManager struct {
 	onReady     func(*Ready)
 }
 
-func NewManager(s Session, onInterface func(any), onReady func(*Ready)) *EventManager {
-	return &EventManager{
+func NewManager(s Session, onInterface func(any), onReady func(*Ready)) *Manager {
+	return &Manager{
 		RWMutex:      sync.RWMutex{},
 		Logger:       s,
 		SyncEvents:   false,

@@ -47,8 +47,7 @@ func (eh interfaceHandler) Handle(s Session, i any) {
 
 var registeredInterfaceProviders = map[string]InterfaceProvider{}
 
-// registerInterfaceProvider registers a provider so that Gokord can
-// access it's New() method.
+// registerInterfaceProvider registers a provider so that Gokord can access it's New() method.
 func registerInterfaceProvider(eh InterfaceProvider) {
 	if _, ok := registeredInterfaceProviders[eh.Type()]; ok {
 		return
@@ -59,15 +58,20 @@ func registerInterfaceProvider(eh InterfaceProvider) {
 	registeredInterfaceProviders[eh.Type()] = eh
 }
 
-// eventHandlerInstance is a wrapper around an event handler, as functions
-// cannot be compared directly.
+// GetInterfaceProvider returns the InterfaceProvider and true for the given type.
+// It returns nil and false otherwise.
+func GetInterfaceProvider(typ string) (InterfaceProvider, bool) {
+	in, ok := registeredInterfaceProviders[typ]
+	return in, ok
+}
+
+// eventHandlerInstance is a wrapper around an event handler, as functions cannot be compared directly.
 type eventHandlerInstance struct {
 	eventHandler Handler
 }
 
-// addEventHandler adds an event handler that will be fired anytime
-// the Discord WSAPI matching Handler.Type fires.
-func (e *EventManager) addEventHandler(eventHandler Handler) func() {
+// addEventHandler adds an event handler that will be fired anytime the Discord WSAPI matching Handler.Type fires.
+func (e *Manager) addEventHandler(eventHandler Handler) func() {
 	e.Lock()
 	defer e.Unlock()
 
@@ -85,7 +89,7 @@ func (e *EventManager) addEventHandler(eventHandler Handler) func() {
 
 // addEventHandler adds an event handler that will be fired the next time
 // the Discord WSAPI matching Handler.Type fires.
-func (e *EventManager) addEventHandlerOnce(eventHandler Handler) func() {
+func (e *Manager) addEventHandlerOnce(eventHandler Handler) func() {
 	e.Lock()
 	defer e.Unlock()
 
@@ -124,7 +128,7 @@ func (e *EventManager) addEventHandlerOnce(eventHandler Handler) func() {
 //
 // The return value of this method is a function, that when called will remove the
 // event handler.
-func (e *EventManager) AddHandler(handler any) func() {
+func (e *Manager) AddHandler(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
@@ -138,7 +142,7 @@ func (e *EventManager) AddHandler(handler any) func() {
 // AddHandlerOnce allows you to add an event handler that will be fired the next time
 // the Discord WSAPI event that matches the function fires.
 // See AddHandler for more details.
-func (e *EventManager) AddHandlerOnce(handler any) func() {
+func (e *Manager) AddHandlerOnce(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
@@ -150,7 +154,7 @@ func (e *EventManager) AddHandlerOnce(handler any) func() {
 }
 
 // removeEventHandlerInstance removes an event handler instance.
-func (e *EventManager) removeEventHandlerInstance(t string, ehi *eventHandlerInstance) {
+func (e *Manager) removeEventHandlerInstance(t string, ehi *eventHandlerInstance) {
 	e.Lock()
 	defer e.Unlock()
 
@@ -170,7 +174,7 @@ func (e *EventManager) removeEventHandlerInstance(t string, ehi *eventHandlerIns
 }
 
 // Handles calling permanent and once handlers for an event type.
-func (e *EventManager) handle(s Session, t string, i any) {
+func (e *Manager) handle(s Session, t string, i any) {
 	for _, eh := range e.handlers[t] {
 		if e.SyncEvents {
 			eh.eventHandler.Handle(s, i)
@@ -191,9 +195,8 @@ func (e *EventManager) handle(s Session, t string, i any) {
 	}
 }
 
-// Handles an event type by calling internal methods, firing handlers and firing the
-// any event.
-func (e *EventManager) EmitEvent(s Session, t string, i any) {
+// EmitEvent calls internal methods, fires handlers and fires the "any" event.
+func (e *Manager) EmitEvent(s Session, t string, i any) {
 	e.RLock()
 	defer e.RUnlock()
 
