@@ -9,6 +9,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 )
 
@@ -66,8 +67,8 @@ var (
 		},
 	}
 
-	commandHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
-		"single-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
+	commandHandlers = map[string]func(s *gokord.Session, i *event.InteractionCreate){
+		"single-autocomplete": func(s *gokord.Session, i *event.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
@@ -129,7 +130,7 @@ var (
 				}
 			}
 		},
-		"multi-autocomplete": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"multi-autocomplete": func(s *gokord.Session, i *event.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
@@ -219,8 +220,8 @@ var (
 )
 
 func main() {
-	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) { log.Println("Bot is up!") })
-	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
+	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) { log.Println("Bot is up!") })
+	s.EventManager().AddHandler(func(s *gokord.Session, i *event.InteractionCreate) {
 		if h, ok := commandHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}

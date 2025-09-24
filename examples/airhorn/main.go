@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 func init() {
@@ -42,13 +44,13 @@ func main() {
 	dg := gokord.New("Bot " + token)
 
 	// Register ready as a callback for the ready events.
-	dg.AddHandler(ready)
+	dg.EventManager().AddHandler(ready)
 
 	// Register messageCreate as a callback for the messageCreate events.
-	dg.AddHandler(messageCreate)
+	dg.EventManager().AddHandler(messageCreate)
 
 	// Register guildCreate as a callback for the guildCreate events.
-	dg.AddHandler(guildCreate)
+	dg.EventManager().AddHandler(guildCreate)
 
 	// We need information about guilds (which includes their channels),
 	// messages and voice states.
@@ -72,7 +74,7 @@ func main() {
 
 // This function will be called (due to AddHandler above) when the bot receives
 // the "ready" event from Discord.
-func ready(s *gokord.Session, event *gokord.Ready) {
+func ready(s *gokord.Session, event *event.Ready) {
 
 	// Set the playing status.
 	s.UpdateGameStatus(0, "!airhorn")
@@ -80,7 +82,7 @@ func ready(s *gokord.Session, event *gokord.Ready) {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
+func messageCreate(s *gokord.Session, m *event.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -121,7 +123,7 @@ func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
 
 // This function will be called (due to AddHandler above) every time a new
 // guild is joined.
-func guildCreate(s *gokord.Session, event *gokord.GuildCreate) {
+func guildCreate(s *gokord.Session, event *event.GuildCreate) {
 
 	if event.Guild.Unavailable {
 		return
@@ -151,7 +153,7 @@ func loadSound() error {
 		err = binary.Read(file, binary.LittleEndian, &opuslen)
 
 		// If this is the end of the file, just return.
-		if err == io.EOF || err == io.ErrUnexpectedEOF {
+		if err == io.EOF || errors.Is(err, io.ErrUnexpectedEOF) {
 			err := file.Close()
 			if err != nil {
 				return err

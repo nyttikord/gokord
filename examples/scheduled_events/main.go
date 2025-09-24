@@ -10,6 +10,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 )
 
@@ -24,7 +25,7 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
+	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 
