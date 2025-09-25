@@ -112,17 +112,17 @@ func TestOpenClose(t *testing.T) {
 
 func TestAddHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s *Session, m *event.MessageCreate) {
+	testHandler := func(s event.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
 	interfaceHandlerCalled := int32(0)
-	interfaceHandler := func(s *Session, i interface{}) {
+	interfaceHandler := func(s event.Session, i interface{}) {
 		atomic.AddInt32(&interfaceHandlerCalled, 1)
 	}
 
 	bogusHandlerCalled := int32(0)
-	bogusHandler := func(s *Session, se *Session) {
+	bogusHandler := func(s event.Session, se *event.Session) {
 		atomic.AddInt32(&bogusHandlerCalled, 1)
 	}
 
@@ -157,7 +157,7 @@ func TestAddHandler(t *testing.T) {
 
 func TestRemoveHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s *Session, m *event.MessageCreate) {
+	testHandler := func(s event.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
@@ -187,7 +187,7 @@ func TestScheduledEvents(t *testing.T) {
 
 	beginAt := time.Now().Add(1 * time.Hour)
 	endAt := time.Now().Add(2 * time.Hour)
-	event, err := dgBot.GuildAPI().ScheduledEventCreate(envGuild, &guild.ScheduledEventParams{
+	e, err := dgBot.GuildAPI().ScheduledEventCreate(envGuild, &guild.ScheduledEventParams{
 		Name:               "Test Event",
 		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
 		ScheduledStartTime: &beginAt,
@@ -198,9 +198,9 @@ func TestScheduledEvents(t *testing.T) {
 			Location: "https://discord.com",
 		},
 	})
-	defer dgBot.GuildAPI().ScheduledEventDelete(envGuild, event.ID)
+	defer dgBot.GuildAPI().ScheduledEventDelete(envGuild, e.ID)
 
-	if err != nil || event.Name != "Test Event" {
+	if err != nil || e.Name != "Test Event" {
 		t.Fatal(err)
 	}
 
@@ -211,24 +211,24 @@ func TestScheduledEvents(t *testing.T) {
 
 	var foundEvent *guild.ScheduledEvent
 	for _, e := range events {
-		if e.ID == event.ID {
+		if e.ID == e.ID {
 			foundEvent = e
 			break
 		}
 	}
-	if foundEvent.Name != event.Name {
+	if foundEvent.Name != e.Name {
 		t.Fatal("err on GuildScheduledEvents endpoint. Missing Scheduled Event")
 	}
 
-	getEvent, err := dgBot.GuildAPI().ScheduledEvent(envGuild, event.ID, true)
+	getEvent, err := dgBot.GuildAPI().ScheduledEvent(envGuild, e.ID, true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if getEvent.Name != event.Name {
+	if getEvent.Name != e.Name {
 		t.Fatal("err on GuildScheduledEvent endpoint. Mismatched Scheduled Event")
 	}
 
-	eventUpdated, err := dgBot.GuildAPI().ScheduledEventEdit(envGuild, event.ID, &guild.ScheduledEventParams{Name: "Test Event Updated"})
+	eventUpdated, err := dgBot.GuildAPI().ScheduledEventEdit(envGuild, e.ID, &guild.ScheduledEventParams{Name: "Test Event Updated"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,15 +239,15 @@ func TestScheduledEvents(t *testing.T) {
 
 	// Usage of 1 and 1 is just the pseudo data with the purpose to run all branches in the function without crashes.
 	// see https://github.com/bwmarrin/discordgo/pull/1032#discussion_r815438303 for more details.
-	users, err := dgBot.GuildAPI().ScheduledEventUsers(envGuild, event.ID, 1, true, "1", "1")
+	users, err := dgBot.GuildAPI().ScheduledEventUsers(envGuild, e.ID, 1, true, "1", "1")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(users) != 0 {
-		t.Fatal("err on GuildScheduledEventUsers. Mismatch of event maybe occurred")
+		t.Fatal("err on GuildScheduledEventUsers. Mismatch of e maybe occurred")
 	}
 
-	err = dgBot.GuildAPI().ScheduledEventDelete(envGuild, event.ID)
+	err = dgBot.GuildAPI().ScheduledEventDelete(envGuild, e.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
