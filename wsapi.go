@@ -51,9 +51,6 @@ func (s *Session) GatewayWriteStruct(v any) error {
 // Open creates a websocket connection to Discord.
 // https://discord.com/developers/docs/topics/gateway#connecting
 func (s *Session) Open() error {
-	var err error
-
-	// Prevent Open or other major Session functions from being called while Open is still running.
 	s.Lock()
 	defer s.Unlock()
 
@@ -65,6 +62,7 @@ func (s *Session) Open() error {
 	sequence := atomic.LoadInt64(s.sequence)
 
 	var gateway string
+	var err error
 	// Get the gateway to use for the Websocket connection
 	if sequence != 0 && s.sessionID != "" && s.resumeGatewayURL != "" {
 		s.LogDebug("using resume gateway %s", s.resumeGatewayURL)
@@ -100,11 +98,8 @@ func (s *Session) Open() error {
 	})
 
 	defer func() {
-		// because of this, all code below must set err to the error when exiting with an error :)
-		// Maybe someone has a better way :)
 		if err != nil {
-			s.wsConn.Close()
-			s.wsConn = nil
+			s.ForceClose(false)
 		}
 	}()
 
@@ -207,11 +202,12 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 			s.RUnlock()
 
 			if sameConnection {
-				s.LogWarn("error reading from gateway %s websocket, %s", s.gateway, err)
+				s.LogError(err, "reading from gateway %s websocket", s.gateway)
 				// There has been an error reading, close the websocket so that OnDisconnect event is emitted.
 				err = s.Close()
 				if err != nil {
-					s.LogWarn("error closing session connection, %s", err)
+					s.LogError(err, "error closing session connection, force closing")
+					s.ForceClose(false)
 				}
 
 				s.LogInfo("calling reconnect() now")
@@ -278,7 +274,11 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 			} else {
 				s.LogWarn("haven't gotten a heartbeat ACK in %v, triggering a reconnection", time.Now().UTC().Sub(last))
 			}
-			s.Close()
+			err = s.Close()
+			if err != nil {
+				s.LogError(err, "error closing session connection, force closing")
+				s.ForceClose(false)
+			}
 			s.reconnect()
 			return
 		}
@@ -353,7 +353,11 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	// Must immediately disconnect from gateway and reconnect to new gateway.
 	if e.Operation == 7 {
 		s.LogInfo("Closing and reconnecting in response to Op7")
-		s.CloseWithCode(websocket.CloseServiceRestart)
+		err = s.CloseWithCode(websocket.CloseServiceRestart)
+		if err != nil {
+			s.LogError(err, "error closing session connection, force closing")
+			s.ForceClose(false)
+		}
 		s.reconnect()
 		return e, nil
 	}
@@ -361,8 +365,12 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	// Invalid Session
 	// Must respond with an Identify packet.
 	if e.Operation == 9 {
-		s.LogInfo("Closing and reconnecting in response to Op9")
-		s.CloseWithCode(websocket.CloseServiceRestart)
+		s.LogWarn("Invalid session received, reconnecting")
+		err = s.CloseWithCode(websocket.CloseServiceRestart)
+		if err != nil {
+			s.LogError(err, "error closing session connection, force closing")
+			s.ForceClose(false)
+		}
 
 		var resumable bool
 		if err = json.Unmarshal(e.RawData, &resumable); err != nil {
@@ -426,10 +434,6 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	return e, nil
 }
 
-// ------------------------------------------------------------------------------------------------
-// Code related to voice connections that initiate over the data websocket
-// ------------------------------------------------------------------------------------------------
-
 type voiceChannelJoinData struct {
 	GuildID   *string `json:"guild_id"`
 	ChannelID *string `json:"channel_id"`
@@ -442,77 +446,69 @@ type voiceChannelJoinOp struct {
 	Data voiceChannelJoinData `json:"d"`
 }
 
-// ChannelVoiceJoin joins the session user to a voice channel.
+// ChannelVoiceJoin joins the session user to a voice channel.Channel.
 //
-//	gID     : guild ID of the channel to join.
-//	cID     : channel ID of the channel to join.
-//	mute    : If true, you will be set to muted upon joining.
-//	deaf    : If true, you will be set to deafened upon joining.
-func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *VoiceConnection, err error) {
-	s.LogDebug("called")
-
+// mute indicates whether you will be set to muted upon joining.
+// deaf indicates whether you will be set to deafened upon joining.
+func (s *Session) ChannelVoiceJoin(guildID, channelID string, mute, deaf bool) (*VoiceConnection, error) {
 	s.RLock()
-	voice, _ = s.VoiceConnections[gID]
+	voice, _ := s.VoiceConnections[guildID]
 	s.RUnlock()
 
 	if voice == nil {
 		voice = &VoiceConnection{stdLogger: stdLogger{Level: s.GetLevel()}}
 		s.Lock()
-		s.VoiceConnections[gID] = voice
+		s.VoiceConnections[guildID] = voice
 		s.Unlock()
 	}
 
 	voice.Lock()
-	voice.GuildID = gID
-	voice.ChannelID = cID
+	voice.GuildID = guildID
+	voice.ChannelID = channelID
 	voice.deaf = deaf
 	voice.mute = mute
 	voice.session = s
 	voice.Unlock()
 
-	err = s.ChannelVoiceJoinManual(gID, cID, mute, deaf)
+	err := s.ChannelVoiceJoinManual(guildID, channelID, mute, deaf)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	// doesn't exactly work perfect yet.. TODO
+	// TODO: doesn't exactly work perfect yet...
 	err = voice.waitUntilConnected()
 	if err != nil {
 		s.LogError(err, "waiting for voice to connect")
 		voice.Close()
-		return
+		return nil, err
 	}
 
-	return
+	return voice, nil
 }
 
-// ChannelVoiceJoinManual initiates a voice session to a voice channel, but does not complete it.
+// ChannelVoiceJoinManual initiates a voice session to a voice channel.Channel, but does not complete it.
 //
 // This should only be used when the VoiceServerUpdate will be intercepted and used elsewhere.
 //
-//	gID     : guild ID of the channel to join.
-//	cID     : channel ID of the channel to join, leave empty to disconnect.
-//	mute    : If true, you will be set to muted upon joining.
-//	deaf    : If true, you will be set to deafened upon joining.
-func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err error) {
-	s.LogDebug("called")
-
-	var channelID *string
-	if cID == "" {
-		channelID = nil
+// mute indicates whether you will be set to muted upon joining.
+// deaf indicates whether you will be set to deafened upon joining.
+func (s *Session) ChannelVoiceJoinManual(guildID, channelID string, mute, deaf bool) error {
+	var cID *string
+	if channelID == "" {
+		cID = nil
 	} else {
-		channelID = &cID
+		cID = &channelID
 	}
 
 	// Send the request to Discord that we want to join the voice channel
-	data := voiceChannelJoinOp{4, voiceChannelJoinData{&gID, channelID, mute, deaf}}
+	data := voiceChannelJoinOp{4, voiceChannelJoinData{&guildID, cID, mute, deaf}}
 	s.wsMutex.Lock()
-	err = s.wsConn.WriteJSON(data)
+	err := s.wsConn.WriteJSON(data)
 	s.wsMutex.Unlock()
-	return
+	return err
 }
 
-// onVoiceStateUpdate handles Voice State Update events on the data websocket.
+// onVoiceStateUpdate handles event.VoiceStateUpdate.
 func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
 	// If we don't have a connection for the channel, don't bother
 	if st.ChannelID == "" {
@@ -540,13 +536,12 @@ func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
 	voice.Unlock()
 }
 
-// onVoiceServerUpdate handles the Voice Server Update data websocket event.
+// onVoiceServerUpdate handles the event.VoiceServerUpdate.
 //
-// This is also fired if the guild's voice region changes while connected
-// to a voice channel.  In that case, need to re-establish connection to
-// the new region endpoint.
+// This is also fired if the guild's voice region changes while connected to a voice channel.
+// In that case, need to re-establish connection to the new region endpoint.
 func (s *Session) onVoiceServerUpdate(st *event.VoiceServerUpdate) {
-	s.LogDebug("called")
+	s.LogDebug("voice server update")
 
 	s.RLock()
 	voice, exists := s.VoiceConnections[st.GuildID]
@@ -571,7 +566,7 @@ func (s *Session) onVoiceServerUpdate(st *event.VoiceServerUpdate) {
 	// Open a connection to the voice server
 	err := voice.open()
 	if err != nil {
-		s.LogError(err, "onVoiceServerUpdate voice.open")
+		s.LogError(err, "opening voice connection")
 	}
 }
 
@@ -596,59 +591,54 @@ func (s *Session) identify() error {
 }
 
 func (s *Session) reconnect() {
-	s.LogDebug("called")
+	if !s.ShouldReconnectOnError {
+		return
+	}
+	s.LogInfo("trying to reconnect to gateway")
 
-	var err error
+	wait := time.Duration(1)
+	err := s.Open()
 
-	if s.ShouldReconnectOnError {
+	for err != nil {
+		// Certain race conditions can call reconnect() twice.
+		// If this happens, we just break out of the reconnect loop
+		// TODO: fix this
+		if errors.Is(err, ErrWSAlreadyOpen) {
+			s.LogDebug("Websocket already exists, no need to reconnect")
+			return
+		}
 
-		wait := time.Duration(1)
+		s.LogError(err, "reconnecting to gateway")
+
+		time.Sleep(wait * time.Second)
+		wait *= 2
+		if wait > 600 {
+			wait = 600
+		}
 
 		s.LogInfo("trying to reconnect to gateway")
 
 		err = s.Open()
+	}
+	s.LogInfo("successfully reconnected to gateway")
 
-		for err != nil {
-			// Certain race conditions can call reconnect() twice. If this happens, we
-			// just break out of the reconnect loop
-			if errors.Is(err, ErrWSAlreadyOpen) {
-				s.LogDebug("Websocket already exists, no need to reconnect")
-				return
-			}
-
-			s.LogError(err, "reconnecting to gateway")
-
-			<-time.After(wait * time.Second)
-			wait *= 2
-			if wait > 600 {
-				wait = 600
-			}
-
-			s.LogInfo("trying to reconnect to gateway")
-
-			err = s.Open()
-		}
-		s.LogInfo("successfully reconnected to gateway")
-
-		// I'm not sure if this is actually needed.
-		// if the gw reconnect works properly, voice should stay alive
-		// However, there seems to be cases where something "weird"
-		// happens.  So we're doing this for now just to improve
-		// stability in those edge cases.
-		if s.ShouldReconnectVoiceOnSessionError {
-			s.RLock()
-			defer s.RUnlock()
-			for _, v := range s.VoiceConnections {
-
-				s.LogInfo("reconnecting voice connection to guild %s", v.GuildID)
-				go v.reconnect()
-
-				// This is here just to prevent violently spamming the
-				// voice reconnects
-				time.Sleep(1 * time.Second)
-			}
-		}
+	// I'm not sure if this is actually needed.
+	// If the gw reconnect works properly, voice should stay alive
+	// However, there seems to be cases where something "weird" happens.
+	// So we're doing this for now just to improve stability in those edge cases.
+	if !s.ShouldReconnectVoiceOnSessionError {
 		return
+	}
+	s.RLock()
+	defer s.RUnlock()
+	for _, v := range s.VoiceConnections {
+
+		s.LogInfo("reconnecting voice connection to guild %s", v.GuildID)
+		go v.reconnect()
+
+		// This is here just to prevent violently spamming the
+		// voice reconnects
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -696,7 +686,11 @@ func (s *Session) CloseWithCode(closeCode int) error {
 		err := s.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""))
 		s.wsMutex.Unlock()
 		errChan <- err
-		//TODO: waiting for Discord to close the websocket
+		// TODO: waiting for Discord to close the websocket
+		// I have searched a way to wait for the wsConn to be closed, but I have found nothing on it.
+		// I don't know how to do this.
+		// I don't know if this needed.
+		// Currently, this work without issues, so it's fine I guess?
 	}()
 
 	// we do not handle it because throwing an error while sending a close message is a big error,
@@ -712,7 +706,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 	// required
 	s.Unlock()
-	s.ForceClose()
+	s.ForceClose(true)
 	s.Lock()
 
 	return nil
@@ -720,7 +714,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 // ForceClose the connection.
 // Use Close or CloseWithCode before to have a better closing process.
-func (s *Session) ForceClose() {
+func (s *Session) ForceClose(emitDisconnect bool) {
 	s.Lock()
 	defer s.Unlock()
 	s.LogInfo("closing gateway websocket")
@@ -731,8 +725,10 @@ func (s *Session) ForceClose() {
 	}
 	s.wsConn = nil
 
-	// required
-	s.Unlock()
-	s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
-	s.Lock()
+	if emitDisconnect {
+		// required
+		s.Unlock()
+		s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
+		s.Lock()
+	}
 }
