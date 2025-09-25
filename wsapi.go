@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/user/status"
 )
 
@@ -161,7 +162,7 @@ func (s *Session) Open() error {
 	}
 
 	s.LogDebug("We are now connected to Discord, emitting connect event")
-	s.handleEvent(connectEventType, &Connect{})
+	s.EventManager().EmitEvent(s, event.ConnectType, &event.Connect{})
 
 	// A VoiceConnections map is a hard requirement for Voice.
 	// XXX: can this be moved to when opening a voice connection?
@@ -172,7 +173,7 @@ func (s *Session) Open() error {
 
 	// Create listening chan outside of listen, as it needs to happen inside the
 	// mutex lock and needs to exist before calling heartbeat and listen
-	// go rountines.
+	// goroutines.
 	s.listening = make(chan any)
 
 	// Start sending heartbeats and reading messages from Discord.
@@ -189,17 +190,16 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 		messageType, message, err := wsConn.ReadMessage()
 
 		if err != nil {
-			// Detect if we have been closed manually. If a Close() has already
-			// happened, the websocket we are listening on will be different to
-			// the current session.
+			// Detect if we have been closed manually.
+			// If a Close() has already happened, the websocket we are listening on will be different to the current
+			// session.
 			s.RLock()
 			sameConnection := s.wsConn == wsConn
 			s.RUnlock()
 
 			if sameConnection {
 				s.LogWarn("error reading from gateway %s websocket, %s", s.gateway, err)
-				// There has been an error reading, close the websocket so that
-				// OnDisconnect event is emitted.
+				// There has been an error reading, close the websocket so that OnDisconnect event is emitted.
 				err = s.Close()
 				if err != nil {
 					s.LogWarn("error closing session connection, %s", err)
@@ -215,7 +215,10 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 		case <-listening:
 			return
 		default:
-			s.onEvent(messageType, message)
+			_, err = s.onEvent(messageType, message)
+			if err != nil {
+				s.LogError(err, "handling event")
+			}
 		}
 	}
 }
@@ -230,7 +233,7 @@ type helloOp struct {
 }
 
 // FailedHeartbeatAcks is the Number of heartbeat intervals to wait until forcing a connection restart.
-const FailedHeartbeatAcks time.Duration = 5 * time.Millisecond
+const FailedHeartbeatAcks = 5 * time.Millisecond
 
 // HeartbeatLatency returns the latency between heartbeat acknowledgement and heartbeat send.
 func (s *Session) HeartbeatLatency() time.Duration {
@@ -518,7 +521,7 @@ func (s *Session) requestGuildMembers(data requestGuildMembersData) (err error) 
 //
 // If you use the AddHandler() function to register a handler for the
 // "OnEvent" event then all events will be passed to that handler.
-func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
+func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error) {
 	var err error
 	var reader io.Reader
 	reader = bytes.NewBuffer(message)
@@ -542,7 +545,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 	}
 
 	// Decode the event into an Event struct.
-	var e *Event
+	var e *event.Event
 	decoder := json.NewDecoder(reader)
 	if err = decoder.Decode(&e); err != nil {
 		return e, err
@@ -574,7 +577,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 	}
 
 	// Invalid Session
-	// Must respond with a Identify packet.
+	// Must respond with an Identify packet.
 	if e.Operation == 9 {
 		s.LogInfo("Closing and reconnecting in response to Op9")
 		s.CloseWithCode(websocket.CloseServiceRestart)
@@ -620,28 +623,23 @@ func (s *Session) onEvent(messageType int, message []byte) (*Event, error) {
 	atomic.StoreInt64(s.sequence, e.Sequence)
 
 	// Map event to registered event handlers and pass it along to any registered handlers.
-	if eh, ok := registeredInterfaceProviders[e.Type]; ok {
+	if eh, ok := event.GetInterfaceProvider(e.Type); ok {
 		e.Struct = eh.New()
 
 		// Attempt to unmarshal our event.
 		if err = json.Unmarshal(e.RawData, e.Struct); err != nil {
-			s.LogError(err, "unmarshalling %s event, %s", e.Type)
+			s.LogWarn("failed to unmarshal %s event, data: %s", e.Type, e.RawData)
+			// READY events are always emitted
+			if e.Type != event.ReadyType {
+				return nil, err
+			}
 		}
 
-		// Send event to any registered event handlers for it's type.
-		// Because the above doesn't cancel this, in case of an error
-		// the struct could be partially populated or at default values.
-		// However, most errors are due to a single field and I feel
-		// it's better to pass along what we received than nothing at all.
-		// TODO: Think about that decision :)
-		// Either way, READY events must fire, even with errors.
-		s.handleEvent(e.Type, e.Struct)
+		s.EventManager().EmitEvent(s, e.Type, e.Struct)
 	} else {
 		s.LogWarn("unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
+		s.EventManager().EmitEvent(s, event.EventType, e)
 	}
-
-	// For legacy reasons, we send the raw event also, this could be useful for handling unknown events.
-	s.handleEvent(eventEventType, e)
 
 	return e, nil
 }
@@ -733,7 +731,7 @@ func (s *Session) ChannelVoiceJoinManual(gID, cID string, mute, deaf bool) (err 
 }
 
 // onVoiceStateUpdate handles Voice State Update events on the data websocket.
-func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
+func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
 	// If we don't have a connection for the channel, don't bother
 	if st.ChannelID == "" {
 		return
@@ -748,7 +746,7 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 	}
 
 	// We only care about events that are about us.
-	if s.State.User.ID != st.UserID {
+	if s.SessionState().User().ID != st.UserID {
 		return
 	}
 
@@ -765,7 +763,7 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 // This is also fired if the guild's voice region changes while connected
 // to a voice channel.  In that case, need to re-establish connection to
 // the new region endpoint.
-func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
+func (s *Session) onVoiceServerUpdate(st *event.VoiceServerUpdate) {
 	s.LogDebug("called")
 
 	s.RLock()
@@ -929,7 +927,7 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 	s.Unlock()
 
 	s.LogInfo("emit disconnect event")
-	s.handleEvent(disconnectEventType, &Disconnect{})
+	s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
 
 	return
 }

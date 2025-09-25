@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 	"github.com/nyttikord/gokord/user"
 
@@ -31,7 +32,7 @@ func interactionAuthor(i *interaction.Interaction) *user.User {
 	return i.User
 }
 
-func handleEcho(s *gokord.Session, i *gokord.InteractionCreate, opts optionMap) {
+func handleEcho(s event.Session, i *event.InteractionCreate, opts optionMap) {
 	builder := new(strings.Builder)
 	if v, ok := opts["author"]; ok && v.BoolValue() {
 		author := interactionAuthor(i.Interaction)
@@ -85,7 +86,7 @@ func main() {
 
 	session := gokord.New("Bot " + *Token)
 
-	session.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
+	session.EventManager().AddHandler(func(s event.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
@@ -98,7 +99,7 @@ func main() {
 		handleEcho(s, i, parseOptions(data.Options))
 	})
 
-	session.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
+	session.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 

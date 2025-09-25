@@ -6,6 +6,7 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
 
 	"log"
@@ -69,8 +70,8 @@ var (
 			Type: types.CommandMessage,
 		},
 	}
-	commandsHandlers = map[string]func(s *gokord.Session, i *gokord.InteractionCreate){
-		"rickroll-em": func(s *gokord.Session, i *gokord.InteractionCreate) {
+	commandsHandlers = map[string]func(s event.Session, i *event.InteractionCreate){
+		"rickroll-em": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -102,7 +103,7 @@ var (
 				panic(err)
 			}
 		},
-		"google-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"google-it": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -116,7 +117,7 @@ var (
 				panic(err)
 			}
 		},
-		"stackoverflow-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"stackoverflow-it": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -130,7 +131,7 @@ var (
 				panic(err)
 			}
 		},
-		"godoc-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"godoc-it": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -144,7 +145,7 @@ var (
 				panic(err)
 			}
 		},
-		"discordjs-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"discordjs-it": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -158,7 +159,7 @@ var (
 				panic(err)
 			}
 		},
-		"discordpy-it": func(s *gokord.Session, i *gokord.InteractionCreate) {
+		"discordpy-it": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -176,11 +177,11 @@ var (
 )
 
 func main() {
-	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 
-	s.AddHandler(func(s *gokord.Session, i *gokord.InteractionCreate) {
+	s.EventManager().AddHandler(func(s event.Session, i *event.InteractionCreate) {
 		if h, ok := commandsHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}

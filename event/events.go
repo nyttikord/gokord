@@ -1,10 +1,11 @@
-package gokord
+package event
 
 import (
 	"encoding/json"
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/interaction"
@@ -15,9 +16,9 @@ import (
 )
 
 // This file contains all the possible structs that can be
-// handled by AddHandler/EventHandler.
+// handled by AddHandler/Handler.
 // DO NOT ADD ANYTHING BUT EVENT HANDLER STRUCTS TO THIS FILE.
-//go:generate go run tools/cmd/eventhandlers/main.go
+//go:generate go run ../tools/cmd/eventhandlers/main.go
 
 // Connect is the data for a Connect event.
 // This is a synthetic event and is not dispatched by Discord.
@@ -30,7 +31,7 @@ type Disconnect struct{}
 // RateLimit is the data for a RateLimit event.
 // This is a synthetic event and is not dispatched by Discord.
 type RateLimit struct {
-	*TooManyRequests
+	*discord.TooManyRequests
 	URL string
 }
 

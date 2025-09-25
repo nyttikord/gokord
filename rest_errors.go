@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 // All error constants
@@ -58,7 +59,7 @@ func (r RESTError) Error() string {
 // RateLimitError is returned when a request exceeds a rate limit and Session.ShouldRetryOnRateLimit is false.
 // The request may be manually retried after waiting the duration specified by RetryAfter.
 type RateLimitError struct {
-	*RateLimit
+	*event.RateLimit
 }
 
 // Error returns a rate limit error with rate limited endpoint and retry time.

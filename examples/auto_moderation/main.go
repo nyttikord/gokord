@@ -11,6 +11,7 @@ import (
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 )
 
@@ -50,7 +51,7 @@ func main() {
 	fmt.Println("Successfully created the rule")
 	defer session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID)
 
-	session.AddHandlerOnce(func(s *gokord.Session, e *gokord.AutoModerationActionExecution) {
+	session.EventManager().AddHandlerOnce(func(s event.Session, e *event.AutoModerationActionExecution) {
 		_, err = session.GuildAPI().AutoModerationRuleEdit(*GuildID, rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
@@ -74,7 +75,7 @@ func main() {
 
 		var counter int
 		var counterMutex sync.Mutex
-		session.AddHandler(func(s *gokord.Session, e *gokord.AutoModerationActionExecution) {
+		session.EventManager().AddHandler(func(s event.Session, e *event.AutoModerationActionExecution) {
 			action := "unknown"
 			switch e.Action.Type {
 			case types.AutoModerationActionBlockMessage:

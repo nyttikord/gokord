@@ -9,6 +9,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 // Variables used for command line parameters
@@ -26,7 +27,7 @@ func main() {
 	dg := gokord.New("Bot " + Token)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
+	dg.EventManager().AddHandler(messageCreate)
 
 	// Just like the ping pong example, we only care about receiving message
 	// events in this example.
@@ -54,10 +55,10 @@ func main() {
 //
 // It is called whenever a message is created but only when it's sent through a
 // server as we did not request IntentsDirectMessages.
-func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
+func messageCreate(s event.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
+	if m.Author.ID == s.SessionState().User().ID {
 		return
 	}
 	// In this example, we only care about messages that are "ping".

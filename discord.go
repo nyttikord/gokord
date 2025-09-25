@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/logger"
 )
 
@@ -38,7 +39,8 @@ func New(token string) *Session {
 		LastHeartbeatAck:                   time.Now().UTC(),
 		stdLogger:                          stdLogger{Level: logger.LevelInfo},
 	}
-	s.State = NewState(s)
+	s.sessionState = NewState(s).(*sessionState)
+	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
 
 	// Initialize the Identify Package with defaults
 	// These can be modified prior to calling Open()

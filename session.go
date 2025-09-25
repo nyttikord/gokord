@@ -1,8 +1,6 @@
 package gokord
 
 import (
-	"encoding/json"
-	"math"
 	"net/http"
 	"sync"
 	"time"
@@ -11,8 +9,10 @@ import (
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
+	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -69,7 +69,7 @@ type Session struct {
 	VoiceConnections map[string]*VoiceConnection
 
 	// Managed state object, updated internally with events when StateEnabled is true.
-	State *State
+	sessionState *sessionState
 
 	// The http.Client used for REST requests.
 	Client *http.Client
@@ -90,15 +90,13 @@ type Session struct {
 	RateLimiter *discord.RateLimiter
 
 	// Event handlers
-	handlersMu   sync.RWMutex
-	handlers     map[string][]*eventHandlerInstance
-	onceHandlers map[string][]*eventHandlerInstance
+	eventManager *event.Manager
 
 	// The websocket connection.
 	wsConn *websocket.Conn
 
 	// When nil, the session is not listening.
-	listening chan interface{}
+	listening chan any
 
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *int64
@@ -120,32 +118,6 @@ type Session struct {
 	userAPI    *userapi.Requester
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
-}
-
-// TooManyRequests holds information received from Discord when receiving an HTTP 429 response.
-type TooManyRequests struct {
-	Bucket     string        `json:"bucket"`
-	Message    string        `json:"message"`
-	RetryAfter time.Duration `json:"retry_after"`
-}
-
-// UnmarshalJSON helps support translation of a milliseconds-based float into a time.Duration on TooManyRequests.
-func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
-	u := struct {
-		Bucket     string  `json:"bucket"`
-		Message    string  `json:"message"`
-		RetryAfter float64 `json:"retry_after"`
-	}{}
-	err := json.Unmarshal(b, &u)
-	if err != nil {
-		return err
-	}
-
-	t.Bucket = u.Bucket
-	t.Message = u.Message
-	whole, frac := math.Modf(u.RetryAfter)
-	t.RetryAfter = time.Duration(whole)*time.Second + time.Duration(frac*1000)*time.Millisecond
-	return nil
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
@@ -197,7 +169,7 @@ type IdentifyProperties struct {
 // UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
-		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.State)}
+		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState)}
 	}
 	return s.userAPI
 }
@@ -205,7 +177,7 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.guildAPI = &guildapi.Requester{Requester: s, State: guildapi.NewState(s.State)}
+		s.guildAPI = &guildapi.Requester{Requester: s, State: guildapi.NewState(s.sessionState)}
 	}
 	return s.guildAPI
 }
@@ -213,7 +185,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
-		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.State)}
+		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.sessionState)}
 	}
 	return s.channelAPI
 }
@@ -231,4 +203,19 @@ func (s *Session) InteractionAPI() *interactionapi.Requester {
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
 	return &applicationapi.Requester{Requester: s}
+}
+
+// EventManager returns the event.Manager used by the Session.
+func (s *Session) EventManager() *event.Manager {
+	return s.eventManager
+}
+
+// SessionState returns the state.Bot of the Session.
+func (s *Session) SessionState() state.Bot {
+	return s.sessionState
+}
+
+// SetStateParams sets the state.Params for the state.State
+func (s *Session) SetStateParams(params state.Params) {
+	s.sessionState.params = params
 }

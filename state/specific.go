@@ -9,6 +9,7 @@ package state
 import (
 	"iter"
 
+	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user"
@@ -57,4 +58,12 @@ type Guild interface {
 	RoleAdd(string, *guild.Role) error
 	RoleRemove(string, string) error
 	Role(string, string) (*guild.Role, error)
+}
+
+// Bot represents the state related to gokord.Session (including if the session is not a bot).
+type Bot interface {
+	User() *user.User
+	SessionID() string
+	Shard() *[2]int
+	Application() *application.Application
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 // Variables used for command line parameters
@@ -28,7 +29,7 @@ func main() {
 	dg := gokord.New("Bot " + Token)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
+	dg.EventManager().AddHandler(messageCreate)
 
 	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discord.IntentsGuildMessages
@@ -52,11 +53,10 @@ func main() {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func messageCreate(s *gokord.Session, m *gokord.MessageCreate) {
-
+func messageCreate(s event.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
+	if m.Author.ID == s.SessionState().User().ID {
 		return
 	}
 	// If the message is "ping" reply with "Pong!"

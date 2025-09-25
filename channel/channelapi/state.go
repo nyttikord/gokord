@@ -204,8 +204,8 @@ func (s *State) MessageAdd(message *channel.Message) error {
 
 	c.Messages = append(c.Messages, message)
 
-	if len(c.Messages) > s.GetMaxMessageCount() {
-		c.Messages = c.Messages[len(c.Messages)-s.GetMaxMessageCount():]
+	if len(c.Messages) > s.Params().MaxMessageCount {
+		c.Messages = c.Messages[len(c.Messages)-s.Params().MaxMessageCount:]
 	}
 
 	return nil

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/event"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -402,7 +403,7 @@ func (v *VoiceConnection) wsListen(wsConn *websocket.Conn, close <-chan struct{}
 func (v *VoiceConnection) onEvent(message []byte) {
 	v.LogDebug("received: %s", string(message))
 
-	var e Event
+	var e event.Event
 	if err := json.Unmarshal(message, &e); err != nil {
 		v.LogError(err, "unmarshall event")
 		return

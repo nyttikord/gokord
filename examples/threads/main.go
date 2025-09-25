@@ -12,6 +12,7 @@ import (
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/event"
 )
 
 // Flags
@@ -27,10 +28,10 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.AddHandler(func(s *gokord.Session, r *gokord.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
-	s.AddHandler(func(s *gokord.Session, m *gokord.MessageCreate) {
+	s.EventManager().AddHandler(func(s event.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
 				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
