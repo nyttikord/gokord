@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/nyttikord/gokord/application/applicationapi"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
@@ -32,6 +33,8 @@ type Session interface {
 	InteractionAPI() *interactionapi.Requester
 	// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 	ApplicationAPI() *applicationapi.Requester
+	// BotAPI returns a bot.Requester to interact with the bot package.
+	BotAPI() *bot.Requester
 
 	// SessionState returns the state.Bot of the Session.
 	SessionState() state.Bot

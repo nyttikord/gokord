@@ -23,6 +23,9 @@ type Requester interface {
 	VoiceRegions(options ...RequestOption) ([]*VoiceRegion, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i interface{}) error
+
+	// GatewayWriteStruct writes a struck as a json to Discord gateway.
+	GatewayWriteStruct(any) error
 }
 
 // RequestConfig is an HTTP request configuration.

@@ -13,9 +13,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
-	"github.com/nyttikord/gokord/user/status"
 )
 
 var (
@@ -36,13 +34,25 @@ type resumePacket struct {
 	} `json:"d"`
 }
 
+func (s *Session) GatewayWriteStruct(v any) error {
+	s.RLock()
+	defer s.RUnlock()
+	if s.wsConn == nil {
+		return ErrWSNotFound
+	}
+
+	s.wsMutex.Lock()
+	err := s.wsConn.WriteJSON(v)
+	s.wsMutex.Unlock()
+	return err
+}
+
 // Open creates a websocket connection to Discord.
-// See: https://discord.com/developers/docs/topics/gateway#connecting
+// https://discord.com/developers/docs/topics/gateway#connecting
 func (s *Session) Open() error {
 	var err error
 
-	// Prevent Open or other major Session functions from
-	// being called while Open is still running.
+	// Prevent Open or other major Session functions from being called while Open is still running.
 	s.Lock()
 	defer s.Unlock()
 
@@ -89,9 +99,8 @@ func (s *Session) Open() error {
 	})
 
 	defer func() {
-		// because of this, all code below must set err to the error
-		// when exiting with an error :)  Maybe someone has a better
-		// way :)
+		// because of this, all code below must set err to the error when exiting with an error :)
+		// Maybe someone has a better way :)
 		if err != nil {
 			s.wsConn.Close()
 			s.wsConn = nil
@@ -120,8 +129,8 @@ func (s *Session) Open() error {
 		return err
 	}
 
-	// Now we send either an Op 2 Identity if this is a brand new
-	// connection or Op 6 Resume if we are resuming an existing connection.
+	// Now we send either an Op 2 Identity if this is a brand new connection or Op 6 Resume if we are resuming an
+	// existing connection.
 	if s.sessionID == "" && sequence == 0 {
 		// Send Op 2 Identity Packet
 		err = s.identify()
@@ -171,9 +180,8 @@ func (s *Session) Open() error {
 		s.VoiceConnections = make(map[string]*VoiceConnection)
 	}
 
-	// Create listening chan outside of listen, as it needs to happen inside the
-	// mutex lock and needs to exist before calling heartbeat and listen
-	// goroutines.
+	// Create listening chan outside of listen, as it needs to happen inside the mutex lock and needs to exist before
+	// calling heartbeat and listen goroutines.
 	s.listening = make(chan any)
 
 	// Start sending heartbeats and reading messages from Discord.
@@ -183,8 +191,8 @@ func (s *Session) Open() error {
 	return nil
 }
 
-// listen polls the websocket connection for events, it will stop when the
-// listening channel is closed, or an error occurs.
+// listen polls the websocket connection for events, it will stop when the listening channel is closed, or an error
+// occurs.
 func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 	for {
 		messageType, message, err := wsConn.ReadMessage()
@@ -242,9 +250,8 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 }
 
-// heartbeat sends regular heartbeats to Discord so it knows the client
-// is still connected.  If you do not send these heartbeats Discord will
-// disconnect the websocket connection after a few seconds.
+// heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
+// If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartbeatIntervalMsec time.Duration) {
 	if listening == nil || wsConn == nil {
 		return
@@ -285,122 +292,6 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 			return
 		}
 	}
-}
-
-// UpdateStatusData is provided to UpdateStatusComplex()
-type UpdateStatusData struct {
-	IdleSince  *int               `json:"since"`
-	Activities []*status.Activity `json:"activities"`
-	AFK        bool               `json:"afk"`
-	Status     string             `json:"status"`
-}
-
-type updateStatusOp struct {
-	Op   int              `json:"op"`
-	Data UpdateStatusData `json:"d"`
-}
-
-func newUpdateStatusData(idle int, activityType types.Activity, name, url string) *UpdateStatusData {
-	usd := &UpdateStatusData{
-		Status: "online",
-	}
-
-	if idle > 0 {
-		usd.IdleSince = &idle
-	}
-
-	if name != "" {
-		usd.Activities = []*status.Activity{{
-			Name: name,
-			Type: activityType,
-			URL:  url,
-		}}
-	}
-
-	return usd
-}
-
-// UpdateGameStatus is used to update the user's status.
-// If idle>0 then set status to idle.
-// If name!="" then set game.
-// if otherwise, set status to active, and no activity.
-func (s *Session) UpdateGameStatus(idle int, name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(idle, types.ActivityGame, name, ""))
-}
-
-// UpdateWatchStatus is used to update the user's watch status.
-// If idle>0 then set status to idle.
-// If name!="" then set movie/stream.
-// if otherwise, set status to active, and no activity.
-func (s *Session) UpdateWatchStatus(idle int, name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(idle, types.ActivityWatching, name, ""))
-}
-
-// UpdateStreamingStatus is used to update the user's streaming status.
-// If idle>0 then set status to idle.
-// If name!="" then set game.
-// If name!="" and url!="" then set the status type to streaming with the URL set.
-// if otherwise, set status to active, and no game.
-func (s *Session) UpdateStreamingStatus(idle int, name string, url string) (err error) {
-	gameType := types.ActivityGame
-	if url != "" {
-		gameType = types.ActivityStreaming
-	}
-	return s.UpdateStatusComplex(*newUpdateStatusData(idle, gameType, name, url))
-}
-
-// UpdateListeningStatus is used to set the user to "Listening to..."
-// If name!="" then set to what user is listening to
-// Else, set user to active and no activity.
-func (s *Session) UpdateListeningStatus(name string) (err error) {
-	return s.UpdateStatusComplex(*newUpdateStatusData(0, types.ActivityListening, name, ""))
-}
-
-// UpdateCustomStatus is used to update the user's custom status.
-// If state!="" then set the custom status.
-// Else, set user to active and remove the custom status.
-func (s *Session) UpdateCustomStatus(state string) (err error) {
-	data := UpdateStatusData{
-		Status: "online",
-	}
-
-	if state != "" {
-		// Discord requires a non-empty activity name, therefore we provide "Custom Status" as a placeholder.
-		data.Activities = []*status.Activity{{
-			Name:  "Custom Status",
-			Type:  types.ActivityCustom,
-			State: state,
-		}}
-	}
-
-	return s.UpdateStatusComplex(data)
-}
-
-// UpdateStatusComplex allows for sending the raw status update data untouched by discordgo.
-func (s *Session) UpdateStatusComplex(usd UpdateStatusData) (err error) {
-	// The comment does say "untouched by discordgo", but we might need to lie a bit here.
-	// The Discord documentation lists `activities` as being nullable, but in practice this
-	// doesn't seem to be the case. I had filed an issue about this at
-	// https://github.com/discord/discord-api-docs/issues/2559, but as of writing this
-	// haven't had any movement on it, so at this point I'm assuming this is an error,
-	// and am fixing this bug accordingly. Because sending `null` for `activities` instantly
-	// disconnects us, I think that disallowing it from being sent in `UpdateStatusComplex`
-	// isn't that big of an issue.
-	if usd.Activities == nil {
-		usd.Activities = make([]*status.Activity, 0)
-	}
-
-	s.RLock()
-	defer s.RUnlock()
-	if s.wsConn == nil {
-		return ErrWSNotFound
-	}
-
-	s.wsMutex.Lock()
-	err = s.wsConn.WriteJSON(updateStatusOp{3, usd})
-	s.wsMutex.Unlock()
-
-	return
 }
 
 type requestGuildMembersData struct {
@@ -480,21 +371,6 @@ func (s *Session) RequestGuildMembersBatchList(guildIDs []string, userIDs []stri
 	}
 	err = s.requestGuildMembers(data)
 	return
-}
-
-// GatewayWriteStruct allows for sending raw gateway structs over the gateway.
-func (s *Session) GatewayWriteStruct(data any) (err error) {
-	s.RLock()
-	defer s.RUnlock()
-	if s.wsConn == nil {
-		return ErrWSNotFound
-	}
-
-	s.wsMutex.Lock()
-	err = s.wsConn.WriteJSON(data)
-	s.wsMutex.Unlock()
-
-	return err
 }
 
 func (s *Session) requestGuildMembers(data requestGuildMembersData) (err error) {

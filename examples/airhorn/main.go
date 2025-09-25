@@ -77,7 +77,7 @@ func main() {
 func ready(s event.Session, event *event.Ready) {
 
 	// Set the playing status.
-	s.UpdateGameStatus(0, "!airhorn")
+	s.BotAPI().UpdateGameStatus(0, "!airhorn")
 }
 
 // This function will be called (due to AddHandler above) every time a new

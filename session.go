@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/application/applicationapi"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
@@ -203,6 +204,11 @@ func (s *Session) InteractionAPI() *interactionapi.Requester {
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
 	return &applicationapi.Requester{Requester: s}
+}
+
+// BotAPI returns a bot.Requester to interact with the bot package.
+func (s *Session) BotAPI() *bot.Requester {
+	return &bot.Requester{Requester: s}
 }
 
 // EventManager returns the event.Manager used by the Session.
