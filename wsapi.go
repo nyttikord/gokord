@@ -3,6 +3,7 @@ package gokord
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -652,17 +653,20 @@ func (s *Session) reconnect() {
 }
 
 // Close closes a websocket and stops all listening/heartbeat goroutines.
-// TODO: Add support for Voice WS/UDP
 func (s *Session) Close() error {
 	return s.CloseWithCode(websocket.CloseNormalClosure)
 }
 
-// CloseWithCode closes a websocket using the provided closeCode and stops all
-// listening/heartbeat goroutines.
+// CloseWithCode closes a websocket using the provided closeCode and stops all listening/heartbeat goroutines.
 // TODO: Add support for Voice WS/UDP connections
-func (s *Session) CloseWithCode(closeCode int) (err error) {
-	s.LogDebug("called")
+func (s *Session) CloseWithCode(closeCode int) error {
+	s.LogInfo("closing with code %d", closeCode)
 	s.Lock()
+	defer s.Unlock()
+
+	if s.wsConn == nil {
+		return ErrWSNotFound
+	}
 
 	s.DataReady = false
 
@@ -672,36 +676,63 @@ func (s *Session) CloseWithCode(closeCode int) (err error) {
 		s.listening = nil
 	}
 
-	// TODO: Close all active Voice Connections too
-	// this should force stop any reconnecting voice channels too
+	for _, v := range s.VoiceConnections {
+		err := v.Disconnect()
+		if err != nil {
+			s.LogError(err, "disconnecting voice from channel %s", v.ChannelID)
+		}
+	}
+	// TODO: Close all active Voice Connections force stop any reconnecting voice channels
 
-	if s.wsConn != nil {
-		s.LogInfo("sending close frame")
-		// To cleanly close a connection, a client should send a close
-		// frame and wait for the server to close the connection.
+	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
+	// connection.
+	s.LogDebug("sending close frame")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	errChan := make(chan error, 1)
+	go func() {
 		s.wsMutex.Lock()
 		err := s.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""))
 		s.wsMutex.Unlock()
+		errChan <- err
+		//TODO: waiting for Discord to close the websocket
+	}()
+
+	// we do not handle it because throwing an error while sending a close message is a big error,
+	// and we prevent continuing the close
+	select {
+	case err := <-errChan:
 		if err != nil {
-			s.LogError(err, "closing websocket")
+			return err
 		}
-
-		// TODO: Wait for Discord to actually close the connection.
-		time.Sleep(1 * time.Second)
-
-		s.LogInfo("closing gateway websocket")
-		err = s.wsConn.Close()
-		if err != nil {
-			s.LogError(err, "closing websocket")
-		}
-
-		s.wsConn = nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 
+	// required
 	s.Unlock()
+	s.ForceClose()
+	s.Lock()
 
-	s.LogInfo("emit disconnect event")
+	return nil
+}
+
+// ForceClose the connection.
+// Use Close or CloseWithCode before to have a better closing process.
+func (s *Session) ForceClose() {
+	s.Lock()
+	defer s.Unlock()
+	s.LogInfo("closing gateway websocket")
+	err := s.wsConn.Close()
+	if err != nil {
+		// we handle it here because the websocket is actually closed
+		s.LogError(err, "closing websocket")
+	}
+	s.wsConn = nil
+
+	// required
+	s.Unlock()
 	s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
-
-	return
+	s.Lock()
 }
