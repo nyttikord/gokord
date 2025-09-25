@@ -29,8 +29,6 @@ func New(token string) *Session {
 		ShouldReconnectOnError:             true,
 		ShouldReconnectVoiceOnSessionError: true,
 		ShouldRetryOnRateLimit:             true,
-		ShardID:                            0,
-		ShardCount:                         1,
 		MaxRestRetries:                     3,
 		Client:                             &http.Client{Timeout: 20 * time.Second},
 		Dialer:                             websocket.DefaultDialer,
@@ -42,14 +40,15 @@ func New(token string) *Session {
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
 
-	// Initialize the Identify Package with defaults
-	// These can be modified prior to calling Open()
+	// Initialize Identify with defaults values.
+	// These can be modified prior to calling Open().
 	s.Identify.Compress = true
 	s.Identify.LargeThreshold = 250
 	s.Identify.Properties.OS = runtime.GOOS
 	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
 	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 	s.Identify.Token = token
+	s.Identify.Shard = &[2]int{0, 1}
 
 	return s
 }

@@ -581,15 +581,8 @@ type identifyOp struct {
 
 // identify sends the identify packet to the gateway
 func (s *Session) identify() error {
-	// TODO: Below block should be refactored so ShardID and ShardCount
-	// can be deprecated and their usage moved to the Session.Identify
-	// struct
-	if s.ShardCount > 1 {
-		if s.ShardID >= s.ShardCount {
-			return ErrWSShardBounds
-		}
-
-		s.Identify.Shard = &[2]int{s.ShardID, s.ShardCount}
+	if s.Identify.Shard[0] >= s.Identify.Shard[1] {
+		return ErrWSShardBounds
 	}
 
 	// Send Identify packet to Discord

@@ -41,10 +41,6 @@ type Session struct {
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
 
-	// Sharding
-	ShardID    int
-	ShardCount int
-
 	// Should state tracking be enabled.
 	// State tracking is the best way for getting the users active guilds and the members of the guilds.
 	StateEnabled bool
