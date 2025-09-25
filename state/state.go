@@ -13,31 +13,30 @@ type State interface {
 	// GetMutex returns sync.RWMutex associated with the State.
 	GetMutex() *sync.RWMutex
 
-	// MemberState returns the State for user.Member.
+	// MemberState returns the state of user.Member.
 	MemberState() Member
-	// ChannelState returns the State for channel package.
+	// ChannelState returns the state for channel package.
 	ChannelState() Channel
-	// GuildState returns the State for guild package and emoji package.
+	// GuildState returns the state for guild package and emoji package.
 	GuildState() Guild
+	// BotState returns the state of the Bot.
+	BotState() Bot
 
-	// GetMaxMessageCount returns how many messages per channel the State will store.
-	GetMaxMessageCount() int
-	// AreChannelsTracked returns true if the State must track channel.Channel.
-	AreChannelsTracked() bool
-	// AreThreadsTracked returns true if the State must track threads.
-	AreThreadsTracked() bool
-	// AreEmojisTracked returns true if the State must track emoji.Emoji.
-	AreEmojisTracked() bool
-	// AreStickersTracked returns true if the State must track emoji.Sticker.
-	AreStickersTracked() bool
-	// AreMembersTracked returns true if the State must track user.Member.
-	AreMembersTracked() bool
-	// AreThreadMembersTracked returns true if the State must track channel.ThreadMember.
-	AreThreadMembersTracked() bool
-	// AreRolesTracked returns true if the State must track guild.Role.
-	AreRolesTracked() bool
-	// AreVoiceTracked returns true if the State must track voice related things.
-	AreVoiceTracked() bool
-	// ArePresencesTracked returns true if the State must track status.Presence.
-	ArePresencesTracked() bool
+	// Params returns the state.Params of the State
+	Params() Params
+}
+
+// Params describes the parameters of the State.
+type Params struct {
+	// MaxMessageCount represents how many messages per channel the state will store.
+	MaxMessageCount    int
+	TrackChannels      bool
+	TrackThreads       bool
+	TrackEmojis        bool
+	TrackStickers      bool
+	TrackMembers       bool
+	TrackThreadMembers bool
+	TrackRoles         bool
+	TrackVoice         bool
+	TrackPresences     bool
 }

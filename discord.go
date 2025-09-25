@@ -39,7 +39,7 @@ func New(token string) *Session {
 		LastHeartbeatAck:                   time.Now().UTC(),
 		stdLogger:                          stdLogger{Level: logger.LevelInfo},
 	}
-	s.State = NewState(s)
+	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
 
 	// Initialize the Identify Package with defaults

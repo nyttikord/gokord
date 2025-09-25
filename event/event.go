@@ -8,6 +8,7 @@ import (
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/logger"
+	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
 )
@@ -15,6 +16,8 @@ import (
 // Session represents a gokord.Session used in events.
 type Session interface {
 	logger.Logger
+
+	// EventManager returns the Manager used by the Session.
 	EventManager() *Manager
 
 	// ChannelAPI returns a channelapi.Requester to interact with the channel package.
@@ -29,6 +32,9 @@ type Session interface {
 	InteractionAPI() *interactionapi.Requester
 	// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 	ApplicationAPI() *applicationapi.Requester
+
+	// SessionState returns the state.Bot of the Session.
+	SessionState() state.Bot
 }
 
 type Manager struct {

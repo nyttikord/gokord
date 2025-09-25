@@ -12,109 +12,77 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
-// State contains the current known state.
-type State struct {
+// sessionState contains the current known state.
+type sessionState struct {
 	sync.RWMutex
 	session     *Session
-	User        *user.User
-	SessionID   string
-	Shard       *[2]int
-	Application *application.Application
+	user        *user.User
+	sessionID   string
+	shard       *[2]int
+	application *application.Application
 
-	// MaxMessageCount represents how many messages per channel the state will store.
-	MaxMessageCount    int
-	TrackChannels      bool
-	TrackThreads       bool
-	TrackEmojis        bool
-	TrackStickers      bool
-	TrackMembers       bool
-	TrackThreadMembers bool
-	TrackRoles         bool
-	TrackVoice         bool
-	TrackPresences     bool
+	params state.Params
 }
 
-func (s *State) GetMaxMessageCount() int {
-	return s.MaxMessageCount
+func (s *sessionState) User() *user.User {
+	return s.user
 }
 
-func (s *State) AreChannelsTracked() bool {
-	return s.TrackChannels
+func (s *sessionState) SessionID() string {
+	return s.sessionID
 }
 
-func (s *State) AreThreadsTracked() bool {
-	return s.TrackThreads
+func (s *sessionState) Shard() *[2]int {
+	return s.shard
 }
 
-func (s *State) AreEmojisTracked() bool {
-	return s.TrackEmojis
+func (s *sessionState) Application() *application.Application {
+	return s.application
 }
 
-func (s *State) AreStickersTracked() bool {
-	return s.TrackStickers
-}
-
-func (s *State) AreMembersTracked() bool {
-	return s.TrackMembers
-}
-
-func (s *State) AreThreadMembersTracked() bool {
-	return s.TrackThreadMembers
-}
-
-func (s *State) AreRolesTracked() bool {
-	return s.TrackRoles
-}
-
-func (s *State) AreVoiceTracked() bool {
-	return s.TrackVoice
-}
-
-func (s *State) ArePresencesTracked() bool {
-	return s.TrackPresences
-}
-
-// GetMutex returns the sync.RWMutex of the State.
-// You do not have to modify this.
-func (s *State) GetMutex() *sync.RWMutex {
+func (s *sessionState) GetMutex() *sync.RWMutex {
 	return &s.RWMutex
 }
 
-// MemberState returns the state.State related to user.Member.
-// Use Session.UserAPI().State instead.
-func (s *State) MemberState() state.Member {
+func (s *sessionState) MemberState() state.Member {
 	return s.session.UserAPI().State
 }
 
-// ChannelState returns the state.State related to channel.Channel.
-// Use Session.ChannelAPI().State instead.
-func (s *State) ChannelState() state.Channel {
+func (s *sessionState) ChannelState() state.Channel {
 	return s.session.ChannelAPI().State
 }
 
-// GuildState returns the state.State related to guild.Guild.
-// Use Session.GuildAPI().State instead.
-func (s *State) GuildState() state.Guild {
+func (s *sessionState) GuildState() state.Guild {
 	return s.session.GuildAPI().State
 }
 
-// NewState creates an empty state.
-func NewState(s *Session) *State {
-	return &State{
-		session:            s,
-		TrackChannels:      true,
-		TrackThreads:       true,
-		TrackEmojis:        true,
-		TrackStickers:      true,
-		TrackMembers:       true,
-		TrackThreadMembers: true,
-		TrackRoles:         true,
-		TrackVoice:         true,
-		TrackPresences:     true,
+func (s *sessionState) BotState() state.Bot {
+	return s
+}
+
+func (s *sessionState) Params() state.Params {
+	return s.params
+}
+
+// NewState creates an empty state.State.
+func NewState(s *Session) state.State {
+	return &sessionState{
+		session: s,
+		params: state.Params{
+			TrackChannels:      true,
+			TrackThreads:       true,
+			TrackEmojis:        true,
+			TrackStickers:      true,
+			TrackMembers:       true,
+			TrackThreadMembers: true,
+			TrackRoles:         true,
+			TrackVoice:         true,
+			TrackPresences:     true,
+		},
 	}
 }
 
-func (s *State) voiceStateUpdate(update *event.VoiceStateUpdate) error {
+func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) error {
 	g, err := s.GuildState().Guild(update.GuildID)
 	if err != nil {
 		return err
@@ -146,7 +114,7 @@ func (s *State) voiceStateUpdate(update *event.VoiceStateUpdate) error {
 }
 
 // VoiceState gets a VoiceState by guild and user ID.
-func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
+func (s *sessionState) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -162,16 +130,16 @@ func (s *State) VoiceState(guildID, userID string) (*user.VoiceState, error) {
 }
 
 // OnReady takes a Ready event and updates all internal state.
-func (s *State) onReady(se *Session, r *event.Ready) error {
+func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 	s.Lock()
 	defer s.Unlock()
 
 	// We must store the bare essentials like the current user.User or the SessionID.
 	if !se.StateEnabled {
-		s.SessionID = r.SessionID
-		s.User = r.User
-		s.Shard = r.Shard
-		s.Application = r.Application
+		s.sessionID = r.SessionID
+		s.user = r.User
+		s.shard = r.Shard
+		s.application = r.Application
 
 		return nil
 	}
@@ -190,7 +158,7 @@ func (s *State) onReady(se *Session, r *event.Ready) error {
 }
 
 // onInterface handles all events related to State.
-func (s *State) onInterface(se *Session, i interface{}) error {
+func (s *sessionState) onInterface(se *Session, i interface{}) error {
 	r, ok := i.(*event.Ready)
 	if ok {
 		return s.onReady(se, r)
@@ -225,11 +193,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 		g.MemberCount++
 
 		// Caches member if tracking is enabled.
-		if s.TrackMembers {
+		if s.params.TrackMembers {
 			err = s.MemberState().MemberAdd(t.Member)
 		}
 	case *event.GuildMemberUpdate:
-		if s.TrackMembers {
+		if s.params.TrackMembers {
 			var old *user.Member
 			old, err = s.MemberState().Member(t.GuildID, t.User.ID)
 			if err == nil {
@@ -249,7 +217,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 		g.MemberCount--
 
 		// Removes member from the cache if tracking is enabled.
-		if s.TrackMembers {
+		if s.params.TrackMembers {
 			var old *user.Member
 			old, err = s.MemberState().Member(t.Member.GuildID, t.Member.User.ID)
 			if err == nil {
@@ -260,24 +228,24 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.MemberState().MemberRemove(t.Member)
 		}
 	case *event.GuildMembersChunk:
-		if s.TrackMembers {
+		if s.params.TrackMembers {
 			for i := range t.Members {
 				t.Members[i].GuildID = t.GuildID
 				err = s.MemberState().MemberAdd(t.Members[i])
 			}
 		}
 
-		if s.TrackPresences {
+		if s.params.TrackPresences {
 			for _, p := range t.Presences {
 				err = s.MemberState().PresenceAdd(t.GuildID, p)
 			}
 		}
 	case *event.GuildRoleCreate:
-		if s.TrackRoles {
+		if s.params.TrackRoles {
 			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
 	case *event.GuildRoleUpdate:
-		if s.TrackRoles {
+		if s.params.TrackRoles {
 			var old *guild.Role
 			old, err = s.GuildState().Role(t.GuildID, t.Role.ID)
 			if err == nil {
@@ -288,7 +256,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.GuildState().RoleAdd(t.GuildID, t.Role)
 		}
 	case *event.GuildRoleDelete:
-		if s.TrackRoles {
+		if s.params.TrackRoles {
 			var old *guild.Role
 			old, err = s.GuildState().Role(t.GuildID, t.RoleID)
 			if err == nil {
@@ -299,7 +267,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.GuildState().RoleRemove(t.GuildID, t.RoleID)
 		}
 	case *event.GuildEmojisUpdate:
-		if s.TrackEmojis {
+		if s.params.TrackEmojis {
 			var g *guild.Guild
 			g, err = s.GuildState().Guild(t.GuildID)
 			if err != nil {
@@ -310,7 +278,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			g.Emojis = t.Emojis
 		}
 	case *event.GuildStickersUpdate:
-		if s.TrackStickers {
+		if s.params.TrackStickers {
 			var g *guild.Guild
 			g, err = s.GuildState().Guild(t.GuildID)
 			if err != nil {
@@ -321,11 +289,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			g.Stickers = t.Stickers
 		}
 	case *event.ChannelCreate:
-		if s.TrackChannels {
+		if s.params.TrackChannels {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *event.ChannelUpdate:
-		if s.TrackChannels {
+		if s.params.TrackChannels {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
@@ -335,7 +303,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *event.ChannelDelete:
-		if s.TrackChannels {
+		if s.params.TrackChannels {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
@@ -345,11 +313,11 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
 	case *event.ThreadCreate:
-		if s.TrackThreads {
+		if s.params.TrackThreads {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *event.ThreadUpdate:
-		if s.TrackThreads {
+		if s.params.TrackThreads {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
@@ -359,7 +327,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().ChannelAdd(t.Channel)
 		}
 	case *event.ThreadDelete:
-		if s.TrackThreads {
+		if s.params.TrackThreads {
 			var old *channel.Channel
 			old, err = s.ChannelState().Channel(t.ID)
 			if err == nil {
@@ -369,23 +337,23 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().ChannelRemove(t.Channel)
 		}
 	case *event.ThreadMemberUpdate:
-		if s.TrackThreads {
+		if s.params.TrackThreads {
 			err = s.ChannelState().ThreadMemberUpdate(t.ThreadMember)
 		}
 	case *event.ThreadMembersUpdate:
-		if s.TrackThreadMembers {
+		if s.params.TrackThreadMembers {
 			err = s.ChannelState().ThreadMembersUpdate(t.ID, t.GuildID, t.MemberCount, t.AddedMembers, t.RemovedMembers)
 		}
 	case *event.ThreadListSync:
-		if s.TrackThreads {
+		if s.params.TrackThreads {
 			err = s.ChannelState().ThreadListSync(t.GuildID, t.ChannelIDs, t.Threads, t.Members)
 		}
 	case *event.MessageCreate:
-		if s.MaxMessageCount != 0 {
+		if s.params.MaxMessageCount != 0 {
 			err = s.ChannelState().MessageAdd(t.Message)
 		}
 	case *event.MessageUpdate:
-		if s.MaxMessageCount != 0 {
+		if s.params.MaxMessageCount != 0 {
 			var old *channel.Message
 			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
 			if err == nil {
@@ -396,7 +364,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().MessageAdd(t.Message)
 		}
 	case *event.MessageDelete:
-		if s.MaxMessageCount != 0 {
+		if s.params.MaxMessageCount != 0 {
 			var old *channel.Message
 			old, err = s.ChannelState().Message(t.ChannelID, t.ID)
 			if err == nil {
@@ -407,7 +375,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.ChannelState().MessageRemove(t.Message)
 		}
 	case *event.MessageDeleteBulk:
-		if s.MaxMessageCount != 0 {
+		if s.params.MaxMessageCount != 0 {
 			for _, mID := range t.Messages {
 				err = s.ChannelState().MessageRemoveByID(t.ChannelID, mID)
 				if err != nil {
@@ -416,7 +384,7 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			}
 		}
 	case *event.VoiceStateUpdate:
-		if s.TrackVoice {
+		if s.params.TrackVoice {
 			var old *user.VoiceState
 			old, err = s.VoiceState(t.GuildID, t.UserID)
 			if err == nil {
@@ -427,10 +395,10 @@ func (s *State) onInterface(se *Session, i interface{}) error {
 			err = s.voiceStateUpdate(t)
 		}
 	case *event.PresenceUpdate:
-		if s.TrackPresences {
+		if s.params.TrackPresences {
 			err = s.MemberState().PresenceAdd(t.GuildID, &t.Presence)
 		}
-		if s.TrackMembers {
+		if s.params.TrackMembers {
 			if t.Status == status.Offline {
 				return err
 			}

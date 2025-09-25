@@ -746,7 +746,7 @@ func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
 	}
 
 	// We only care about events that are about us.
-	if s.State.User.ID != st.UserID {
+	if s.SessionState().User().ID != st.UserID {
 		return
 	}
 

@@ -332,7 +332,7 @@ var (
 			})
 		},
 		"permission-overview": func(s event.Session, i *event.InteractionCreate) {
-			perms, err := s.InteractionAPI().CommandPermissions(s.State.User.ID, i.GuildID, i.CommandData().ID)
+			perms, err := s.InteractionAPI().CommandPermissions(s.SessionState().User().ID, i.GuildID, i.CommandData().ID)
 
 			var restError *gokord.RESTError
 			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discord.ErrCodeUnknownApplicationCommandPermissions {
@@ -548,7 +548,7 @@ func init() {
 
 func main() {
 	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
-		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		log.Printf("Logged in as: %v#%v", s.SessionState().User().Username, s.SessionState().User().Discriminator)
 	})
 	err := s.Open()
 	if err != nil {
@@ -558,7 +558,7 @@ func main() {
 	log.Println("Adding commands...")
 	registeredCommands := make([]*interaction.Command, len(commands))
 	for i, v := range commands {
-		cmd, err := s.InteractionAPI().CommandCreate(s.State.User.ID, *GuildID, v)
+		cmd, err := s.InteractionAPI().CommandCreate(s.SessionState().User().ID, *GuildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -584,7 +584,7 @@ func main() {
 		// }
 
 		for _, v := range registeredCommands {
-			err := s.InteractionAPI().CommandDelete(s.State.User.ID, *GuildID, v.ID)
+			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, v.ID)
 			if err != nil {
 				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 			}

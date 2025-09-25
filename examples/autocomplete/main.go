@@ -232,7 +232,7 @@ func main() {
 	}
 	defer s.Close()
 
-	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.State.User.ID, *GuildID, commands)
+	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.SessionState().User().ID, *GuildID, commands)
 
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
@@ -245,7 +245,7 @@ func main() {
 
 	if *RemoveCommands {
 		for _, cmd := range createdCommands {
-			err := s.InteractionAPI().CommandDelete(s.State.User.ID, *GuildID, cmd.ID)
+			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, cmd.ID)
 			if err != nil {
 				log.Fatalf("Cannot delete %q command: %v", cmd.Name, err)
 			}
