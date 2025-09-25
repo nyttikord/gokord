@@ -50,7 +50,7 @@ func (eh {{privateName .}}Handler) Handle(s Session, i any) {
 }
 
 {{end}}
-func handlerForInterface(handler any) Handler {
+func handlerForInterface(handler FunctionHandler) Handler {
   switch v := handler.(type) {
   case func(Session, any):
     return interfaceHandler(v){{range .}}

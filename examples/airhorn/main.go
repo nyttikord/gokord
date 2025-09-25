@@ -74,7 +74,7 @@ func main() {
 
 // This function will be called (due to AddHandler above) when the bot receives
 // the "ready" event from Discord.
-func ready(s *gokord.Session, event *event.Ready) {
+func ready(s event.Session, event *event.Ready) {
 
 	// Set the playing status.
 	s.UpdateGameStatus(0, "!airhorn")
@@ -82,7 +82,7 @@ func ready(s *gokord.Session, event *event.Ready) {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func messageCreate(s *gokord.Session, m *event.MessageCreate) {
+func messageCreate(s event.Session, m *event.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
@@ -123,7 +123,7 @@ func messageCreate(s *gokord.Session, m *event.MessageCreate) {
 
 // This function will be called (due to AddHandler above) every time a new
 // guild is joined.
-func guildCreate(s *gokord.Session, event *event.GuildCreate) {
+func guildCreate(s event.Session, event *event.GuildCreate) {
 
 	if event.Guild.Unavailable {
 		return
@@ -182,7 +182,7 @@ func loadSound() error {
 }
 
 // playSound plays the current buffer to the provided channel.
-func playSound(s *gokord.Session, guildID, channelID string) (err error) {
+func playSound(s event.Session, guildID, channelID string) (err error) {
 
 	// Join the provided voice channel.
 	vc, err := s.ChannelVoiceJoin(guildID, channelID, false, true)

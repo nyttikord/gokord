@@ -24,7 +24,7 @@ func init() { flag.Parse() }
 // All actions must be done on a stage channel event
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 

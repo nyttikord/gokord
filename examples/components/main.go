@@ -38,8 +38,8 @@ func init() {
 // Important note: call every command in order it's placed in the example.
 
 var (
-	componentsHandlers = map[string]func(s *gokord.Session, i *event.InteractionCreate){
-		"fd_no": func(s *gokord.Session, i *event.InteractionCreate) {
+	componentsHandlers = map[string]func(s event.Session, i *event.InteractionCreate){
+		"fd_no": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -81,7 +81,7 @@ var (
 				panic(err)
 			}
 		},
-		"fd_yes": func(s *gokord.Session, i *event.InteractionCreate) {
+		"fd_yes": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -116,7 +116,7 @@ var (
 				panic(err)
 			}
 		},
-		"select": func(s *gokord.Session, i *event.InteractionCreate) {
+		"select": func(s event.Session, i *event.InteractionCreate) {
 			var response *interaction.Response
 
 			data := i.MessageComponentData()
@@ -152,7 +152,7 @@ var (
 				panic(err)
 			}
 		},
-		"stackoverflow_tags": func(s *gokord.Session, i *event.InteractionCreate) {
+		"stackoverflow_tags": func(s event.Session, i *event.InteractionCreate) {
 			data := i.MessageComponentData()
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
@@ -176,7 +176,7 @@ var (
 				panic(err)
 			}
 		},
-		"channel_select": func(s *gokord.Session, i *event.InteractionCreate) {
+		"channel_select": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -221,8 +221,8 @@ var (
 			}
 		},
 	}
-	commandsHandlers = map[string]func(s *gokord.Session, i *event.InteractionCreate){
-		"buttons": func(s *gokord.Session, i *event.InteractionCreate) {
+	commandsHandlers = map[string]func(s event.Session, i *event.InteractionCreate){
+		"buttons": func(s event.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -279,7 +279,7 @@ var (
 				panic(err)
 			}
 		},
-		"selects": func(s *gokord.Session, i *event.InteractionCreate) {
+		"selects": func(s event.Session, i *event.InteractionCreate) {
 			var response *interaction.Response
 			switch i.CommandData().Options[0].Name {
 			case "single":
@@ -430,11 +430,11 @@ var (
 )
 
 func main() {
-	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 	// Components are part of interactions, so we register InteractionCreate handler
-	s.EventManager().AddHandler(func(s *gokord.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(s event.Session, i *event.InteractionCreate) {
 		switch i.Type {
 		case types.InteractionApplicationCommand:
 			if h, ok := commandsHandlers[i.CommandData().Name]; ok {

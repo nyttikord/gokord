@@ -223,8 +223,8 @@ var (
 		},
 	}
 
-	commandHandlers = map[string]func(s *gokord.Session, i *event.InteractionCreate){
-		"basic-command": func(s *gokord.Session, i *event.InteractionCreate) {
+	commandHandlers = map[string]func(s event.Session, i *event.InteractionCreate){
+		"basic-command": func(s event.Session, i *event.InteractionCreate) {
 			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -232,7 +232,7 @@ var (
 				},
 			})
 		},
-		"basic-command-with-files": func(s *gokord.Session, i *event.InteractionCreate) {
+		"basic-command-with-files": func(s event.Session, i *event.InteractionCreate) {
 			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -247,7 +247,7 @@ var (
 				},
 			})
 		},
-		"localized-command": func(s *gokord.Session, i *event.InteractionCreate) {
+		"localized-command": func(s event.Session, i *event.InteractionCreate) {
 			responses := map[discord.Locale]string{
 				discord.LocaleChineseCN: "你好！ 这是一个本地化的命令",
 			}
@@ -265,7 +265,7 @@ var (
 				panic(err)
 			}
 		},
-		"options": func(s *gokord.Session, i *event.InteractionCreate) {
+		"options": func(s event.Session, i *event.InteractionCreate) {
 			// Access options in the order provided by the user.
 			options := i.CommandData().Options
 
@@ -331,7 +331,7 @@ var (
 				},
 			})
 		},
-		"permission-overview": func(s *gokord.Session, i *event.InteractionCreate) {
+		"permission-overview": func(s event.Session, i *event.InteractionCreate) {
 			perms, err := s.InteractionAPI().CommandPermissions(s.State.User.ID, i.GuildID, i.CommandData().ID)
 
 			var restError *gokord.RESTError
@@ -409,7 +409,7 @@ var (
 				},
 			})
 		},
-		"subcommands": func(s *gokord.Session, i *event.InteractionCreate) {
+		"subcommands": func(s event.Session, i *event.InteractionCreate) {
 			options := i.CommandData().Options
 			content := ""
 
@@ -436,7 +436,7 @@ var (
 				},
 			})
 		},
-		"responses": func(s *gokord.Session, i *event.InteractionCreate) {
+		"responses": func(s event.Session, i *event.InteractionCreate) {
 			// Responses to a command are very important.
 			// First of all, because you need to react to the interaction
 			// by sending the response in 3 seconds after receiving, otherwise
@@ -494,7 +494,7 @@ var (
 				s.InteractionAPI().ResponseDelete(i.Interaction)
 			})
 		},
-		"followups": func(s *gokord.Session, i *event.InteractionCreate) {
+		"followups": func(s event.Session, i *event.InteractionCreate) {
 			// Followup messages are basically regular messages (you can create as many of them as you wish)
 			// but work as they are created by webhooks and their functionality
 			// is for handling additional messages after sending a response.
@@ -539,7 +539,7 @@ var (
 )
 
 func init() {
-	s.EventManager().AddHandler(func(s *gokord.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(s event.Session, i *event.InteractionCreate) {
 		if h, ok := commandHandlers[i.CommandData().Name]; ok {
 			h(s, i)
 		}
@@ -547,7 +547,7 @@ func init() {
 }
 
 func main() {
-	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	})
 	err := s.Open()

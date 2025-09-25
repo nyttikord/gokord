@@ -28,10 +28,10 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s *gokord.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
-	s.EventManager().AddHandler(func(s *gokord.Session, m *event.MessageCreate) {
+	s.EventManager().AddHandler(func(s event.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
 				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
