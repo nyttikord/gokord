@@ -21,7 +21,7 @@ import (
 
 // Session represents a connection to the Discord API.
 type Session struct {
-	sync.RWMutex
+	*sync.RWMutex
 	stdLogger
 
 	// General configurable settings.
