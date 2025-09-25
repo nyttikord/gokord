@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -59,7 +58,7 @@ func (s *Session) Open() error {
 		return ErrWSAlreadyOpen
 	}
 
-	sequence := atomic.LoadInt64(s.sequence)
+	sequence := s.sequence.Load()
 
 	var gateway string
 	var err error
@@ -262,7 +261,7 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 		s.RLock()
 		last := s.LastHeartbeatAck
 		s.RUnlock()
-		sequence := atomic.LoadInt64(s.sequence)
+		sequence := s.sequence.Load()
 		s.LogDebug("sending gateway websocket heartbeat seq %d", sequence)
 		s.wsMutex.Lock()
 		s.LastHeartbeatSent = time.Now().UTC()
@@ -340,7 +339,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	if e.Operation == 1 {
 		s.LogDebug("sending heartbeat in response to Op1")
 		s.wsMutex.Lock()
-		err = s.wsConn.WriteJSON(heartbeatOp{1, atomic.LoadInt64(s.sequence)})
+		err = s.wsConn.WriteJSON(heartbeatOp{1, s.sequence.Load()})
 		s.wsMutex.Unlock()
 		if err != nil {
 			return e, err
@@ -381,7 +380,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 			s.LogInfo("Gateway session is not resumable, discarding its information")
 			s.resumeGatewayURL = ""
 			s.sessionID = ""
-			atomic.StoreInt64(s.sequence, 0)
+			s.sequence.Store(0)
 		}
 
 		s.reconnect()
@@ -410,7 +409,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	}
 
 	// Store the message sequence
-	atomic.StoreInt64(s.sequence, e.Sequence)
+	s.sequence.Store(e.Sequence)
 
 	// Map event to registered event handlers and pass it along to any registered handlers.
 	if eh, ok := event.GetInterfaceProvider(e.Type); ok {

@@ -3,6 +3,7 @@ package gokord
 import (
 	"net/http"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -33,7 +34,7 @@ func New(token string) *Session {
 		Client:                             &http.Client{Timeout: 20 * time.Second},
 		Dialer:                             websocket.DefaultDialer,
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
-		sequence:                           new(int64),
+		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
 		stdLogger:                          stdLogger{Level: logger.LevelInfo},
 	}

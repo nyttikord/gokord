@@ -3,6 +3,7 @@ package gokord
 import (
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -96,7 +97,7 @@ type Session struct {
 	listening chan any
 
 	// sequence tracks the current gateway api websocket sequence number.
-	sequence *int64
+	sequence *atomic.Int64
 
 	// Stores sessions current Discord Resume Gateway.
 	resumeGatewayURL string
