@@ -10,6 +10,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/logger"
+	"github.com/nyttikord/gokord/voice"
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
@@ -40,6 +41,11 @@ func New(token string) *Session {
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
+
+	s.voiceAPI = &voice.Requester{
+		Requester:   s,
+		Connections: make(map[string]*voice.Connection),
+	}
 
 	// Initialize Identify with defaults values.
 	// These can be modified prior to calling Open().

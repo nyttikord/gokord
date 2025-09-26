@@ -18,6 +18,7 @@ import (
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
+	"github.com/nyttikord/gokord/voice"
 )
 
 // Session represents a connection to the Discord API.
@@ -62,9 +63,6 @@ type Session struct {
 
 	// Status stores the current status of the websocket connection this is being tested, may stay, may go away.
 	status int32
-
-	// Stores a mapping of guild id's to VoiceConnection.
-	VoiceConnections map[string]*VoiceConnection
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
@@ -116,6 +114,7 @@ type Session struct {
 	userAPI    *userapi.Requester
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
+	voiceAPI   *voice.Requester
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
@@ -206,6 +205,11 @@ func (s *Session) ApplicationAPI() *applicationapi.Requester {
 // BotAPI returns a bot.Requester to interact with the bot package.
 func (s *Session) BotAPI() *bot.Requester {
 	return &bot.Requester{Requester: s}
+}
+
+// VoiceAPI returns a voice.Requester to interact with the voice package.
+func (s *Session) VoiceAPI() *voice.Requester {
+	return s.voiceAPI
 }
 
 // EventManager returns the event.Manager used by the Session.

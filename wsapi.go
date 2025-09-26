@@ -47,6 +47,17 @@ func (s *Session) GatewayWriteStruct(v any) error {
 	return err
 }
 
+func (s *Session) GatewayReady() bool {
+	if s.wsConn == nil {
+		return false
+	}
+	return s.DataReady
+}
+
+func (s *Session) GatewayDial(ctx context.Context, urlString string, headers http.Header) (*websocket.Conn, *http.Response, error) {
+	return s.Dialer.DialContext(ctx, urlString, headers)
+}
+
 // Open creates a websocket connection to Discord.
 // https://discord.com/developers/docs/topics/gateway#connecting
 func (s *Session) Open() error {
@@ -167,13 +178,6 @@ func (s *Session) Open() error {
 
 	s.LogDebug("We are now connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
-
-	// A VoiceConnections map is a hard requirement for Voice.
-	// XXX: can this be moved to when opening a voice connection?
-	if s.VoiceConnections == nil {
-		s.LogDebug("creating new VoiceConnections map")
-		s.VoiceConnections = make(map[string]*VoiceConnection)
-	}
 
 	// Create listening chan outside of listen, as it needs to happen inside the mutex lock and needs to exist before
 	// calling heartbeat and listen goroutines.
@@ -433,142 +437,6 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	return e, nil
 }
 
-type voiceChannelJoinData struct {
-	GuildID   *string `json:"guild_id"`
-	ChannelID *string `json:"channel_id"`
-	SelfMute  bool    `json:"self_mute"`
-	SelfDeaf  bool    `json:"self_deaf"`
-}
-
-type voiceChannelJoinOp struct {
-	Op   int                  `json:"op"`
-	Data voiceChannelJoinData `json:"d"`
-}
-
-// ChannelVoiceJoin joins the session user to a voice channel.Channel.
-//
-// mute indicates whether you will be set to muted upon joining.
-// deaf indicates whether you will be set to deafened upon joining.
-func (s *Session) ChannelVoiceJoin(guildID, channelID string, mute, deaf bool) (*VoiceConnection, error) {
-	s.RLock()
-	voice, _ := s.VoiceConnections[guildID]
-	s.RUnlock()
-
-	if voice == nil {
-		voice = &VoiceConnection{stdLogger: stdLogger{Level: s.GetLevel()}}
-		s.Lock()
-		s.VoiceConnections[guildID] = voice
-		s.Unlock()
-	}
-
-	voice.Lock()
-	voice.GuildID = guildID
-	voice.ChannelID = channelID
-	voice.deaf = deaf
-	voice.mute = mute
-	voice.session = s
-	voice.Unlock()
-
-	err := s.ChannelVoiceJoinManual(guildID, channelID, mute, deaf)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: doesn't exactly work perfect yet...
-	err = voice.waitUntilConnected()
-	if err != nil {
-		s.LogError(err, "waiting for voice to connect")
-		voice.Close()
-		return nil, err
-	}
-
-	return voice, nil
-}
-
-// ChannelVoiceJoinManual initiates a voice session to a voice channel.Channel, but does not complete it.
-//
-// This should only be used when the VoiceServerUpdate will be intercepted and used elsewhere.
-//
-// mute indicates whether you will be set to muted upon joining.
-// deaf indicates whether you will be set to deafened upon joining.
-func (s *Session) ChannelVoiceJoinManual(guildID, channelID string, mute, deaf bool) error {
-	var cID *string
-	if channelID == "" {
-		cID = nil
-	} else {
-		cID = &channelID
-	}
-
-	// Send the request to Discord that we want to join the voice channel
-	data := voiceChannelJoinOp{4, voiceChannelJoinData{&guildID, cID, mute, deaf}}
-	s.wsMutex.Lock()
-	err := s.wsConn.WriteJSON(data)
-	s.wsMutex.Unlock()
-	return err
-}
-
-// onVoiceStateUpdate handles event.VoiceStateUpdate.
-func (s *Session) onVoiceStateUpdate(st *event.VoiceStateUpdate) {
-	// If we don't have a connection for the channel, don't bother
-	if st.ChannelID == "" {
-		return
-	}
-
-	// Check if we have a voice connection to update
-	s.RLock()
-	voice, exists := s.VoiceConnections[st.GuildID]
-	s.RUnlock()
-	if !exists {
-		return
-	}
-
-	// We only care about events that are about us.
-	if s.SessionState().User().ID != st.UserID {
-		return
-	}
-
-	// Store the SessionID for later use.
-	voice.Lock()
-	voice.UserID = st.UserID
-	voice.sessionID = st.SessionID
-	voice.ChannelID = st.ChannelID
-	voice.Unlock()
-}
-
-// onVoiceServerUpdate handles the event.VoiceServerUpdate.
-//
-// This is also fired if the guild's voice region changes while connected to a voice channel.
-// In that case, need to re-establish connection to the new region endpoint.
-func (s *Session) onVoiceServerUpdate(st *event.VoiceServerUpdate) {
-	s.LogDebug("voice server update")
-
-	s.RLock()
-	voice, exists := s.VoiceConnections[st.GuildID]
-	s.RUnlock()
-
-	// If no VoiceConnection exists, just skip this
-	if !exists {
-		return
-	}
-
-	// If currently connected to voice ws/udp, then disconnect.
-	// Has no effect if not connected.
-	voice.Close()
-
-	// Store values for later use
-	voice.Lock()
-	voice.token = st.Token
-	voice.endpoint = st.Endpoint
-	voice.GuildID = st.GuildID
-	voice.Unlock()
-
-	// Open a connection to the voice server
-	err := voice.open()
-	if err != nil {
-		s.LogError(err, "opening voice connection")
-	}
-}
-
 type identifyOp struct {
 	Op   int      `json:"op"`
 	Data Identify `json:"d"`
@@ -610,10 +478,7 @@ func (s *Session) reconnect() {
 		s.LogError(err, "reconnecting to gateway")
 
 		time.Sleep(wait * time.Second)
-		wait *= 2
-		if wait > 600 {
-			wait = 600
-		}
+		wait *= min(wait*2, 600)
 
 		s.LogInfo("trying to reconnect to gateway")
 
@@ -630,10 +495,10 @@ func (s *Session) reconnect() {
 	}
 	s.RLock()
 	defer s.RUnlock()
-	for _, v := range s.VoiceConnections {
+	for _, v := range s.voiceAPI.Connections {
 
 		s.LogInfo("reconnecting voice connection to guild %s", v.GuildID)
-		go v.reconnect()
+		go v.Reconnect()
 
 		// This is here just to prevent violently spamming the
 		// voice reconnects
@@ -665,7 +530,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 		s.listening = nil
 	}
 
-	for _, v := range s.VoiceConnections {
+	for _, v := range s.voiceAPI.Connections {
 		err := v.Disconnect()
 		if err != nil {
 			s.LogError(err, "disconnecting voice from channel %s", v.ChannelID)

@@ -1,3 +1,6 @@
+// Package bot contains everything related to the bot.
+//
+// You can use gokord.Session which is the default implementation of Session working with the Discord Gateway.
 package bot
 
 import (
@@ -9,6 +12,7 @@ import (
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
+	"github.com/nyttikord/gokord/voice"
 )
 
 // Session represents a bot session.
@@ -17,7 +21,7 @@ import (
 type Session interface {
 	logger.Logger
 
-	// EventManager returns the Manager used by the Session.
+	// EventManager returns the EventManager used by the Session.
 	EventManager() EventManager
 
 	// ChannelAPI returns a channelapi.Requester to interact with the channel package.
@@ -34,6 +38,8 @@ type Session interface {
 	ApplicationAPI() *applicationapi.Requester
 	// BotAPI returns a bot.Requester to interact with the bot package.
 	BotAPI() *Requester
+	// VoiceAPI returns a voice.Requester to interact with the voice package.
+	VoiceAPI() *voice.Requester
 
 	// SessionState returns the state.Bot of the Session.
 	SessionState() state.Bot

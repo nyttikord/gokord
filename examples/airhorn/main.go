@@ -186,7 +186,7 @@ func loadSound() error {
 func playSound(s bot.Session, guildID, channelID string) (err error) {
 
 	// Join the provided voice channel.
-	vc, err := s.ChannelVoiceJoin(guildID, channelID, false, true)
+	vc, err := s.VoiceAPI().ChannelJoin(guildID, channelID, false, true)
 	if err != nil {
 		return err
 	}
