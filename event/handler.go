@@ -1,6 +1,10 @@
 package event
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/nyttikord/gokord/bot"
+)
 
 var (
 	ErrInvalidHandler = errors.New("invalid handler type")
@@ -14,7 +18,7 @@ type Handler interface {
 	// Handle is called whenever an event of Type() happens.
 	// It is the receivers responsibility to type assert that the interface
 	// is the expected struct.
-	Handle(Session, any)
+	Handle(bot.Session, any)
 }
 
 // InterfaceProvider is an interface for providing empty interfaces for
@@ -33,7 +37,7 @@ type InterfaceProvider interface {
 const interfaceEventType = "__INTERFACE__"
 
 // interfaceHandler is an event handler for any events.
-type interfaceHandler func(Session, any)
+type interfaceHandler func(bot.Session, any)
 
 // Type returns the event type for any events.
 func (eh interfaceHandler) Type() string {
@@ -41,7 +45,7 @@ func (eh interfaceHandler) Type() string {
 }
 
 // Handle is the handler for an any event.
-func (eh interfaceHandler) Handle(s Session, i any) {
+func (eh interfaceHandler) Handle(s bot.Session, i any) {
 	eh(s, i)
 }
 
@@ -140,6 +144,7 @@ func (e *Manager) AddHandler(handler any) func() {
 
 // AddHandlerOnce allows you to add an event handler that will be fired the next time the Discord WSAPI event that
 // matches the function fires.
+//
 // See AddHandler for more details.
 func (e *Manager) AddHandlerOnce(handler any) func() {
 	eh := handlerForInterface(handler)
@@ -173,7 +178,7 @@ func (e *Manager) removeEventHandlerInstance(t string, ehi *eventHandlerInstance
 }
 
 // Handles calling permanent and once handlers for an event type.
-func (e *Manager) handle(s Session, t string, i any) {
+func (e *Manager) handle(s bot.Session, t string, i any) {
 	for _, eh := range e.handlers[t] {
 		if e.SyncEvents {
 			eh.eventHandler.Handle(s, i)
@@ -195,7 +200,7 @@ func (e *Manager) handle(s Session, t string, i any) {
 }
 
 // EmitEvent calls internal methods, fires handlers and fires the "any" event.
-func (e *Manager) EmitEvent(s Session, t string, i any) {
+func (e *Manager) EmitEvent(s bot.Session, t string, i any) {
 	e.RLock()
 	defer e.RUnlock()
 

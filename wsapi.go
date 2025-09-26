@@ -166,7 +166,7 @@ func (s *Session) Open() error {
 	}
 
 	s.LogDebug("We are now connected to Discord, emitting connect event")
-	s.EventManager().EmitEvent(s, event.ConnectType, &event.Connect{})
+	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
 
 	// A VoiceConnections map is a hard requirement for Voice.
 	// XXX: can this be moved to when opening a voice connection?
@@ -424,10 +424,10 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 			}
 		}
 
-		s.EventManager().EmitEvent(s, e.Type, e.Struct)
+		s.eventManager.EmitEvent(s, e.Type, e.Struct)
 	} else {
 		s.LogWarn("unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
-		s.EventManager().EmitEvent(s, event.EventType, e)
+		s.eventManager.EmitEvent(s, event.EventType, e)
 	}
 
 	return e, nil
@@ -727,7 +727,7 @@ func (s *Session) ForceClose(emitDisconnect bool) {
 	if emitDisconnect {
 		// required
 		s.Unlock()
-		s.EventManager().EmitEvent(s, event.DisconnectType, &event.Disconnect{})
+		s.eventManager.EmitEvent(s, event.DisconnectType, &event.Disconnect{})
 		s.Lock()
 	}
 }

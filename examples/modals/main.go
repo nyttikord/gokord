@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord/types"
@@ -44,8 +45,8 @@ var (
 			Description: "Take a survey about modals",
 		},
 	}
-	commandsHandlers = map[string]func(s event.Session, i *event.InteractionCreate){
-		"modals-survey": func(s event.Session, i *event.InteractionCreate) {
+	commandsHandlers = map[string]func(s bot.Session, i *event.InteractionCreate){
+		"modals-survey": func(s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseModal,
 				Data: &interaction.ResponseData{
@@ -84,11 +85,11 @@ var (
 )
 
 func main() {
-	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 
-	s.EventManager().AddHandler(func(s event.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 		switch i.Type {
 		case types.InteractionApplicationCommand:
 			if h, ok := commandsHandlers[i.CommandData().Name]; ok {

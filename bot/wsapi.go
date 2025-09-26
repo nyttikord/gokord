@@ -12,7 +12,7 @@ type Requester struct {
 	//State *State
 }
 
-// UpdateStatusData is provided to Session.UpdateStatusComplex()
+// UpdateStatusData is provided to Requester.UpdateStatusComplex
 type UpdateStatusData struct {
 	IdleSince  *int               `json:"since"`
 	Activities []*status.Activity `json:"activities"`

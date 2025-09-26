@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
@@ -112,17 +113,17 @@ func TestOpenClose(t *testing.T) {
 
 func TestAddHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s event.Session, m *event.MessageCreate) {
+	testHandler := func(s bot.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
 	interfaceHandlerCalled := int32(0)
-	interfaceHandler := func(s event.Session, i interface{}) {
+	interfaceHandler := func(s bot.Session, i interface{}) {
 		atomic.AddInt32(&interfaceHandlerCalled, 1)
 	}
 
 	bogusHandlerCalled := int32(0)
-	bogusHandler := func(s event.Session, se *event.Session) {
+	bogusHandler := func(s bot.Session, se *bot.Session) {
 		atomic.AddInt32(&bogusHandlerCalled, 1)
 	}
 
@@ -135,8 +136,8 @@ func TestAddHandler(t *testing.T) {
 	d.EventManager().AddHandler(interfaceHandler)
 	d.EventManager().AddHandler(bogusHandler)
 
-	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
-	d.EventManager().EmitEvent(&d, event.MessageDeleteType, &event.MessageDelete{})
+	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageDeleteType, &event.MessageDelete{})
 
 	<-time.After(500 * time.Millisecond)
 
@@ -157,7 +158,7 @@ func TestAddHandler(t *testing.T) {
 
 func TestRemoveHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s event.Session, m *event.MessageCreate) {
+	testHandler := func(s bot.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
@@ -166,11 +167,11 @@ func TestRemoveHandler(t *testing.T) {
 	d.stdLogger = stdLogger{Level: logger.LevelDebug}
 	r := d.EventManager().AddHandler(testHandler)
 
-	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
 
 	r()
 
-	d.EventManager().EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
 
 	<-time.After(500 * time.Millisecond)
 

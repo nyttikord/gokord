@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
@@ -25,7 +26,7 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 
@@ -46,7 +47,7 @@ func main() {
 }
 
 // Create a new event on guild
-func createAmazingEvent(s event.Session) *guild.ScheduledEvent {
+func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 	// Define the starting time (must be in future)
 	startingTime := time.Now().Add(1 * time.Hour)
 	// Define the ending time (must be after starting time)
@@ -70,7 +71,7 @@ func createAmazingEvent(s event.Session) *guild.ScheduledEvent {
 	return scheduledEvent
 }
 
-func transformEventToExternalEvent(s event.Session, event *guild.ScheduledEvent) {
+func transformEventToExternalEvent(s bot.Session, event *guild.ScheduledEvent) {
 	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(*GuildID, event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
 		EntityType: types.ScheduledEventEntityExternal,

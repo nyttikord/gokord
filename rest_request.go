@@ -135,7 +135,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 
 		if cfg.ShouldRetryOnRateLimit {
 			s.LogInfo("Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
-			s.EventManager().EmitEvent(s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
+			s.eventManager.EmitEvent(s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
 			// we can make the above smarter

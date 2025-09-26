@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/event"
 )
@@ -24,7 +25,7 @@ func init() { flag.Parse() }
 // All actions must be done on a stage channel event
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s event.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 

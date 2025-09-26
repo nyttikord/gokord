@@ -209,7 +209,7 @@ func (s *Session) BotAPI() *bot.Requester {
 }
 
 // EventManager returns the event.Manager used by the Session.
-func (s *Session) EventManager() *event.Manager {
+func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
 }
 
