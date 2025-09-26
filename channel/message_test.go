@@ -1,9 +1,8 @@
-package gokord
+package channel
 
 import (
 	"testing"
 
-	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
 )
 
@@ -45,7 +44,7 @@ import (
 //	}
 func TestGettingEmojisFromMessage(t *testing.T) {
 	msg := "test test <:kitty14:811736565172011058> <:kitty4:811736468812595260>"
-	m := &channel.Message{
+	m := &Message{
 		Content: msg,
 	}
 	emojis := m.GetCustomEmojis()
@@ -57,7 +56,7 @@ func TestGettingEmojisFromMessage(t *testing.T) {
 }
 
 func TestMessage_Reference(t *testing.T) {
-	m := &channel.Message{
+	m := &Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -83,7 +82,7 @@ func TestMessage_Reference(t *testing.T) {
 }
 
 func TestMessage_Forward(t *testing.T) {
-	m := &channel.Message{
+	m := &Message{
 		ID:        "811736565172011001",
 		GuildID:   "811736565172011002",
 		ChannelID: "811736565172011003",
@@ -109,7 +108,7 @@ func TestMessage_Forward(t *testing.T) {
 }
 
 func TestMessageReference_DefaultTypeIsDefault(t *testing.T) {
-	r := channel.MessageReference{}
+	r := MessageReference{}
 	if r.Type != types.MessageReferenceDefault {
 		t.Error("Default message type should be MessageReferenceTypeDefault")
 	}

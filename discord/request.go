@@ -3,10 +3,14 @@ package discord
 import (
 	"context"
 	"net/http"
+
+	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/logger"
 )
 
 // Requester is used to interact with the Discord API.
 type Requester interface {
+	logger.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 	Request(method string, urlStr string, data interface{}, options ...RequestOption) ([]byte, error)
 	// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.
@@ -19,10 +23,14 @@ type Requester interface {
 	RequestRaw(method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
-	// VoiceRegions returns the VoiceRegion.
-	VoiceRegions(options ...RequestOption) ([]*VoiceRegion, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i interface{}) error
+
+	// GatewayWriteStruct writes a struck as a json to Discord gateway.
+	GatewayWriteStruct(any) error
+	// GatewayReady returns true if the Gateway is ready.
+	GatewayReady() bool
+	GatewayDial(context.Context, string, http.Header) (*websocket.Conn, *http.Response, error)
 }
 
 // RequestConfig is an HTTP request configuration.

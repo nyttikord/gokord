@@ -23,6 +23,8 @@ var HandlerTmpl = template.Must(template.New("Handler").Funcs(template.FuncMap{
 
 package event 
 
+import "github.com/nyttikord/gokord/bot"
+
 // Following are all the event types.
 // Event type values are used to match the events returned by Discord.
 // EventTypes surrounded by __ are synthetic and are internal to DiscordGo.
@@ -31,7 +33,7 @@ const ({{range .}}
 )
 {{range .}}
 // {{privateName .}}Handler is an event handler for {{.}} events.
-type {{privateName .}}Handler func(Session, *{{.}})
+type {{privateName .}}Handler func(bot.Session, *{{.}})
 
 // Type returns the event type for {{.}} events.
 func (eh {{privateName .}}Handler) Type() string {
@@ -43,18 +45,18 @@ func (eh {{privateName .}}Handler) New() any {
   return &{{.}}{}
 }{{end}}
 // Handle is the handler for {{.}} events.
-func (eh {{privateName .}}Handler) Handle(s Session, i any) {
+func (eh {{privateName .}}Handler) Handle(s bot.Session, i any) {
   if t, ok := i.(*{{.}}); ok {
     eh(s, t)
   }
 }
 
 {{end}}
-func handlerForInterface(handler FunctionHandler) Handler {
+func handlerForInterface(handler any) Handler {
   switch v := handler.(type) {
-  case func(Session, any):
+  case func(bot.Session, any):
     return interfaceHandler(v){{range .}}
-  case func(Session, *{{.}}):
+  case func(bot.Session, *{{.}}):
     return {{privateName .}}Handler(v){{end}}
   }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user/invite"
+	"github.com/nyttikord/gokord/voice"
 )
 
 var (
@@ -19,9 +20,15 @@ var (
 	ErrGuildNoSplash   = errors.New("guild does not have a splash set")
 )
 
+// API adds methods to discord.Requester to be used in the interaction package.
+type API interface {
+	discord.Requester
+	VoiceAPI() *voice.Requester
+}
+
 // Requester handles everything inside the guild package.
 type Requester struct {
-	discord.Requester
+	API
 	State *State
 }
 
