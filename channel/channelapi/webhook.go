@@ -240,7 +240,7 @@ func (s Requester) WebhookMessageEdit(webhookID, token, messageID string, data *
 	if data.Content != nil {
 		d.Content = *data.Content
 	}
-	if data.Files != nil {
+	if data.Components != nil {
 		d.Components = *data.Components
 	}
 	if data.Embeds != nil {

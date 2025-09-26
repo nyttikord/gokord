@@ -68,7 +68,7 @@ type RateLimitError struct {
 
 // Error returns a rate limit error with rate limited endpoint and retry time.
 func (e RateLimitError) Error() string {
-	return "Rate limit exceeded on " + e.URL + ", retrying after " + e.RetryAfter.String()
+	return "rate limit exceeded on " + e.URL + ", retrying after " + e.RetryAfter.String()
 }
 
 func unmarshal(data []byte, v any) error {
