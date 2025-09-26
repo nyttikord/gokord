@@ -23,8 +23,6 @@ type Requester interface {
 	RequestRaw(method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
-	// VoiceRegions returns the VoiceRegion.
-	VoiceRegions(options ...RequestOption) ([]*VoiceRegion, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i interface{}) error
 

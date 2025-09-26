@@ -135,7 +135,7 @@ func TestVoiceRegions(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.VoiceRegions()
+	_, err := dg.VoiceAPI().VoiceRegions()
 	if err != nil {
 		t.Errorf("VoiceRegions() returned error: %+v", err)
 	}

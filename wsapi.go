@@ -298,14 +298,7 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 	}
 }
 
-// onEvent is the "event handler" for all messages received on the
-// Discord Gateway API websocket connection.
-//
-// If you use the AddHandler() function to register a handler for a
-// specific event this function will pass the event along to that handler.
-//
-// If you use the AddHandler() function to register a handler for the
-// "OnEvent" event then all events will be passed to that handler.
+// onEvent is the "event handler" for all messages received on the Discord Gateway API websocket connection.
 func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, error) {
 	var err error
 	var reader io.Reader

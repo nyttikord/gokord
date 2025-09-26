@@ -75,7 +75,7 @@ func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...di
 	// Bounds checking for regions
 	if params.Region != "" {
 		isValid := false
-		regions, _ := r.VoiceRegions(options...)
+		regions, _ := r.VoiceAPI().VoiceRegions(options...)
 		for _, r := range regions {
 			if params.Region == r.ID {
 				isValid = true

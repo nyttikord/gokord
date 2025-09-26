@@ -175,7 +175,7 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.guildAPI = &guildapi.Requester{Requester: s, State: guildapi.NewState(s.sessionState)}
+		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState)}
 	}
 	return s.guildAPI
 }

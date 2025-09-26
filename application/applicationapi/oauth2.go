@@ -15,8 +15,8 @@ type Requester struct {
 }
 
 // Application returns an application.Application.
-func (s Requester) Application(appID string, options ...discord.RequestOption) (*application.Application, error) {
-	body, err := s.RequestWithBucketID(
+func (r Requester) Application(appID string, options ...discord.RequestOption) (*application.Application, error) {
+	body, err := r.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointOAuth2Application(appID),
 		nil,
@@ -28,46 +28,46 @@ func (s Requester) Application(appID string, options ...discord.RequestOption) (
 	}
 
 	var app application.Application
-	return &app, s.Unmarshal(body, &app)
+	return &app, r.Unmarshal(body, &app)
 }
 
 // Applications returns all application.Application for the authenticated user.Application.
-func (s Requester) Applications(options ...discord.RequestOption) ([]*application.Application, error) {
-	body, err := s.Request("GET", discord.EndpointOAuth2Applications, nil, options...)
+func (r Requester) Applications(options ...discord.RequestOption) ([]*application.Application, error) {
+	body, err := r.Request("GET", discord.EndpointOAuth2Applications, nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var app []*application.Application
-	return app, s.Unmarshal(body, &app)
+	return app, r.Unmarshal(body, &app)
 }
 
 // ApplicationCreate creates a new application.Application.
 //
 // uris are the redirect URIs (not required).
-func (s Requester) ApplicationCreate(ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+func (r Requester) ApplicationCreate(ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
-	body, err := s.Request(http.MethodPost, discord.EndpointOAuth2Applications, data, options...)
+	body, err := r.Request(http.MethodPost, discord.EndpointOAuth2Applications, data, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	var app application.Application
-	return &app, s.Unmarshal(body, &app)
+	return &app, r.Unmarshal(body, &app)
 }
 
 // ApplicationUpdate updates an existing application.Application.
-func (s Requester) ApplicationUpdate(appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+func (r Requester) ApplicationUpdate(appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
-	body, err := s.RequestWithBucketID(
+	body, err := r.RequestWithBucketID(
 		http.MethodPut,
 		discord.EndpointOAuth2Application(appID),
 		data,
@@ -79,12 +79,12 @@ func (s Requester) ApplicationUpdate(appID string, ap *application.Application, 
 	}
 
 	var app application.Application
-	return &app, s.Unmarshal(body, &app)
+	return &app, r.Unmarshal(body, &app)
 }
 
 // ApplicationDelete deletes an existing application.Application.
-func (s Requester) ApplicationDelete(appID string, options ...discord.RequestOption) error {
-	_, err := s.RequestWithBucketID(
+func (r Requester) ApplicationDelete(appID string, options ...discord.RequestOption) error {
+	_, err := r.RequestWithBucketID(
 		http.MethodDelete,
 		discord.EndpointOAuth2Application(appID),
 		nil,
@@ -95,8 +95,8 @@ func (s Requester) ApplicationDelete(appID string, options ...discord.RequestOpt
 }
 
 // Assets returns application.Asset.
-func (s Requester) Assets(appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
-	body, err := s.RequestWithBucketID(
+func (r Requester) Assets(appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
+	body, err := r.RequestWithBucketID(
 		http.MethodGet,
 		discord.EndpointOAuth2ApplicationAssets(appID),
 		nil,
@@ -108,14 +108,14 @@ func (s Requester) Assets(appID string, options ...discord.RequestOption) ([]*ap
 	}
 
 	var a []*application.Asset
-	return a, s.Unmarshal(body, &a)
+	return a, r.Unmarshal(body, &a)
 }
 
 // BotCreate creates an application.Application Bot Account.
 //
 // NOTE: func name may change, if I can think up something better.
-func (s Requester) BotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
-	body, err := s.RequestWithBucketID(
+func (r Requester) BotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
+	body, err := r.RequestWithBucketID(
 		http.MethodPost,
 		discord.EndpointOAuth2ApplicationsBot(appID),
 		nil,
@@ -127,5 +127,5 @@ func (s Requester) BotCreate(appID string, options ...discord.RequestOption) (*u
 	}
 
 	var u user.User
-	return &u, s.Unmarshal(body, &u)
+	return &u, r.Unmarshal(body, &u)
 }
