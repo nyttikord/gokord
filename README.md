@@ -72,6 +72,9 @@ Below is a list of examples and other projects using Gokord.
 
 - [Gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with Gokord (really outdated)
 
+If you want real world example, you can check [our bots](https://github.com/nyttikord) or 
+[Les Copaings Bot](https://git.anhgelus.world/anhgelus/les-copaings-bot).
+
 <!--
 ## Troubleshooting
 For help with common problems please reference the 
