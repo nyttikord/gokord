@@ -1,4 +1,4 @@
-package bot
+package botapi
 
 import (
 	"github.com/nyttikord/gokord/discord"

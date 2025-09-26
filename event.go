@@ -34,9 +34,9 @@ func (s *Session) onInterface(i any) {
 	case *event.GuildUpdate:
 		setGuildIds(t.Guild)
 	case *event.VoiceServerUpdate:
-		go s.voiceAPI.OnVoiceServerUpdate(t)
+		go s.voiceAPI.UpdateServer(t.Token, t.GuildID, t.Endpoint)
 	case *event.VoiceStateUpdate:
-		go s.voiceAPI.OnVoiceStateUpdate(t, s.sessionState)
+		go s.voiceAPI.UpdateState(t.VoiceState, s.sessionState)
 	}
 	err := s.sessionState.onInterface(s, i)
 	if err != nil {

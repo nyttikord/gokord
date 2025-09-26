@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/state"
+	"github.com/nyttikord/gokord/user"
 )
 
 // Requester handles everything inside the voice package.
@@ -34,23 +34,23 @@ type channelJoinOp struct {
 // deaf indicates whether you will be set to deafened upon joining.
 func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Connection, error) {
 	r.RLock()
-	voice, _ := r.Connections[guildID]
+	v, _ := r.Connections[guildID]
 	r.RUnlock()
 
-	if voice == nil {
-		voice = &Connection{Logger: r.Requester}
+	if v == nil {
+		v = &Connection{Logger: r.Requester}
 		r.Lock()
-		r.Connections[guildID] = voice
+		r.Connections[guildID] = v
 		r.Unlock()
 	}
 
-	voice.Lock()
-	voice.GuildID = guildID
-	voice.ChannelID = channelID
-	voice.deaf = deaf
-	voice.mute = mute
-	voice.requester = r
-	voice.Unlock()
+	v.Lock()
+	v.GuildID = guildID
+	v.ChannelID = channelID
+	v.deaf = deaf
+	v.mute = mute
+	v.requester = r
+	v.Unlock()
 
 	err := r.ChannelJoinManual(guildID, channelID, mute, deaf)
 	if err != nil {
@@ -58,14 +58,14 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 	}
 
 	// TODO: doesn't exactly work perfect yet...
-	err = voice.waitUntilConnected()
+	err = v.waitUntilConnected()
 	if err != nil {
 		r.LogError(err, "waiting for voice to connect")
-		voice.Close()
+		v.Close()
 		return nil, err
 	}
 
-	return voice, nil
+	return v, nil
 }
 
 // ChannelJoinManual initiates a voice requester to a voice channel.Channel, but does not complete it.
@@ -87,64 +87,63 @@ func (r *Requester) ChannelJoinManual(guildID, channelID string, mute, deaf bool
 	return r.GatewayWriteStruct(data)
 }
 
-// OnVoiceStateUpdate handles event.VoiceStateUpdate.
-func (r *Requester) OnVoiceStateUpdate(st *event.VoiceStateUpdate, ss state.Bot) {
-	// If we don't have a connection for the channel, don't bother
-	if st.ChannelID == "" {
+// UpdateState updates the user.VoiceState (received during event.VoiceStateUpdate).
+func (r *Requester) UpdateState(u *user.VoiceState, ss state.Bot) {
+	// We only care about events that are about us.
+	if ss.User().ID != u.UserID {
 		return
 	}
 
-	// Check if we have a voice connection to update
+	if u.ChannelID == "" {
+		return
+	}
+
 	r.RLock()
-	v, exists := r.Connections[st.GuildID]
+	v, exists := r.Connections[u.GuildID]
 	r.RUnlock()
 	if !exists {
 		return
 	}
 
-	// We only care about events that are about us.
-	if ss.User().ID != st.UserID {
-		return
-	}
-
-	// Store the SessionID for later use.
 	v.Lock()
-	v.UserID = st.UserID
-	v.sessionID = st.SessionID
-	v.ChannelID = st.ChannelID
+	v.UserID = u.UserID
+	v.sessionID = u.SessionID
+	v.ChannelID = u.ChannelID
 	v.Unlock()
 }
 
-// OnVoiceServerUpdate handles the event.VoiceServerUpdate.
+// UpdateServer handles the event.VoiceServerUpdate.
 //
-// This is also fired if the guild's voice region changes while connected to a voice channel.
+// This is also fired if the guild.Guild's voice region changes while connected to a voice channel.Channel.
 // In that case, need to re-establish connection to the new region endpoint.
-func (r *Requester) OnVoiceServerUpdate(st *event.VoiceServerUpdate) {
+func (r *Requester) UpdateServer(token string, guildID string, endpoint string) {
 	r.LogDebug("voice server update")
 
 	r.RLock()
-	v, exists := r.Connections[st.GuildID]
+	v, exists := r.Connections[guildID]
 	r.RUnlock()
 
-	// If no VoiceConnection exists, just skip this
 	if !exists {
 		return
 	}
 
-	// If currently connected to v ws/udp, then disconnect.
+	// If currently connected to voice ws/udp, then disconnect.
 	// Has no effect if not connected.
 	v.Close()
 
-	// Store values for later use
+	if endpoint == "" {
+		r.LogWarn("endpoint is not defined, voice server was not reallocated?")
+		return
+	}
+
 	v.Lock()
-	v.token = st.Token
-	v.endpoint = st.Endpoint
-	v.GuildID = st.GuildID
+	v.token = token
+	v.endpoint = endpoint
+	v.GuildID = guildID
 	v.Unlock()
 
-	// Open a connection to the v server
 	err := v.open()
 	if err != nil {
-		r.LogError(err, "opening v connection")
+		r.LogError(err, "opening voice connection")
 	}
 }

@@ -3,7 +3,10 @@
 
 package event
 
-import "github.com/nyttikord/gokord/bot"
+import (
+	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/discord"
+)
 
 // Following are all the event types.
 // Event type values are used to match the events returned by Discord.
@@ -355,7 +358,7 @@ func (eh entitlementUpdateHandler) Handle(s bot.Session, i any) {
 }
 
 // eventHandler is an event handler for Event events.
-type eventHandler func(bot.Session, *Event)
+type eventHandler func(bot.Session, *discord.Event)
 
 // Type returns the event type for Event events.
 func (eh eventHandler) Type() string {
@@ -364,7 +367,7 @@ func (eh eventHandler) Type() string {
 
 // Handle is the handler for Event events.
 func (eh eventHandler) Handle(s bot.Session, i any) {
-	if t, ok := i.(*Event); ok {
+	if t, ok := i.(*discord.Event); ok {
 		eh(s, t)
 	}
 }
@@ -1556,7 +1559,7 @@ func handlerForInterface(handler any) Handler {
 		return entitlementDeleteHandler(v)
 	case func(bot.Session, *EntitlementUpdate):
 		return entitlementUpdateHandler(v)
-	case func(bot.Session, *Event):
+	case func(bot.Session, *discord.Event):
 		return eventHandler(v)
 	case func(bot.Session, *GuildAuditLogEntryCreate):
 		return guildAuditLogEntryCreateHandler(v)

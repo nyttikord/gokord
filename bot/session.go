@@ -5,6 +5,7 @@ package bot
 
 import (
 	"github.com/nyttikord/gokord/application/applicationapi"
+	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
@@ -36,8 +37,8 @@ type Session interface {
 	InteractionAPI() *interactionapi.Requester
 	// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 	ApplicationAPI() *applicationapi.Requester
-	// BotAPI returns a bot.Requester to interact with the bot package.
-	BotAPI() *Requester
+	// BotAPI returns a botapi.Requester to interact with the bot package.
+	BotAPI() *botapi.Requester
 	// VoiceAPI returns a voice.Requester to interact with the voice package.
 	VoiceAPI() *voice.Requester
 

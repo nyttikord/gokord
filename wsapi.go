@@ -109,7 +109,7 @@ func (s *Session) Open() error {
 
 	defer func() {
 		if err != nil {
-			s.ForceClose(false)
+			s.ForceClose()
 		}
 	}()
 
@@ -210,7 +210,7 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 				err = s.Close()
 				if err != nil {
 					s.LogError(err, "error closing session connection, force closing")
-					s.ForceClose(false)
+					s.ForceClose()
 				}
 
 				s.LogInfo("calling reconnect() now")
@@ -280,7 +280,7 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 			err = s.Close()
 			if err != nil {
 				s.LogError(err, "error closing session connection, force closing")
-				s.ForceClose(false)
+				s.ForceClose()
 			}
 			s.reconnect()
 			return
@@ -306,7 +306,7 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 //
 // If you use the AddHandler() function to register a handler for the
 // "OnEvent" event then all events will be passed to that handler.
-func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error) {
+func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, error) {
 	var err error
 	var reader io.Reader
 	reader = bytes.NewBuffer(message)
@@ -330,7 +330,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 	}
 
 	// Decode the event into an Event struct.
-	var e *event.Event
+	var e *discord.Event
 	decoder := json.NewDecoder(reader)
 	if err = decoder.Decode(&e); err != nil {
 		return e, err
@@ -359,7 +359,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
 			s.LogError(err, "error closing session connection, force closing")
-			s.ForceClose(false)
+			s.ForceClose()
 		}
 		s.reconnect()
 		return e, nil
@@ -372,7 +372,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*event.Event, error)
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
 			s.LogError(err, "error closing session connection, force closing")
-			s.ForceClose(false)
+			s.ForceClose()
 		}
 
 		var resumable bool
@@ -507,11 +507,13 @@ func (s *Session) reconnect() {
 }
 
 // Close closes a websocket and stops all listening/heartbeat goroutines.
+// If it returns an error, the session is not closed.
 func (s *Session) Close() error {
 	return s.CloseWithCode(websocket.CloseNormalClosure)
 }
 
 // CloseWithCode closes a websocket using the provided closeCode and stops all listening/heartbeat goroutines.
+// If it returns an error, the session is not closed.
 // TODO: Add support for Voice WS/UDP connections
 func (s *Session) CloseWithCode(closeCode int) error {
 	s.LogInfo("closing with code %d", closeCode)
@@ -570,7 +572,8 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 	// required
 	s.Unlock()
-	s.ForceClose(true)
+	s.ForceClose()
+	s.eventManager.EmitEvent(s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
 
 	return nil
@@ -578,7 +581,9 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 // ForceClose the connection.
 // Use Close or CloseWithCode before to have a better closing process.
-func (s *Session) ForceClose(emitDisconnect bool) {
+//
+// It doesn't send an event.Disconnect, unlike Close or CloseWithCode.
+func (s *Session) ForceClose() {
 	s.Lock()
 	defer s.Unlock()
 	s.LogInfo("closing gateway websocket")
@@ -588,11 +593,4 @@ func (s *Session) ForceClose(emitDisconnect bool) {
 		s.LogError(err, "closing websocket")
 	}
 	s.wsConn = nil
-
-	if emitDisconnect {
-		// required
-		s.Unlock()
-		s.eventManager.EmitEvent(s, event.DisconnectType, &event.Disconnect{})
-		s.Lock()
-	}
 }

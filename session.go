@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
@@ -202,9 +203,9 @@ func (s *Session) ApplicationAPI() *applicationapi.Requester {
 	return &applicationapi.Requester{Requester: s}
 }
 
-// BotAPI returns a bot.Requester to interact with the bot package.
-func (s *Session) BotAPI() *bot.Requester {
-	return &bot.Requester{Requester: s}
+// BotAPI returns a botapi.Requester to interact with the bot package.
+func (s *Session) BotAPI() *botapi.Requester {
+	return &botapi.Requester{Requester: s}
 }
 
 // VoiceAPI returns a voice.Requester to interact with the voice package.

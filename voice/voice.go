@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -49,18 +49,18 @@ type Connection struct {
 	// Used to allow blocking until connected
 	connected chan bool
 
-	// Used to pass the sessionid from OnVoiceStateUpdate
+	// Used to pass the sessionid from UpdateState
 	// sessionRecv chan string UNUSED ATM
 
 	op4 op4
 	op2 op2
 
-	voiceSpeakingUpdateHandlers []VoiceSpeakingUpdateHandler
+	voiceSpeakingUpdateHandlers []SpeakingUpdateHandler
 }
 
-// VoiceSpeakingUpdateHandler type provides a function definition for the
+// SpeakingUpdateHandler type provides a function definition for the
 // SpeakingUpdate event
-type VoiceSpeakingUpdateHandler func(vc *Connection, vs *SpeakingUpdate)
+type SpeakingUpdateHandler func(vc *Connection, vs *SpeakingUpdate)
 
 // Speaking sends a speaking notification to Discord over the voice websocket.
 // This must be sent as true prior to sending audio and should be set to false
@@ -69,21 +69,21 @@ type VoiceSpeakingUpdateHandler func(vc *Connection, vs *SpeakingUpdate)
 func (v *Connection) Speaking(b bool) (err error) {
 	v.LogDebug("called (%t)", b)
 
-	type voiceSpeakingData struct {
+	type speakingData struct {
 		Speaking bool `json:"speaking"`
 		Delay    int  `json:"delay"`
 	}
 
-	type voiceSpeakingOp struct {
-		Op   int               `json:"op"` // Always 5
-		Data voiceSpeakingData `json:"d"`
+	type speakingOp struct {
+		Op   int          `json:"op"` // Always 5
+		Data speakingData `json:"d"`
 	}
 
 	if v.wsConn == nil {
 		return fmt.Errorf("no VoiceConnection websocket")
 	}
 
-	data := voiceSpeakingOp{5, voiceSpeakingData{b, 0}}
+	data := speakingOp{5, speakingData{b, 0}}
 	v.wsMutex.Lock()
 	err = v.wsConn.WriteJSON(data)
 	v.wsMutex.Unlock()
@@ -179,7 +179,7 @@ func (v *Connection) Close() {
 }
 
 // AddHandler adds a Handler for SpeakingUpdate events.
-func (v *Connection) AddHandler(h VoiceSpeakingUpdateHandler) {
+func (v *Connection) AddHandler(h SpeakingUpdateHandler) {
 	v.Lock()
 	defer v.Unlock()
 
@@ -391,7 +391,7 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 func (v *Connection) onEvent(message []byte) {
 	v.LogDebug("received: %s", string(message))
 
-	var e event.Event
+	var e discord.Event
 	if err := json.Unmarshal(message, &e); err != nil {
 		v.LogError(err, "unmarshall event")
 		return
@@ -505,10 +505,6 @@ func (v *Connection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struct{}, 
 		}
 	}
 }
-
-// ------------------------------------------------------------------------------------------------
-// Code related to the VoiceConnection UDP connection
-// ------------------------------------------------------------------------------------------------
 
 type udpData struct {
 	Address string `json:"address"` // Public IP of machine running this code
