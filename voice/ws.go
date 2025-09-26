@@ -83,14 +83,17 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 func (v *Connection) onEvent(message []byte) {
 	v.LogDebug("received: %s", string(message))
 
-	var e discord.Event
+	var e struct {
+		discord.Event
+		Operation discord.VoiceOpCode `json:"op"`
+	}
 	if err := json.Unmarshal(message, &e); err != nil {
 		v.LogError(err, "unmarshall event")
 		return
 	}
 
 	switch e.Operation {
-	case 2: // READY
+	case discord.VoiceOpCodeReady: // READY
 		if err := json.Unmarshal(e.RawData, &v.op2); err != nil {
 			v.LogError(err, "OP2 unmarshall, %s", string(e.RawData))
 			return
@@ -124,11 +127,11 @@ func (v *Connection) onEvent(message []byte) {
 		}
 		return
 
-	case 3: // HEARTBEAT response
+	case discord.VoiceOpCodeHeartbeat: // HEARTBEAT response
 		// add code to use this to track latency?
 		return
 
-	case 4: // udp encryption secret key
+	case discord.VoiceOpCodeSessionDescription: // udp encryption secret key
 		v.Lock()
 		defer v.Unlock()
 
@@ -139,7 +142,7 @@ func (v *Connection) onEvent(message []byte) {
 		}
 		return
 
-	case 5:
+	case discord.VoiceOpCodeSessionSpeaking:
 		if len(v.voiceSpeakingUpdateHandlers) == 0 {
 			return
 		}
@@ -162,8 +165,8 @@ func (v *Connection) onEvent(message []byte) {
 }
 
 type heartbeatOp struct {
-	Op   int `json:"op"` // Always 3
-	Data int `json:"d"`
+	Op   discord.VoiceOpCode `json:"op"` // Always 3
+	Data int                 `json:"d"`
 }
 
 // NOTE: When a guild.Guild voice server changes how do we shut this down properly, so a new connection can be setup
@@ -182,7 +185,7 @@ func (v *Connection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struct{}, 
 	for {
 		v.LogDebug("sending heartbeat packet")
 		v.wsMutex.Lock()
-		err = wsConn.WriteJSON(heartbeatOp{3, int(time.Now().Unix())})
+		err = wsConn.WriteJSON(heartbeatOp{discord.VoiceOpCodeHeartbeat, int(time.Now().Unix())})
 		v.wsMutex.Unlock()
 		if err != nil {
 			v.LogError(err, "sending heartbeat to voice endpoint %s", v.endpoint)
@@ -196,6 +199,22 @@ func (v *Connection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struct{}, 
 			return
 		}
 	}
+}
+
+type udpData struct {
+	Address string `json:"address"` // Public IP of machine running this code
+	Port    uint16 `json:"port"`    // UDP Port of machine running this code
+	Mode    string `json:"mode"`    // always "xsalsa20_poly1305"
+}
+
+type udpD struct {
+	Protocol string  `json:"protocol"` // Always "udp" ?
+	Data     udpData `json:"data"`
+}
+
+type udpOp struct {
+	Op   discord.VoiceOpCode `json:"op"` // Always 1
+	Data udpD                `json:"d"`
 }
 
 // udpOpen opens a UDP connection to the voice server and completes the initial required handshake.
@@ -276,7 +295,7 @@ func (v *Connection) udpOpen() (err error) {
 	port := binary.BigEndian.Uint16(rb[len(rb)-2:])
 
 	// Take the data from above and send it back to Discord to finalize the UDP connection handshake.
-	data := udpOp{1, udpD{"udp", udpData{ip, port, "xsalsa20_poly1305"}}}
+	data := udpOp{discord.VoiceOpCodeSelectProtocol, udpD{"udp", udpData{ip, port, "xsalsa20_poly1305"}}}
 
 	v.wsMutex.Lock()
 	err = v.wsConn.WriteJSON(data)

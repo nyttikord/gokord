@@ -8,22 +8,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-type udpData struct {
-	Address string `json:"address"` // Public IP of machine running this code
-	Port    uint16 `json:"port"`    // UDP Port of machine running this code
-	Mode    string `json:"mode"`    // always "xsalsa20_poly1305"
-}
-
-type udpD struct {
-	Protocol string  `json:"protocol"` // Always "udp" ?
-	Data     udpData `json:"data"`
-}
-
-type udpOp struct {
-	Op   int  `json:"op"` // Always 1
-	Data udpD `json:"d"`
-}
-
 // opusSender will listen on the given channel and send any pre-encoded opus audio to Discord.
 // This is a proof of concept.
 func (v *Connection) opusSender(udpConn *net.UDPConn, close <-chan struct{}, opus <-chan []byte, rate, size int) {

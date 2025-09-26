@@ -1,5 +1,7 @@
 package guildapi
 
+import "github.com/nyttikord/gokord/discord"
+
 type requestGuildMembersData struct {
 	GuildID   string    `json:"guild_id"`
 	Query     *string   `json:"query,omitempty"`
@@ -10,7 +12,7 @@ type requestGuildMembersData struct {
 }
 
 type requestGuildMembersOp struct {
-	Op   int                     `json:"op"`
+	Op   discord.GatewayOpCode   `json:"op"`
 	Data requestGuildMembersData `json:"d"`
 }
 
@@ -53,5 +55,5 @@ func (r Requester) GatewayMembersList(guildID string, userIDs []string, limit in
 func (r Requester) gatewayRequestMembers(data requestGuildMembersData) error {
 	r.LogDebug("requesting guild members via gateway")
 
-	return r.GatewayWriteStruct(requestGuildMembersOp{8, data})
+	return r.GatewayWriteStruct(requestGuildMembersOp{discord.GatewayOpCodeRequestGuildMembers, data})
 }

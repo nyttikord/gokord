@@ -21,8 +21,8 @@ type UpdateStatusData struct {
 }
 
 type updateStatusOp struct {
-	Op   int              `json:"op"`
-	Data UpdateStatusData `json:"d"`
+	Op   discord.GatewayOpCode `json:"op"`
+	Data UpdateStatusData      `json:"d"`
 }
 
 func newUpdateStatusData(idle int, activityType types.Activity, name, url string) *UpdateStatusData {
@@ -106,5 +106,5 @@ func (r *Requester) UpdateStatusComplex(usd UpdateStatusData) (err error) {
 	if usd.Activities == nil {
 		usd.Activities = make([]*status.Activity, 0)
 	}
-	return r.GatewayWriteStruct(updateStatusOp{3, usd})
+	return r.GatewayWriteStruct(updateStatusOp{discord.GatewayOpCodePresenceUpdate, usd})
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
 )
 
@@ -69,15 +70,15 @@ func (v *Connection) Speaking(b bool) (err error) {
 	}
 
 	type speakingOp struct {
-		Op   int          `json:"op"` // Always 5
-		Data speakingData `json:"d"`
+		Op   discord.VoiceOpCode `json:"op"` // Always 5
+		Data speakingData        `json:"d"`
 	}
 
 	if v.wsConn == nil {
 		return fmt.Errorf("no VoiceConnection websocket")
 	}
 
-	data := speakingOp{5, speakingData{b, 0}}
+	data := speakingOp{discord.VoiceOpCodeSessionSpeaking, speakingData{b, 0}}
 	v.wsMutex.Lock()
 	err = v.wsConn.WriteJSON(data)
 	v.wsMutex.Unlock()
@@ -101,7 +102,7 @@ func (v *Connection) Disconnect() error {
 	v.Lock()
 	defer v.Unlock()
 	if v.sessionID != "" {
-		data := channelJoinOp{4, channelJoinData{&v.GuildID, nil, true, true}}
+		data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&v.GuildID, nil, true, true}}
 		err := v.requester.GatewayWriteStruct(data)
 		if err != nil {
 			return err
@@ -281,10 +282,10 @@ func (v *Connection) open() error {
 		Token     string `json:"token"`
 	}
 	type handshakeOp struct {
-		Op   int           `json:"op"` // Always 0
-		Data handshakeData `json:"d"`
+		Op   discord.VoiceOpCode `json:"op"` // Always 0
+		Data handshakeData       `json:"d"`
 	}
-	data := handshakeOp{0, handshakeData{v.GuildID, v.UserID, v.sessionID, v.token}}
+	data := handshakeOp{discord.VoiceOpCodeIdentify, handshakeData{v.GuildID, v.UserID, v.sessionID, v.token}}
 
 	v.wsMutex.Lock()
 	err = v.wsConn.WriteJSON(data)
@@ -351,7 +352,7 @@ func (v *Connection) Reconnect() {
 
 		// if the Reconnect above didn't work lets just send a disconnect packet to reset things.
 		// Send a OP4 with a nil channel to disconnect.
-		data := channelJoinOp{4, channelJoinData{&v.GuildID, nil, true, true}}
+		data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&v.GuildID, nil, true, true}}
 		err = v.requester.GatewayWriteStruct(data)
 		if err != nil {
 			v.LogError(err, "sending disconnect packet")

@@ -26,7 +26,7 @@ var (
 )
 
 type resumePacket struct {
-	Op   int `json:"op"`
+	Op   discord.GatewayOpCode `json:"op"`
 	Data struct {
 		Token     string `json:"token"`
 		SessionID string `json:"session_id"`
@@ -123,7 +123,7 @@ func (s *Session) Open() error {
 	if err != nil {
 		return err
 	}
-	if e.Operation != 10 {
+	if e.Operation != discord.GatewayOpCodeHello {
 		err = fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
 		return err
 	}
@@ -147,7 +147,7 @@ func (s *Session) Open() error {
 	} else {
 		// Send Op 6 Resume Packet
 		p := resumePacket{}
-		p.Op = 6
+		p.Op = discord.GatewayOpCodeResume
 		p.Data.Token = s.Identify.Token
 		p.Data.SessionID = s.sessionID
 		p.Data.Sequence = sequence
@@ -232,8 +232,8 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 }
 
 type heartbeatOp struct {
-	Op   int   `json:"op"`
-	Data int64 `json:"d"`
+	Op   discord.GatewayOpCode `json:"op"`
+	Data int64                 `json:"d"`
 }
 
 type helloOp struct {
@@ -269,7 +269,7 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan any, heartb
 		s.LogDebug("sending gateway websocket heartbeat seq %d", sequence)
 		s.wsMutex.Lock()
 		s.LastHeartbeatSent = time.Now().UTC()
-		err = wsConn.WriteJSON(heartbeatOp{1, sequence})
+		err = wsConn.WriteJSON(heartbeatOp{discord.GatewayOpCodeHeartbeat, sequence})
 		s.wsMutex.Unlock()
 		if err != nil || time.Now().UTC().Sub(last) > (heartbeatIntervalMsec*FailedHeartbeatAcks) {
 			if err != nil {
@@ -340,10 +340,10 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 
 	// Ping request.
 	// Must respond with a heartbeat packet within 5 seconds
-	if e.Operation == 1 {
+	if e.Operation == discord.GatewayOpCodeHello {
 		s.LogDebug("sending heartbeat in response to Op1")
 		s.wsMutex.Lock()
-		err = s.wsConn.WriteJSON(heartbeatOp{1, s.sequence.Load()})
+		err = s.wsConn.WriteJSON(heartbeatOp{discord.GatewayOpCodeHeartbeat, s.sequence.Load()})
 		s.wsMutex.Unlock()
 		if err != nil {
 			return e, err
@@ -354,7 +354,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 
 	// Reconnect
 	// Must immediately disconnect from gateway and reconnect to new gateway.
-	if e.Operation == 7 {
+	if e.Operation == discord.GatewayOpCodeReconnect {
 		s.LogInfo("Closing and reconnecting in response to Op7")
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
@@ -367,7 +367,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 
 	// Invalid Session
 	// Must respond with an Identify packet.
-	if e.Operation == 9 {
+	if e.Operation == discord.GatewayOpCodeInvalidSession {
 		s.LogWarn("Invalid session received, reconnecting")
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
@@ -391,12 +391,12 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 		return e, nil
 	}
 
-	if e.Operation == 10 {
+	if e.Operation == discord.GatewayOpCodeHello {
 		// Op10 is handled by Open()
 		return e, nil
 	}
 
-	if e.Operation == 11 {
+	if e.Operation == discord.GatewayOpCodeHeartbeatAck {
 		s.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()
 		s.Unlock()
@@ -405,7 +405,7 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 	}
 
 	// Do not try to Dispatch a non-Dispatch Message
-	if e.Operation != 0 {
+	if e.Operation != discord.GatewayOpCodeDispatch {
 		// But we probably should be doing something with them.
 		// TEMP
 		s.LogWarn("unknown Op: %d, Seq: %d, Type: %s, Data: %s, message: %s", e.Operation, e.Sequence, e.Type, string(e.RawData), string(message))
@@ -438,8 +438,8 @@ func (s *Session) onEvent(messageType int, message []byte) (*discord.Event, erro
 }
 
 type identifyOp struct {
-	Op   int      `json:"op"`
-	Data Identify `json:"d"`
+	Op   discord.GatewayOpCode `json:"op"`
+	Data Identify              `json:"d"`
 }
 
 // identify sends the identify packet to the gateway
@@ -449,7 +449,7 @@ func (s *Session) identify() error {
 	}
 
 	// Send Identify packet to Discord
-	op := identifyOp{2, s.Identify}
+	op := identifyOp{discord.GatewayOpCodeIdentify, s.Identify}
 	s.wsMutex.Lock()
 	err := s.wsConn.WriteJSON(op)
 	s.wsMutex.Unlock()

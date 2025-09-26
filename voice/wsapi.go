@@ -24,8 +24,8 @@ type channelJoinData struct {
 }
 
 type channelJoinOp struct {
-	Op   int             `json:"op"`
-	Data channelJoinData `json:"d"`
+	Op   discord.GatewayOpCode `json:"op"`
+	Data channelJoinData       `json:"d"`
 }
 
 // ChannelJoin joins the requester user to a voice channel.Channel.
@@ -83,7 +83,7 @@ func (r *Requester) ChannelJoinManual(guildID, channelID string, mute, deaf bool
 	}
 
 	// Send the request to Discord that we want to join the voice channel
-	data := channelJoinOp{4, channelJoinData{&guildID, cID, mute, deaf}}
+	data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&guildID, cID, mute, deaf}}
 	return r.GatewayWriteStruct(data)
 }
 
