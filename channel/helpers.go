@@ -65,3 +65,15 @@ func MultipartBodyWithJSON(data interface{}, files []*File) (requestContentType 
 
 	return bodywriter.FormDataContentType(), body.Bytes(), nil
 }
+
+func Copy(chann Channel) Channel {
+	chann.LastPinTimestamp = &*chann.LastPinTimestamp
+	chann.ThreadMetadata = &*chann.ThreadMetadata
+	chann.Member = &*chann.Member
+	chann.DefaultSortOrder = &*chann.DefaultSortOrder
+	// Recipients
+	// Messages
+	// PermissionOverwrites
+	// Members
+	return chann
+}

@@ -43,7 +43,7 @@ type Channel interface {
 
 	// AppendGuildChannel is for internal use only.
 	// Use ChannelAdd instead.
-	AppendGuildChannel(c *channel.Channel)
+	AppendGuildChannel(c *channel.Channel) error
 }
 
 // Guild represents the State related to guild.Guild (including guild.Role) and emoji.Emoji.

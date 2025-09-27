@@ -47,106 +47,72 @@ type PermissionOverwrite struct {
 
 // Channel holds all data related to an individual Discord Channel.
 type Channel struct {
-	// The ID of the Channel.
-	ID string `json:"id"`
-
+	ID string `json:"id"` // The ID of the Channel.
 	// The ID of the guild.Guild to which the Channel belongs, if it is in a guild.
 	// Else, this ID is empty (e.g. DM channels).
-	GuildID string `json:"guild_id"`
-
-	// The name of the Channel.
-	Name string `json:"name"`
-
-	// The topic of the Channel.
-	Topic string `json:"topic"`
-
-	// The type of the Channel.
-	Type types.Channel `json:"type"`
-
+	GuildID string        `json:"guild_id"`
+	Name    string        `json:"name"`  // The name of the Channel.
+	Topic   string        `json:"topic"` // The topic of the Channel.
+	Type    types.Channel `json:"type"`  // The type of the Channel.
 	// The ID of the last message sent in the Channel.
 	// This is not guaranteed to be an ID of a valid Message.
 	LastMessageID string `json:"last_message_id"`
-
 	// The timestamp of the last pinned Message in the Channel.
 	// nil if the Channel has no pinned messages.
 	LastPinTimestamp *time.Time `json:"last_pin_timestamp"`
-
 	// An approximate count of messages in a thread, stops counting at 50
 	MessageCount int `json:"message_count"`
 	// An approximate count of users in a thread, stops counting at 50
-	MemberCount int `json:"member_count"`
-
-	// Whether the Channel is marked as NSFW.
-	NSFW bool `json:"nsfw"`
-
-	// Icon of the group DM Channel.
-	Icon string `json:"icon"`
-
+	MemberCount int    `json:"member_count"`
+	NSFW        bool   `json:"nsfw"` // Whether the Channel is marked as NSFW.
+	Icon        string `json:"icon"` // Icon of the group DM Channel.
 	// The position of the Channel, used for sorting in client.
 	Position int `json:"position"`
-
 	// The bitrate of the Channel, if it is a voice Channel (types.ChannelGuildVoice).
 	Bitrate int `json:"bitrate"`
-
 	// The recipients of the Channel.
 	// This is only populated in DM channels.
 	Recipients []*user.User `json:"recipients"`
-
 	// The messages in the Channel.
 	// This is only present in state-cached channels, and State.MaxMessageCount must be non-zero.
 	Messages []*Message `json:"-"`
-
 	// A list of permission overwrites present for the Channel.
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites"`
-
 	// The user limit of the voice Channel (types.ChannelGuildVoice).
 	UserLimit int `json:"user_limit"`
-
 	// The ID of the parent Channel, if the Channel is under a category.
 	// For threads - id of the Channel thread was created in.
 	ParentID string `json:"parent_id"`
-
 	// Amount of seconds a user.User has to wait before sending another Message or creating another thread (0-21600).
 	//
 	// Bots, as well as users with the permission discord.PermissionManageMessages or discord.PermissionManageChannels,
 	// are unaffected
 	RateLimitPerUser int `json:"rate_limit_per_user"`
-
 	// ID of the creator of the group DM or thread
 	OwnerID string `json:"owner_id"`
-
 	// ApplicationID of the DM creator Zeroed if guild Channel or not a bot user
 	ApplicationID string `json:"application_id"`
-
 	// Thread-specific fields not needed by other channels
 	ThreadMetadata *ThreadMetadata `json:"thread_metadata,omitempty"`
 	// Thread member object for the current user, if they have joined the thread, only included on certain API endpoints
 	Member *ThreadMember `json:"thread_member"`
-
 	// All thread members.
-	/// State channels only.
+	// state.State channels only.
 	Members []*ThreadMember `json:"-"`
-
 	// Channel flags.
 	Flags Flags `json:"flags"`
-
 	// The set of tags that can be used in a forum channel.
 	AvailableTags []ForumTag `json:"available_tags"`
-
 	// The IDs of the set of tags that have been applied to a thread in a forum channel.
 	AppliedTags []string `json:"applied_tags"`
-
 	// Emoji to use as the default reaction to a forum post.
 	DefaultReactionEmoji ForumDefaultReaction `json:"default_reaction_emoji"`
-
 	// The initial RateLimitPerUser to set on newly created threads in a channel.
 	// This field is copied to the thread at creation time and does not live update.
 	DefaultThreadRateLimitPerUser int `json:"default_thread_rate_limit_per_user"`
-
 	// The default sort order type used to order posts in forum channels.
 	// Defaults to null, which indicates a preferred sort order hasn't been set by a channel admin.
 	DefaultSortOrder *types.ForumSortOrder `json:"default_sort_order"`
-
 	// The default forum layout view used to display posts in forum channels.
 	// Defaults to ForumLayoutNotSet, which indicates a layout view has not been set by a channel admin.
 	DefaultForumLayout ForumLayout `json:"default_forum_layout"`
