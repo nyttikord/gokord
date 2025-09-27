@@ -29,12 +29,18 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 
 	// Update the channels to point to the right gd
 	for _, c := range g.Channels {
-		s.ChannelState().AppendGuildChannel(c) // no need to unlock here
+		// no need to unlock here
+		if err := s.ChannelState().AppendGuildChannel(c); err != nil {
+			return err
+		}
 	}
 
 	// Add all the threads to the state in case of thread sync list.
 	for _, t := range g.Threads {
-		s.ChannelState().AppendGuildChannel(t) // no need to unlock here
+		// no need to unlock here
+		if err := s.ChannelState().AppendGuildChannel(t); err != nil {
+			return err
+		}
 	}
 
 	err := s.storage.Write(state.KeyGuild(g), g)
@@ -94,7 +100,7 @@ func (s *State) RoleAdd(guildID string, role *guild.Role) error {
 	for i, r := range g.Roles {
 		if r.ID == role.ID {
 			g.Roles[i] = role
-			return nil
+			return s.storage.Write(state.KeyGuild(g), g)
 		}
 	}
 
@@ -113,14 +119,9 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	for i, r := range g.Roles {
-		if r.ID == roleID {
-			g.Roles = append(g.Roles[:i], g.Roles[i+1:]...)
-			return s.storage.Write(state.KeyGuild(g), g)
-		}
-	}
+	slices.DeleteFunc(g.Roles, func(r *guild.Role) bool { return r.ID == roleID })
 
-	return state.ErrStateNotFound
+	return s.storage.Write(state.KeyGuild(g), g)
 }
 
 // Role returns the guild.Role from a guild.Guild.
@@ -179,7 +180,7 @@ func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
 	}
 
 	g.Emojis = append(g.Emojis, emoji)
-	return nil
+	return s.storage.Write(state.KeyGuild(g), g)
 }
 
 // EmojisAdd adds multiple emoji.Emoji to the current State.
