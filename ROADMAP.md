@@ -21,7 +21,7 @@ Upgrades to API v10 (discordgo is still using API v9).
 Reorganizes the source code.
 Currently, it's a mess.
 
-This release is unstable and it is not recommended for production use.
+This release is unstable, and it is not recommended for production use.
 Only the REST API was heavily refactored.
 The Websocket API (including events and voice) was not touched.
 
@@ -42,7 +42,8 @@ This release follows the changes of `0.31.0`.
 It does not add new features, but continue the cleaning of the source code.
 
 The goal of this is to be more stable than the `0.31.0`.
-We don't know yet if this release could be used in a production environment.
+It looks like that this release can be used in production.
+We will deploy a bot using this version in production to verify this.
 
 ## `0.33.0`
 
@@ -54,6 +55,8 @@ Imports some features from [`anhgelus/gokord`](https://github.com/anhgelus/gokor
 Provides a new easier way to create a bot.
 
 Rewrite interaction package to use contexts.
+
+Rewrite state to be able to work with a custom implementation of storage.
 
 ## `1.0.0`
 
