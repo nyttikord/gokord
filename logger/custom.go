@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -42,78 +43,86 @@ func (h *IndentHandler) Enabled(ctx context.Context, level slog.Level) bool {
 func (h *IndentHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf := make([]byte, 0, 1024)
 	if !r.Time.IsZero() {
-		buf = h.appendAttr(buf, slog.Time(slog.TimeKey, r.Time), 0)
+		buf = fmt.Appendf(buf, "%s ", r.Time.Format(time.DateTime))
 	}
-	buf = h.appendAttr(buf, slog.Any(slog.LevelKey, r.Level), 0)
+	buf = fmt.Appendf(buf, "[%s] ", r.Level)
 	if r.PC != 0 {
 		fs := runtime.CallersFrames([]uintptr{r.PC})
 		f, _ := fs.Next()
-		buf = h.appendAttr(buf, slog.String(slog.SourceKey, fmt.Sprintf("%s:%d", f.File, f.Line)), 0)
+		files := strings.Split(f.Function, "/")
+		var file string
+		if len(files) == 1 {
+			file = files[len(files)-1]
+		} else {
+			file = files[len(files)-2] + "/" + files[len(files)-1]
+		}
+		buf = fmt.Appendf(buf, "%s():%d ", file, f.Line)
 	}
-	buf = h.appendAttr(buf, slog.String(slog.MessageKey, r.Message), 0)
-	indentLevel := 0
+	if r.Level >= slog.LevelError {
+		buf = fmt.Appendf(buf, AnsiRed)
+	} else if r.Level >= slog.LevelWarn {
+		buf = fmt.Appendf(buf, AnsiYellow)
+	}
+	buf = fmt.Appendf(buf, "%s%s", r.Message, AnsiReset)
 	// Handle state from WithGroup and WithAttrs.
 	goas := h.goas
 	if r.NumAttrs() == 0 {
-		// If the record has no Attrs, remove groups at the end of the list; they are empty.
+		// If the record has no Attrs, remove groups at the end of the list;
+		// they are empty.
 		for len(goas) > 0 && goas[len(goas)-1].group != "" {
 			goas = goas[:len(goas)-1]
 		}
 	}
 	for _, goa := range goas {
 		if goa.group != "" {
-			buf = fmt.Appendf(buf, "%*s%s:\n", indentLevel*4, "", goa.group)
-			indentLevel++
+			buf = fmt.Appendf(buf, " %s={", goa.group)
 		} else {
 			for _, a := range goa.attrs {
-				buf = h.appendAttr(buf, a, indentLevel)
+				buf = h.appendAttr(buf, a)
 			}
+			buf = fmt.Appendf(buf, "!}!") // I don't know where I should put it
 		}
 	}
 	r.Attrs(func(a slog.Attr) bool {
-		buf = h.appendAttr(buf, a, indentLevel)
+		buf = h.appendAttr(buf, a)
 		return true
 	})
-	buf = append(buf, "---\n"...)
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, err := h.out.Write(buf)
 	return err
 }
 
-func (h *IndentHandler) appendAttr(buf []byte, a slog.Attr, indentLevel int) []byte {
+func (h *IndentHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	// Resolve the Attr's value before doing anything else.
 	a.Value = a.Value.Resolve()
 	// Ignore empty Attrs.
 	if a.Equal(slog.Attr{}) {
 		return buf
 	}
-	// Indent 4 spaces per level.
-	buf = fmt.Appendf(buf, "%*s", indentLevel*4, "")
+	buf = fmt.Appendf(buf, " ")
 	switch a.Value.Kind() {
 	case slog.KindString:
-		// Quote string values, to make them easy to parse.
-		buf = fmt.Appendf(buf, "%s: %q\n", a.Key, a.Value.String())
+		buf = fmt.Appendf(buf, "%s=%q\n", a.Key, a.Value.String())
 	case slog.KindTime:
-		// Write times in a standard way, without the monotonic time.
-		buf = fmt.Appendf(buf, "%s: %s\n", a.Key, a.Value.Time().Format(time.DateTime))
+		buf = fmt.Appendf(buf, "%s=%s\n", a.Key, a.Value.Time().Format(time.RFC3339))
 	case slog.KindGroup:
 		attrs := a.Value.Group()
 		// Ignore empty groups.
 		if len(attrs) == 0 {
 			return buf
 		}
-		// If the key is non-empty, write it out and indent the rest of the attrs.
-		// Otherwise, inline the attrs.
 		if a.Key != "" {
-			buf = fmt.Appendf(buf, "%s:\n", a.Key)
-			indentLevel++
+			buf = fmt.Appendf(buf, "%s={", a.Key)
 		}
 		for _, ga := range attrs {
-			buf = h.appendAttr(buf, ga, indentLevel)
+			buf = h.appendAttr(buf, ga)
+		}
+		if a.Key != "" {
+			buf = fmt.Appendf(buf, "}")
 		}
 	default:
-		buf = fmt.Appendf(buf, "%s: %s\n", a.Key, a.Value)
+		buf = fmt.Appendf(buf, "%s=%s\n", a.Key, a.Value)
 	}
 	return buf
 }
