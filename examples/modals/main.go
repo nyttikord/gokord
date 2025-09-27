@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log/slog"
 
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
@@ -36,7 +35,7 @@ func init() {
 }
 
 func init() {
-	s = gokord.New("Bot "+*BotToken, slog.LevelInfo)
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (

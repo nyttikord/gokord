@@ -28,7 +28,7 @@ func init() {
 func main() {
 
 	// Create a new Discord session using the provided bot token.
-	dg := gokord.New("Bot "+Token, slog.LevelInfo)
+	dg := gokord.NewWithLogLevel("Bot "+Token, slog.LevelInfo)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.EventManager().AddHandler(messageCreate)

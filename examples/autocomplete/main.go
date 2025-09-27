@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"os/signal"
 
@@ -27,7 +26,7 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	s = gokord.New("Bot "+*BotToken, slog.LevelInfo)
+	s = gokord.New("Bot " + *BotToken)
 }
 
 var (

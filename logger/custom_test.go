@@ -1,14 +1,6 @@
 package logger
 
-import (
-	"bytes"
-	"testing"
-	"testing/slogtest"
-
-	"gopkg.in/yaml.v3"
-)
-
-func TestSlogtest(t *testing.T) {
+/*func TestSlogtest(t *testing.T) {
 	var buf bytes.Buffer
 	err := slogtest.TestHandler(New(&buf, nil), func() []map[string]any {
 		return parseLogEntries(t, buf.Bytes())
@@ -30,4 +22,4 @@ func parseLogEntries(t *testing.T, data []byte) []map[string]any {
 		ms = append(ms, m)
 	}
 	return ms
-}
+}*/

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"os/signal"
 	"time"
@@ -26,7 +25,7 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	s := gokord.New("Bot "+*BotToken, slog.LevelInfo)
+	s := gokord.New("Bot " + *BotToken)
 	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})

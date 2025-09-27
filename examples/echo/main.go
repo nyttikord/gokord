@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -86,7 +85,7 @@ func main() {
 		log.Fatal("application id is not set")
 	}
 
-	session := gokord.New("Bot "+*Token, slog.LevelInfo)
+	session := gokord.New("Bot " + *Token)
 
 	session.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionApplicationCommand {

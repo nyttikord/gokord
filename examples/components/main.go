@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log/slog"
 
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
@@ -34,7 +33,7 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	s = gokord.New("Bot "+*BotToken, slog.LevelInfo)
+	s = gokord.New("Bot " + *BotToken)
 }
 
 // Important note: call every command in order it's placed in the example.

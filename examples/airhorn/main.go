@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -43,7 +42,7 @@ func main() {
 	}
 
 	// Create a new Discord session using the provided bot token.
-	dg := gokord.New("Bot "+token, slog.LevelInfo)
+	dg := gokord.New("Bot " + token)
 
 	// Register ready as a callback for the ready events.
 	dg.EventManager().AddHandler(ready)

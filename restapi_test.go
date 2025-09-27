@@ -236,7 +236,7 @@ func TestWithContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), key{}, "value")
 
 	// Set up a test client.
-	session := New("", slog.LevelDebug)
+	session := NewWithLogLevel("", slog.LevelDebug)
 
 	testErr := errors.New("test")
 

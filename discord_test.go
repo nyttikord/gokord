@@ -31,7 +31,7 @@ var (
 func TestMain(m *testing.M) {
 	fmt.Println("Init is being called.")
 	if envBotToken != "" {
-		dgBot = New(envBotToken, slog.LevelDebug)
+		dgBot = NewWithLogLevel(envBotToken, slog.LevelDebug)
 	}
 
 	if envOAuth2Token == "" {
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	}
 
 	if envOAuth2Token != "" {
-		dg = New(envOAuth2Token, slog.LevelDebug)
+		dg = NewWithLogLevel(envOAuth2Token, slog.LevelDebug)
 	}
 
 	os.Exit(m.Run())
@@ -52,7 +52,7 @@ func TestNewToken(t *testing.T) {
 		t.Skip("Skipping New(token), DGU_TOKEN not set")
 	}
 
-	d := New(envOAuth2Token, slog.LevelDebug)
+	d := NewWithLogLevel(envOAuth2Token, slog.LevelDebug)
 
 	if d == nil {
 		t.Fatal("New(envToken), d is nil, should be Session{}")
@@ -68,7 +68,7 @@ func TestOpenClose(t *testing.T) {
 		t.Skip("Skipping TestClose, DGU_TOKEN not set")
 	}
 
-	d := New(envOAuth2Token, slog.LevelDebug)
+	d := NewWithLogLevel(envOAuth2Token, slog.LevelDebug)
 
 	if err := d.Open(); err != nil {
 		t.Fatalf("TestClose, d.Open failed: %+v", err)

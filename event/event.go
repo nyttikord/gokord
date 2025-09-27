@@ -9,7 +9,7 @@ import (
 
 type Manager struct {
 	sync.RWMutex
-	*slog.Logger
+	Logger func() *slog.Logger
 
 	SyncEvents bool
 
@@ -23,7 +23,7 @@ type Manager struct {
 func NewManager(s bot.Session, onInterface func(any), onReady func(*Ready)) *Manager {
 	return &Manager{
 		RWMutex:      sync.RWMutex{},
-		Logger:       s.Logger(),
+		Logger:       s.Logger,
 		SyncEvents:   false,
 		handlers:     make(map[string][]*eventHandlerInstance),
 		onceHandlers: make(map[string][]*eventHandlerInstance),

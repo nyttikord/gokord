@@ -17,7 +17,7 @@ func ExampleApplication() {
 	}
 
 	// Create a new Discordgo session
-	dg := gokord.New(Token, slog.LevelDebug)
+	dg := gokord.NewWithLogLevel(Token, slog.LevelDebug)
 
 	// Create an new Application
 	ap := &application.Application{}

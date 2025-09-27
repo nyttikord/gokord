@@ -27,7 +27,26 @@ const VERSION = "0.31.0"
 // Or if it is an OAuth2 token, it must be prefixed with "Bearer "
 //
 //	e.g. "Bearer ..."
-func New(token string, logLevel slog.Level) *Session {
+//
+// See NewWithLogLevel to modify the default slog.Level.
+// See NewWithLogger to set the default slog.Logger.
+func New(token string) *Session {
+	return NewWithLogLevel(token, slog.LevelInfo)
+}
+
+// NewWithLogLevel creates a new Discord session with provided token and set the slog.Level of the logger.
+//
+// See New for the full documentation.
+// See NewWithLogger to set the default slog.Logger.
+func NewWithLogLevel(token string, logLevel slog.Level) *Session {
+	return NewWithLogger(token, slog.New(logger.New(os.Stdout, &logger.Options{Level: logLevel})))
+}
+
+// NewWithLogger creates a new Discord session with provided token and set the logger.
+//
+// See New for the full documentation.
+// See NewWithLogLevel to modify the default slog.Level.
+func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s := &Session{
 		RateLimiter:                        discord.NewRateLimiter(),
 		StateEnabled:                       true,
@@ -40,7 +59,7 @@ func New(token string, logLevel slog.Level) *Session {
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
-		logger:                             slog.New(logger.New(os.Stdout, &logger.Options{Level: logLevel})),
+		logger:                             logger,
 		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)

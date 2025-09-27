@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 
@@ -35,7 +34,7 @@ func init() {
 func main() {
 
 	// Create a new Discord session using the provided login information.
-	dg := gokord.New("Bot "+Token, slog.LevelInfo)
+	dg := gokord.New("Bot " + Token)
 
 	// Declare these here so they can be used in the below two if blocks and
 	// still carry over to the end of this function.
