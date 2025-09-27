@@ -2,10 +2,9 @@
 package logger
 
 import (
-	"fmt"
-	"log"
-	"runtime"
-	"strings"
+	"context"
+	"log/slog"
+	"os"
 )
 
 // Logger is an interface describing a custom logger implementation.
@@ -13,43 +12,15 @@ type Logger interface {
 	// Log the message if level is equal to or greater than previously defined
 	//
 	// See logger.Log
-	Log(level Level, caller int, format string, args ...any)
+	Log(level slog.Level, caller int, format string, args ...any)
 	LogError(err error, format string, args ...any)
 	LogWarn(format string, args ...any)
 	LogInfo(format string, args ...any)
 	LogDebug(format string, args ...any)
 	// GetLevel returns the minimum Level logged
-	GetLevel() Level
+	GetLevel() slog.Level
 	// ChangeLevel changes the minimum Level logged
-	ChangeLevel(level Level)
-}
-
-// Level is the level of the log.
-type Level int
-
-const (
-	// LevelDebug is for logging development information.
-	LevelDebug Level = 0
-	// LevelInfo is for logging information.
-	LevelInfo Level = 1
-	// LevelWarn is for logging a warning, an information that is not average, but not as critical as an error.
-	LevelWarn Level = 2
-	// LevelError for logging an error that has been intercepted by your application.
-	LevelError Level = 3
-)
-
-func (l Level) String() string {
-	switch l {
-	case LevelDebug:
-		return "DEBUG"
-	case LevelInfo:
-		return "INFO"
-	case LevelWarn:
-		return "WARN"
-	case LevelError:
-		return "ERROR"
-	}
-	return ""
+	ChangeLevel(level slog.Level)
 }
 
 const (
@@ -67,18 +38,23 @@ const (
 	AnsiYellowBold  = "\033[33;1m"
 )
 
+var test = New(os.Stdout, &Options{Level: slog.LevelInfo})
+
 // Log logs and formats a message at the given level.
 //
 // Caller is the number of calls before this one (e.g., 0 if you want to log this call, 1 to log the call before...)
-func Log(level Level, caller int, format string, args ...any) {
-	pc, file, line, _ := runtime.Caller(caller + 1)
+func Log(level slog.Level, caller int, format string, args ...any) {
+	//pc, file, line, _ := runtime.Caller(caller + 1)
+	//
+	//files := strings.Split(file, "/")
+	//file = files[len(files)-1]
+	//
+	//name := runtime.FuncForPC(pc).Name()
+	//fns := strings.Split(name, ".")
+	//name = fns[len(fns)-1]
 
-	files := strings.Split(file, "/")
-	file = files[len(files)-1]
+	t := slog.New(test)
+	t.Log(context.Background(), level, format, args)
 
-	name := runtime.FuncForPC(pc).Name()
-	fns := strings.Split(name, ".")
-	name = fns[len(fns)-1]
-
-	log.Printf("[%s] %s:%d:%s() %s\n", level.String(), file, line, name, fmt.Sprintf(format, args...))
+	//log.Printf("[%s] %s:%d:%s() %s\n", level.String(), file, line, name, fmt.Sprintf(format, args...))
 }

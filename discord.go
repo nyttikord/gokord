@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"log/slog"
 	"net/http"
 	"runtime"
 	"sync"
@@ -10,7 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
-	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/voice"
 )
 
@@ -38,7 +38,7 @@ func New(token string) *Session {
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
-		stdLogger:                          stdLogger{Level: logger.LevelInfo},
+		stdLogger:                          stdLogger{Level: slog.LevelInfo},
 		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
