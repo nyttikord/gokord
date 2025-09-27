@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -25,10 +24,6 @@ const (
 	AnsiMagentaBold = "\033[35;1m"
 	AnsiRedBold     = "\033[31;1m"
 	AnsiYellowBold  = "\033[33;1m"
-)
-
-var (
-	ErrInvalidCaller = errors.New("invalid caller")
 )
 
 // ConsoleHandler represents the default slog.Handler used by gokord.
@@ -62,26 +57,27 @@ func New(out io.Writer, opts *Options) *ConsoleHandler {
 type key int
 
 const (
-	callerKey key = 0
+	callerSkipKey key = 0
 )
 
-// NewContext returns a new context.Context with the caller given.
+// NewContext returns a new context.Context with the callerSkip given.
 //
-// caller is the number of runtime calls to log before this one.
+// callerSkip is the number of runtime calls to log before this one.
 // 0 is for the current.
 // 1 is for the precedent call.
 // n is for the n times precedent call.
+// The calls to the log is already skipped.
 //
 // See FromContext to extract the caller from a context.Context.
-func NewContext(ctx context.Context, caller int) context.Context {
-	return context.WithValue(ctx, callerKey, caller)
+func NewContext(ctx context.Context, callerSkip int) context.Context {
+	return context.WithValue(ctx, callerSkipKey, callerSkip)
 }
 
 // FromContext returns the caller in the given context.Context.
 //
 // See NewContext to create a context.Context.
 func FromContext(ctx context.Context) (int, bool) {
-	caller, ok := ctx.Value(callerKey).(int)
+	caller, ok := ctx.Value(callerSkipKey).(int)
 	return caller, ok
 }
 
@@ -98,25 +94,21 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 	buf = fmt.Appendf(buf, "[%s] ", r.Level)
 	if r.PC != 0 {
-		fs := runtime.CallersFrames([]uintptr{r.PC})
-		f, _ := fs.Next()
 		caller, ok := FromContext(ctx)
-		if ok {
-			for range caller {
-				f, ok = fs.Next()
-				if !ok {
-					return ErrInvalidCaller
-				}
-			}
-		}
-		files := strings.Split(f.Function, "/")
 		var file string
+		var line int
+		if ok {
+			_, file, line, ok = runtime.Caller(caller + 3)
+		} else {
+			_, file, line, ok = runtime.Caller(3)
+		}
+		files := strings.Split(file, "/")
 		if len(files) == 1 {
 			file = files[len(files)-1]
 		} else {
 			file = files[len(files)-2] + "/" + files[len(files)-1]
 		}
-		buf = fmt.Appendf(buf, "%s():%d ", file, f.Line)
+		buf = fmt.Appendf(buf, "%s:%d ", file, line)
 	}
 	if r.Level >= slog.LevelError {
 		buf = fmt.Appendf(buf, AnsiRed)
@@ -147,6 +139,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		buf = h.appendAttr(buf, a)
 		return true
 	})
+	buf = fmt.Appendf(buf, "\n")
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, err := h.out.Write(buf)
@@ -163,9 +156,9 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	buf = fmt.Appendf(buf, " ")
 	switch a.Value.Kind() {
 	case slog.KindString:
-		buf = fmt.Appendf(buf, "%s=%q\n", a.Key, a.Value.String())
+		buf = fmt.Appendf(buf, "%s=%q", a.Key, a.Value.String())
 	case slog.KindTime:
-		buf = fmt.Appendf(buf, "%s=%s\n", a.Key, a.Value.Time().Format(time.RFC3339))
+		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value.Time().Format(time.RFC3339))
 	case slog.KindGroup:
 		attrs := a.Value.Group()
 		// Ignore empty groups.
@@ -179,10 +172,10 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 			buf = h.appendAttr(buf, ga)
 		}
 		if a.Key != "" {
-			buf = fmt.Appendf(buf, "}")
+			buf[len(buf)-1] = '}' // replace last space by }
 		}
 	default:
-		buf = fmt.Appendf(buf, "%s=%s\n", a.Key, a.Value)
+		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value)
 	}
 	return buf
 }

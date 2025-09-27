@@ -109,7 +109,7 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 
 func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	s.logger.Debug(fmt.Sprintf("%s :: %s", method, urlStr))
-	s.logger.Debug("PAYLOAD", "content", b)
+	s.logger.Debug("PAYLOAD", "content", string(b))
 
 	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
 	if err != nil {
