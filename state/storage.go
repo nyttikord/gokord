@@ -24,8 +24,13 @@ var (
 
 // Storage represents a storage used to cache information.
 // This is typically used by a State.
+//
+// When a data is saved in the Storage, it cannot be modified without calling Write.
+// The content of the Storage must be immutable.
+// Thus, do not store pointers!
 type Storage interface {
 	// Get returns the data attached with the key in the Storage.
+	// It should never return a pointer to a struct.
 	//
 	// Returns nil if the data was not found and throw the error.
 	Get(key Key) (any, error)
@@ -67,16 +72,23 @@ func KeyChannelRaw(channelID string) Key {
 	return KeyChannelPrefix + Key(channelID)
 }
 
+// MapStorage is the standard implementation of Storage used if no implementation is given.
+// It uses a Go map to store data.
+//
+// To conform with the immutability required by Storage, Copy must be set to a function copying T, including pointers in
+// struct.
 type MapStorage[T any] struct {
 	storage map[Key]T
+	// Copy is a function copying the type T, including pointers in struct.
+	Copy func(T) T
 }
 
 func (m *MapStorage[T]) Get(key Key) (any, error) {
 	v, ok := m.storage[key]
 	if !ok {
-		return nil, ErrItemNotFound
+		return v, ErrItemNotFound
 	}
-	return v, nil
+	return m.Copy(v), nil
 }
 
 func (m *MapStorage[T]) Write(key Key, data any) error {
@@ -84,7 +96,7 @@ func (m *MapStorage[T]) Write(key Key, data any) error {
 	if !ok {
 		return ErrInvalidDataType
 	}
-	m.storage[key] = v
+	m.storage[key] = m.Copy(v)
 	return nil
 }
 
