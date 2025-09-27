@@ -1,9 +1,11 @@
 package event
 
 import (
+	"context"
 	"errors"
 
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -135,7 +137,11 @@ func (e *Manager) AddHandler(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		e.Logger().Error("handler will never be called", "error", ErrInvalidHandler)
+		e.Logger().ErrorContext(
+			logger.NewContext(context.Background(), 1),
+			"handler will never be called",
+			"error", ErrInvalidHandler,
+		)
 		return func() {}
 	}
 
@@ -150,7 +156,11 @@ func (e *Manager) AddHandlerOnce(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		e.Logger().Error("handler will never be called", "error", ErrInvalidHandler)
+		e.Logger().ErrorContext(
+			logger.NewContext(context.Background(), 1),
+			"handler will never be called",
+			"error", ErrInvalidHandler,
+		)
 		return func() {}
 	}
 

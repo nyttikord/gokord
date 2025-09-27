@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -24,6 +25,10 @@ const (
 	AnsiMagentaBold = "\033[35;1m"
 	AnsiRedBold     = "\033[31;1m"
 	AnsiYellowBold  = "\033[33;1m"
+)
+
+var (
+	ErrInvalidCaller = errors.New("invalid caller")
 )
 
 // ConsoleHandler represents the default slog.Handler used by gokord.
@@ -54,6 +59,32 @@ func New(out io.Writer, opts *Options) *ConsoleHandler {
 	return h
 }
 
+type key int
+
+const (
+	callerKey key = 0
+)
+
+// NewContext returns a new context.Context with the caller given.
+//
+// caller is the number of runtime calls to log before this one.
+// 0 is for the current.
+// 1 is for the precedent call.
+// n is for the n times precedent call.
+//
+// See FromContext to extract the caller from a context.Context.
+func NewContext(ctx context.Context, caller int) context.Context {
+	return context.WithValue(ctx, callerKey, caller)
+}
+
+// FromContext returns the caller in the given context.Context.
+//
+// See NewContext to create a context.Context.
+func FromContext(ctx context.Context) (int, bool) {
+	caller, ok := ctx.Value(callerKey).(int)
+	return caller, ok
+}
+
 // Enabled indicates if the given slog.Level is enabled.
 func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.opts.Level.Level()
@@ -69,6 +100,15 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	if r.PC != 0 {
 		fs := runtime.CallersFrames([]uintptr{r.PC})
 		f, _ := fs.Next()
+		caller, ok := FromContext(ctx)
+		if ok {
+			for range caller {
+				f, ok = fs.Next()
+				if !ok {
+					return ErrInvalidCaller
+				}
+			}
+		}
 		files := strings.Split(f.Function, "/")
 		var file string
 		if len(files) == 1 {
