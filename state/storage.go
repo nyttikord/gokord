@@ -31,6 +31,10 @@ type Storage interface {
 	Get(key Key) (any, error)
 	// Write the data in the Storage at the key location.
 	Write(key Key, data any) error
+	// Delete a value associated with the key.
+	//
+	// Does not return an error if the value was not present.
+	Delete(key Key) error
 }
 
 // KeyMember returns the unique Key linked with the given user.Member.
@@ -55,12 +59,12 @@ func KeyGuildRaw(guildID string) Key {
 
 // KeyChannel returns the unique Key linked with the given channel.Channel.
 func KeyChannel(c *channel.Channel) Key {
-	return KeyChannelRaw(c.GuildID, c.ID)
+	return KeyChannelRaw(c.ID)
 }
 
-// KeyChannelRaw returns the unique Key linked with the channel.Channel described by the given parameters.
-func KeyChannelRaw(guildID, channelID string) Key {
-	return KeyChannelPrefix + Key(guildID+":"+channelID)
+// KeyChannelRaw returns the unique Key linked with the channel.Channel described by the given parameter.
+func KeyChannelRaw(channelID string) Key {
+	return KeyChannelPrefix + Key(channelID)
 }
 
 type MapStorage[T any] struct {
@@ -81,5 +85,10 @@ func (m *MapStorage[T]) Write(key Key, data any) error {
 		return ErrInvalidDataType
 	}
 	m.storage[key] = v
+	return nil
+}
+
+func (m *MapStorage[T]) Delete(key Key) error {
+	delete(m.storage, key)
 	return nil
 }
