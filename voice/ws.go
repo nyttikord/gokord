@@ -21,7 +21,7 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 			// 4014 indicates a manual disconnection by someone in the guild;
 			// we shouldn't Reconnect.
 			if websocket.IsCloseError(err, 4014) {
-				v.LogInfo("received 4014 manual disconnection")
+				v.Logger.Info("received 4014 manual disconnection")
 
 				// Abandon the voice WS connection
 				v.Lock()
@@ -40,12 +40,12 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 					if !reconnected {
 						continue
 					}
-					v.LogInfo("successfully reconnected after 4014 manual disconnection")
+					v.Logger.Info("successfully reconnected after 4014 manual disconnection")
 					return
 				}
 
 				// When VOICE_SERVER_UPDATE is not received, disconnect as usual.
-				v.LogInfo("disconnect due to 4014 manual disconnection")
+				v.Logger.Info("disconnect due to 4014 manual disconnection")
 
 				v.requester.Lock()
 				delete(v.requester.Connections, v.GuildID)
@@ -63,7 +63,7 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 			sameConnection := v.wsConn == wsConn
 			v.RUnlock()
 			if sameConnection {
-				v.LogError(err, "voice endpoint %s websocket closed unexpectantly", v.endpoint)
+				v.Logger.Error("voice websocket closed unexpectantly", "error", err, "endpoint", v.endpoint)
 				go v.Reconnect()
 			}
 			return
@@ -81,21 +81,21 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 // onEvent handles any voice websocket events.
 // This is only called by wsListen.
 func (v *Connection) onEvent(message []byte) {
-	v.LogDebug("received: %s", string(message))
+	v.Logger.Debug("received", "raw", message)
 
 	var e struct {
 		discord.Event
 		Operation discord.VoiceOpCode `json:"op"`
 	}
 	if err := json.Unmarshal(message, &e); err != nil {
-		v.LogError(err, "unmarshall event")
+		v.Logger.Error("unmarshall event", "error", err)
 		return
 	}
 
 	switch e.Operation {
 	case discord.VoiceOpCodeReady: // READY
 		if err := json.Unmarshal(e.RawData, &v.op2); err != nil {
-			v.LogError(err, "OP2 unmarshall, %s", string(e.RawData))
+			v.Logger.Error("OP2 unmarshall", "error", err, "raw", e.RawData)
 			return
 		}
 
@@ -106,7 +106,7 @@ func (v *Connection) onEvent(message []byte) {
 		// Start the UDP connection
 		err := v.udpOpen()
 		if err != nil {
-			v.LogError(err, "opening udp connection")
+			v.Logger.Error("opening udp connection", "error", err)
 			return
 		}
 
@@ -137,7 +137,7 @@ func (v *Connection) onEvent(message []byte) {
 
 		v.op4 = op4{}
 		if err := json.Unmarshal(e.RawData, &v.op4); err != nil {
-			v.LogError(err, "OP4 unmarshall, %s", string(e.RawData))
+			v.Logger.Error("OP4 unmarshall", "error", err, "raw", e.RawData)
 			return
 		}
 		return
@@ -149,7 +149,7 @@ func (v *Connection) onEvent(message []byte) {
 
 		voiceSpeakingUpdate := &SpeakingUpdate{}
 		if err := json.Unmarshal(e.RawData, voiceSpeakingUpdate); err != nil {
-			v.LogError(err, "OP5 unmarshall, %s", string(e.RawData))
+			v.Logger.Error("OP5 unmarshall, %s", "error", err, "raw", e.RawData)
 			return
 		}
 
@@ -158,7 +158,7 @@ func (v *Connection) onEvent(message []byte) {
 		}
 
 	default:
-		v.LogWarn("unknown voice operation, %d, %s", e.Operation, string(e.RawData))
+		v.Logger.Warn("unknown voice operation", "op", e.Operation, "raw", e.RawData)
 	}
 
 	return
@@ -183,12 +183,12 @@ func (v *Connection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struct{}, 
 	ticker := time.NewTicker(i * time.Millisecond)
 	defer ticker.Stop()
 	for {
-		v.LogDebug("sending heartbeat packet")
+		v.Logger.Debug("sending heartbeat packet")
 		v.wsMutex.Lock()
 		err = wsConn.WriteJSON(heartbeatOp{discord.VoiceOpCodeHeartbeat, int(time.Now().Unix())})
 		v.wsMutex.Unlock()
 		if err != nil {
-			v.LogError(err, "sending heartbeat to voice endpoint %s", v.endpoint)
+			v.Logger.Error("sending heartbeat to voice endpoint", "error", err, "endpoint", v.endpoint)
 			return
 		}
 
@@ -243,14 +243,14 @@ func (v *Connection) udpOpen() (err error) {
 	host := v.op2.IP + ":" + strconv.Itoa(v.op2.Port)
 	addr, err := net.ResolveUDPAddr("udp", host)
 	if err != nil {
-		v.LogError(err, "resolving udp host %s", host)
+		v.Logger.Error("resolving udp host", "error", err, "host", host)
 		return
 	}
 
-	v.LogDebug("connecting to udp addr %s", addr.String())
+	v.Logger.Debug("connecting to udp addr", "addr", addr.String())
 	v.udpConn, err = net.DialUDP("udp", nil, addr)
 	if err != nil {
-		v.LogError(err, "connecting to udp addr %s", addr.String())
+		v.Logger.Error("connecting to udp addr", "error", err, "addr", addr.String())
 		return
 	}
 
@@ -263,7 +263,7 @@ func (v *Connection) udpOpen() (err error) {
 	// And send that data over the UDP connection to Discord.
 	_, err = v.udpConn.Write(sb)
 	if err != nil {
-		v.LogError(err, "udp write to %s", addr.String())
+		v.Logger.Error("udp write", "error", err, "addr", addr.String())
 		return
 	}
 
@@ -273,12 +273,13 @@ func (v *Connection) udpOpen() (err error) {
 	rb := make([]byte, 74)
 	rlen, _, err := v.udpConn.ReadFromUDP(rb)
 	if err != nil {
-		v.LogError(err, "udp read, %s", addr.String())
+		v.Logger.Error("udp read", "error", err, "addr", addr.String())
 		return
 	}
 
 	if rlen < 74 {
-		v.LogWarn("received udp packet too small")
+		// is this warn very useful?
+		v.Logger.Warn("received udp packet too small")
 		return fmt.Errorf("received udp packet too small")
 	}
 
@@ -301,7 +302,7 @@ func (v *Connection) udpOpen() (err error) {
 	err = v.wsConn.WriteJSON(data)
 	v.wsMutex.Unlock()
 	if err != nil {
-		v.LogError(err, "udp write error, %#v", data)
+		v.Logger.Error("udp write", "error", err, "data", data)
 		return
 	}
 
@@ -332,7 +333,7 @@ func (v *Connection) udpKeepAlive(udpConn *net.UDPConn, close <-chan struct{}, i
 
 		_, err = udpConn.Write(packet)
 		if err != nil {
-			v.LogError(err, "write")
+			v.Logger.Error("write", "error", err)
 			return
 		}
 

@@ -53,7 +53,7 @@ func (r Requester) GatewayMembersList(guildID string, userIDs []string, limit in
 }
 
 func (r Requester) gatewayRequestMembers(data requestGuildMembersData) error {
-	r.LogDebug("requesting guild members via gateway")
+	r.Logger().Debug("requesting guild members via gateway")
 
 	return r.GatewayWriteStruct(requestGuildMembersOp{discord.GatewayOpCodeRequestGuildMembers, data})
 }

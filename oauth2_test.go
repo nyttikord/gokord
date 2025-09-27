@@ -2,6 +2,7 @@ package gokord_test
 
 import (
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/nyttikord/gokord"
@@ -16,7 +17,7 @@ func ExampleApplication() {
 	}
 
 	// Create a new Discordgo session
-	dg := gokord.New(Token)
+	dg := gokord.NewWithLogLevel(Token, slog.LevelDebug)
 
 	// Create an new Application
 	ap := &application.Application{}

@@ -48,7 +48,7 @@ func (s *Session) onInterface(i any) {
 	}
 	err := s.sessionState.onInterface(s, i)
 	if err != nil {
-		s.LogDebug("error dispatching internal event, %s", err)
+		s.logger.Debug("dispatching internal event", "error", err)
 	}
 }
 
@@ -78,7 +78,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 		defer func() {
 			err3 := z.Close()
 			if err3 != nil {
-				s.LogError(err3, "closing zlib")
+				s.logger.Error("closing zlib", "error", err)
 			}
 		}()
 
@@ -96,22 +96,22 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 	case discord.GatewayOpCodeHello: // processed by Open()
 		return e, nil
 	case discord.GatewayOpCodeHeartbeat: // must respond with a heartbeat packet within 5 seconds
-		s.LogDebug("sending heartbeat in response to Op1")
+		s.logger.Debug("sending heartbeat in response to Op1")
 		return e, s.heartbeat(s.ws, s.sequence.Load())
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
-		s.LogInfo("closing and reconnecting in response to Op7")
+		s.logger.Info("closing and reconnecting in response to Op7")
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
-			s.LogError(err, "closing session connection, force closing")
+			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
 		}
 		s.reconnect()
 		return e, nil
 	case discord.GatewayOpCodeInvalidSession: // must respond with an Identify packet
-		s.LogWarn("invalid session received, reconnecting")
+		s.logger.Warn("invalid session received, reconnecting")
 		err = s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
-			s.LogError(err, "closing session connection, force closing")
+			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
 		}
 
@@ -121,7 +121,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 		}
 
 		if !resumable {
-			s.LogInfo("Gateway session is not resumable, discarding its information")
+			s.logger.Info("gateway session is not resumable, discarding its information")
 			s.resumeGatewayURL = ""
 			s.sessionID = ""
 			s.sequence.Store(0)
@@ -133,7 +133,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 		s.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()
 		s.Unlock()
-		s.LogDebug("got heartbeat ACK")
+		s.logger.Debug("got heartbeat ACK")
 		return e, nil
 	}
 
@@ -141,7 +141,14 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 	if e.Operation != discord.GatewayOpCodeDispatch {
 		// But we probably should be doing something with them.
 		// TEMP
-		s.LogWarn("unknown Op: %d, Seq: %d, Type: %s, Data: %s, message: %s", e.Operation, e.Sequence, e.Type, string(e.RawData), string(message))
+		s.logger.Warn(
+			"unknown opcode",
+			"op", e.Operation,
+			"seq", e.Sequence,
+			"type", e.Type,
+			"raw", e.RawData,
+			"message", string(message),
+		)
 		return e, nil
 	}
 
@@ -151,7 +158,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 		e.Struct = eh.New()
 
 		if err = json.Unmarshal(e.RawData, e.Struct); err != nil {
-			s.LogWarn("failed to unmarshal %s event, data: %s", e.Type, e.RawData)
+			s.logger.Warn("failed to unmarshal event", "type", e.Type, "raw", e.RawData)
 			// READY events are always emitted
 			if e.Type != event.ReadyType {
 				return nil, err
@@ -160,7 +167,14 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 
 		s.eventManager.EmitEvent(s, e.Type, e.Struct)
 	} else {
-		s.LogWarn("unknown event: Op: %d, Seq: %d, Type: %s, Data: %s", e.Operation, e.Sequence, e.Type, string(e.RawData))
+		s.logger.Warn(
+			"unknown event",
+			"op", e.Operation,
+			"seq", e.Sequence,
+			"type", e.Type,
+			"raw", e.RawData,
+			"message", string(message),
+		)
 		s.eventManager.EmitEvent(s, event.EventType, e)
 	}
 

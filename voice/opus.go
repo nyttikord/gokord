@@ -60,7 +60,7 @@ func (v *Connection) opusSender(udpConn *net.UDPConn, close <-chan struct{}, opu
 		if !speaking {
 			err := v.Speaking(true)
 			if err != nil {
-				v.LogError(err, "sending speaking packet")
+				v.Logger.Error("sending speaking packet", "error", err)
 			}
 		}
 
@@ -85,8 +85,8 @@ func (v *Connection) opusSender(udpConn *net.UDPConn, close <-chan struct{}, opu
 		_, err := udpConn.Write(sendBuf)
 
 		if err != nil {
-			v.LogError(err, "udp write")
-			v.LogDebug("voice struct: %#v\n", v)
+			v.Logger.Error("udp write", "error", err)
+			v.Logger.Debug("voice", "struct", v)
 			return
 		}
 
@@ -136,8 +136,8 @@ func (v *Connection) opusReceiver(udpConn *net.UDPConn, close <-chan struct{}, c
 			v.RUnlock()
 			if sameConnection {
 
-				v.LogError(err, "udp read error, %s", v.endpoint)
-				v.LogDebug("voice struct: %#v\n", v)
+				v.Logger.Error("udp read", "error", err, "endpoint", v.endpoint)
+				v.Logger.Debug("voice", "struct", v)
 
 				go v.Reconnect()
 			}

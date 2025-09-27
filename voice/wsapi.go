@@ -38,7 +38,7 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 	r.RUnlock()
 
 	if v == nil {
-		v = &Connection{Logger: r.Requester}
+		v = &Connection{Logger: r.Requester.Logger()}
 		r.Lock()
 		r.Connections[guildID] = v
 		r.Unlock()
@@ -60,7 +60,7 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 	// TODO: doesn't exactly work perfect yet...
 	err = v.waitUntilConnected()
 	if err != nil {
-		r.LogError(err, "waiting for voice to connect")
+		r.Logger().Error("waiting for voice to connect", "error", err)
 		v.Close()
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (r *Requester) UpdateState(u *user.VoiceState, ss state.Bot) {
 // This is also fired if the guild.Guild's voice region changes while connected to a voice channel.Channel.
 // In that case, need to re-establish connection to the new region endpoint.
 func (r *Requester) UpdateServer(token string, guildID string, endpoint string) {
-	r.LogDebug("voice server update")
+	r.Logger().Debug("voice server update")
 
 	r.RLock()
 	v, exists := r.Connections[guildID]
@@ -132,7 +132,7 @@ func (r *Requester) UpdateServer(token string, guildID string, endpoint string) 
 	v.Close()
 
 	if endpoint == "" {
-		r.LogWarn("endpoint is not defined, voice server was not reallocated?")
+		r.Logger().Warn("endpoint is not defined, voice server was not reallocated?")
 		return
 	}
 
@@ -144,6 +144,6 @@ func (r *Requester) UpdateServer(token string, guildID string, endpoint string) 
 
 	err := v.open()
 	if err != nil {
-		r.LogError(err, "opening voice connection")
+		r.Logger().Error("opening voice connection", "error", err)
 	}
 }

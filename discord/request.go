@@ -2,15 +2,15 @@ package discord
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/nyttikord/gokord/logger"
 )
 
 // Requester is used to interact with the Discord API.
 type Requester interface {
-	logger.Logger
+	Logger() *slog.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 	Request(method string, urlStr string, data interface{}, options ...RequestOption) ([]byte, error)
 	// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.

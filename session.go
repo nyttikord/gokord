@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"log/slog"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -25,7 +26,7 @@ import (
 // Session represents a connection to the Discord API.
 type Session struct {
 	*sync.RWMutex
-	stdLogger
+	logger *slog.Logger
 
 	// General configurable settings.
 
@@ -140,6 +141,10 @@ type GatewayStatusUpdate struct {
 	Game   status.Activity `json:"game"`
 	Status string          `json:"status"`
 	AFK    bool            `json:"afk"`
+}
+
+func (s *Session) Logger() *slog.Logger {
+	return s.logger
 }
 
 // UserAPI returns an userapi.Requester to interact with the user package.
