@@ -131,16 +131,15 @@ func (s *sessionState) VoiceState(guildID, userID string) (*user.VoiceState, err
 
 // OnReady takes a Ready event and updates all internal state.
 func (s *sessionState) onReady(se *Session, r *event.Ready) error {
-	s.Lock()
-	defer s.Unlock()
-
 	// We must store the bare essentials like the current user.User or the SessionID.
-	if !se.StateEnabled {
-		s.sessionID = r.SessionID
-		s.user = r.User
-		s.shard = r.Shard
-		s.application = r.Application
+	s.Lock()
+	s.sessionID = r.SessionID
+	s.user = r.User
+	s.shard = r.Shard
+	s.application = r.Application
+	s.Unlock()
 
+	if !se.StateEnabled {
 		return nil
 	}
 

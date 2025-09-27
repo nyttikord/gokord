@@ -3,6 +3,7 @@ package gokord
 import (
 	"net/http"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -38,6 +39,7 @@ func New(token string) *Session {
 		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
 		stdLogger:                          stdLogger{Level: logger.LevelInfo},
+		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
