@@ -1,15 +1,15 @@
 package event
 
 import (
+	"log/slog"
 	"sync"
 
 	"github.com/nyttikord/gokord/bot"
-	"github.com/nyttikord/gokord/logger"
 )
 
 type Manager struct {
 	sync.RWMutex
-	logger.Logger
+	*slog.Logger
 
 	SyncEvents bool
 
@@ -23,7 +23,7 @@ type Manager struct {
 func NewManager(s bot.Session, onInterface func(any), onReady func(*Ready)) *Manager {
 	return &Manager{
 		RWMutex:      sync.RWMutex{},
-		Logger:       s,
+		Logger:       s.Logger(),
 		SyncEvents:   false,
 		handlers:     make(map[string][]*eventHandlerInstance),
 		onceHandlers: make(map[string][]*eventHandlerInstance),

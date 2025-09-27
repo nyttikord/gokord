@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime"
 	"sync/atomic"
@@ -30,7 +31,7 @@ var (
 func TestMain(m *testing.M) {
 	fmt.Println("Init is being called.")
 	if envBotToken != "" {
-		dgBot = New(envBotToken)
+		dgBot = New(envBotToken, slog.LevelDebug)
 	}
 
 	if envOAuth2Token == "" {
@@ -38,7 +39,7 @@ func TestMain(m *testing.M) {
 	}
 
 	if envOAuth2Token != "" {
-		dg = New(envOAuth2Token)
+		dg = New(envOAuth2Token, slog.LevelDebug)
 	}
 
 	os.Exit(m.Run())
@@ -51,7 +52,7 @@ func TestNewToken(t *testing.T) {
 		t.Skip("Skipping New(token), DGU_TOKEN not set")
 	}
 
-	d := New(envOAuth2Token)
+	d := New(envOAuth2Token, slog.LevelDebug)
 
 	if d == nil {
 		t.Fatal("New(envToken), d is nil, should be Session{}")
@@ -67,7 +68,7 @@ func TestOpenClose(t *testing.T) {
 		t.Skip("Skipping TestClose, DGU_TOKEN not set")
 	}
 
-	d := New(envOAuth2Token)
+	d := New(envOAuth2Token, slog.LevelDebug)
 
 	if err := d.Open(); err != nil {
 		t.Fatalf("TestClose, d.Open failed: %+v", err)
@@ -126,7 +127,7 @@ func TestAddHandler(t *testing.T) {
 
 	d := Session{}
 	d.eventManager = event.NewManager(&d, d.onInterface, d.onReady)
-	d.stdLogger = stdLogger{Level: logger.LevelDebug}
+	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	d.EventManager().AddHandler(testHandler)
 	d.EventManager().AddHandler(testHandler)
 
@@ -161,7 +162,7 @@ func TestRemoveHandler(t *testing.T) {
 
 	d := Session{}
 	d.eventManager = event.NewManager(&d, d.onInterface, d.onReady)
-	d.stdLogger = stdLogger{Level: logger.LevelDebug}
+	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	r := d.EventManager().AddHandler(testHandler)
 
 	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})

@@ -3,6 +3,7 @@ package gokord
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"testing"
 
@@ -235,7 +236,7 @@ func TestWithContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), key{}, "value")
 
 	// Set up a test client.
-	session := New("")
+	session := New("", slog.LevelDebug)
 
 	testErr := errors.New("test")
 

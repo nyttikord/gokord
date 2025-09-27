@@ -7,22 +7,6 @@ import (
 	"os"
 )
 
-// Logger is an interface describing a custom logger implementation.
-type Logger interface {
-	// Log the message if level is equal to or greater than previously defined
-	//
-	// See logger.Log
-	Log(level slog.Level, caller int, format string, args ...any)
-	LogError(err error, format string, args ...any)
-	LogWarn(format string, args ...any)
-	LogInfo(format string, args ...any)
-	LogDebug(format string, args ...any)
-	// GetLevel returns the minimum Level logged
-	GetLevel() slog.Level
-	// ChangeLevel changes the minimum Level logged
-	ChangeLevel(level slog.Level)
-}
-
 const (
 	AnsiReset       = "\033[0m"
 	AnsiRed         = "\033[91m"
@@ -54,7 +38,7 @@ func Log(level slog.Level, caller int, format string, args ...any) {
 	//name = fns[len(fns)-1]
 
 	t := slog.New(test)
-	t.Log(context.Background(), level, format, args)
+	t.Log(context.Background(), level, format, args...)
 
 	//log.Printf("[%s] %s:%d:%s() %s\n", level.String(), file, line, name, fmt.Sprintf(format, args...))
 }

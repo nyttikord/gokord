@@ -108,8 +108,8 @@ func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucke
 }
 
 func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
-	s.LogDebug("%s :: %s", method, urlStr)
-	s.LogDebug("PAYLOAD :: %s", string(b))
+	s.logger.Debug(fmt.Sprintf("%s :: %s", method, urlStr))
+	s.logger.Debug("PAYLOAD", "content", b)
 
 	req, err := http.NewRequest(method, urlStr, bytes.NewBuffer(b))
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 	}
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
-			s.LogDebug("error closing resp body: %v", err)
+			s.logger.Error("closing resp body", "error", err)
 		}
 	}()
 
@@ -177,7 +177,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 	case http.StatusBadGateway:
 		// Retry sending request if possible
 		if sequence < cfg.MaxRestRetries {
-			s.LogInfo("%s Failed (%s), Retrying...", urlStr, resp.Status)
+			s.logger.Warn("failed, retrying...", "url", urlStr, "status", resp.Status)
 			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence+1, options...)
 		} else {
 			err = fmt.Errorf("exceeded max HTTP retries %s, %s", resp.Status, response)
@@ -186,12 +186,12 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		rl := discord.TooManyRequests{}
 		err = json.Unmarshal(response, &rl)
 		if err != nil {
-			s.LogError(err, "rate limit unmarshal error")
+			s.logger.Error("rate limit unmarshal", "error", err)
 			return nil, err
 		}
 
 		if cfg.ShouldRetryOnRateLimit {
-			s.LogInfo("Rate Limiting %s, retry in %v", urlStr, rl.RetryAfter)
+			s.logger.Info("rate limited", "url", urlStr, "retry in", rl.RetryAfter)
 			s.eventManager.EmitEvent(s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
@@ -204,7 +204,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		}
 	case http.StatusUnauthorized:
 		if strings.Index(s.Identify.Token, "Bot ") != 0 {
-			s.LogInfo("%s", ErrUnauthorized.Error())
+			s.logger.Error(ErrUnauthorized.Error())
 			err = ErrUnauthorized
 		}
 		fallthrough

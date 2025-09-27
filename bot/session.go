@@ -4,12 +4,13 @@
 package bot
 
 import (
+	"log/slog"
+
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
-	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -20,7 +21,8 @@ import (
 // Default implementation is gokord.Session which is using the gateway.
 // You can create your own implementation to use webhooks.
 type Session interface {
-	logger.Logger
+	// Logger returns the slog.Logger used by the Session.
+	Logger() *slog.Logger
 
 	// EventManager returns the EventManager used by the Session.
 	EventManager() EventManager

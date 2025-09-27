@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/nyttikord/gokord"
@@ -24,7 +25,7 @@ func init() { flag.Parse() }
 // To be correctly used, the bot needs to be in a guild.
 // All actions must be done on a stage channel event
 func main() {
-	s := gokord.New("Bot " + *BotToken)
+	s := gokord.New("Bot "+*BotToken, slog.LevelInfo)
 	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})

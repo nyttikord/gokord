@@ -13,7 +13,7 @@ func (s *Session) reconnect() {
 	if !s.ShouldReconnectOnError {
 		return
 	}
-	s.LogInfo("trying to reconnect to gateway")
+	s.logger.Info("trying to reconnect to gateway")
 
 	wait := time.Duration(1)
 	err := s.Open()
@@ -23,20 +23,20 @@ func (s *Session) reconnect() {
 		// If this happens, we just break out of the reconnect loop
 		// TODO: fix this
 		if errors.Is(err, ErrWSAlreadyOpen) {
-			s.LogDebug("Websocket already exists, no need to reconnect")
+			s.logger.Debug("Websocket already exists, no need to reconnect")
 			return
 		}
 
-		s.LogError(err, "reconnecting to gateway")
+		s.logger.Error("reconnecting to gateway", "error", err)
 
 		time.Sleep(wait * time.Second)
 		wait *= min(wait*2, 600)
 
-		s.LogInfo("trying to reconnect to gateway")
+		s.logger.Info("trying to reconnect to gateway")
 
 		err = s.Open()
 	}
-	s.LogInfo("successfully reconnected to gateway")
+	s.logger.Info("successfully reconnected to gateway")
 
 	// I'm not sure if this is actually needed.
 	// If the gw reconnect works properly, voice should stay alive
@@ -49,7 +49,7 @@ func (s *Session) reconnect() {
 	defer s.RUnlock()
 	for _, v := range s.voiceAPI.Connections {
 
-		s.LogInfo("reconnecting voice connection to guild %s", v.GuildID)
+		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
 		go v.Reconnect()
 
 		// This is here just to prevent violently spamming the
@@ -68,7 +68,7 @@ func (s *Session) Close() error {
 // If it returns an error, the session is not closed.
 // TODO: Add support for Voice WS/UDP connections
 func (s *Session) CloseWithCode(closeCode int) error {
-	s.LogInfo("closing with code %d", closeCode)
+	s.logger.Info("closing", "code", closeCode)
 	s.Lock()
 	defer s.Unlock()
 
@@ -79,7 +79,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	s.DataReady = false
 
 	if s.listening != nil {
-		s.LogDebug("closing listening channel")
+		s.logger.Debug("closing listening channel")
 		close(s.listening)
 		s.listening = nil
 	}
@@ -87,14 +87,14 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	for _, v := range s.voiceAPI.Connections {
 		err := v.Disconnect()
 		if err != nil {
-			s.LogError(err, "disconnecting voice from channel %s", v.ChannelID)
+			s.logger.Error("disconnecting voice from channel", "error", err, "channel", v.ChannelID)
 		}
 	}
 	// TODO: Close all active Voice Connections force stop any reconnecting voice channels
 
 	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
 	// connection.
-	s.LogDebug("sending close frame")
+	s.logger.Debug("sending close frame")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -138,11 +138,11 @@ func (s *Session) CloseWithCode(closeCode int) error {
 func (s *Session) ForceClose() {
 	s.Lock()
 	defer s.Unlock()
-	s.LogInfo("closing gateway websocket")
+	s.logger.Info("closing gateway websocket")
 	err := s.ws.Close()
 	if err != nil {
 		// we handle it here because the websocket is actually closed
-		s.LogError(err, "closing websocket")
+		s.logger.Error("closing websocket", "error", err)
 	}
 	s.ws = nil
 }

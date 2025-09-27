@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -26,7 +27,7 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	session := gokord.New("Bot " + *BotToken)
+	session := gokord.New("Bot "+*BotToken, slog.LevelInfo)
 	session.Identify.Intents |= discord.IntentAutoModerationExecution
 	session.Identify.Intents |= discord.IntentMessageContent
 

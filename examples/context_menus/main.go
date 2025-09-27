@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
@@ -31,7 +32,7 @@ var s *gokord.Session
 func init() { flag.Parse() }
 
 func init() {
-	s = gokord.New("Bot " + *BotToken)
+	s = gokord.New("Bot "+*BotToken, slog.LevelInfo)
 }
 
 func searchLink(message, format, sep string) string {

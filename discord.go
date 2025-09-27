@@ -3,6 +3,7 @@ package gokord
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -11,6 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/voice"
 )
 
@@ -25,7 +27,7 @@ const VERSION = "0.31.0"
 // Or if it is an OAuth2 token, it must be prefixed with "Bearer "
 //
 //	e.g. "Bearer ..."
-func New(token string) *Session {
+func New(token string, logLevel slog.Level) *Session {
 	s := &Session{
 		RateLimiter:                        discord.NewRateLimiter(),
 		StateEnabled:                       true,
@@ -38,7 +40,7 @@ func New(token string) *Session {
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
 		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
-		stdLogger:                          stdLogger{Level: slog.LevelInfo},
+		logger:                             slog.New(logger.New(os.Stdout, &logger.Options{Level: logLevel})),
 		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
