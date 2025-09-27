@@ -11,7 +11,22 @@ import (
 	"time"
 )
 
-type IndentHandler struct {
+const (
+	AnsiReset       = "\033[0m"
+	AnsiRed         = "\033[91m"
+	AnsiGreen       = "\033[32m"
+	AnsiYellow      = "\033[33m"
+	AnsiBlue        = "\033[34m"
+	AnsiMagenta     = "\033[35m"
+	AnsiCyan        = "\033[36m"
+	AnsiWhite       = "\033[37m"
+	AnsiBlueBold    = "\033[34;1m"
+	AnsiMagentaBold = "\033[35;1m"
+	AnsiRedBold     = "\033[31;1m"
+	AnsiYellowBold  = "\033[33;1m"
+)
+
+type ConsoleHandler struct {
 	opts Options
 	goas []groupOrAttrs
 	mu   *sync.Mutex
@@ -25,8 +40,8 @@ type Options struct {
 	Level slog.Leveler
 }
 
-func New(out io.Writer, opts *Options) *IndentHandler {
-	h := &IndentHandler{out: out, mu: &sync.Mutex{}}
+func New(out io.Writer, opts *Options) *ConsoleHandler {
+	h := &ConsoleHandler{out: out, mu: &sync.Mutex{}}
 	if opts != nil {
 		h.opts = *opts
 	}
@@ -36,11 +51,11 @@ func New(out io.Writer, opts *Options) *IndentHandler {
 	return h
 }
 
-func (h *IndentHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.opts.Level.Level()
 }
 
-func (h *IndentHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf := make([]byte, 0, 1024)
 	if !r.Time.IsZero() {
 		buf = fmt.Appendf(buf, "%s ", r.Time.Format(time.DateTime))
@@ -93,7 +108,7 @@ func (h *IndentHandler) Handle(ctx context.Context, r slog.Record) error {
 	return err
 }
 
-func (h *IndentHandler) appendAttr(buf []byte, a slog.Attr) []byte {
+func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	// Resolve the Attr's value before doing anything else.
 	a.Value = a.Value.Resolve()
 	// Ignore empty Attrs.
@@ -133,7 +148,7 @@ type groupOrAttrs struct {
 	attrs []slog.Attr // attrs if non-empty
 }
 
-func (h *IndentHandler) withGroupOrAttrs(goa groupOrAttrs) *IndentHandler {
+func (h *ConsoleHandler) withGroupOrAttrs(goa groupOrAttrs) *ConsoleHandler {
 	h2 := *h
 	h2.goas = make([]groupOrAttrs, len(h.goas)+1)
 	copy(h2.goas, h.goas)
@@ -141,14 +156,14 @@ func (h *IndentHandler) withGroupOrAttrs(goa groupOrAttrs) *IndentHandler {
 	return &h2
 }
 
-func (h *IndentHandler) WithGroup(name string) slog.Handler {
+func (h *ConsoleHandler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return h
 	}
 	return h.withGroupOrAttrs(groupOrAttrs{group: name})
 }
 
-func (h *IndentHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h *ConsoleHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return h
 	}
