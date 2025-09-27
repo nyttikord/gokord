@@ -26,6 +26,7 @@ const (
 	AnsiYellowBold  = "\033[33;1m"
 )
 
+// ConsoleHandler represents the default slog.Handler used by gokord.
 type ConsoleHandler struct {
 	opts Options
 	goas []groupOrAttrs
@@ -33,6 +34,7 @@ type ConsoleHandler struct {
 	out  io.Writer
 }
 
+// Options of the ConsoleHandler.
 type Options struct {
 	// Level reports the minimum level to log.
 	// Levels with lower levels are discarded.
@@ -40,6 +42,7 @@ type Options struct {
 	Level slog.Leveler
 }
 
+// New creates a new ConsoleHandler.
 func New(out io.Writer, opts *Options) *ConsoleHandler {
 	h := &ConsoleHandler{out: out, mu: &sync.Mutex{}}
 	if opts != nil {
@@ -51,10 +54,12 @@ func New(out io.Writer, opts *Options) *ConsoleHandler {
 	return h
 }
 
+// Enabled indicates if the given slog.Level is enabled.
 func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.opts.Level.Level()
 }
 
+// Handle a slog.Record.
 func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf := make([]byte, 0, 1024)
 	if !r.Time.IsZero() {
