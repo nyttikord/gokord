@@ -15,6 +15,7 @@ import (
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/bot/botapi"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
@@ -170,7 +171,11 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
-		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.sessionState)}
+		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(
+			s.sessionState, &state.MapStorage[channel.Channel]{
+				Copy: channel.Copy,
+			},
+		)}
 	}
 	return s.channelAPI
 }
