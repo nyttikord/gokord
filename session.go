@@ -18,6 +18,7 @@ import (
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/state"
@@ -159,7 +160,9 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState)}
+		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState, &state.MapStorage[guild.Guild]{
+			Copy: guild.Copy,
+		})}
 	}
 	return s.guildAPI
 }
