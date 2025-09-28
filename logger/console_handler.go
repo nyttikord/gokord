@@ -154,6 +154,9 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 		return buf
 	}
 	buf = fmt.Appendf(buf, " ")
+	if strings.Contains(a.Key, " ") {
+		a.Key = fmt.Sprintf("%q", a.Key)
+	}
 	switch a.Value.Kind() {
 	case slog.KindString:
 		buf = fmt.Appendf(buf, "%s=%q", a.Key, a.Value.String())
