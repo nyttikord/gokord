@@ -39,7 +39,7 @@ func (s *Session) reconnect() {
 	s.logger.Info("successfully reconnected to gateway")
 
 	// I'm not sure if this is actually needed.
-	// If the gw reconnect works properly, voice should stay alive
+	// If the gw reconnect works properly, voice should stay alive.
 	// However, there seems to be cases where something "weird" happens.
 	// So we're doing this for now just to improve stability in those edge cases.
 	if !s.ShouldReconnectVoiceOnSessionError {
@@ -48,12 +48,10 @@ func (s *Session) reconnect() {
 	s.RLock()
 	defer s.RUnlock()
 	for _, v := range s.voiceAPI.Connections {
-
 		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
 		go v.Reconnect()
 
-		// This is here just to prevent violently spamming the
-		// voice reconnects
+		// This is here just to prevent violently spamming the voice reconnects.
 		time.Sleep(1 * time.Second)
 	}
 }

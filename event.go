@@ -133,7 +133,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 		s.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()
 		s.Unlock()
-		s.logger.Debug("got heartbeat ACK")
+		s.logger.Debug("got heartbeat ACK", "ping", s.HeartbeatLatency())
 		return e, nil
 	}
 

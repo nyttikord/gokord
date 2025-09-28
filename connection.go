@@ -108,7 +108,7 @@ func (s *Session) Open() error {
 		}
 	} else {
 		// Send Op 6 Resume Packet
-		p := resumePacket{}
+		var p resumePacket
 		p.Op = discord.GatewayOpCodeResume
 		p.Data.Token = s.Identify.Token
 		p.Data.SessionID = s.sessionID
@@ -155,31 +155,8 @@ func (s *Session) Open() error {
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or an error
 // occurs.
 func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
-	for {
-		messageType, message, err := wsConn.ReadMessage()
-
-		if err != nil {
-			// Detect if we have been closed manually.
-			// If a Close() has already happened, the websocket we are listening on will be different to the current
-			// session.
-			s.RLock()
-			sameConnection := s.ws == wsConn
-			s.RUnlock()
-
-			if sameConnection {
-				s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
-				err = s.Close()
-				if err != nil {
-					s.logger.Error("closing session connection, force closing", "error", err)
-					s.ForceClose()
-				}
-
-				s.logger.Info("calling reconnect() now")
-				s.reconnect()
-			}
-			return
-		}
-
+	messageType, message, err := wsConn.ReadMessage()
+	for err == nil {
 		select {
 		case <-listening:
 			return
@@ -189,7 +166,30 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 				s.logger.Error("handling event", "error", err)
 			}
 		}
+
+		messageType, message, err = wsConn.ReadMessage()
 	}
+
+	// Detect if we have been closed manually.
+	// If a Close() has already happened, the websocket we are listening on will be different to the current
+	// session.
+	s.RLock()
+	sameConnection := s.ws == wsConn
+	s.RUnlock()
+
+	// everything is fine
+	if !sameConnection {
+		return
+	}
+	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
+	err = s.Close()
+	if err != nil {
+		s.logger.Error("closing session connection, force closing", "error", err)
+		s.ForceClose()
+	}
+
+	s.logger.Info("calling reconnect() now")
+	s.reconnect()
 }
 
 type heartbeatOp struct {
@@ -222,32 +222,16 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 	ticker := time.NewTicker(heartbeatIntervalMsec * time.Millisecond)
 	defer ticker.Stop()
 
-	for {
+	last := time.Now().UTC()
+
+	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatIntervalMsec*FailedHeartbeatAcks) {
 		s.RLock()
-		last := s.LastHeartbeatAck
+		last = s.LastHeartbeatAck
 		s.RUnlock()
 
 		sequence := s.sequence.Load()
 		err = s.heartbeat(ws, sequence)
 		s.sequence.Add(1)
-
-		if err != nil || time.Now().UTC().Sub(last) > (heartbeatIntervalMsec*FailedHeartbeatAcks) {
-			if err != nil {
-				s.logger.Error("sending heartbeat", "error", err, "gateway", s.gateway)
-			} else {
-				s.logger.Warn(
-					"haven't gotten a heartbeat ACK, triggering a reconnection",
-					"time since last ACK", time.Now().UTC().Sub(last),
-				)
-			}
-			err = s.Close()
-			if err != nil {
-				s.logger.Error("closing session connection, force closing", "error", err)
-				s.ForceClose()
-			}
-			s.reconnect()
-			return
-		}
 
 		s.Lock()
 		s.DataReady = true
@@ -260,6 +244,21 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 			return
 		}
 	}
+
+	if err != nil {
+		s.logger.Error("sending heartbeat", "error", err, "gateway", s.gateway)
+	} else {
+		s.logger.Warn(
+			"haven't gotten a heartbeat ACK, triggering a reconnection",
+			"time since last ACK", time.Now().UTC().Sub(last),
+		)
+	}
+	err = s.Close()
+	if err != nil {
+		s.logger.Error("closing session connection, force closing", "error", err)
+		s.ForceClose()
+	}
+	s.reconnect()
 }
 
 func (s *Session) heartbeat(ws *websocket.Conn, sequence int64) error {
