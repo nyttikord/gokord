@@ -146,7 +146,7 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 			"op", e.Operation,
 			"seq", e.Sequence,
 			"type", e.Type,
-			"raw", e.RawData,
+			"raw", string(e.RawData),
 			"message", string(message),
 		)
 		return e, nil

@@ -175,6 +175,13 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 			buf[len(buf)-1] = '}' // replace last space by }
 		}
 	default:
+		var val any
+		val = a.Value
+		if s, ok := val.(fmt.Stringer); ok {
+			val = s.String()
+		} else if b, ok := val.([]byte); ok {
+			val = string(b)
+		}
 		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value)
 	}
 	return buf
