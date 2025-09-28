@@ -229,6 +229,7 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 
 		sequence := s.sequence.Load()
 		err = s.heartbeat(ws, sequence)
+		s.sequence.Add(1)
 
 		if err != nil || time.Now().UTC().Sub(last) > (heartbeatIntervalMsec*FailedHeartbeatAcks) {
 			if err != nil {
