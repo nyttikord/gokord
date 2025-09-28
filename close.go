@@ -66,9 +66,9 @@ func (s *Session) Close() error {
 // If it returns an error, the session is not closed.
 // TODO: Add support for Voice WS/UDP connections
 func (s *Session) CloseWithCode(closeCode int) error {
-	s.logger.Info("closing", "code", closeCode)
 	s.Lock()
 	defer s.Unlock()
+	s.logger.Info("closing", "code", closeCode)
 
 	if s.ws == nil {
 		return ErrWSNotFound

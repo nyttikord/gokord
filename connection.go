@@ -81,13 +81,14 @@ func (s *Session) Open() error {
 	if err != nil {
 		return err
 	}
+	s.Unlock()
 	e, err := s.onGatewayEvent(mt, m)
+	s.Lock()
 	if err != nil {
 		return err
 	}
 	if e.Operation != discord.GatewayOpCodeHello {
-		err = fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
-		return err
+		return fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
 	}
 	s.logger.Debug("Op 10 Hello Packet received from Discord")
 	s.LastHeartbeatAck = time.Now().UTC()
@@ -129,7 +130,9 @@ func (s *Session) Open() error {
 	if err != nil {
 		return err
 	}
+	s.Unlock()
 	e, err = s.onGatewayEvent(mt, m)
+	s.Lock()
 	if err != nil {
 		return err
 	}
