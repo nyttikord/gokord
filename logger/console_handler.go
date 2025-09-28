@@ -1,3 +1,6 @@
+// Package logger contains the structures used by gokord's custom slog.Logger.
+//
+// If you want to modify the line logged in the output, see NewContext.
 package logger
 
 import (
@@ -27,6 +30,8 @@ const (
 )
 
 // ConsoleHandler represents the default slog.Handler used by gokord.
+//
+// See New to create a new ConsoleHandler with the given Options.
 type ConsoleHandler struct {
 	opts Options
 	goas []groupOrAttrs

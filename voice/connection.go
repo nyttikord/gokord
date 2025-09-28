@@ -1,3 +1,6 @@
+// Package voice contains everything related to Discord voice Connection.
+//
+// This package is incomplete.
 package voice
 
 import (
@@ -13,22 +16,22 @@ import (
 	"github.com/nyttikord/gokord/discord"
 )
 
-// Connection holds all the data and functions related to a Discord Voice Connection.
+// Connection holds all the data and functions related to a Discord voice connection.
 type Connection struct {
 	sync.RWMutex
 	Logger *slog.Logger
 
-	Ready        bool // If true, voice is ready to send/receive audio
+	Ready        bool // If Ready, Connection is ready to send/receive audio.
 	UserID       string
 	GuildID      string
 	ChannelID    string
 	deaf         bool
 	mute         bool
 	speaking     bool
-	reconnecting bool // If true, voice connection is trying to Reconnect
+	reconnecting bool // If reconnecting, voice connection is trying to Reconnect.
 
-	OpusSend chan []byte  // Chan for sending opus audio
-	OpusRecv chan *Packet // Chan for receiving opus audio
+	OpusSend chan []byte  // OpusSend is the chan for sending opus audio
+	OpusRecv chan *Packet // OpusRecv is the chan for receiving opus audio
 
 	wsConn    *websocket.Conn
 	wsMutex   sync.Mutex
@@ -39,13 +42,13 @@ type Connection struct {
 	token     string
 	endpoint  string
 
-	// Used to send a close signal to goroutines
+	// close is used to send a close signal to goroutines.
 	close chan struct{}
 
-	// Used to allow blocking until connected
+	// connected is used to allow blocking until connected.
 	connected chan bool
 
-	// Used to pass the sessionid from UpdateState
+	// Used to pass the sessionID from UpdateState
 	// sessionRecv chan string UNUSED ATM
 
 	op4 op4
