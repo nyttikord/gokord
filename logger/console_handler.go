@@ -159,12 +159,10 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 		return buf
 	}
 	buf = fmt.Appendf(buf, " ")
-	if strings.Contains(a.Key, " ") {
-		a.Key = fmt.Sprintf("%q", a.Key)
-	}
+	a.Key = escapeSpace(a.Key)
 	switch a.Value.Kind() {
 	case slog.KindString:
-		buf = fmt.Appendf(buf, "%s=%q", a.Key, a.Value.String())
+		buf = fmt.Appendf(buf, "%s=%s", a.Key, escapeSpace(a.Value.String()))
 	case slog.KindTime:
 		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value.Time().Format(time.RFC3339))
 	case slog.KindGroup:
@@ -190,9 +188,19 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 		} else if b, ok := val.([]byte); ok {
 			val = string(b)
 		}
+		if s, ok := val.(string); ok {
+			s = escapeSpace(s)
+		}
 		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value)
 	}
 	return buf
+}
+
+func escapeSpace(s string) string {
+	if strings.Contains(s, " ") {
+		s = fmt.Sprintf("%q", s)
+	}
+	return s
 }
 
 // groupOrAttrs holds either a group name or a list of slog.Attrs.
