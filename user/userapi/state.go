@@ -33,9 +33,6 @@ func (s *State) createMemberMap(g *guild.Guild) {
 
 // MemberAdd adds a user.Member to the current State, or updates it if it already exists.
 func (s *State) MemberAdd(member *user.Member) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
@@ -43,6 +40,9 @@ func (s *State) MemberAdd(member *user.Member) error {
 		}
 		return err
 	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	members, ok := s.memberMap[member.GuildID]
 	if !ok {
@@ -118,9 +118,6 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 
 // PresenceAdd adds a status.Presence to the current State, or updates it if it already exists.
 func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
@@ -128,6 +125,9 @@ func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 		}
 		return err
 	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	for i, p := range g.Presences {
 		if p.User.ID == presence.User.ID {
@@ -202,6 +202,9 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s.GetMutex().RLock()
+	defer s.GetMutex().RUnlock()
 
 	for _, p := range g.Presences {
 		if p.User.ID == userID {

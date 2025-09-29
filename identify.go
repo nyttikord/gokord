@@ -36,10 +36,5 @@ func (s *Session) identify() error {
 	}
 
 	// Send Identify packet to Discord
-	op := identifyOp{discord.GatewayOpCodeIdentify, s.Identify}
-	s.wsMutex.Lock()
-	err := s.ws.WriteJSON(op)
-	s.wsMutex.Unlock()
-
-	return err
+	return s.GatewayWriteStruct(identifyOp{discord.GatewayOpCodeIdentify, s.Identify})
 }

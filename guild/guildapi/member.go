@@ -11,7 +11,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// Bans returns the guild.Ban in the given guild.
+// Bans returns guild.Ban in the given guild.
 //
 // limit is the limit of bans to return (max 1000).
 // If not empty, all returned guild.Ban will be before the ID specified by beforeID.

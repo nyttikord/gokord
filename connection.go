@@ -116,9 +116,7 @@ func (s *Session) Open() error {
 		p.Data.Sequence = sequence
 
 		s.logger.Info("sending resume packet to gateway")
-		s.wsMutex.Lock()
-		err = s.ws.WriteJSON(p)
-		s.wsMutex.Unlock()
+		err = s.GatewayWriteStruct(p)
 		if err != nil {
 			err = fmt.Errorf("error sending gateway resume packet, %s, %s", s.gateway, err)
 			return err

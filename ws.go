@@ -18,16 +18,12 @@ var (
 )
 
 func (s *Session) GatewayWriteStruct(v any) error {
-	s.RLock()
-	defer s.RUnlock()
+	s.wsMutex.Lock()
+	defer s.wsMutex.Unlock()
 	if s.ws == nil {
 		return ErrWSNotFound
 	}
-
-	s.wsMutex.Lock()
-	err := s.ws.WriteJSON(v)
-	s.wsMutex.Unlock()
-	return err
+	return s.ws.WriteJSON(v)
 }
 
 func (s *Session) GatewayReady() bool {

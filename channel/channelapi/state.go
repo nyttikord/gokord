@@ -66,7 +66,10 @@ func (s *State) ChannelAdd(channel *channel.Channel) error {
 		return nil
 	}
 
+	// required
+	s.GetMutex().Unlock()
 	g, err := s.GuildState().Guild(channel.GuildID)
+	s.GetMutex().Lock()
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)

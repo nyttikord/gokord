@@ -166,19 +166,23 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	case slog.KindTime:
 		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value.Time().Format(time.RFC3339))
 	case slog.KindGroup:
-		attrs := a.Value.Group()
-		// Ignore empty groups.
-		if len(attrs) == 0 {
-			return buf
-		}
-		if a.Key != "" {
-			buf = fmt.Appendf(buf, "%s={", a.Key)
-		}
-		for _, ga := range attrs {
-			buf = h.appendAttr(buf, ga)
-		}
-		if a.Key != "" {
-			buf[len(buf)-1] = '}' // replace last space by }
+		if b, ok := a.Value.Any().([]byte); ok {
+			buf = fmt.Appendf(buf, "%s=%s", a.Key, escapeSpace(string(b)))
+		} else {
+			attrs := a.Value.Group()
+			// Ignore empty groups.
+			if len(attrs) == 0 {
+				return buf
+			}
+			if a.Key != "" {
+				buf = fmt.Appendf(buf, "%s={", a.Key)
+			}
+			for _, ga := range attrs {
+				buf = h.appendAttr(buf, ga)
+			}
+			if a.Key != "" {
+				buf[len(buf)-1] = '}' // replace last space by }
+			}
 		}
 	default:
 		var val any
