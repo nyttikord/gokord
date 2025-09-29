@@ -23,12 +23,13 @@ func NewState(state state.State) *State {
 	}
 }
 
-func (s *State) createMemberMap(g *guild.Guild) {
+func (s *State) createMemberMap(g *guild.Guild) map[string]*user.Member {
 	members := make(map[string]*user.Member)
 	for _, m := range g.Members {
 		members[m.User.ID] = m
 	}
 	s.memberMap[g.ID] = members
+	return members
 }
 
 // MemberAdd adds a user.Member to the current State, or updates it if it already exists.
@@ -46,7 +47,7 @@ func (s *State) MemberAdd(member *user.Member) error {
 
 	members, ok := s.memberMap[member.GuildID]
 	if !ok {
-		s.createMemberMap(g)
+		members = s.createMemberMap(g)
 	}
 
 	m, ok := members[member.User.ID]
