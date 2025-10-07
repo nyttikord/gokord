@@ -117,6 +117,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 	if s.listening != nil {
 		s.logger.Debug("closing listening channel")
+		s.listening <- struct{}{}
 		close(s.listening)
 		s.listening = nil
 	}
