@@ -3,38 +3,63 @@ package gokord
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
 
-func (s *Session) reconnect() {
+var (
+	ErrShouldNotReconnect = errors.New("session should not reconnect")
+)
+
+func (s *Session) reconnect() error {
 	if !s.ShouldReconnectOnError {
-		return
+		return ErrShouldNotReconnect
 	}
 	s.logger.Info("trying to reconnect to gateway")
 
-	wait := time.Duration(1)
-	err := s.Open()
+	err := s.setupGateway(s.resumeGatewayURL)
+	if err != nil {
+		return err
+	}
 
-	for err != nil {
-		// Certain race conditions can call reconnect() twice.
-		// If this happens, we just break out of the reconnect loop
-		// TODO: fix this
-		if errors.Is(err, ErrWSAlreadyOpen) {
-			s.logger.Debug("Websocket already exists, no need to reconnect")
-			return
+	var p resumePacket
+	p.Op = discord.GatewayOpCodeResume
+	p.Data.Token = s.Identify.Token
+	p.Data.SessionID = s.sessionID
+	p.Data.Sequence = s.sequence.Load()
+	s.logger.Info("sending resume packet to gateway")
+	err = s.GatewayWriteStruct(p)
+	if err != nil {
+		err = fmt.Errorf("error sending gateway resume packet, %s, %s", s.gateway, err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			s.logger.Warn("force closing after error")
+			s.ForceClose()
 		}
-
-		s.logger.Error("reconnecting to gateway", "error", err)
-
-		time.Sleep(wait * time.Second)
-		wait *= min(wait*2, 600)
-
-		s.logger.Info("trying to reconnect to gateway")
-
-		err = s.Open()
+	}()
+	// handle missed event
+	e := new(discord.Event)
+	e.Type = ""
+	for e.Type != event.ResumedType {
+		if e.Type != "" {
+			if err = s.onGatewayEvent(e); err != nil {
+				return err
+			}
+		}
+		mt, m, err := s.ws.ReadMessage()
+		if err != nil {
+			return err
+		}
+		e, err = getGatewayEvent(mt, m)
+		if err != nil {
+			return err
+		}
 	}
 	s.logger.Info("successfully reconnected to gateway")
 
@@ -43,7 +68,7 @@ func (s *Session) reconnect() {
 	// However, there seems to be cases where something "weird" happens.
 	// So we're doing this for now just to improve stability in those edge cases.
 	if !s.ShouldReconnectVoiceOnSessionError {
-		return
+		return nil
 	}
 	s.RLock()
 	defer s.RUnlock()
@@ -53,6 +78,20 @@ func (s *Session) reconnect() {
 
 		// This is here just to prevent violently spamming the voice reconnects.
 		time.Sleep(1 * time.Second)
+	}
+	return nil
+}
+
+func (s *Session) forceReconnect() {
+	err := s.reconnect()
+	if err == nil {
+		return
+	}
+	s.logger.Error("reconnecting", "error", err)
+	err = s.Open()
+	if err != nil {
+		//NOTE: should we panic?
+		s.logger.Error("opening new session", "error", err)
 	}
 }
 

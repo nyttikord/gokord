@@ -3,7 +3,9 @@ package gokord
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -31,32 +33,32 @@ func (s *Session) Open() error {
 		return ErrWSAlreadyOpen
 	}
 
-	sequence := s.sequence.Load()
+	// init new sequence
+	s.sequence = &atomic.Int64{}
+	s.sequence.Store(0)
 
 	var gateway string
 	var err error
-	// Get the gateway to use for the Websocket connection
-	if sequence != 0 && s.sessionID != "" && s.resumeGatewayURL != "" {
-		s.logger.Debug("using resume gateway", "gateway", s.resumeGatewayURL)
-		gateway = s.resumeGatewayURL
-	} else {
-		if s.gateway == "" {
-			s.gateway, err = s.Gateway()
-			if err != nil {
-				return err
-			}
+	if s.gateway == "" {
+		s.gateway, err = s.Gateway()
+		if err != nil {
+			return err
 		}
-
-		gateway = s.gateway
 	}
+
+	gateway = s.gateway
 
 	// Add the version and encoding to the URL
 	gateway += "?v=" + discord.APIVersion + "&encoding=json"
+	return s.connect(gateway)
+}
 
+func (s *Session) setupGateway(gateway string) error {
 	// Connect to the Gateway
 	s.logger.Info("connecting to gateway", "gateway", gateway)
 	header := http.Header{}
 	header.Add("accept-encoding", "zlib")
+	var err error
 	s.ws, _, err = s.Dialer.Dial(gateway, header)
 	if err != nil {
 		s.logger.Error("connecting to gateway", "error", err, "gateway", s.gateway)
@@ -69,6 +71,14 @@ func (s *Session) Open() error {
 		return nil
 	})
 
+	return nil
+}
+
+func (s *Session) connect(gateway string) error {
+	var err error
+	if err = s.setupGateway(gateway); err != nil {
+		return err
+	}
 	defer func() {
 		if err != nil {
 			s.ForceClose()
@@ -76,14 +86,11 @@ func (s *Session) Open() error {
 	}()
 
 	// The first response from Discord should be an Op 10 (Hello) Packet.
-	// When processed by onGatewayEvent the heartbeat goroutine will be started.
 	mt, m, err := s.ws.ReadMessage()
 	if err != nil {
 		return err
 	}
-	s.Unlock()
-	e, err := s.onGatewayEvent(mt, m)
-	s.Lock()
+	e, err := getGatewayEvent(mt, m)
 	if err != nil {
 		return err
 	}
@@ -97,30 +104,13 @@ func (s *Session) Open() error {
 		err = fmt.Errorf("error unmarshalling helloOp, %s", err)
 		return err
 	}
+	h.HeartbeatInterval *= time.Millisecond
 
-	// Now we send either an Op 2 Identity if this is a brand new connection or Op 6 Resume if we are resuming an
-	// existing connection.
-	if s.sessionID == "" && sequence == 0 {
-		// Send Op 2 Identity Packet
-		err = s.identify()
-		if err != nil {
-			err = fmt.Errorf("error sending identify packet to gateway, %s, %s", s.gateway, err)
-			return err
-		}
-	} else {
-		// Send Op 6 Resume Packet
-		var p resumePacket
-		p.Op = discord.GatewayOpCodeResume
-		p.Data.Token = s.Identify.Token
-		p.Data.SessionID = s.sessionID
-		p.Data.Sequence = sequence
-
-		s.logger.Info("sending resume packet to gateway")
-		err = s.GatewayWriteStruct(p)
-		if err != nil {
-			err = fmt.Errorf("error sending gateway resume packet, %s, %s", s.gateway, err)
-			return err
-		}
+	// Send Op 2 Identity Packet
+	err = s.identify()
+	if err != nil {
+		err = fmt.Errorf("error sending identify packet to gateway, %s, %s", s.gateway, err)
+		return err
 	}
 
 	// Now Discord should send us a READY or RESUMED packet.
@@ -128,15 +118,12 @@ func (s *Session) Open() error {
 	if err != nil {
 		return err
 	}
-	s.Unlock()
-	e, err = s.onGatewayEvent(mt, m)
-	s.Lock()
+	e, err = getGatewayEvent(mt, m)
 	if err != nil {
 		return err
 	}
-	if e.Type != `READY` && e.Type != `RESUMED` {
-		// This is not fatal, but it does not follow their API documentation.
-		s.logger.Warn("expected READY/RESUMED", "got", e)
+	if e.Type != `READY` {
+		return fmt.Errorf("expected READY, got %v", e)
 	}
 
 	s.logger.Debug("We are now connected to Discord, emitting connect event")
@@ -147,7 +134,10 @@ func (s *Session) Open() error {
 	s.listening = make(chan any)
 
 	// Start sending heartbeats and reading messages from Discord.
-	go s.heartbeats(s.ws, s.listening, h.HeartbeatInterval)
+	go func() {
+		time.Sleep(time.Duration(rand.Float32() * float32(h.HeartbeatInterval)))
+		s.heartbeats(s.ws, s.listening, h.HeartbeatInterval)
+	}()
 	go s.listen(s.ws, s.listening)
 
 	return nil
@@ -162,13 +152,20 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 		case <-listening:
 			return
 		default:
-			_, err = s.onGatewayEvent(messageType, message)
+			var e *discord.Event
+			e, err = getGatewayEvent(messageType, message)
 			if err != nil {
-				s.logger.Error("handling event", "error", err)
+				s.logger.Error("handling event", "error", err, "when", "getting event")
+			} else {
+				err = s.onGatewayEvent(e)
+				if err != nil {
+					s.logger.Error("handling event", "error", err, "when", "handling event")
+				}
 			}
 		}
-
-		messageType, message, err = wsConn.ReadMessage()
+		if err == nil {
+			messageType, message, err = wsConn.ReadMessage()
+		}
 	}
 
 	// Detect if we have been closed manually.
@@ -190,7 +187,7 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 	}
 
 	s.logger.Info("calling reconnect() now")
-	s.reconnect()
+	s.forceReconnect()
 }
 
 type heartbeatOp struct {
@@ -207,25 +204,23 @@ const FailedHeartbeatAcks = 5 * time.Millisecond
 
 // HeartbeatLatency returns the latency between heartbeat acknowledgement and heartbeat send.
 func (s *Session) HeartbeatLatency() time.Duration {
-
 	return s.LastHeartbeatAck.Sub(s.LastHeartbeatSent)
-
 }
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeatIntervalMsec time.Duration) {
+func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeatInterval time.Duration) {
 	if listening == nil || ws == nil {
 		return
 	}
 
 	var err error
-	ticker := time.NewTicker(heartbeatIntervalMsec * time.Millisecond)
+	ticker := time.NewTicker(heartbeatInterval)
 	defer ticker.Stop()
 
 	last := time.Now().UTC()
 
-	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatIntervalMsec*FailedHeartbeatAcks) {
+	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatInterval/time.Millisecond*FailedHeartbeatAcks) {
 		s.RLock()
 		last = s.LastHeartbeatAck
 		s.RUnlock()
@@ -242,6 +237,7 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 		case <-ticker.C:
 			// continue loop and send heartbeat
 		case <-listening:
+			s.logger.Debug("exiting heartbeats")
 			return
 		}
 	}
@@ -259,7 +255,7 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 		s.logger.Error("closing session connection, force closing", "error", err)
 		s.ForceClose()
 	}
-	s.reconnect()
+	s.forceReconnect()
 }
 
 func (s *Session) heartbeat(ws *websocket.Conn, sequence int64) error {
