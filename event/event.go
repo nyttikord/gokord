@@ -17,10 +17,9 @@ type Manager struct {
 	onceHandlers map[string][]*eventHandlerInstance
 
 	onInterface func(any)
-	onReady     func(*Ready)
 }
 
-func NewManager(s bot.Session, onInterface func(any), onReady func(*Ready)) *Manager {
+func NewManager(s bot.Session, onInterface func(any)) *Manager {
 	return &Manager{
 		RWMutex:      sync.RWMutex{},
 		Logger:       s.Logger,
@@ -28,6 +27,5 @@ func NewManager(s bot.Session, onInterface func(any), onReady func(*Ready)) *Man
 		handlers:     make(map[string][]*eventHandlerInstance),
 		onceHandlers: make(map[string][]*eventHandlerInstance),
 		onInterface:  onInterface,
-		onReady:      onReady,
 	}
 }

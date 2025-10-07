@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -50,7 +51,8 @@ func (s *Session) setupGateway(gateway string) error {
 	s.Lock()
 	defer s.Unlock()
 	// Add the version and encoding to the URL
-	gateway += "?v=" + discord.APIVersion + "&encoding=json"
+	gateway = strings.TrimSuffix(gateway, "/")
+	gateway += "/?v=" + discord.APIVersion + "&encoding=json"
 
 	// Connect to the Gateway
 	s.logger.Info("connecting to gateway", "gateway", gateway)
@@ -124,6 +126,12 @@ func (s *Session) connect() error {
 	}
 	if e.Type != event.ReadyType {
 		return fmt.Errorf("expected %s, got %v", event.ReadyType, e)
+	}
+	s.Unlock() // required to dispatch ready
+	err = s.onGatewayEvent(e)
+	s.Lock()
+	if err != nil {
+		return err
 	}
 
 	s.logger.Debug("We are now connected to Discord, emitting connect event")

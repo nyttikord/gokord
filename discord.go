@@ -61,7 +61,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
-	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
+	s.eventManager = event.NewManager(s, s.onInterface)
 
 	s.voiceAPI = &voice.Requester{
 		Requester:   s,
