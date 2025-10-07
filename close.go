@@ -92,11 +92,12 @@ func (s *Session) forceReconnect() {
 	if err == nil {
 		return
 	}
-	s.logger.Error("reconnecting", "error", err)
+	s.logger.Error("reconnecting", "error", err, "gateway", s.gateway)
+	s.Logger().Warn("opening a new session")
 	err = s.Open()
 	if err != nil {
-		//NOTE: should we panic?
-		s.logger.Error("opening new session", "error", err)
+		// panic because we can't reconnect
+		panic(err)
 	}
 }
 
@@ -121,10 +122,8 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	s.DataReady = false
 
 	if s.listening != nil {
-		s.logger.Debug("closing listening channel")
+		s.logger.Debug("closing goroutines")
 		s.listening <- struct{}{}
-		close(s.listening)
-		s.listening = nil
 	}
 
 	for _, v := range s.voiceAPI.Connections {

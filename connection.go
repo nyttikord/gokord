@@ -36,7 +36,6 @@ func (s *Session) Open() error {
 	s.sequence = &atomic.Int64{}
 	s.sequence.Store(0)
 
-	var gateway string
 	var err error
 	if s.gateway == "" {
 		s.gateway, err = s.Gateway()
@@ -44,17 +43,15 @@ func (s *Session) Open() error {
 			return err
 		}
 	}
-
-	gateway = s.gateway
-
-	// Add the version and encoding to the URL
-	gateway += "?v=" + discord.APIVersion + "&encoding=json"
-	return s.connect(gateway)
+	return s.connect()
 }
 
 func (s *Session) setupGateway(gateway string) error {
 	s.Lock()
 	defer s.Unlock()
+	// Add the version and encoding to the URL
+	gateway += "?v=" + discord.APIVersion + "&encoding=json"
+
 	// Connect to the Gateway
 	s.logger.Info("connecting to gateway", "gateway", gateway)
 	header := http.Header{}
@@ -62,7 +59,6 @@ func (s *Session) setupGateway(gateway string) error {
 	var err error
 	s.ws, _, err = s.Dialer.Dial(gateway, header)
 	if err != nil {
-		s.logger.Error("connecting to gateway", "error", err, "gateway", s.gateway)
 		s.gateway = "" // clear cached gateway
 		s.ws = nil     // Just to be safe.
 		return err
@@ -76,9 +72,9 @@ func (s *Session) setupGateway(gateway string) error {
 }
 
 // connect must be called when Session's mutex is locked.
-func (s *Session) connect(gateway string) error {
+func (s *Session) connect() error {
 	s.Unlock() // required
-	err := s.setupGateway(gateway)
+	err := s.setupGateway(s.gateway)
 	s.Lock()
 	if err != nil {
 		return err
@@ -117,7 +113,7 @@ func (s *Session) connect(gateway string) error {
 		return err
 	}
 
-	// Now Discord should send us a READY or RESUMED packet.
+	// Now Discord should send us a READY packet.
 	mt, m, err = s.ws.ReadMessage()
 	if err != nil {
 		return err
@@ -149,8 +145,8 @@ func (s *Session) connect(gateway string) error {
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(_ *websocket.Conn, listening <-chan any) {
-	messageType, message, err := s.ws.ReadMessage()
+func (s *Session) listen(ws *websocket.Conn, listening <-chan any) {
+	messageType, message, err := ws.ReadMessage()
 	for err == nil {
 		select {
 		case <-listening:
@@ -169,23 +165,23 @@ func (s *Session) listen(_ *websocket.Conn, listening <-chan any) {
 			}
 		}
 		if err == nil {
-			messageType, message, err = s.ws.ReadMessage()
+			messageType, message, err = ws.ReadMessage()
 		}
 	}
 
 	// Detect if we have been closed manually.
 	// If a Close() has already happened, the websocket we are listening on will be different to the current
 	// session.
-	// Could be useless now
-	/*
-		s.RLock()
-		sameConnection := s.ws == wsConn
-		s.RUnlock()
+	// TODO: clean this
+	s.RLock()
+	sameConnection := s.ws == ws
+	s.RUnlock()
 
-		// everything is fine
-		if !sameConnection {
-			return
-		}*/
+	// everything is fine
+	if !sameConnection {
+		return
+	}
+
 	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
 	err = s.Close()
 	if err != nil {
@@ -217,6 +213,7 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeats(listening <-chan any, heartbeatInterval time.Duration) {
+	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(heartbeatInterval)
 	defer ticker.Stop()
@@ -229,7 +226,6 @@ func (s *Session) heartbeats(listening <-chan any, heartbeatInterval time.Durati
 		s.RUnlock()
 
 		err = s.heartbeat()
-		s.sequence.Add(1)
 
 		s.Lock()
 		s.DataReady = true
@@ -265,6 +261,6 @@ func (s *Session) heartbeat() error {
 	defer s.Unlock()
 	seq := s.sequence.Load()
 	s.LastHeartbeatSent = time.Now().UTC()
-	s.logger.Debug("sending gateway websocket heartbeat", "sequence", seq)
+	s.logger.Debug("sending websocket heartbeat", "sequence", seq)
 	return s.GatewayWriteStruct(heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
 }
