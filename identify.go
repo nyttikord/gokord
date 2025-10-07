@@ -10,7 +10,7 @@ type Identify struct {
 	Compress       bool                `json:"compress"`
 	LargeThreshold int                 `json:"large_threshold"`
 	Shard          *[2]int             `json:"shard,omitempty"`
-	Presence       GatewayStatusUpdate `json:"presence,omitempty"`
+	Presence       GatewayStatusUpdate `json:"presence"`
 	Intents        discord.Intent      `json:"intents"`
 }
 

@@ -97,7 +97,7 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 	switch e.Operation {
 	case discord.GatewayOpCodeHeartbeat: // must respond with a heartbeat packet within 5 seconds
 		s.logger.Debug("sending heartbeat in response to Op1")
-		return s.heartbeat(s.ws, s.sequence.Load())
+		return s.heartbeat()
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("closing and reconnecting in response to Op7")
 		err := s.CloseWithCode(websocket.CloseServiceRestart)

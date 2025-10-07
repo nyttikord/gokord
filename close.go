@@ -26,11 +26,15 @@ func (s *Session) reconnect() error {
 		return err
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	var p resumePacket
 	p.Op = discord.GatewayOpCodeResume
 	p.Data.Token = s.Identify.Token
 	p.Data.SessionID = s.sessionID
 	p.Data.Sequence = s.sequence.Load()
+
 	s.logger.Info("sending resume packet to gateway")
 	err = s.GatewayWriteStruct(p)
 	if err != nil {
@@ -48,7 +52,10 @@ func (s *Session) reconnect() error {
 	e.Type = ""
 	for e.Type != event.ResumedType {
 		if e.Type != "" {
-			if err = s.onGatewayEvent(e); err != nil {
+			s.Unlock() // required
+			err = s.onGatewayEvent(e)
+			s.Lock()
+			if err != nil {
 				return err
 			}
 		}
@@ -70,8 +77,6 @@ func (s *Session) reconnect() error {
 	if !s.ShouldReconnectVoiceOnSessionError {
 		return nil
 	}
-	s.RLock()
-	defer s.RUnlock()
 	for _, v := range s.voiceAPI.Connections {
 		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
 		go v.Reconnect()

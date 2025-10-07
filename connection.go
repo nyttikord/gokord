@@ -27,7 +27,6 @@ type resumePacket struct {
 func (s *Session) Open() error {
 	s.Lock()
 	defer s.Unlock()
-
 	// If the websock is already open, bail out here.
 	if s.ws != nil {
 		return ErrWSAlreadyOpen
@@ -54,6 +53,8 @@ func (s *Session) Open() error {
 }
 
 func (s *Session) setupGateway(gateway string) error {
+	s.Lock()
+	defer s.Unlock()
 	// Connect to the Gateway
 	s.logger.Info("connecting to gateway", "gateway", gateway)
 	header := http.Header{}
@@ -74,11 +75,15 @@ func (s *Session) setupGateway(gateway string) error {
 	return nil
 }
 
+// connect must be called when Session's mutex is locked.
 func (s *Session) connect(gateway string) error {
-	var err error
-	if err = s.setupGateway(gateway); err != nil {
+	s.Unlock() // required
+	err := s.setupGateway(gateway)
+	s.Lock()
+	if err != nil {
 		return err
 	}
+	s.Lock()
 	defer func() {
 		if err != nil {
 			s.ForceClose()
@@ -122,8 +127,8 @@ func (s *Session) connect(gateway string) error {
 	if err != nil {
 		return err
 	}
-	if e.Type != `READY` {
-		return fmt.Errorf("expected READY, got %v", e)
+	if e.Type != event.ReadyType {
+		return fmt.Errorf("expected %s, got %v", event.ReadyType, e)
 	}
 
 	s.logger.Debug("We are now connected to Discord, emitting connect event")
@@ -131,25 +136,26 @@ func (s *Session) connect(gateway string) error {
 
 	// Create listening chan outside of listen, as it needs to happen inside the mutex lock and needs to exist before
 	// calling heartbeat and listen goroutines.
-	s.listening = make(chan any)
+	s.listening = make(chan any, 1)
 
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
 		time.Sleep(time.Duration(rand.Float32() * float32(h.HeartbeatInterval)))
-		s.heartbeats(s.ws, s.listening, h.HeartbeatInterval)
+		s.heartbeats(s.listening, h.HeartbeatInterval)
 	}()
 	go s.listen(s.ws, s.listening)
 
 	return nil
 }
 
-// listen polls the websocket connection for events, it will stop when the listening channel is closed, or an error
+// listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
-	messageType, message, err := wsConn.ReadMessage()
+func (s *Session) listen(_ *websocket.Conn, listening <-chan any) {
+	messageType, message, err := s.ws.ReadMessage()
 	for err == nil {
 		select {
 		case <-listening:
+			s.logger.Debug("exiting listen websocket event")
 			return
 		default:
 			var e *discord.Event
@@ -164,21 +170,23 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan any) {
 			}
 		}
 		if err == nil {
-			messageType, message, err = wsConn.ReadMessage()
+			messageType, message, err = s.ws.ReadMessage()
 		}
 	}
 
 	// Detect if we have been closed manually.
 	// If a Close() has already happened, the websocket we are listening on will be different to the current
 	// session.
-	s.RLock()
-	sameConnection := s.ws == wsConn
-	s.RUnlock()
+	// Could be useless now
+	/*
+		s.RLock()
+		sameConnection := s.ws == wsConn
+		s.RUnlock()
 
-	// everything is fine
-	if !sameConnection {
-		return
-	}
+		// everything is fine
+		if !sameConnection {
+			return
+		}*/
 	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
 	err = s.Close()
 	if err != nil {
@@ -200,7 +208,7 @@ type helloOp struct {
 }
 
 // FailedHeartbeatAcks is the Number of heartbeat intervals to wait until forcing a connection restart.
-const FailedHeartbeatAcks = 5 * time.Millisecond
+const FailedHeartbeatAcks = 5
 
 // HeartbeatLatency returns the latency between heartbeat acknowledgement and heartbeat send.
 func (s *Session) HeartbeatLatency() time.Duration {
@@ -209,24 +217,19 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeatInterval time.Duration) {
-	if listening == nil || ws == nil {
-		return
-	}
-
+func (s *Session) heartbeats(listening <-chan any, heartbeatInterval time.Duration) {
 	var err error
 	ticker := time.NewTicker(heartbeatInterval)
 	defer ticker.Stop()
 
 	last := time.Now().UTC()
 
-	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatInterval/time.Millisecond*FailedHeartbeatAcks) {
+	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatInterval*FailedHeartbeatAcks) {
 		s.RLock()
 		last = s.LastHeartbeatAck
 		s.RUnlock()
 
-		sequence := s.sequence.Load()
-		err = s.heartbeat(ws, sequence)
+		err = s.heartbeat()
 		s.sequence.Add(1)
 
 		s.Lock()
@@ -258,11 +261,11 @@ func (s *Session) heartbeats(ws *websocket.Conn, listening <-chan any, heartbeat
 	s.forceReconnect()
 }
 
-func (s *Session) heartbeat(ws *websocket.Conn, sequence int64) error {
-	s.logger.Debug("sending gateway websocket heartbeat", "sequence", sequence)
-	s.wsMutex.Lock()
+func (s *Session) heartbeat() error {
+	s.Lock()
+	defer s.Unlock()
+	seq := s.sequence.Load()
 	s.LastHeartbeatSent = time.Now().UTC()
-	err := ws.WriteJSON(heartbeatOp{discord.GatewayOpCodeHeartbeat, sequence})
-	s.wsMutex.Unlock()
-	return err
+	s.logger.Debug("sending gateway websocket heartbeat", "sequence", seq)
+	return s.GatewayWriteStruct(heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
 }
