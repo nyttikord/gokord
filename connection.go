@@ -83,7 +83,6 @@ func (s *Session) connect(gateway string) error {
 	if err != nil {
 		return err
 	}
-	s.Lock()
 	defer func() {
 		if err != nil {
 			s.ForceClose()
