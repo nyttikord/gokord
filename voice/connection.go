@@ -338,11 +338,6 @@ func (v *Connection) Reconnect() {
 		time.Sleep(wait * time.Second)
 		wait *= min(wait*2, 600)
 
-		if v.requester.GatewayReady() {
-			v.Logger.Warn("cannot reconnect to channel with unready requester", "channel", v.ChannelID)
-			continue
-		}
-
 		v.Logger.Info("trying to reconnect to channel", "channel", v.ChannelID)
 
 		_, err := v.requester.ChannelJoin(v.GuildID, v.ChannelID, v.mute, v.deaf)

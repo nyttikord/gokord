@@ -28,8 +28,6 @@ type Requester interface {
 
 	// GatewayWriteStruct writes a struck as a json to Discord gateway.
 	GatewayWriteStruct(any) error
-	// GatewayReady returns true if the Gateway is ready.
-	GatewayReady() bool
 	GatewayDial(context.Context, string, http.Header) (*websocket.Conn, *http.Response, error)
 }
 

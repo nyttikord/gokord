@@ -52,10 +52,6 @@ type Session struct {
 
 	// Exposed but should not be modified by Application.
 
-	// Whether the Data Websocket is ready.
-	//
-	// Note: May be deprecated soon.
-	DataReady bool
 	// Max number of REST API retries.
 	MaxRestRetries int
 	// Status stores the current status of the websocket connection this is being tested, may stay, may go away.

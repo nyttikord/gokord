@@ -1,10 +1,10 @@
 package gokord
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
-	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -74,38 +74,32 @@ func TestOpenClose(t *testing.T) {
 		t.Fatalf("TestClose, d.Open failed: %+v", err)
 	}
 
-	// We need a better way to know the session is ready for use,
-	// this is totally gross.
-	start := time.Now()
-	for {
-		d.RLock()
-		if d.DataReady {
-			d.RUnlock()
-			break
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	finished := make(chan struct{}, 1)
+
+	d.EventManager().AddHandler(func(s bot.Session, _ *event.Ready) {
+		// UpdateStatus - maybe we move this into wsapi_test.go but the websocket
+		// created here is needed.  This helps tests that the websocket was setup
+		// and it is working.
+		if err := d.BotAPI().UpdateGameStatus(0, time.Now().String()); err != nil {
+			t.Errorf("UpdateStatus error: %+v", err)
 		}
-		d.RUnlock()
 
-		if time.Since(start) > 10*time.Second {
-			t.Fatal("DataReady never became true.yy")
+		if err := d.Close(); err != nil {
+			d.ForceClose()
+			t.Fatalf("TestClose, d.Close failed: %+v", err)
 		}
-		runtime.Gosched()
-	}
 
-	// TODO find a better way
-	// Add a small sleep here to make sure heartbeat and other events
-	// have enough time to get fired.  Need a way to actually check
-	// those events.
-	time.Sleep(2 * time.Second)
+		finished <- struct{}{}
+	})
 
-	// UpdateStatus - maybe we move this into wsapi_test.go but the websocket
-	// created here is needed.  This helps tests that the websocket was setup
-	// and it is working.
-	if err := d.BotAPI().UpdateGameStatus(0, time.Now().String()); err != nil {
-		t.Errorf("UpdateStatus error: %+v", err)
-	}
-
-	if err := d.Close(); err != nil {
-		t.Fatalf("TestClose, d.Close failed: %+v", err)
+	select {
+	case <-finished:
+	case <-ctx.Done():
+		d.ForceClose()
+		t.Fatalf("TestClose, d.Close failed: %+v", ctx.Err())
 	}
 }
 

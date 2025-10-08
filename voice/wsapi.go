@@ -38,7 +38,7 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 	r.RUnlock()
 
 	if v == nil {
-		v = &Connection{Logger: r.Requester.Logger()}
+		v = &Connection{Logger: r.Requester.Logger().With("module", "voice")}
 		r.Lock()
 		r.Connections[guildID] = v
 		r.Unlock()

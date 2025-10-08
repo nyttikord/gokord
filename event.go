@@ -106,8 +106,9 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 			s.ForceClose()
 		}
 		//TODO: verify this behavior
-		return s.reconnect()
-	case discord.GatewayOpCodeInvalidSession: // must respond with an Identify packet
+		s.forceReconnect()
+		return nil
+	case discord.GatewayOpCodeInvalidSession:
 		s.logger.Warn("invalid session received, reconnecting")
 		err := s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
@@ -121,14 +122,18 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 		}
 
 		if resumable {
-			return s.reconnect()
+			s.forceReconnect()
+			return nil
 		}
 
 		s.logger.Info("gateway session is not resumable, discarding its information")
 		s.resumeGatewayURL = ""
 		s.sessionID = ""
 		s.sequence.Store(0)
-		return s.Open()
+		if err = s.Open(); err != nil {
+			panic(err)
+		}
+		return nil
 	case discord.GatewayOpCodeHeartbeatAck:
 		s.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()

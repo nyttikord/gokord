@@ -22,7 +22,7 @@ type Manager struct {
 func NewManager(s bot.Session, onInterface func(any)) *Manager {
 	return &Manager{
 		RWMutex:      sync.RWMutex{},
-		Logger:       s.Logger,
+		Logger:       func() *slog.Logger { return s.Logger().With("module", "event") },
 		SyncEvents:   false,
 		handlers:     make(map[string][]*eventHandlerInstance),
 		onceHandlers: make(map[string][]*eventHandlerInstance),

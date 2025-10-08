@@ -15,6 +15,7 @@ var (
 	ErrShouldNotReconnect   = errors.New("session should not reconnect")
 	ErrSendingResumePacket  = errors.New("cannot send resume packet")
 	ErrHandlingMissedEvents = errors.New("cannot handle missed events")
+	ErrInvalidSession       = errors.New("invalid session")
 )
 
 type resumePacket struct {
@@ -69,11 +70,12 @@ func (s *Session) reconnect() error {
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
-		if e.Operation == discord.GatewayOpCodeHello {
-			if err := s.handleHello(e); err != nil {
-				return err
-			}
-		} else {
+		switch e.Operation {
+		case discord.GatewayOpCodeHello:
+			err = s.handleHello(e)
+		case discord.GatewayOpCodeInvalidSession:
+			return ErrInvalidSession
+		default:
 			s.Unlock() // required
 			err = s.onGatewayEvent(e)
 			s.Lock()
@@ -139,8 +141,6 @@ func (s *Session) CloseWithCode(closeCode int) error {
 		return ErrWSNotFound
 	}
 
-	s.DataReady = false
-
 	if s.listening != nil {
 		s.logger.Debug("closing goroutines")
 		s.listening <- struct{}{}
@@ -157,7 +157,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
 	// connection.
 	s.logger.Debug("sending close frame")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	errChan := make(chan error, 1)

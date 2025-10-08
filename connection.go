@@ -191,11 +191,11 @@ func (s *Session) listen(ws *websocket.Conn, listening <-chan any) {
 
 	// err will be returned if we read a message from a closed websocket
 	// the listening chan seems to be useless because it is never called before an error is returned
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseServiceRestart) {
 		return
 	}
 
-	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
+	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway, "message", message)
 	err = s.Close()
 	if err != nil {
 		s.logger.Error("closing session connection, force closing", "error", err)
@@ -234,10 +234,6 @@ func (s *Session) heartbeats(listening <-chan any) {
 		s.RUnlock()
 
 		err = s.heartbeat()
-
-		s.Lock()
-		s.DataReady = true
-		s.Unlock()
 
 		select {
 		case <-ticker.C:

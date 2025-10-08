@@ -26,13 +26,6 @@ func (s *Session) GatewayWriteStruct(v any) error {
 	return s.ws.WriteJSON(v)
 }
 
-func (s *Session) GatewayReady() bool {
-	if s.ws == nil {
-		return false
-	}
-	return s.DataReady
-}
-
 func (s *Session) GatewayDial(ctx context.Context, urlString string, headers http.Header) (*websocket.Conn, *http.Response, error) {
 	return s.Dialer.DialContext(ctx, urlString, headers)
 }
