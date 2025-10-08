@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -57,13 +56,12 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		Client:                             &http.Client{Timeout: 20 * time.Second},
 		Dialer:                             websocket.DefaultDialer,
 		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
-		sequence:                           &atomic.Int64{},
 		LastHeartbeatAck:                   time.Now().UTC(),
 		logger:                             logger,
 		RWMutex:                            &sync.RWMutex{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
-	s.eventManager = event.NewManager(s, s.onInterface, s.onReady)
+	s.eventManager = event.NewManager(s, s.onInterface)
 
 	s.voiceAPI = &voice.Requester{
 		Requester:   s,

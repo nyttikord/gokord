@@ -54,35 +54,33 @@ func (s *Session) onInterface(i any) {
 
 // onReady handles the ready event.
 func (s *Session) onReady(r *event.Ready) {
-
 	// Store the SessionID within the Session struct.
 	s.sessionID = r.SessionID
 
 	// Store the ResumeGatewayURL within the Session struct.
 	s.resumeGatewayURL = r.ResumeGatewayURL
+	//s.logger.Debug("bot ready", "session_id", s.sessionID, "resume_url", r.ResumeGatewayURL)
 }
 
-// onGatewayEvent is the "event handler" for all messages received on the Discord Gateway API websocket connection.
-func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Event, error) {
+// getGatewayEvent returns the discord.Event associated with the message given.
+func getGatewayEvent(messageType int, message []byte) (*discord.Event, error) {
 	var err error
 	var reader io.Reader
 	reader = bytes.NewBuffer(message)
 
-	// If this is a compressed message, uncompress it.
 	if messageType == websocket.BinaryMessage {
-		z, err2 := zlib.NewReader(reader)
-		if err2 != nil {
-			return nil, err2
+		// If this is a compressed message, uncompress it.
+		z, err := zlib.NewReader(reader)
+		if err != nil {
+			return nil, err
 		}
+		b, err := io.ReadAll(z)
 
-		defer func() {
-			err3 := z.Close()
-			if err3 != nil {
-				s.logger.Error("closing zlib", "error", err)
-			}
-		}()
-
-		reader = z
+		err = z.Close()
+		if err != nil {
+			return nil, err
+		}
+		reader = bytes.NewBuffer(b)
 	}
 
 	var e *discord.Event
@@ -90,26 +88,28 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 	if err = decoder.Decode(&e); err != nil {
 		return e, err
 	}
+	return e, nil
+}
 
+// onGatewayEvent is the "event handler" for all messages received on the Discord Gateway API websocket connection.
+func (s *Session) onGatewayEvent(e *discord.Event) error {
 	// handle special opcode
 	switch e.Operation {
-	case discord.GatewayOpCodeHello: // processed by Open()
-		return e, nil
 	case discord.GatewayOpCodeHeartbeat: // must respond with a heartbeat packet within 5 seconds
 		s.logger.Debug("sending heartbeat in response to Op1")
-		return e, s.heartbeat(s.ws, s.sequence.Load())
+		return s.heartbeat()
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("closing and reconnecting in response to Op7")
-		err = s.CloseWithCode(websocket.CloseServiceRestart)
+		err := s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
 			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
 		}
-		s.reconnect()
-		return e, nil
+		//TODO: verify this behavior
+		return s.reconnect()
 	case discord.GatewayOpCodeInvalidSession: // must respond with an Identify packet
 		s.logger.Warn("invalid session received, reconnecting")
-		err = s.CloseWithCode(websocket.CloseServiceRestart)
+		err := s.CloseWithCode(websocket.CloseServiceRestart)
 		if err != nil {
 			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
@@ -117,24 +117,24 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 
 		var resumable bool
 		if err = json.Unmarshal(e.RawData, &resumable); err != nil {
-			return e, err
+			return err
 		}
 
-		if !resumable {
-			s.logger.Info("gateway session is not resumable, discarding its information")
-			s.resumeGatewayURL = ""
-			s.sessionID = ""
-			s.sequence.Store(0)
+		if resumable {
+			return s.reconnect()
 		}
 
-		s.reconnect()
-		return e, nil
+		s.logger.Info("gateway session is not resumable, discarding its information")
+		s.resumeGatewayURL = ""
+		s.sessionID = ""
+		s.sequence.Store(0)
+		return s.Open()
 	case discord.GatewayOpCodeHeartbeatAck:
 		s.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()
 		s.Unlock()
 		s.logger.Debug("got heartbeat ACK", "ping", s.HeartbeatLatency())
-		return e, nil
+		return nil
 	}
 
 	// Do not try to Dispatch a non-Dispatch Message
@@ -147,25 +147,26 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 			"seq", e.Sequence,
 			"type", e.Type,
 			"raw", string(e.RawData),
-			"message", string(message),
 		)
-		return e, nil
+		return nil
 	}
 
 	s.sequence.Store(e.Sequence)
 
+	var typ string
+	var d any
 	if eh, ok := event.GetInterfaceProvider(e.Type); ok {
 		e.Struct = eh.New()
 
-		if err = json.Unmarshal(e.RawData, e.Struct); err != nil {
+		if err := json.Unmarshal(e.RawData, e.Struct); err != nil {
 			s.logger.Warn("failed to unmarshal event", "type", e.Type, "raw", e.RawData)
 			// READY events are always emitted
 			if e.Type != event.ReadyType {
-				return nil, err
+				return err
 			}
 		}
-
-		s.eventManager.EmitEvent(s, e.Type, e.Struct)
+		typ = e.Type
+		d = e.Struct
 	} else {
 		s.logger.Warn(
 			"unknown event",
@@ -173,10 +174,10 @@ func (s *Session) onGatewayEvent(messageType int, message []byte) (*discord.Even
 			"seq", e.Sequence,
 			"type", e.Type,
 			"raw", e.RawData,
-			"message", string(message),
 		)
-		s.eventManager.EmitEvent(s, event.EventType, e)
+		typ = event.EventType
+		d = e
 	}
-
-	return e, nil
+	s.eventManager.EmitEvent(s, typ, d)
+	return nil
 }
