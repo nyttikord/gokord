@@ -76,7 +76,7 @@ type heartbeatOp struct {
 }
 
 func (s *Session) handleHello(e *discord.Event) error {
-	s.logger.Debug("Op 10 Hello Packet received from Discord")
+	s.logger.Debug("Op 10 (Hello) received")
 	s.LastHeartbeatAck = time.Now().UTC()
 	var h helloOp
 	if err := json.Unmarshal(e.RawData, &h); err != nil {
@@ -148,7 +148,7 @@ func (s *Session) connect() error {
 }
 
 func (s *Session) finishConnection() {
-	s.logger.Debug("We are now connected to Discord, emitting connect event")
+	s.logger.Debug("connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
 
 	// Create listening chan outside of listen, as it needs to happen inside the mutex lock and needs to exist before
@@ -189,16 +189,9 @@ func (s *Session) listen(ws *websocket.Conn, listening <-chan any) {
 		}
 	}
 
-	// Detect if we have been closed manually.
-	// If a Close() has already happened, the websocket we are listening on will be different to the current
-	// session.
-	// TODO: clean this
-	s.RLock()
-	sameConnection := s.ws == ws
-	s.RUnlock()
-
-	// everything is fine
-	if !sameConnection {
+	// err will be returned if we read a message from a closed websocket
+	// the listening chan seems to be useless because it is never called before an error is returned
+	if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 		return
 	}
 

@@ -3,8 +3,11 @@ package gokord
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -121,6 +124,25 @@ type GatewayStatusUpdate struct {
 	Game   status.Activity `json:"game"`
 	Status string          `json:"status"`
 	AFK    bool            `json:"afk"`
+}
+
+// OpenAndBlock calls Session.Open and block the program until an OS signal is received.
+// It returns an error if Session.Open or Session.Close return an error.
+// When this function returns, the session is already disconnected.
+func (s *Session) OpenAndBlock() error {
+	err := s.Open()
+	if err != nil {
+		return err
+	}
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-sc
+	err = s.Close()
+	if err != nil {
+		s.ForceClose()
+		return err
+	}
+	return nil
 }
 
 func (s *Session) Logger() *slog.Logger {

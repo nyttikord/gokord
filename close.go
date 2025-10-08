@@ -152,7 +152,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 			s.logger.Error("disconnecting voice from channel", "error", err, "channel", v.ChannelID)
 		}
 	}
-	// TODO: force stop any reconnecting voice channels
+	// TODO: stop any reconnecting voice channels
 
 	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
 	// connection.
@@ -163,14 +163,19 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	errChan := make(chan error, 1)
 	go func() {
 		s.wsMutex.Lock()
+		closed := make(chan error, 1) // error chan in case if we must return an error
+		s.ws.SetCloseHandler(func(code int, text string) error {
+			s.logger.Debug("websocket closed by Discord")
+			closed <- nil
+			return nil
+		})
 		err := s.ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""))
 		s.wsMutex.Unlock()
-		errChan <- err
-		// TODO: waiting for Discord to close the websocket
-		// I have searched a way to wait for the ws to be closed, but I have found nothing on it.
-		// I don't know how to do this.
-		// I don't know if this needed.
-		// Currently, this work without issues, so it's fine I guess?
+		if err != nil {
+			errChan <- err
+			return
+		}
+		errChan <- <-closed
 	}()
 
 	// we do not handle it because throwing an error while sending a close message is a big error,
