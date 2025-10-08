@@ -12,8 +12,19 @@ import (
 )
 
 var (
-	ErrShouldNotReconnect = errors.New("session should not reconnect")
+	ErrShouldNotReconnect   = errors.New("session should not reconnect")
+	ErrSendingResumePacket  = errors.New("cannot send resume packet")
+	ErrHandlingMissedEvents = errors.New("cannot handle missed events")
 )
+
+type resumePacket struct {
+	Op   discord.GatewayOpCode `json:"op"`
+	Data struct {
+		Token     string `json:"token"`
+		SessionID string `json:"session_id"`
+		Sequence  int64  `json:"seq"`
+	} `json:"d"`
+}
 
 func (s *Session) reconnect() error {
 	if !s.ShouldReconnectOnError {
@@ -38,8 +49,7 @@ func (s *Session) reconnect() error {
 	s.logger.Info("sending resume packet to gateway")
 	err = s.GatewayWriteStruct(p)
 	if err != nil {
-		err = fmt.Errorf("error sending gateway resume packet, %s, %s", s.gateway, err)
-		return err
+		return errors.Join(err, ErrSendingResumePacket)
 	}
 	defer func() {
 		if err != nil {
@@ -51,24 +61,24 @@ func (s *Session) reconnect() error {
 	e := new(discord.Event)
 	e.Type = ""
 	for e.Type != event.ResumedType {
-		if e.Type != "" {
-			s.Unlock() // required
-			err = s.onGatewayEvent(e)
-			s.Lock()
-			if err != nil {
-				return err
-			}
-		}
 		mt, m, err := s.ws.ReadMessage()
 		if err != nil {
-			return err
+			return errors.Join(err, ErrHandlingMissedEvents)
 		}
 		e, err = getGatewayEvent(mt, m)
 		if err != nil {
-			return err
+			return errors.Join(err, ErrHandlingMissedEvents)
+		}
+		s.Unlock() // required
+		err = s.onGatewayEvent(e)
+		s.Lock()
+		if err != nil {
+			return errors.Join(err, ErrHandlingMissedEvents)
 		}
 	}
 	s.logger.Info("successfully reconnected to gateway")
+
+	s.finishConnection()
 
 	// I'm not sure if this is actually needed.
 	// If the gw reconnect works properly, voice should stay alive.
@@ -87,6 +97,9 @@ func (s *Session) reconnect() error {
 	return nil
 }
 
+// forceReconnect the session.
+// If the reconnection fails, it opens a new session.
+// If it cannot create a new session, it panics.
 func (s *Session) forceReconnect() {
 	err := s.reconnect()
 	if err == nil {
@@ -96,6 +109,7 @@ func (s *Session) forceReconnect() {
 	s.Logger().Warn("opening a new session")
 	err = s.Open()
 	if err != nil {
+		err = errors.Join(err, fmt.Errorf("failed to force reconnect"))
 		// panic because we can't reconnect
 		panic(err)
 	}
@@ -132,7 +146,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 			s.logger.Error("disconnecting voice from channel", "error", err, "channel", v.ChannelID)
 		}
 	}
-	// TODO: Close all active Voice Connections force stop any reconnecting voice channels
+	// TODO: force stop any reconnecting voice channels
 
 	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
 	// connection.

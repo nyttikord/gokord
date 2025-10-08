@@ -31,24 +31,18 @@ type Session struct {
 	// General configurable settings.
 
 	MFA bool
-
 	// Should the session reconnect the websocket on errors.
 	ShouldReconnectOnError bool
-
 	// Should voice connections reconnect on a session reconnect.
 	ShouldReconnectVoiceOnSessionError bool
-
 	// Should the session retry requests when rate limited.
 	ShouldRetryOnRateLimit bool
-
 	// Identify is sent during initial handshake with the discord gateway.
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
-
 	// Should state tracking be enabled.
 	// State tracking is the best way for getting the users active guilds and the members of the guilds.
 	StateEnabled bool
-
 	// Whether to call event handlers synchronously.
 	// e.g. false = launch event handlers in their own goroutines.
 	SyncEvents bool
@@ -59,55 +53,41 @@ type Session struct {
 	//
 	// Note: May be deprecated soon.
 	DataReady bool
-
 	// Max number of REST API retries.
 	MaxRestRetries int
-
 	// Status stores the current status of the websocket connection this is being tested, may stay, may go away.
 	status int32
-
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
-
 	// The http.Client used for REST requests.
 	Client *http.Client
-
 	// The websocket.Dialer used for WebSocket connection.
 	Dialer *websocket.Dialer
-
 	// The UserAgent used for REST APIs.
 	UserAgent string
-
 	// Stores the LastHeartbeatAck that was received (in UTC).
 	LastHeartbeatAck time.Time
-
 	// Stores the LastHeartbeatSent (in UTC).
 	LastHeartbeatSent time.Time
-
 	// Used to deal with rate limits.
 	RateLimiter *discord.RateLimiter
+	// heartbeatInterval is the interval between two heartbeats
+	heartbeatInterval time.Duration
 
 	// Event handlers
 	eventManager *event.Manager
-
 	// The websocket connection.
 	ws *websocket.Conn
-
 	// When nil, the session is not listening.
 	listening chan any
-
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *atomic.Int64
-
 	// Stores sessions current Discord Resume Gateway.
 	resumeGatewayURL string
-
 	// Stores sessions current Discord Gateway.
 	gateway string
-
 	// Stores session ID of current Gateway connection.
 	sessionID string
-
 	// Used to make sure gateway websocket writes do not happen concurrently.
 	wsMutex sync.Mutex
 

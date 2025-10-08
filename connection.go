@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"net/http"
@@ -14,14 +15,10 @@ import (
 	"github.com/nyttikord/gokord/event"
 )
 
-type resumePacket struct {
-	Op   discord.GatewayOpCode `json:"op"`
-	Data struct {
-		Token     string `json:"token"`
-		SessionID string `json:"session_id"`
-		Sequence  int64  `json:"seq"`
-	} `json:"d"`
-}
+var (
+	ErrReadingReadyPacket = errors.New("cannot read READY packet")
+	ErrIdentifying        = errors.New("cannot identify")
+)
 
 // Open creates a websocket connection to Discord.
 // https://discord.com/developers/docs/topics/gateway#connecting
@@ -73,6 +70,11 @@ func (s *Session) setupGateway(gateway string) error {
 	return nil
 }
 
+type heartbeatOp struct {
+	Op   discord.GatewayOpCode `json:"op"`
+	Data int64                 `json:"d"`
+}
+
 // connect must be called when Session's mutex is locked.
 func (s *Session) connect() error {
 	s.Unlock() // required
@@ -103,29 +105,28 @@ func (s *Session) connect() error {
 	s.LastHeartbeatAck = time.Now().UTC()
 	var h helloOp
 	if err = json.Unmarshal(e.RawData, &h); err != nil {
-		err = fmt.Errorf("error unmarshalling helloOp, %s", err)
-		return err
+		return errors.Join(err, fmt.Errorf("cannot unmarshal HelloOp"))
 	}
-	h.HeartbeatInterval *= time.Millisecond
+	s.heartbeatInterval = h.HeartbeatInterval * time.Millisecond
 
 	// Send Op 2 Identity Packet
 	err = s.identify()
 	if err != nil {
-		err = fmt.Errorf("error sending identify packet to gateway, %s, %s", s.gateway, err)
-		return err
+		return errors.Join(err, ErrIdentifying)
 	}
 
 	// Now Discord should send us a READY packet.
 	mt, m, err = s.ws.ReadMessage()
 	if err != nil {
-		return err
+		return errors.Join(err, ErrReadingReadyPacket)
 	}
 	e, err = getGatewayEvent(mt, m)
 	if err != nil {
-		return err
+		return errors.Join(err, ErrReadingReadyPacket)
 	}
 	if e.Type != event.ReadyType {
-		return fmt.Errorf("expected %s, got %v", event.ReadyType, e)
+		s.logger.Error("invalid READY packet", "type got", e.Type)
+		return ErrReadingReadyPacket
 	}
 	s.Unlock() // required to dispatch ready
 	err = s.onGatewayEvent(e)
@@ -134,6 +135,12 @@ func (s *Session) connect() error {
 		return err
 	}
 
+	s.finishConnection()
+
+	return nil
+}
+
+func (s *Session) finishConnection() {
 	s.logger.Debug("We are now connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
 
@@ -143,12 +150,10 @@ func (s *Session) connect() error {
 
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
-		time.Sleep(time.Duration(rand.Float32() * float32(h.HeartbeatInterval)))
-		s.heartbeats(s.listening, h.HeartbeatInterval)
+		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
+		s.heartbeats(s.listening)
 	}()
 	go s.listen(s.ws, s.listening)
-
-	return nil
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
@@ -197,13 +202,8 @@ func (s *Session) listen(ws *websocket.Conn, listening <-chan any) {
 		s.ForceClose()
 	}
 
-	s.logger.Info("calling reconnect() now")
+	s.logger.Info("reconnecting")
 	s.forceReconnect()
-}
-
-type heartbeatOp struct {
-	Op   discord.GatewayOpCode `json:"op"`
-	Data int64                 `json:"d"`
 }
 
 type helloOp struct {
@@ -220,15 +220,15 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats(listening <-chan any, heartbeatInterval time.Duration) {
+func (s *Session) heartbeats(listening <-chan any) {
 	s.logger.Debug("starting heartbeats")
 	var err error
-	ticker := time.NewTicker(heartbeatInterval)
+	ticker := time.NewTicker(s.heartbeatInterval)
 	defer ticker.Stop()
 
 	last := time.Now().UTC()
 
-	for err == nil && time.Now().UTC().Sub(last) <= (heartbeatInterval*FailedHeartbeatAcks) {
+	for err == nil && time.Now().UTC().Sub(last) <= (s.heartbeatInterval*FailedHeartbeatAcks) {
 		s.RLock()
 		last = s.LastHeartbeatAck
 		s.RUnlock()
