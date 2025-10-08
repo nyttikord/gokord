@@ -69,9 +69,15 @@ func (s *Session) reconnect() error {
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
-		s.Unlock() // required
-		err = s.onGatewayEvent(e)
-		s.Lock()
+		if e.Operation == discord.GatewayOpCodeHello {
+			if err := s.handleHello(e); err != nil {
+				return err
+			}
+		} else {
+			s.Unlock() // required
+			err = s.onGatewayEvent(e)
+			s.Lock()
+		}
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}

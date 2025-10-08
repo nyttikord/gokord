@@ -75,6 +75,17 @@ type heartbeatOp struct {
 	Data int64                 `json:"d"`
 }
 
+func (s *Session) handleHello(e *discord.Event) error {
+	s.logger.Debug("Op 10 Hello Packet received from Discord")
+	s.LastHeartbeatAck = time.Now().UTC()
+	var h helloOp
+	if err := json.Unmarshal(e.RawData, &h); err != nil {
+		return errors.Join(err, fmt.Errorf("cannot unmarshal HelloOp"))
+	}
+	s.heartbeatInterval = h.HeartbeatInterval * time.Millisecond
+	return nil
+}
+
 // connect must be called when Session's mutex is locked.
 func (s *Session) connect() error {
 	s.Unlock() // required
@@ -101,13 +112,9 @@ func (s *Session) connect() error {
 	if e.Operation != discord.GatewayOpCodeHello {
 		return fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
 	}
-	s.logger.Debug("Op 10 Hello Packet received from Discord")
-	s.LastHeartbeatAck = time.Now().UTC()
-	var h helloOp
-	if err = json.Unmarshal(e.RawData, &h); err != nil {
-		return errors.Join(err, fmt.Errorf("cannot unmarshal HelloOp"))
+	if err := s.handleHello(e); err != nil {
+		return err
 	}
-	s.heartbeatInterval = h.HeartbeatInterval * time.Millisecond
 
 	// Send Op 2 Identity Packet
 	err = s.identify()
