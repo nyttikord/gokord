@@ -77,8 +77,8 @@ type Session struct {
 	eventManager *event.Manager
 	// The websocket connection.
 	ws *websocket.Conn
-	// When nil, the session is not listening.
-	listening chan any
+	// When false, the Session is not listening
+	listening *atomic.Bool
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *atomic.Int64
 	// Stores sessions current Discord Resume Gateway.

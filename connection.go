@@ -147,51 +147,49 @@ func (s *Session) connect() error {
 	return nil
 }
 
+// TODO: rename this method
 func (s *Session) finishConnection() {
 	s.logger.Debug("connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
 
-	// Create listening chan outside of listen, as it needs to happen inside the mutex lock and needs to exist before
-	// calling heartbeat and listen goroutines.
-	s.listening = make(chan any, 1)
+	// indicates that the websocket is listening
+	s.listening.Store(true)
 
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
-		s.heartbeats(s.listening)
+		s.heartbeats()
 	}()
-	go s.listen(s.ws, s.listening)
+	go s.listen(s.ws)
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(ws *websocket.Conn, listening <-chan any) {
-	messageType, message, err := ws.ReadMessage()
-	for err == nil {
-		select {
-		case <-listening:
-			s.logger.Debug("exiting listen websocket event")
-			return
-		default:
+func (s *Session) listen(_ *websocket.Conn) {
+	var messageType int
+	var message []byte
+	var err error
+	for err == nil && s.listening.Load() {
+		messageType, message, err = s.ws.ReadMessage()
+		if err == nil {
 			var e *discord.Event
 			e, err = getGatewayEvent(messageType, message)
-			if err != nil {
-				s.logger.Error("handling event", "error", err, "when", "getting event")
-			} else {
+			if err == nil {
 				err = s.onGatewayEvent(e)
-				if err != nil {
-					s.logger.Error("handling event", "error", err, "when", "handling event")
-				}
 			}
 		}
-		if err == nil {
-			messageType, message, err = ws.ReadMessage()
-		}
+	}
+
+	// closed normally
+	if !s.listening.Load() {
+		s.logger.Info("listening websocket event closed")
+		return
 	}
 
 	// err will be returned if we read a message from a closed websocket
 	// the listening chan seems to be useless because it is never called before an error is returned
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseServiceRestart) {
+		s.logger.Warn("listening websocket event closed without being stopped correctly")
 		return
 	}
 
@@ -220,27 +218,29 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats(listening <-chan any) {
+func (s *Session) heartbeats() {
 	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(s.heartbeatInterval)
 	defer ticker.Stop()
 
 	last := time.Now().UTC()
+	// first heartbeat
+	err = s.heartbeat()
 
 	for err == nil && time.Now().UTC().Sub(last) <= (s.heartbeatInterval*FailedHeartbeatAcks) {
-		s.RLock()
-		last = s.LastHeartbeatAck
-		s.RUnlock()
-
-		err = s.heartbeat()
-
 		select {
 		case <-ticker.C:
-			// continue loop and send heartbeat
-		case <-listening:
-			s.logger.Debug("exiting heartbeats")
-			return
+			s.RLock()
+			last = s.LastHeartbeatAck
+			s.RUnlock()
+
+			err = s.heartbeat()
+		default:
+			if !s.listening.Load() {
+				s.logger.Debug("exiting heartbeats")
+				return
+			}
 		}
 	}
 
@@ -261,8 +261,6 @@ func (s *Session) heartbeats(listening <-chan any) {
 }
 
 func (s *Session) heartbeat() error {
-	s.Lock()
-	defer s.Unlock()
 	seq := s.sequence.Load()
 	s.LastHeartbeatSent = time.Now().UTC()
 	s.logger.Debug("sending websocket heartbeat", "sequence", seq)

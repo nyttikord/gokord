@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -62,6 +63,8 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface)
+	s.listening = new(atomic.Bool)
+	s.listening.Store(false)
 
 	s.voiceAPI = &voice.Requester{
 		Requester:   s,

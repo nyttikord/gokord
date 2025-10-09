@@ -113,6 +113,8 @@ func (s *Session) forceReconnect() {
 	if err == nil {
 		return
 	}
+	// if the reconnects fail, we close the websocket
+	s.ForceClose()
 	s.logger.Error("reconnecting", "error", err, "gateway", s.gateway)
 	s.Logger().Warn("opening a new session")
 	err = s.Open()
@@ -143,7 +145,7 @@ func (s *Session) CloseWithCode(closeCode int) error {
 
 	if s.listening != nil {
 		s.logger.Debug("closing goroutines")
-		s.listening <- struct{}{}
+		s.listening.Store(false)
 	}
 
 	for _, v := range s.voiceAPI.Connections {
