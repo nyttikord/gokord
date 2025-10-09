@@ -113,7 +113,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		} else {
 			file = files[len(files)-2] + "/" + files[len(files)-1]
 		}
-		buf = fmt.Appendf(buf, "%s:%d ", file, line)
+		buf = fmt.Appendf(buf, "%s:%d - ", file, line)
 	}
 	if r.Level >= slog.LevelError {
 		buf = fmt.Appendf(buf, AnsiRed)
