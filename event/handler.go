@@ -210,12 +210,12 @@ func (e *Manager) handle(s bot.Session, t string, i any) {
 }
 
 // EmitEvent calls internal methods, fires handlers and fires the "any" event.
-func (e *Manager) EmitEvent(s bot.Session, t string, i any) {
+func (e *Manager) EmitEvent(ctx context.Context, s bot.Session, t string, i any) {
 	e.RLock()
 	defer e.RUnlock()
 
 	// All events are dispatched internally first.
-	e.onInterface(i)
+	e.onInterface(ctx, i)
 
 	// Then they are dispatched to anyone handling any events.
 	e.handle(s, interfaceEventType, i)

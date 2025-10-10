@@ -1,6 +1,10 @@
 package guildapi
 
-import "github.com/nyttikord/gokord/discord"
+import (
+	"context"
+
+	"github.com/nyttikord/gokord/discord"
+)
 
 type requestGuildMembersData struct {
 	GuildID   string    `json:"guild_id"`
@@ -23,7 +27,7 @@ type requestGuildMembersOp struct {
 // limit is the maximum number of items to return, or 0 to request every user.Member matched.
 // nonce to identify the event.GuildMembersChunk response.
 // presences indicates whether to request presences of user.Member.
-func (r Requester) GatewayMembers(guildID, query string, limit int, nonce string, presences bool) error {
+func (r Requester) GatewayMembers(ctx context.Context, guildID, query string, limit int, nonce string, presences bool) error {
 	data := requestGuildMembersData{
 		GuildID:   guildID,
 		Query:     &query,
@@ -31,7 +35,7 @@ func (r Requester) GatewayMembers(guildID, query string, limit int, nonce string
 		Nonce:     nonce,
 		Presences: presences,
 	}
-	return r.gatewayRequestMembers(data)
+	return r.gatewayRequestMembers(ctx, data)
 }
 
 // GatewayMembersList requests user.Member from the gateway.
@@ -41,7 +45,7 @@ func (r Requester) GatewayMembers(guildID, query string, limit int, nonce string
 // limit is the maximum number of items to return, or 0 to request every user.Member matched.
 // nonce to identify the event.GuildMembersChunk response.
 // presences indicates whether to request presences of user.Member.
-func (r Requester) GatewayMembersList(guildID string, userIDs []string, limit int, nonce string, presences bool) error {
+func (r Requester) GatewayMembersList(ctx context.Context, guildID string, userIDs []string, limit int, nonce string, presences bool) error {
 	data := requestGuildMembersData{
 		GuildID:   guildID,
 		UserIDs:   &userIDs,
@@ -49,11 +53,11 @@ func (r Requester) GatewayMembersList(guildID string, userIDs []string, limit in
 		Nonce:     nonce,
 		Presences: presences,
 	}
-	return r.gatewayRequestMembers(data)
+	return r.gatewayRequestMembers(ctx, data)
 }
 
-func (r Requester) gatewayRequestMembers(data requestGuildMembersData) error {
+func (r Requester) gatewayRequestMembers(ctx context.Context, data requestGuildMembersData) error {
 	r.Logger().Debug("requesting guild members via gateway")
 
-	return r.GatewayWriteStruct(requestGuildMembersOp{discord.GatewayOpCodeRequestGuildMembers, data})
+	return r.GatewayWriteStruct(ctx, requestGuildMembersOp{discord.GatewayOpCodeRequestGuildMembers, data})
 }

@@ -70,7 +70,9 @@ func TestOpenClose(t *testing.T) {
 
 	d := NewWithLogLevel(envOAuth2Token, slog.LevelDebug)
 
-	if err := d.Open(); err != nil {
+	ctx := context.Background()
+
+	if err := d.Open(ctx); err != nil {
 		t.Fatalf("TestClose, d.Open failed: %+v", err)
 	}
 
@@ -83,11 +85,11 @@ func TestOpenClose(t *testing.T) {
 		// UpdateStatus - maybe we move this into wsapi_test.go but the websocket
 		// created here is needed.  This helps tests that the websocket was setup
 		// and it is working.
-		if err := d.BotAPI().UpdateGameStatus(0, time.Now().String()); err != nil {
+		if err := d.BotAPI().UpdateGameStatus(ctx, 0, time.Now().String()); err != nil {
 			t.Errorf("UpdateStatus error: %+v", err)
 		}
 
-		if err := d.Close(); err != nil {
+		if err := d.Close(ctx); err != nil {
 			d.ForceClose()
 			t.Fatalf("TestClose, d.Close failed: %+v", err)
 		}
@@ -128,8 +130,8 @@ func TestAddHandler(t *testing.T) {
 	d.EventManager().AddHandler(interfaceHandler)
 	d.EventManager().AddHandler(bogusHandler)
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageDeleteType, &event.MessageDelete{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageDeleteType, &event.MessageDelete{})
 
 	<-time.After(500 * time.Millisecond)
 
@@ -159,11 +161,11 @@ func TestRemoveHandler(t *testing.T) {
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	r := d.EventManager().AddHandler(testHandler)
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
 
 	r()
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
 
 	<-time.After(500 * time.Millisecond)
 

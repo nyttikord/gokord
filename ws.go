@@ -2,10 +2,11 @@ package gokord
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 var (
@@ -17,15 +18,19 @@ var (
 	ErrWSShardBounds = errors.New("ShardID must be less than ShardCount")
 )
 
-func (s *Session) GatewayWriteStruct(v any) error {
+func (s *Session) GatewayWriteStruct(ctx context.Context, v any) error {
 	s.wsMutex.Lock()
 	defer s.wsMutex.Unlock()
 	if s.ws == nil {
 		return ErrWSNotFound
 	}
-	return s.ws.WriteJSON(v)
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return s.ws.Write(ctx, websocket.MessageText, b)
 }
 
 func (s *Session) GatewayDial(ctx context.Context, urlString string, headers http.Header) (*websocket.Conn, *http.Response, error) {
-	return s.Dialer.DialContext(ctx, urlString, headers)
+	return websocket.Dial(ctx, urlString, &websocket.DialOptions{HTTPHeader: headers})
 }

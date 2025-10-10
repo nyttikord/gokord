@@ -2,6 +2,7 @@ package gokord
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -192,7 +193,8 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 
 		if cfg.ShouldRetryOnRateLimit {
 			s.logger.Info("rate limited", "url", urlStr, "retry in", rl.RetryAfter)
-			s.eventManager.EmitEvent(s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
+			// background because it will never use the websocket -> this is an internal event
+			s.eventManager.EmitEvent(context.Background(), s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
 			// we can make the above smarter

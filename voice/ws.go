@@ -1,26 +1,29 @@
 package voice
 
 import (
+	"context"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 )
 
 // wsListen listens on the voice websocket for messages and passes them to the voice event handler.
 // This is automatically called by the open.
-func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
+func (v *Connection) wsListen(ctx context.Context, wsConn *websocket.Conn, close <-chan struct{}) {
 	for {
-		_, message, err := v.wsConn.ReadMessage()
+		_, message, err := v.wsConn.Read(ctx)
 		if err != nil {
 			// 4014 indicates a manual disconnection by someone in the guild;
 			// we shouldn't Reconnect.
-			if websocket.IsCloseError(err, 4014) {
+			var errClose websocket.CloseError
+			if errors.As(err, &errClose) && errClose.Code == 4014 {
 				v.Logger.Info("received 4014 manual disconnection")
 
 				// Abandon the voice WS connection
@@ -64,7 +67,7 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 			v.RUnlock()
 			if sameConnection {
 				v.Logger.Error("voice websocket closed unexpectantly", "error", err, "endpoint", v.endpoint)
-				go v.Reconnect()
+				go v.Reconnect(ctx)
 			}
 			return
 		}
@@ -73,14 +76,14 @@ func (v *Connection) wsListen(wsConn *websocket.Conn, close <-chan struct{}) {
 		case <-close:
 			return
 		default:
-			go v.onEvent(message)
+			go v.onEvent(ctx, message)
 		}
 	}
 }
 
 // onEvent handles any voice websocket events.
 // This is only called by wsListen.
-func (v *Connection) onEvent(message []byte) {
+func (v *Connection) onEvent(ctx context.Context, message []byte) {
 	v.Logger.Debug("received", "raw", message)
 
 	var e struct {
@@ -100,11 +103,11 @@ func (v *Connection) onEvent(message []byte) {
 		}
 
 		// Start the voice websocket heartbeat to keep the connection alive
-		go v.wsHeartbeat(v.wsConn, v.close, v.op2.HeartbeatInterval)
+		go v.wsHeartbeat(ctx, v.wsConn, v.close, v.op2.HeartbeatInterval)
 		// TODO monitor a chan/bool to verify this was successful
 
 		// Start the UDP connection
-		err := v.udpOpen()
+		err := v.udpOpen(ctx)
 		if err != nil {
 			v.Logger.Error("opening udp connection", "error", err)
 			return
@@ -115,7 +118,7 @@ func (v *Connection) onEvent(message []byte) {
 		if v.OpusSend == nil {
 			v.OpusSend = make(chan []byte, 2)
 		}
-		go v.opusSender(v.udpConn, v.close, v.OpusSend, 48000, 960)
+		go v.opusSender(ctx, v.udpConn, v.close, v.OpusSend, 48000, 960)
 
 		// Start the opusReceiver
 		if !v.deaf {
@@ -123,7 +126,7 @@ func (v *Connection) onEvent(message []byte) {
 				v.OpusRecv = make(chan *Packet, 2)
 			}
 
-			go v.opusReceiver(v.udpConn, v.close, v.OpusRecv)
+			go v.opusReceiver(ctx, v.udpConn, v.close, v.OpusRecv)
 		}
 		return
 
@@ -174,18 +177,21 @@ type heartbeatOp struct {
 //
 // wsHeartbeat sends regular heartbeats to voice Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (v *Connection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struct{}, i time.Duration) {
+func (v *Connection) wsHeartbeat(ctx context.Context, wsConn *websocket.Conn, close <-chan struct{}, i time.Duration) {
 	if close == nil || wsConn == nil {
 		return
 	}
-
-	var err error
 	ticker := time.NewTicker(i * time.Millisecond)
 	defer ticker.Stop()
 	for {
 		v.Logger.Debug("sending heartbeat packet")
+		b, err := json.Marshal(heartbeatOp{discord.VoiceOpCodeHeartbeat, int(time.Now().Unix())})
+		if err != nil {
+			v.Logger.Error("marshall heartbeat", "error", err)
+			return
+		}
 		v.wsMutex.Lock()
-		err = wsConn.WriteJSON(heartbeatOp{discord.VoiceOpCodeHeartbeat, int(time.Now().Unix())})
+		err = wsConn.Write(ctx, websocket.MessageText, b)
 		v.wsMutex.Unlock()
 		if err != nil {
 			v.Logger.Error("sending heartbeat to voice endpoint", "error", err, "endpoint", v.endpoint)
@@ -220,7 +226,7 @@ type udpOp struct {
 // udpOpen opens a UDP connection to the voice server and completes the initial required handshake.
 // This connection is left open in the requester and can be used to send or receive audio.
 // This should only be called from onEvent OP2.
-func (v *Connection) udpOpen() (err error) {
+func (v *Connection) udpOpen(ctx context.Context) error {
 	v.Lock()
 	defer v.Unlock()
 
@@ -244,14 +250,14 @@ func (v *Connection) udpOpen() (err error) {
 	addr, err := net.ResolveUDPAddr("udp", host)
 	if err != nil {
 		v.Logger.Error("resolving udp host", "error", err, "host", host)
-		return
+		return err
 	}
 
 	v.Logger.Debug("connecting to udp addr", "addr", addr.String())
 	v.udpConn, err = net.DialUDP("udp", nil, addr)
 	if err != nil {
 		v.Logger.Error("connecting to udp addr", "error", err, "addr", addr.String())
-		return
+		return err
 	}
 
 	// Create a 74 byte array to store the packet data
@@ -264,7 +270,7 @@ func (v *Connection) udpOpen() (err error) {
 	_, err = v.udpConn.Write(sb)
 	if err != nil {
 		v.Logger.Error("udp write", "error", err, "addr", addr.String())
-		return
+		return err
 	}
 
 	// Create a 74 byte array and listen for the initial handshake response from Discord.
@@ -274,7 +280,7 @@ func (v *Connection) udpOpen() (err error) {
 	rlen, _, err := v.udpConn.ReadFromUDP(rb)
 	if err != nil {
 		v.Logger.Error("udp read", "error", err, "addr", addr.String())
-		return
+		return err
 	}
 
 	if rlen < 74 {
@@ -297,20 +303,24 @@ func (v *Connection) udpOpen() (err error) {
 
 	// Take the data from above and send it back to Discord to finalize the UDP connection handshake.
 	data := udpOp{discord.VoiceOpCodeSelectProtocol, udpD{"udp", udpData{ip, port, "xsalsa20_poly1305"}}}
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 
 	v.wsMutex.Lock()
-	err = v.wsConn.WriteJSON(data)
+	err = v.wsConn.Write(ctx, websocket.MessageText, b)
 	v.wsMutex.Unlock()
 	if err != nil {
 		v.Logger.Error("udp write", "error", err, "data", data)
-		return
+		return err
 	}
 
 	// start udpKeepAlive
 	go v.udpKeepAlive(v.udpConn, v.close, 5*time.Second)
 	// TODO: find a way to check that it fired off okay
 
-	return
+	return nil
 }
 
 // udpKeepAlive sends an udp packet to keep the udp connection open.
