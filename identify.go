@@ -1,6 +1,10 @@
 package gokord
 
-import "github.com/nyttikord/gokord/discord"
+import (
+	"context"
+
+	"github.com/nyttikord/gokord/discord"
+)
 
 // Identify is sent during initial handshake with the discord gateway.
 // https://discord.com/developers/docs/topics/gateway#identify
@@ -30,11 +34,11 @@ type identifyOp struct {
 }
 
 // identify sends the identify packet to the gateway
-func (s *Session) identify() error {
+func (s *Session) identify(ctx context.Context) error {
 	if s.Identify.Shard[0] >= s.Identify.Shard[1] {
 		return ErrWSShardBounds
 	}
 
 	// Send Identify packet to Discord
-	return s.GatewayWriteStruct(identifyOp{discord.GatewayOpCodeIdentify, s.Identify})
+	return s.GatewayWriteStruct(ctx, identifyOp{discord.GatewayOpCodeIdentify, s.Identify})
 }

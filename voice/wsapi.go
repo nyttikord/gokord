@@ -1,6 +1,7 @@
 package voice
 
 import (
+	"context"
 	"sync"
 
 	"github.com/nyttikord/gokord/discord"
@@ -32,7 +33,7 @@ type channelJoinOp struct {
 //
 // mute indicates whether you will be set to muted upon joining.
 // deaf indicates whether you will be set to deafened upon joining.
-func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Connection, error) {
+func (r *Requester) ChannelJoin(ctx context.Context, guildID, channelID string, mute, deaf bool) (*Connection, error) {
 	r.RLock()
 	v, _ := r.Connections[guildID]
 	r.RUnlock()
@@ -52,7 +53,7 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 	v.requester = r
 	v.Unlock()
 
-	err := r.ChannelJoinManual(guildID, channelID, mute, deaf)
+	err := r.ChannelJoinManual(ctx, guildID, channelID, mute, deaf)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +75,7 @@ func (r *Requester) ChannelJoin(guildID, channelID string, mute, deaf bool) (*Co
 //
 // mute indicates whether you will be set to muted upon joining.
 // deaf indicates whether you will be set to deafened upon joining.
-func (r *Requester) ChannelJoinManual(guildID, channelID string, mute, deaf bool) error {
+func (r *Requester) ChannelJoinManual(ctx context.Context, guildID, channelID string, mute, deaf bool) error {
 	var cID *string
 	if channelID == "" {
 		cID = nil
@@ -84,7 +85,7 @@ func (r *Requester) ChannelJoinManual(guildID, channelID string, mute, deaf bool
 
 	// Send the request to Discord that we want to join the voice channel
 	data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&guildID, cID, mute, deaf}}
-	return r.GatewayWriteStruct(data)
+	return r.GatewayWriteStruct(ctx, data)
 }
 
 // UpdateState updates the user.VoiceState (received during event.VoiceStateUpdate).
@@ -116,7 +117,7 @@ func (r *Requester) UpdateState(u *user.VoiceState, ss state.Bot) {
 //
 // This is also fired if the guild.Guild's voice region changes while connected to a voice channel.Channel.
 // In that case, need to re-establish connection to the new region endpoint.
-func (r *Requester) UpdateServer(token string, guildID string, endpoint string) {
+func (r *Requester) UpdateServer(ctx context.Context, token string, guildID string, endpoint string) {
 	r.Logger().Debug("voice server update")
 
 	r.RLock()
@@ -142,7 +143,7 @@ func (r *Requester) UpdateServer(token string, guildID string, endpoint string) 
 	v.GuildID = guildID
 	v.Unlock()
 
-	err := v.open()
+	err := v.open(ctx)
 	if err != nil {
 		r.Logger().Error("opening voice connection", "error", err)
 	}

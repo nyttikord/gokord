@@ -3,11 +3,12 @@ package gokord
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"encoding/json"
 	"io"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
@@ -30,7 +31,7 @@ func setGuildIds(g *guild.Guild) {
 }
 
 // onInterface handles all internal events and routes them to the appropriate internal handler.
-func (s *Session) onInterface(i any) {
+func (s *Session) onInterface(ctx context.Context, i any) {
 	switch t := i.(type) {
 	case *event.Ready:
 		for _, g := range t.Guilds {
@@ -42,7 +43,7 @@ func (s *Session) onInterface(i any) {
 	case *event.GuildUpdate:
 		setGuildIds(t.Guild)
 	case *event.VoiceServerUpdate:
-		go s.voiceAPI.UpdateServer(t.Token, t.GuildID, t.Endpoint)
+		go s.voiceAPI.UpdateServer(ctx, t.Token, t.GuildID, t.Endpoint)
 	case *event.VoiceStateUpdate:
 		go s.voiceAPI.UpdateState(t.VoiceState, s.sessionState)
 	}
@@ -63,12 +64,12 @@ func (s *Session) onReady(r *event.Ready) {
 }
 
 // getGatewayEvent returns the discord.Event associated with the message given.
-func getGatewayEvent(messageType int, message []byte) (*discord.Event, error) {
+func getGatewayEvent(messageType websocket.MessageType, message []byte) (*discord.Event, error) {
 	var err error
 	var reader io.Reader
 	reader = bytes.NewBuffer(message)
 
-	if messageType == websocket.BinaryMessage {
+	if messageType == websocket.MessageBinary {
 		// If this is a compressed message, uncompress it.
 		z, err := zlib.NewReader(reader)
 		if err != nil {
@@ -92,25 +93,25 @@ func getGatewayEvent(messageType int, message []byte) (*discord.Event, error) {
 }
 
 // onGatewayEvent is the "event handler" for all messages received on the Discord Gateway API websocket connection.
-func (s *Session) onGatewayEvent(e *discord.Event) error {
+func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 	// handle special opcode
 	switch e.Operation {
 	case discord.GatewayOpCodeHeartbeat: // must respond with a heartbeat packet within 5 seconds
 		s.logger.Debug("sending heartbeat in response to Op1")
-		return s.heartbeat()
+		return s.heartbeat(ctx)
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("closing and reconnecting in response to Op7")
-		err := s.CloseWithCode(websocket.CloseServiceRestart)
+		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
 		if err != nil {
 			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
 		}
 		//TODO: verify this behavior
-		s.forceReconnect()
+		s.forceReconnect(ctx)
 		return nil
 	case discord.GatewayOpCodeInvalidSession:
 		s.logger.Warn("invalid session received, reconnecting")
-		err := s.CloseWithCode(websocket.CloseServiceRestart)
+		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
 		if err != nil {
 			s.logger.Error("closing session connection, force closing", "error", err)
 			s.ForceClose()
@@ -122,7 +123,7 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 		}
 
 		if resumable {
-			s.forceReconnect()
+			s.forceReconnect(ctx)
 			return nil
 		}
 
@@ -130,7 +131,7 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 		s.resumeGatewayURL = ""
 		s.sessionID = ""
 		s.sequence.Store(0)
-		if err = s.Open(); err != nil {
+		if err = s.Open(ctx); err != nil {
 			panic(err)
 		}
 		return nil
@@ -183,6 +184,6 @@ func (s *Session) onGatewayEvent(e *discord.Event) error {
 		typ = event.EventType
 		d = e
 	}
-	s.eventManager.EmitEvent(s, typ, d)
+	s.eventManager.EmitEvent(ctx, s, typ, d)
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 // Requester is used to interact with the Discord API.
@@ -27,7 +27,7 @@ type Requester interface {
 	Unmarshal(bytes []byte, i interface{}) error
 
 	// GatewayWriteStruct writes a struck as a json to Discord gateway.
-	GatewayWriteStruct(any) error
+	GatewayWriteStruct(context.Context, any) error
 	GatewayDial(context.Context, string, http.Header) (*websocket.Conn, *http.Response, error)
 }
 

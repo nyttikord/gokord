@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -27,13 +27,13 @@ type resumePacket struct {
 	} `json:"d"`
 }
 
-func (s *Session) reconnect() error {
+func (s *Session) reconnect(ctx context.Context) error {
 	if !s.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
 	}
 	s.logger.Info("trying to reconnect to gateway")
 
-	err := s.setupGateway(s.resumeGatewayURL)
+	err := s.setupGateway(ctx, s.resumeGatewayURL)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (s *Session) reconnect() error {
 	p.Data.Sequence = s.sequence.Load()
 
 	s.logger.Info("sending resume packet to gateway")
-	err = s.GatewayWriteStruct(p)
+	err = s.GatewayWriteStruct(ctx, p)
 	if err != nil {
 		return errors.Join(err, ErrSendingResumePacket)
 	}
@@ -62,7 +62,7 @@ func (s *Session) reconnect() error {
 	e := new(discord.Event)
 	e.Type = ""
 	for e.Type != event.ResumedType {
-		mt, m, err := s.ws.ReadMessage()
+		mt, m, err := s.ws.Read(ctx)
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
@@ -77,7 +77,7 @@ func (s *Session) reconnect() error {
 			return ErrInvalidSession
 		default:
 			s.Unlock() // required
-			err = s.onGatewayEvent(e)
+			err = s.onGatewayEvent(ctx, e)
 			s.Lock()
 		}
 		if err != nil {
@@ -86,7 +86,7 @@ func (s *Session) reconnect() error {
 	}
 	s.logger.Info("successfully reconnected to gateway")
 
-	s.finishConnection()
+	s.finishConnection(ctx)
 
 	// I'm not sure if this is actually needed.
 	// If the gw reconnect works properly, voice should stay alive.
@@ -97,7 +97,7 @@ func (s *Session) reconnect() error {
 	}
 	for _, v := range s.voiceAPI.Connections {
 		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
-		go v.Reconnect()
+		go v.Reconnect(ctx)
 
 		// This is here just to prevent violently spamming the voice reconnects.
 		time.Sleep(1 * time.Second)
@@ -108,8 +108,8 @@ func (s *Session) reconnect() error {
 // forceReconnect the session.
 // If the reconnection fails, it opens a new session.
 // If it cannot create a new session, it panics.
-func (s *Session) forceReconnect() {
-	err := s.reconnect()
+func (s *Session) forceReconnect(ctx context.Context) {
+	err := s.reconnect(ctx)
 	if err == nil {
 		return
 	}
@@ -117,7 +117,7 @@ func (s *Session) forceReconnect() {
 	s.ForceClose()
 	s.logger.Error("reconnecting", "error", err, "gateway", s.gateway)
 	s.Logger().Warn("opening a new session")
-	err = s.Open()
+	err = s.Open(ctx)
 	if err != nil {
 		err = errors.Join(err, fmt.Errorf("failed to force reconnect"))
 		// panic because we can't reconnect
@@ -127,14 +127,14 @@ func (s *Session) forceReconnect() {
 
 // Close closes a websocket and stops all listening/heartbeat goroutines.
 // If it returns an error, the session is not closed.
-func (s *Session) Close() error {
-	return s.CloseWithCode(websocket.CloseNormalClosure)
+func (s *Session) Close(ctx context.Context) error {
+	return s.CloseWithCode(ctx, websocket.StatusNormalClosure)
 }
 
 // CloseWithCode closes a websocket using the provided closeCode and stops all listening/heartbeat goroutines.
 // If it returns an error, the session is not closed.
 // TODO: Add support for Voice WS/UDP connections
-func (s *Session) CloseWithCode(closeCode int) error {
+func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusCode) error {
 	s.Lock()
 	defer s.Unlock()
 	s.logger.Info("closing", "code", closeCode)
@@ -149,52 +149,24 @@ func (s *Session) CloseWithCode(closeCode int) error {
 	}
 
 	for _, v := range s.voiceAPI.Connections {
-		err := v.Disconnect()
+		err := v.Disconnect(ctx)
 		if err != nil {
 			s.logger.Error("disconnecting voice from channel", "error", err, "channel", v.ChannelID)
 		}
 	}
 	// TODO: stop any reconnecting voice channels
 
-	// To cleanly close a connection, a client should send a close frame and wait for the server to close the
-	// connection.
-	s.logger.Debug("sending close frame")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	errChan := make(chan error, 1)
-	go func() {
-		s.wsMutex.Lock()
-		closed := make(chan error, 1) // error chan in case if we must return an error
-		s.ws.SetCloseHandler(func(code int, text string) error {
-			s.logger.Debug("websocket closed by Discord")
-			closed <- nil
-			return nil
-		})
-		err := s.ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(closeCode, ""))
-		s.wsMutex.Unlock()
-		if err != nil {
-			errChan <- err
-			return
-		}
-		errChan <- <-closed
-	}()
-
-	// we do not handle it because throwing an error while sending a close message is a big error,
-	// and we prevent continuing the close
-	select {
-	case err := <-errChan:
-		if err != nil {
-			return err
-		}
-	case <-ctx.Done():
-		return ctx.Err()
+	// is a clean stop
+	err := s.ws.Close(closeCode, "")
+	s.wsMutex.Unlock()
+	if err != nil {
+		return err
 	}
 
 	// required
 	s.Unlock()
 	s.ForceClose()
-	s.eventManager.EmitEvent(s, event.DisconnectType, &event.Disconnect{})
+	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
 
 	return nil
@@ -208,7 +180,7 @@ func (s *Session) ForceClose() {
 	s.Lock()
 	defer s.Unlock()
 	s.logger.Info("closing gateway websocket")
-	err := s.ws.Close()
+	err := s.ws.CloseNow()
 	if err != nil {
 		// we handle it here because the websocket is actually closed
 		s.logger.Error("closing websocket", "error", err)

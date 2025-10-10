@@ -5,6 +5,7 @@ package voice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net"
@@ -12,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 )
 
@@ -64,8 +65,8 @@ type SpeakingUpdateHandler func(vc *Connection, vs *SpeakingUpdate)
 // This must be sent as true prior to sending audio and should be set to false once finished sending audio.
 //
 // b is true when you speak and false when you don't.
-func (v *Connection) Speaking(b bool) (err error) {
-	v.Logger.Debug("called", "speaks", b)
+func (v *Connection) Speaking(ctx context.Context, bl bool) error {
+	v.Logger.Debug("called", "speaks", bl)
 
 	type speakingData struct {
 		Speaking bool `json:"speaking"`
@@ -81,9 +82,13 @@ func (v *Connection) Speaking(b bool) (err error) {
 		return fmt.Errorf("no VoiceConnection websocket")
 	}
 
-	data := speakingOp{discord.VoiceOpCodeSessionSpeaking, speakingData{b, 0}}
+	data := speakingOp{discord.VoiceOpCodeSessionSpeaking, speakingData{bl, 0}}
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 	v.wsMutex.Lock()
-	err = v.wsConn.WriteJSON(data)
+	err = v.wsConn.Write(ctx, websocket.MessageText, b)
 	v.wsMutex.Unlock()
 
 	v.Lock()
@@ -91,22 +96,22 @@ func (v *Connection) Speaking(b bool) (err error) {
 	if err != nil {
 		v.speaking = false
 		v.Logger.Error("writing json", "error", err)
-		return
+		return err
 	}
 
-	v.speaking = b
+	v.speaking = bl
 
-	return
+	return err
 }
 
 // Disconnect from this voice channel.Channel and closes the websocket and udp connections to Discord.
-func (v *Connection) Disconnect() error {
+func (v *Connection) Disconnect(ctx context.Context) error {
 	// Send a OP4 with a nil channel to disconnect
 	v.Lock()
 	defer v.Unlock()
 	if v.sessionID != "" {
 		data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&v.GuildID, nil, true, true}}
-		err := v.requester.GatewayWriteStruct(data)
+		err := v.requester.GatewayWriteStruct(ctx, data)
 		if err != nil {
 			return err
 		}
@@ -157,19 +162,15 @@ func (v *Connection) Close() {
 		// To cleanly close a connection, a client should send a close frame and wait for the server to close the
 		// connection.
 		v.wsMutex.Lock()
-		err := v.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		err := v.wsConn.Close(websocket.StatusNormalClosure, "")
 		v.wsMutex.Unlock()
 		if err != nil {
 			v.Logger.Error("closing websocket", "error", err)
-		}
-
-		// TODO: Wait for Discord to actually close the connection.
-		time.Sleep(1 * time.Second)
-
-		v.Logger.Debug("closing websocket")
-		err = v.wsConn.Close()
-		if err != nil {
-			v.Logger.Error("closing websocket", "error", err)
+			v.Logger.Debug("closing websocket")
+			err = v.wsConn.CloseNow()
+			if err != nil {
+				v.Logger.Error("closing websocket", "error", err)
+			}
 		}
 
 		v.wsConn = nil
@@ -234,7 +235,7 @@ func (v *Connection) waitUntilConnected() error {
 
 // Open opens a voice connection.
 // This should be called after Requester.ChannelJoin is used and the data VOICE websocket events are captured.
-func (v *Connection) open() error {
+func (v *Connection) open(ctx context.Context) error {
 	v.Lock()
 	defer v.Unlock()
 
@@ -245,7 +246,7 @@ func (v *Connection) open() error {
 	}
 
 	// TODO temp? loop to wait for the SessionID
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	ctx2, cancel := context.WithTimeout(ctx, time.Second*1)
 	defer cancel()
 
 	chann := make(chan struct{}, 1)
@@ -263,7 +264,7 @@ func (v *Connection) open() error {
 	}()
 
 	select {
-	case <-ctx.Done():
+	case <-ctx2.Done():
 		return ctx.Err()
 	case <-chann:
 	}
@@ -289,9 +290,12 @@ func (v *Connection) open() error {
 		Data handshakeData       `json:"d"`
 	}
 	data := handshakeOp{discord.VoiceOpCodeIdentify, handshakeData{v.GuildID, v.UserID, v.sessionID, v.token}}
-
+	b, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 	v.wsMutex.Lock()
-	err = v.wsConn.WriteJSON(data)
+	err = v.wsConn.Write(ctx, websocket.MessageText, b)
 	v.wsMutex.Unlock()
 	if err != nil {
 		v.Logger.Error("sending init packet", "error", err)
@@ -299,7 +303,7 @@ func (v *Connection) open() error {
 	}
 
 	v.close = make(chan struct{})
-	go v.wsListen(v.wsConn, v.close)
+	go v.wsListen(ctx, v.wsConn, v.close)
 
 	// add loop/check for Ready bool here?
 	// then return false if not ready?
@@ -312,7 +316,7 @@ func (v *Connection) open() error {
 // NOTE: This func is messy and a WIP while I find what works.
 // It will be cleaned up once a proven stable option is flushed out.
 // aka: this is ugly shit code, please don't judge too harshly.
-func (v *Connection) Reconnect() {
+func (v *Connection) Reconnect(ctx context.Context) {
 	v.Logger.Debug("called")
 
 	v.Lock()
@@ -340,7 +344,7 @@ func (v *Connection) Reconnect() {
 
 		v.Logger.Info("trying to reconnect to channel", "channel", v.ChannelID)
 
-		_, err := v.requester.ChannelJoin(v.GuildID, v.ChannelID, v.mute, v.deaf)
+		_, err := v.requester.ChannelJoin(ctx, v.GuildID, v.ChannelID, v.mute, v.deaf)
 		if err == nil {
 			v.Logger.Info("successfully reconnected to channel", "channel", v.ChannelID)
 			return
@@ -351,7 +355,7 @@ func (v *Connection) Reconnect() {
 		// if the Reconnect above didn't work lets just send a disconnect packet to reset things.
 		// Send a OP4 with a nil channel to disconnect.
 		data := channelJoinOp{discord.GatewayOpCodeVoiceStateUpdate, channelJoinData{&v.GuildID, nil, true, true}}
-		err = v.requester.GatewayWriteStruct(data)
+		err = v.requester.GatewayWriteStruct(ctx, data)
 		if err != nil {
 			v.Logger.Error("sending disconnect packet", "error", err)
 		}

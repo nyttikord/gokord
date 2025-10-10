@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -22,7 +23,7 @@ var (
 
 // Open creates a websocket connection to Discord.
 // https://discord.com/developers/docs/topics/gateway#connecting
-func (s *Session) Open() error {
+func (s *Session) Open(ctx context.Context) error {
 	s.Lock()
 	defer s.Unlock()
 	// If the websock is already open, bail out here.
@@ -41,10 +42,25 @@ func (s *Session) Open() error {
 			return err
 		}
 	}
-	return s.connect()
+
+	s.Unlock() // required
+	err = s.setupGateway(ctx, s.gateway)
+	s.Lock()
+	if err != nil {
+		return err
+	}
+
+	err = s.connect(ctx)
+	if err != nil {
+		return err
+	}
+
+	s.finishConnection(ctx)
+
+	return nil
 }
 
-func (s *Session) setupGateway(gateway string) error {
+func (s *Session) setupGateway(ctx context.Context, gateway string) error {
 	s.Lock()
 	defer s.Unlock()
 	// Add the version and encoding to the URL
@@ -56,16 +72,12 @@ func (s *Session) setupGateway(gateway string) error {
 	header := http.Header{}
 	header.Add("accept-encoding", "zlib")
 	var err error
-	s.ws, _, err = s.Dialer.Dial(gateway, header)
+	s.ws, _, err = websocket.Dial(ctx, gateway, &websocket.DialOptions{HTTPHeader: header})
 	if err != nil {
 		s.gateway = "" // clear cached gateway
 		s.ws = nil     // Just to be safe.
 		return err
 	}
-
-	s.ws.SetCloseHandler(func(code int, text string) error {
-		return nil
-	})
 
 	return nil
 }
@@ -87,70 +99,72 @@ func (s *Session) handleHello(e *discord.Event) error {
 }
 
 // connect must be called when Session's mutex is locked.
-func (s *Session) connect() error {
-	s.Unlock() // required
-	err := s.setupGateway(s.gateway)
-	s.Lock()
-	if err != nil {
-		return err
-	}
+func (s *Session) connect(ctx context.Context) error {
+	var err error
 	defer func() {
 		if err != nil {
 			s.ForceClose()
 		}
 	}()
 
-	// The first response from Discord should be an Op 10 (Hello) Packet.
-	mt, m, err := s.ws.ReadMessage()
-	if err != nil {
+	// if we can't connect in 10s, returns an error
+	ctx2, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	errc := make(chan error, 1)
+	go func() {
+		// The first response from Discord should be an Op 10 (Hello) Packet.
+		mt, m, err := s.ws.Read(ctx2)
+		if err != nil {
+			errc <- err
+		}
+		e, err := getGatewayEvent(mt, m)
+		if err != nil {
+			errc <- err
+		}
+		if e.Operation != discord.GatewayOpCodeHello {
+			errc <- fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
+		}
+		if err := s.handleHello(e); err != nil {
+			errc <- err
+		}
+
+		// Send Op 2 Identity Packet
+		err = s.identify(ctx)
+		if err != nil {
+			errc <- errors.Join(err, ErrIdentifying)
+		}
+
+		// Now Discord should send us a READY packet.
+		mt, m, err = s.ws.Read(ctx)
+		if err != nil {
+			errc <- errors.Join(err, ErrReadingReadyPacket)
+		}
+		e, err = getGatewayEvent(mt, m)
+		if err != nil {
+			errc <- errors.Join(err, ErrReadingReadyPacket)
+		}
+		if e.Type != event.ReadyType {
+			s.logger.Error("invalid READY packet", "type got", e.Type)
+			errc <- ErrReadingReadyPacket
+		}
+		s.Unlock() // required to dispatch ready
+		err = s.onGatewayEvent(ctx, e)
+		s.Lock()
+		errc <- err
+	}()
+
+	select {
+	case <-ctx2.Done():
+		return ctx2.Err()
+	case err = <-errc:
 		return err
 	}
-	e, err := getGatewayEvent(mt, m)
-	if err != nil {
-		return err
-	}
-	if e.Operation != discord.GatewayOpCodeHello {
-		return fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
-	}
-	if err := s.handleHello(e); err != nil {
-		return err
-	}
-
-	// Send Op 2 Identity Packet
-	err = s.identify()
-	if err != nil {
-		return errors.Join(err, ErrIdentifying)
-	}
-
-	// Now Discord should send us a READY packet.
-	mt, m, err = s.ws.ReadMessage()
-	if err != nil {
-		return errors.Join(err, ErrReadingReadyPacket)
-	}
-	e, err = getGatewayEvent(mt, m)
-	if err != nil {
-		return errors.Join(err, ErrReadingReadyPacket)
-	}
-	if e.Type != event.ReadyType {
-		s.logger.Error("invalid READY packet", "type got", e.Type)
-		return ErrReadingReadyPacket
-	}
-	s.Unlock() // required to dispatch ready
-	err = s.onGatewayEvent(e)
-	s.Lock()
-	if err != nil {
-		return err
-	}
-
-	s.finishConnection()
-
-	return nil
 }
 
 // TODO: rename this method
-func (s *Session) finishConnection() {
+func (s *Session) finishConnection(ctx context.Context) {
 	s.logger.Debug("connected to Discord, emitting connect event")
-	s.eventManager.EmitEvent(s, event.ConnectType, &event.Connect{})
+	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
 	// indicates that the websocket is listening
 	s.listening.Store(true)
@@ -158,24 +172,24 @@ func (s *Session) finishConnection() {
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
-		s.heartbeats()
+		s.heartbeats(ctx)
 	}()
-	go s.listen(s.ws)
+	go s.listen(ctx, s.ws)
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(_ *websocket.Conn) {
-	var messageType int
+func (s *Session) listen(ctx context.Context, _ *websocket.Conn) {
+	var messageType websocket.MessageType
 	var message []byte
 	var err error
 	for err == nil && s.listening.Load() {
-		messageType, message, err = s.ws.ReadMessage()
+		messageType, message, err = s.ws.Read(ctx)
 		if err == nil {
 			var e *discord.Event
 			e, err = getGatewayEvent(messageType, message)
 			if err == nil {
-				err = s.onGatewayEvent(e)
+				err = s.onGatewayEvent(ctx, e)
 			}
 		}
 	}
@@ -188,20 +202,20 @@ func (s *Session) listen(_ *websocket.Conn) {
 
 	// err will be returned if we read a message from a closed websocket
 	// the listening chan seems to be useless because it is never called before an error is returned
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseServiceRestart) {
-		s.logger.Warn("listening websocket event closed without being stopped correctly")
-		return
-	}
+	//if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseServiceRestart) {
+	//	s.logger.Warn("listening websocket event closed without being stopped correctly")
+	//	return
+	//}
 
 	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway, "message", message)
-	err = s.Close()
+	err = s.Close(ctx)
 	if err != nil {
 		s.logger.Error("closing session connection, force closing", "error", err)
 		s.ForceClose()
 	}
 
 	s.logger.Info("reconnecting")
-	s.forceReconnect()
+	s.forceReconnect(ctx)
 }
 
 type helloOp struct {
@@ -218,7 +232,7 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats() {
+func (s *Session) heartbeats(ctx context.Context) {
 	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(s.heartbeatInterval)
@@ -226,7 +240,7 @@ func (s *Session) heartbeats() {
 
 	last := time.Now().UTC()
 	// first heartbeat
-	err = s.heartbeat()
+	err = s.heartbeat(ctx)
 
 	for err == nil && time.Now().UTC().Sub(last) <= (s.heartbeatInterval*FailedHeartbeatAcks) {
 		select {
@@ -235,7 +249,7 @@ func (s *Session) heartbeats() {
 			last = s.LastHeartbeatAck
 			s.RUnlock()
 
-			err = s.heartbeat()
+			err = s.heartbeat(ctx)
 		default:
 			if !s.listening.Load() {
 				s.logger.Debug("exiting heartbeats")
@@ -252,17 +266,17 @@ func (s *Session) heartbeats() {
 			"time since last ACK", time.Now().UTC().Sub(last),
 		)
 	}
-	err = s.Close()
+	err = s.Close(ctx)
 	if err != nil {
 		s.logger.Error("closing session connection, force closing", "error", err)
 		s.ForceClose()
 	}
-	s.forceReconnect()
+	s.forceReconnect(ctx)
 }
 
-func (s *Session) heartbeat() error {
+func (s *Session) heartbeat(ctx context.Context) error {
 	seq := s.sequence.Load()
 	s.LastHeartbeatSent = time.Now().UTC()
 	s.logger.Debug("sending websocket heartbeat", "sequence", seq)
-	return s.GatewayWriteStruct(heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
+	return s.GatewayWriteStruct(ctx, heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
 }
