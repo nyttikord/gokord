@@ -103,8 +103,8 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		s.logger.Info("closing and reconnecting in response to Op7")
 		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
 		if err != nil {
-			s.logger.Error("closing session connection, force closing", "error", err)
-			s.ForceClose()
+			// if we can't close, we must crash the app
+			panic(err)
 		}
 		//TODO: verify this behavior
 		s.forceReconnect(ctx)
@@ -113,8 +113,8 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		s.logger.Warn("invalid session received, reconnecting")
 		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
 		if err != nil {
-			s.logger.Error("closing session connection, force closing", "error", err)
-			s.ForceClose()
+			// if we can't close, we must crash the app
+			panic(err)
 		}
 
 		var resumable bool

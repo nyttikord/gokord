@@ -134,12 +134,7 @@ func (s *Session) OpenAndBlock(ctx context.Context) error {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
-	err = s.Close(ctx)
-	if err != nil {
-		s.ForceClose()
-		return err
-	}
-	return nil
+	return s.Close(ctx)
 }
 
 func (s *Session) Logger() *slog.Logger {

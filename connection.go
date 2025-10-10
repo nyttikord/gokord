@@ -103,7 +103,10 @@ func (s *Session) connect(ctx context.Context) error {
 	var err error
 	defer func() {
 		if err != nil {
-			s.ForceClose()
+			if err = s.ForceClose(); err != nil {
+				// if we can't close, we must crash the app
+				panic(err)
+			}
 		}
 	}()
 
@@ -196,22 +199,15 @@ func (s *Session) listen(ctx context.Context, _ *websocket.Conn) {
 
 	// closed normally
 	if !s.listening.Load() {
-		s.logger.Info("listening websocket event closed")
+		s.logger.Info("exiting listening events")
 		return
 	}
-
-	// err will be returned if we read a message from a closed websocket
-	// the listening chan seems to be useless because it is never called before an error is returned
-	//if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseServiceRestart) {
-	//	s.logger.Warn("listening websocket event closed without being stopped correctly")
-	//	return
-	//}
 
 	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway, "message", message)
 	err = s.Close(ctx)
 	if err != nil {
-		s.logger.Error("closing session connection, force closing", "error", err)
-		s.ForceClose()
+		// if we can't close, we must crash the app
+		panic(err)
 	}
 
 	s.logger.Info("reconnecting")
@@ -268,8 +264,8 @@ func (s *Session) heartbeats(ctx context.Context) {
 	}
 	err = s.Close(ctx)
 	if err != nil {
-		s.logger.Error("closing session connection, force closing", "error", err)
-		s.ForceClose()
+		// if we can't close, we must crash the app
+		panic(err)
 	}
 	s.forceReconnect(ctx)
 }

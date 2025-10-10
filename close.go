@@ -55,7 +55,11 @@ func (s *Session) reconnect(ctx context.Context) error {
 	defer func() {
 		if err != nil {
 			s.logger.Warn("force closing after error")
-			s.ForceClose()
+			err = s.ForceClose()
+			if err != nil {
+				// if we can't close, we must crash the app
+				panic(err)
+			}
 		}
 	}()
 	// handle missed event
@@ -114,7 +118,11 @@ func (s *Session) forceReconnect(ctx context.Context) {
 		return
 	}
 	// if the reconnects fail, we close the websocket
-	s.ForceClose()
+	err = s.ForceClose()
+	if err != nil {
+		// if we can't close, we must crash the app
+		panic(err)
+	}
 	s.logger.Error("reconnecting", "error", err, "gateway", s.gateway)
 	s.Logger().Warn("opening a new session")
 	err = s.Open(ctx)
@@ -156,16 +164,23 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 	// TODO: stop any reconnecting voice channels
 
+	s.logger.Info("closing websocket")
 	// is a clean stop
+	s.wsMutex.Lock()
 	err := s.ws.Close(closeCode, "")
 	s.wsMutex.Unlock()
 	if err != nil {
+		s.logger.Error("closing websocket", "error", err, "gateway", s.gateway)
+		s.ws = nil
+		s.Unlock()
+		err = s.ForceClose()
+		s.Lock()
 		return err
 	}
 
 	// required
 	s.Unlock()
-	s.ForceClose()
+	s.ws = nil
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
 
@@ -176,14 +191,15 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 // Use Close or CloseWithCode before to have a better closing process.
 //
 // It doesn't send an event.Disconnect, unlike Close or CloseWithCode.
-func (s *Session) ForceClose() {
+func (s *Session) ForceClose() error {
 	s.Lock()
 	defer s.Unlock()
-	s.logger.Info("closing gateway websocket")
+	s.logger.Warn("force closing websocket")
 	err := s.ws.CloseNow()
 	if err != nil {
 		// we handle it here because the websocket is actually closed
-		s.logger.Error("closing websocket", "error", err)
+		return err
 	}
 	s.ws = nil
+	return nil
 }
