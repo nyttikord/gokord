@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand/v2"
 	"net/http"
 	"strings"
@@ -43,9 +44,7 @@ func (s *Session) Open(ctx context.Context) error {
 		}
 	}
 
-	s.Unlock() // required
 	err = s.setupGateway(ctx, s.gateway)
-	s.Lock()
 	if err != nil {
 		return err
 	}
@@ -61,8 +60,6 @@ func (s *Session) Open(ctx context.Context) error {
 }
 
 func (s *Session) setupGateway(ctx context.Context, gateway string) error {
-	s.Lock()
-	defer s.Unlock()
 	// Add the version and encoding to the URL
 	gateway = strings.TrimSuffix(gateway, "/")
 	gateway += "/?v=" + discord.APIVersion + "&encoding=json"
@@ -177,12 +174,31 @@ func (s *Session) finishConnection(ctx context.Context) {
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
 		s.heartbeats(ctx)
 	}()
-	go s.listen(ctx, s.ws)
+	go func() {
+		err := s.listen(ctx, s.ws)
+		if err == nil {
+			return
+		}
+		var errClose websocket.CloseError
+		s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
+		s.logger.Info("closing websocket")
+		if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
+			err = s.ForceClose() // connection was already closed
+		} else {
+			err = s.Close(ctx)
+		}
+		if err != nil {
+			// if we can't close, we must crash the app
+			panic(err)
+		}
+		s.logger.Info("reconnecting")
+		s.forceReconnect(ctx)
+	}()
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(ctx context.Context, _ *websocket.Conn) {
+func (s *Session) listen(ctx context.Context, _ *websocket.Conn) error {
 	var messageType websocket.MessageType
 	var message []byte
 	var err error
@@ -196,22 +212,12 @@ func (s *Session) listen(ctx context.Context, _ *websocket.Conn) {
 			}
 		}
 	}
-
 	// closed normally
 	if !s.listening.Load() {
-		s.logger.Info("exiting listening events")
-		return
+		s.logger.Debug("exiting listening events")
+		return nil
 	}
-
-	s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway, "message", message)
-	err = s.Close(ctx)
-	if err != nil {
-		// if we can't close, we must crash the app
-		panic(err)
-	}
-
-	s.logger.Info("reconnecting")
-	s.forceReconnect(ctx)
+	return err
 }
 
 type helloOp struct {

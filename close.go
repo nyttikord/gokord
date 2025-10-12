@@ -33,13 +33,13 @@ func (s *Session) reconnect(ctx context.Context) error {
 	}
 	s.logger.Info("trying to reconnect to gateway")
 
+	s.Lock()
+	defer s.Unlock()
+
 	err := s.setupGateway(ctx, s.resumeGatewayURL)
 	if err != nil {
 		return err
 	}
-
-	s.Lock()
-	defer s.Unlock()
 
 	var p resumePacket
 	p.Op = discord.GatewayOpCodeResume
@@ -118,12 +118,14 @@ func (s *Session) forceReconnect(ctx context.Context) {
 		return
 	}
 	// if the reconnects fail, we close the websocket
+	s.logger.Error("reconnecting to gateway", "error", err)
+	s.logger.Warn("force closing websocket")
 	err = s.ForceClose()
 	if err != nil {
 		// if we can't close, we must crash the app
 		panic(err)
 	}
-	s.logger.Error("reconnecting", "error", err, "gateway", s.gateway)
+	s.logger.Error("force closing websocket", "error", err, "gateway", s.gateway)
 	s.Logger().Warn("opening a new session")
 	err = s.Open(ctx)
 	if err != nil {
@@ -179,8 +181,8 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 
 	// required
-	s.Unlock()
 	s.ws = nil
+	s.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
 
@@ -194,8 +196,17 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 func (s *Session) ForceClose() error {
 	s.Lock()
 	defer s.Unlock()
-	s.logger.Warn("force closing websocket")
-	err := s.ws.CloseNow()
+	var err error
+	defer func() {
+		if r := recover(); r != nil {
+			var ok bool
+			err, ok = r.(error)
+			if !ok {
+				err = fmt.Errorf("pkg: %v", r)
+			}
+		}
+	}()
+	err = s.ws.CloseNow()
 	if err != nil {
 		// we handle it here because the websocket is actually closed
 		return err
