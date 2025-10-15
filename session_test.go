@@ -8,10 +8,29 @@
 package gokord
 
 import (
+	"context"
 	"testing"
+	"time"
 
+	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/user"
 )
+
+func TestSession(t *testing.T) {
+	if envBotToken == "" {
+		t.Skip("Skipping session test, DG_TOKEN not set")
+	}
+	dgBot.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
+		s.Logger().Info("bot ready")
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+	defer cancel()
+	err := dgBot.OpenAndBlock(ctx)
+	if err != nil {
+		t.Fatalf("%#v", err)
+	}
+}
 
 func TestMember_DisplayName(t *testing.T) {
 	u := &user.User{

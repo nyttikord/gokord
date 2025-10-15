@@ -21,7 +21,7 @@ var (
 	dgBot *Session // Stores a global discordgo bot session
 
 	envOAuth2Token  = os.Getenv("DG_OAUTH2_TOKEN")  // Token to use when authenticating using OAuth2 token
-	envBotToken     = os.Getenv("DGB_TOKEN")        // Token to use when authenticating the bot account
+	envBotToken     = os.Getenv("DG_TOKEN")         // Token to use when authenticating the bot account
 	envGuild        = os.Getenv("DG_GUILD")         // Application ID to use for tests
 	envChannel      = os.Getenv("DG_CHANNEL")       // Application ID to use for tests
 	envVoiceChannel = os.Getenv("DG_VOICE_CHANNEL") // Application ID to use for tests
@@ -47,7 +47,6 @@ func TestMain(m *testing.M) {
 
 // TestNewToken tests the New() function with a Token.
 func TestNewToken(t *testing.T) {
-
 	if envOAuth2Token == "" {
 		t.Skip("Skipping New(token), DGU_TOKEN not set")
 	}

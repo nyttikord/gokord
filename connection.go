@@ -124,7 +124,7 @@ func (s *Session) connect(ctx context.Context) error {
 		if e.Operation != discord.GatewayOpCodeHello {
 			errc <- fmt.Errorf("expecting Op 10, got Op %d instead", e.Operation)
 		}
-		if err := s.handleHello(e); err != nil {
+		if err = s.handleHello(e); err != nil {
 			errc <- err
 		}
 
@@ -155,10 +155,10 @@ func (s *Session) connect(ctx context.Context) error {
 
 	select {
 	case <-ctx2.Done():
-		return ctx2.Err()
+		err = ctx2.Err()
 	case err = <-errc:
-		return err
 	}
+	return err
 }
 
 // TODO: rename this method
