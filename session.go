@@ -133,8 +133,13 @@ func (s *Session) OpenAndBlock(ctx context.Context) error {
 	}
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
-	return s.Close(ctx)
+	select {
+	case <-sc:
+		return s.Close(ctx)
+	case <-ctx.Done():
+		s.logger.Error("waiting to close", "error", ctx.Err())
+		return s.Close(context.Background())
+	}
 }
 
 func (s *Session) Logger() *slog.Logger {
