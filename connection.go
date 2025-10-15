@@ -166,16 +166,16 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.logger.Debug("connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
-	// indicates that the websocket is listening
-	s.listening.Store(true)
+	var ctx2 context.Context
+	ctx2, s.cancelListen = context.WithCancel(ctx)
 
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
-		s.heartbeats(ctx)
+		s.heartbeats(ctx2)
 	}()
 	go func() {
-		err := s.listen(ctx, s.ws)
+		err := s.listen(ctx2)
 		if err == nil {
 			return
 		}
@@ -198,11 +198,11 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(ctx context.Context, _ *websocket.Conn) error {
+func (s *Session) listen(ctx context.Context) error {
 	var messageType websocket.MessageType
 	var message []byte
 	var err error
-	for err == nil && s.listening.Load() {
+	for err == nil {
 		messageType, message, err = s.ws.Read(ctx)
 		if err == nil {
 			var e *discord.Event
@@ -212,12 +212,14 @@ func (s *Session) listen(ctx context.Context, _ *websocket.Conn) error {
 			}
 		}
 	}
+	select {
 	// closed normally
-	if !s.listening.Load() {
+	case <-ctx.Done():
 		s.logger.Debug("exiting listening events")
 		return nil
+	default:
+		return err
 	}
-	return err
 }
 
 type helloOp struct {
@@ -252,11 +254,9 @@ func (s *Session) heartbeats(ctx context.Context) {
 			s.RUnlock()
 
 			err = s.heartbeat(ctx)
-		default:
-			if !s.listening.Load() {
-				s.logger.Debug("exiting heartbeats")
-				return
-			}
+		case <-ctx.Done():
+			s.logger.Debug("exiting heartbeats")
+			return
 		}
 	}
 

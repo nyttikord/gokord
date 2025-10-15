@@ -79,7 +79,7 @@ type Session struct {
 	// The websocket connection.
 	ws *websocket.Conn
 	// When false, the Session is not listening
-	listening *atomic.Bool
+	cancelListen func()
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *atomic.Int64
 	// Stores sessions current Discord Resume Gateway.

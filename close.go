@@ -153,9 +153,9 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 		return ErrWSNotFound
 	}
 
-	if s.listening != nil {
+	if s.cancelListen != nil {
 		s.logger.Debug("closing goroutines")
-		s.listening.Store(false)
+		s.cancelListen()
 	}
 
 	for _, v := range s.voiceAPI.Connections {
