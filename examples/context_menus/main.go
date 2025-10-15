@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 
@@ -71,8 +72,8 @@ var (
 			Type: types.CommandMessage,
 		},
 	}
-	commandsHandlers = map[string]func(s bot.Session, i *event.InteractionCreate){
-		"rickroll-em": func(s bot.Session, i *event.InteractionCreate) {
+	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
+		"rickroll-em": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -104,7 +105,7 @@ var (
 				panic(err)
 			}
 		},
-		"google-it": func(s bot.Session, i *event.InteractionCreate) {
+		"google-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -118,7 +119,7 @@ var (
 				panic(err)
 			}
 		},
-		"stackoverflow-it": func(s bot.Session, i *event.InteractionCreate) {
+		"stackoverflow-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -132,7 +133,7 @@ var (
 				panic(err)
 			}
 		},
-		"godoc-it": func(s bot.Session, i *event.InteractionCreate) {
+		"godoc-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -146,7 +147,7 @@ var (
 				panic(err)
 			}
 		},
-		"discordjs-it": func(s bot.Session, i *event.InteractionCreate) {
+		"discordjs-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -160,7 +161,7 @@ var (
 				panic(err)
 			}
 		},
-		"discordpy-it": func(s bot.Session, i *event.InteractionCreate) {
+		"discordpy-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -178,13 +179,13 @@ var (
 )
 
 func main() {
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 
-	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 		if h, ok := commandsHandlers[i.CommandData().Name]; ok {
-			h(s, i)
+			h(ctx, s, i)
 		}
 	})
 
@@ -200,11 +201,11 @@ func main() {
 
 	}
 
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

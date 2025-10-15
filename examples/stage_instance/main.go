@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -25,15 +26,15 @@ func init() { flag.Parse() }
 // All actions must be done on a stage channel event
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	// Create a new Stage instance on the previous channel
 	si, err := s.ChannelAPI().StageInstanceCreate(&channel.StageInstanceParams{

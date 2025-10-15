@@ -20,7 +20,7 @@ type Handler interface {
 	// Handle is called whenever an event of Type() happens.
 	// It is the receivers responsibility to type assert that the interface
 	// is the expected struct.
-	Handle(bot.Session, any)
+	Handle(context.Context, bot.Session, any)
 }
 
 // InterfaceProvider is an interface for providing empty interfaces for
@@ -39,7 +39,7 @@ type InterfaceProvider interface {
 const interfaceEventType = "__INTERFACE__"
 
 // interfaceHandler is an event handler for any events.
-type interfaceHandler func(bot.Session, any)
+type interfaceHandler func(context.Context, bot.Session, any)
 
 // Type returns the event type for any events.
 func (eh interfaceHandler) Type() string {
@@ -47,8 +47,8 @@ func (eh interfaceHandler) Type() string {
 }
 
 // Handle is the handler for an any event.
-func (eh interfaceHandler) Handle(s bot.Session, i any) {
-	eh(s, i)
+func (eh interfaceHandler) Handle(ctx context.Context, s bot.Session, i any) {
+	eh(ctx, s, i)
 }
 
 var registeredInterfaceProviders = map[string]InterfaceProvider{}
@@ -188,21 +188,21 @@ func (e *Manager) removeEventHandlerInstance(t string, ehi *eventHandlerInstance
 }
 
 // Handles calling permanent and once handlers for an event type.
-func (e *Manager) handle(s bot.Session, t string, i any) {
+func (e *Manager) handle(ctx context.Context, s bot.Session, t string, i any) {
 	for _, eh := range e.handlers[t] {
 		if e.SyncEvents {
-			eh.eventHandler.Handle(s, i)
+			eh.eventHandler.Handle(ctx, s, i)
 		} else {
-			go eh.eventHandler.Handle(s, i)
+			go eh.eventHandler.Handle(ctx, s, i)
 		}
 	}
 
 	if len(e.onceHandlers[t]) > 0 {
 		for _, eh := range e.onceHandlers[t] {
 			if e.SyncEvents {
-				eh.eventHandler.Handle(s, i)
+				eh.eventHandler.Handle(ctx, s, i)
 			} else {
-				go eh.eventHandler.Handle(s, i)
+				go eh.eventHandler.Handle(ctx, s, i)
 			}
 		}
 		e.onceHandlers[t] = nil
@@ -218,8 +218,8 @@ func (e *Manager) EmitEvent(ctx context.Context, s bot.Session, t string, i any)
 	e.onInterface(ctx, i)
 
 	// Then they are dispatched to anyone handling any events.
-	e.handle(s, interfaceEventType, i)
+	e.handle(ctx, s, interfaceEventType, i)
 
 	// Finally they are dispatched to any typed handlers.
-	e.handle(s, t, i)
+	e.handle(ctx, s, t, i)
 }

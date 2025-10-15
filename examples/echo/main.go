@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -33,7 +34,7 @@ func interactionAuthor(i *interaction.Interaction) *user.User {
 	return i.User
 }
 
-func handleEcho(s bot.Session, i *event.InteractionCreate, opts optionMap) {
+func handleEcho(_ context.Context, s bot.Session, i *event.InteractionCreate, opts optionMap) {
 	builder := new(strings.Builder)
 	if v, ok := opts["author"]; ok && v.BoolValue() {
 		author := interactionAuthor(i.Interaction)
@@ -87,7 +88,7 @@ func main() {
 
 	session := gokord.New("Bot " + *Token)
 
-	session.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	session.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 		if i.Type != types.InteractionApplicationCommand {
 			return
 		}
@@ -97,10 +98,10 @@ func main() {
 			return
 		}
 
-		handleEcho(s, i, parseOptions(data.Options))
+		handleEcho(ctx, s, i, parseOptions(data.Options))
 	})
 
-	session.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	session.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
@@ -109,7 +110,7 @@ func main() {
 		log.Fatalf("could not register commands: %s", err)
 	}
 
-	err = session.Open()
+	err = session.Open(context.Background())
 	if err != nil {
 		log.Fatalf("could not open session: %s", err)
 	}
@@ -118,7 +119,7 @@ func main() {
 	signal.Notify(sigch, os.Interrupt)
 	<-sigch
 
-	err = session.Close()
+	err = session.Close(context.Background())
 	if err != nil {
 		log.Printf("could not close session gracefully: %s", err)
 	}

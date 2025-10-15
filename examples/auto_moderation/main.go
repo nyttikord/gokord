@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -52,7 +53,7 @@ func main() {
 	fmt.Println("Successfully created the rule")
 	defer session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID)
 
-	session.EventManager().AddHandlerOnce(func(s bot.Session, e *event.AutoModerationActionExecution) {
+	session.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
 		_, err = session.GuildAPI().AutoModerationRuleEdit(*GuildID, rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
@@ -102,18 +103,18 @@ func main() {
 					"you can visit the official Discord docs: https://discord.dev/resources/auto-moderation or ask in our server: https://discord.gg/6dzbuDpSWY",
 				)
 
-				session.Close()
+				session.Close(ctx)
 				session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID)
 				os.Exit(0)
 			}
 		})
 	})
 
-	err = session.Open()
+	err = session.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer session.Close()
+	defer session.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
