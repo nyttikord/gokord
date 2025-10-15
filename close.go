@@ -173,15 +173,16 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.wsMutex.Unlock()
 	if err != nil {
 		s.logger.Error("closing websocket", "error", err, "gateway", s.gateway)
-		s.ws = nil
+		s.logger.Warn("force closing")
 		s.Unlock()
 		err = s.ForceClose()
 		s.Lock()
-		return err
 	}
-
 	// required
 	s.ws = nil
+	if err != nil {
+		return err
+	}
 	s.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
