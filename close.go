@@ -119,14 +119,13 @@ func (s *Session) forceReconnect(ctx context.Context) {
 		return
 	}
 	// if the reconnects fail, we close the websocket
-	s.logger.Error("reconnecting to gateway", "error", err)
+	s.logger.Warn("reconnecting to gateway", "error", err)
 	s.logger.Warn("force closing websocket")
 	err = s.ForceClose()
-	if err != nil {
+	if err != nil && !errors.Is(err, net.ErrClosed) {
 		// if we can't close, we must crash the app
 		panic(err)
 	}
-	s.logger.Error("force closing websocket", "error", err, "gateway", s.gateway)
 	s.Logger().Warn("opening a new session")
 	err = s.Open(ctx)
 	if err != nil {
@@ -175,7 +174,7 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	err := s.ws.Close(closeCode, "")
 	s.wsMutex.Unlock()
 	if err != nil {
-		s.logger.Error("closing websocket", "error", err, "gateway", s.gateway)
+		s.logger.Warn("closing websocket", "error", err, "gateway", s.gateway)
 		s.logger.Warn("force closing")
 		s.Unlock()
 		err = s.ForceClose()

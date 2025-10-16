@@ -188,7 +188,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 			return
 		case err := <-errc:
 			var errClose websocket.CloseError
-			s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
+			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
 			s.logger.Info("closing websocket")
 			if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
 				err = s.ForceClose() // connection was already closed, just in case
@@ -220,6 +220,11 @@ func (s *Session) listen(ctx context.Context, errc chan<- error) {
 				err = s.onGatewayEvent(ctx, e)
 			}
 		}
+	}
+	select {
+	case <-ctx.Done():
+		err = nil
+	default:
 	}
 	errc <- err
 }
