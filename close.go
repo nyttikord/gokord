@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/coder/websocket"
@@ -156,6 +157,8 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	if s.cancelListen != nil {
 		s.logger.Debug("closing goroutines")
 		s.cancelListen()
+		s.waitListen.Wait()
+		s.logger.Debug("goroutines closed")
 	}
 
 	for _, v := range s.voiceAPI.Connections {
@@ -208,8 +211,9 @@ func (s *Session) ForceClose() error {
 		}
 	}()
 	err = s.ws.CloseNow()
-	if err != nil {
-		// we handle it here because the websocket is actually closed
+	// avoid returning an error is the websocket is closed, because this method must close the websocket and if this is
+	// already closed, there is no error
+	if err != nil && !errors.Is(err, net.ErrClosed) {
 		return err
 	}
 	s.ws = nil

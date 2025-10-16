@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"math/rand/v2"
-	"net"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -169,37 +168,46 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 	var ctx2 context.Context
 	ctx2, s.cancelListen = context.WithCancel(ctx)
+	s.waitListen.Add(2)
 
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
+		defer s.waitListen.Done()
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
 		s.heartbeats(ctx2)
 	}()
 	go func() {
-		err := s.listen(ctx2)
-		if err == nil || errors.Is(err, net.ErrClosed) {
+		defer s.waitListen.Done()
+		errc := make(chan error, 1)
+		go s.listen(ctx2, errc)
+		select {
+		case <-ctx2.Done():
+			s.logger.Debug("exiting listening events")
+			// the subgoroutine containing s.listen will crash if the webskocket is closed, so no leak here
+			//TODO: confirm this behavior
 			return
+		case err := <-errc:
+			var errClose websocket.CloseError
+			s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
+			s.logger.Info("closing websocket")
+			if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
+				err = s.ForceClose() // connection was already closed, just in case
+			} else {
+				err = s.CloseWithCode(ctx, websocket.StatusInternalError)
+			}
+			if err != nil {
+				// if we can't close, we must crash the app
+				panic(err)
+			}
+			s.logger.Info("reconnecting")
+			s.forceReconnect(ctx)
 		}
-		var errClose websocket.CloseError
-		s.logger.Error("reading from websocket", "error", err, "gateway", s.gateway)
-		s.logger.Info("closing websocket")
-		if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
-			err = s.ForceClose() // connection was already closed
-		} else {
-			err = s.CloseWithCode(ctx, websocket.StatusInternalError)
-		}
-		if err != nil && !errors.Is(err, net.ErrClosed) {
-			// if we can't close, we must crash the app
-			panic(err)
-		}
-		s.logger.Info("reconnecting")
-		s.forceReconnect(ctx)
 	}()
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(ctx context.Context) error {
+func (s *Session) listen(ctx context.Context, errc chan<- error) {
 	var messageType websocket.MessageType
 	var message []byte
 	var err error
@@ -213,14 +221,7 @@ func (s *Session) listen(ctx context.Context) error {
 			}
 		}
 	}
-	select {
-	// closed normally
-	case <-ctx.Done():
-		s.logger.Debug("exiting listening events")
-		return nil
-	default:
-		return err
-	}
+	errc <- err
 }
 
 type helloOp struct {
