@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand/v2"
+	"net"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -176,7 +177,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 	}()
 	go func() {
 		err := s.listen(ctx2)
-		if err == nil {
+		if err == nil || errors.Is(err, net.ErrClosed) {
 			return
 		}
 		var errClose websocket.CloseError
@@ -185,9 +186,9 @@ func (s *Session) finishConnection(ctx context.Context) {
 		if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
 			err = s.ForceClose() // connection was already closed
 		} else {
-			err = s.Close(ctx)
+			err = s.CloseWithCode(ctx, websocket.StatusInternalError)
 		}
-		if err != nil {
+		if err != nil && !errors.Is(err, net.ErrClosed) {
 			// if we can't close, we must crash the app
 			panic(err)
 		}
