@@ -1,3 +1,8 @@
+// Package event contains everything related to events emmitted by Discord.
+//
+// You can handle any of these events with the Manager.
+//
+// The default bot.Session, which is gokord.Session, receives these events via the Websocket API.
 package event
 
 import (
