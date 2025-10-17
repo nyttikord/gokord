@@ -170,44 +170,53 @@ func (s *Session) finishConnection(ctx context.Context) {
 	ctx2, s.cancelListen = context.WithCancel(ctx)
 	s.waitListen.Add(2)
 
+	restart := func(err error) {
+		s.logger.Info("closing websocket")
+		var errClose websocket.CloseError
+		if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
+			err = s.ForceClose() // connection was already closed, just in case
+		} else {
+			err = s.CloseWithCode(ctx, websocket.StatusInternalError)
+		}
+		if err != nil {
+			// if we can't close, we must crash the app
+			panic(err)
+		}
+		s.logger.Info("reconnecting")
+		s.forceReconnect(ctx)
+	}
+
 	// Start sending heartbeats and reading messages from Discord.
 	go func() {
-		defer s.waitListen.Done()
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
-		s.heartbeats(ctx2)
+		last, err := s.heartbeats(ctx2)
+		s.waitListen.Done()
+		select {
+		case <-ctx2.Done():
+			s.logger.Debug("exiting heartbeats")
+			return
+		default:
+			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
+			restart(err)
+		}
 	}()
 	go func() {
-		defer s.waitListen.Done()
-		errc := make(chan error, 1)
-		go s.listen(ctx2, errc)
+		err := s.listen(ctx2)
+		s.waitListen.Done()
 		select {
 		case <-ctx2.Done():
 			s.logger.Debug("exiting listening events")
-			// the subgoroutine containing s.listen will crash if the webskocket is closed, so no leak here
-			//TODO: confirm this behavior
 			return
-		case err := <-errc:
-			var errClose websocket.CloseError
+		default:
 			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
-			s.logger.Info("closing websocket")
-			if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
-				err = s.ForceClose() // connection was already closed, just in case
-			} else {
-				err = s.CloseWithCode(ctx, websocket.StatusInternalError)
-			}
-			if err != nil {
-				// if we can't close, we must crash the app
-				panic(err)
-			}
-			s.logger.Info("reconnecting")
-			s.forceReconnect(ctx)
+			restart(err)
 		}
 	}()
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
 // occurs.
-func (s *Session) listen(ctx context.Context, errc chan<- error) {
+func (s *Session) listen(ctx context.Context) error {
 	var messageType websocket.MessageType
 	var message []byte
 	var err error
@@ -221,12 +230,7 @@ func (s *Session) listen(ctx context.Context, errc chan<- error) {
 			}
 		}
 	}
-	select {
-	case <-ctx.Done():
-		err = nil
-	default:
-	}
-	errc <- err
+	return err
 }
 
 type helloOp struct {
@@ -243,7 +247,7 @@ func (s *Session) HeartbeatLatency() time.Duration {
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeats(ctx context.Context) {
+func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(s.heartbeatInterval)
@@ -262,25 +266,13 @@ func (s *Session) heartbeats(ctx context.Context) {
 
 			err = s.heartbeat(ctx)
 		case <-ctx.Done():
-			s.logger.Debug("exiting heartbeats")
-			return
+			return last, nil
 		}
 	}
-
-	if err != nil {
-		s.logger.Error("sending heartbeat", "error", err, "gateway", s.gateway)
-	} else {
-		s.logger.Warn(
-			"haven't gotten a heartbeat ACK, triggering a reconnection",
-			"time since last ACK", time.Now().UTC().Sub(last),
-		)
+	if err == nil {
+		err = errors.New("haven't gotten a heartbeat ACK in time")
 	}
-	err = s.Close(ctx)
-	if err != nil {
-		// if we can't close, we must crash the app
-		panic(err)
-	}
-	s.forceReconnect(ctx)
+	return last, err
 }
 
 func (s *Session) heartbeat(ctx context.Context) error {
