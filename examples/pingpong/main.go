@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -26,7 +27,6 @@ func init() {
 }
 
 func main() {
-
 	// Create a new Discord session using the provided bot token.
 	dg := gokord.NewWithLogLevel("Bot "+Token, slog.LevelInfo)
 
@@ -37,7 +37,7 @@ func main() {
 	dg.Identify.Intents = discord.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
-	err := dg.Open()
+	err := dg.Open(context.Background())
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
@@ -50,12 +50,12 @@ func main() {
 	<-sc
 
 	// Cleanly close down the Discord session.
-	dg.Close()
+	dg.Close(context.Background())
 }
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func messageCreate(s bot.Session, m *event.MessageCreate) {
+func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.SessionState().User().ID {

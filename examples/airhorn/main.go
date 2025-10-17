@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/binary"
 	"errors"
 	"flag"
@@ -27,7 +28,6 @@ var token string
 var buffer = make([][]byte, 0)
 
 func main() {
-
 	if token == "" {
 		fmt.Println("No token provided. Please run: airhorn -t <bot token>")
 		return
@@ -58,7 +58,7 @@ func main() {
 	dg.Identify.Intents = discord.IntentsGuilds | discord.IntentsGuildMessages | discord.IntentsGuildVoiceStates
 
 	// Open the websocket and begin listening.
-	err = dg.Open()
+	err = dg.Open(context.Background())
 	if err != nil {
 		fmt.Println("Error opening Discord session: ", err)
 	}
@@ -70,21 +70,19 @@ func main() {
 	<-sc
 
 	// Cleanly close down the Discord session.
-	dg.Close()
+	dg.Close(context.Background())
 }
 
 // This function will be called (due to AddHandler above) when the bot receives
 // the "ready" event from Discord.
-func ready(s bot.Session, event *event.Ready) {
-
+func ready(ctx context.Context, s bot.Session, event *event.Ready) {
 	// Set the playing status.
-	s.BotAPI().UpdateGameStatus(0, "!airhorn")
+	s.BotAPI().UpdateGameStatus(ctx, 0, "!airhorn")
 }
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func messageCreate(s bot.Session, m *event.MessageCreate) {
-
+func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.SessionState().User().ID {
@@ -111,7 +109,7 @@ func messageCreate(s bot.Session, m *event.MessageCreate) {
 		// Look for the message sender in that guild's current voice states.
 		for _, vs := range g.VoiceStates {
 			if vs.UserID == m.Author.ID {
-				err = playSound(s, g.ID, vs.ChannelID)
+				err = playSound(ctx, s, g.ID, vs.ChannelID)
 				if err != nil {
 					fmt.Println("Error playing sound:", err)
 				}
@@ -124,8 +122,7 @@ func messageCreate(s bot.Session, m *event.MessageCreate) {
 
 // This function will be called (due to AddHandler above) every time a new
 // guild is joined.
-func guildCreate(s bot.Session, event *event.GuildCreate) {
-
+func guildCreate(_ context.Context, s bot.Session, event *event.GuildCreate) {
 	if event.Guild.Unavailable {
 		return
 	}
@@ -140,7 +137,6 @@ func guildCreate(s bot.Session, event *event.GuildCreate) {
 
 // loadSound attempts to load an encoded sound file from disk.
 func loadSound() error {
-
 	file, err := os.Open("airhorn.dca")
 	if err != nil {
 		fmt.Println("Error opening dca file :", err)
@@ -183,10 +179,9 @@ func loadSound() error {
 }
 
 // playSound plays the current buffer to the provided channel.
-func playSound(s bot.Session, guildID, channelID string) (err error) {
-
+func playSound(ctx context.Context, s bot.Session, guildID, channelID string) (err error) {
 	// Join the provided voice channel.
-	vc, err := s.VoiceAPI().ChannelJoin(guildID, channelID, false, true)
+	vc, err := s.VoiceAPI().ChannelJoin(ctx, guildID, channelID, false, true)
 	if err != nil {
 		return err
 	}
@@ -195,7 +190,7 @@ func playSound(s bot.Session, guildID, channelID string) (err error) {
 	time.Sleep(250 * time.Millisecond)
 
 	// Start speaking.
-	vc.Speaking(true)
+	vc.Speaking(ctx, true)
 
 	// Send the buffer data.
 	for _, buff := range buffer {
@@ -203,13 +198,13 @@ func playSound(s bot.Session, guildID, channelID string) (err error) {
 	}
 
 	// Stop speaking
-	vc.Speaking(false)
+	vc.Speaking(ctx, false)
 
 	// Sleep for a specificed amount of time before ending.
 	time.Sleep(250 * time.Millisecond)
 
 	// Disconnect from the provided voice channel.
-	vc.Disconnect()
+	vc.Disconnect(ctx)
 
 	return nil
 }

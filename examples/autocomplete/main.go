@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -68,8 +69,8 @@ var (
 		},
 	}
 
-	commandHandlers = map[string]func(s bot.Session, i *event.InteractionCreate){
-		"single-autocomplete": func(s bot.Session, i *event.InteractionCreate) {
+	commandHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
+		"single-autocomplete": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
@@ -131,7 +132,7 @@ var (
 				}
 			}
 		},
-		"multi-autocomplete": func(s bot.Session, i *event.InteractionCreate) {
+		"multi-autocomplete": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
@@ -221,17 +222,17 @@ var (
 )
 
 func main() {
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) { log.Println("Bot is up!") })
-	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) { log.Println("Bot is up!") })
+	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 		if h, ok := commandHandlers[i.CommandData().Name]; ok {
-			h(s, i)
+			h(ctx, s, i)
 		}
 	})
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.SessionState().User().ID, *GuildID, commands)
 

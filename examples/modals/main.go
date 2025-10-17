@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 
@@ -45,8 +46,8 @@ var (
 			Description: "Take a survey about modals",
 		},
 	}
-	commandsHandlers = map[string]func(s bot.Session, i *event.InteractionCreate){
-		"modals-survey": func(s bot.Session, i *event.InteractionCreate) {
+	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
+		"modals-survey": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseModal,
 				Data: &interaction.ResponseData{
@@ -85,15 +86,15 @@ var (
 )
 
 func main() {
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 
-	s.EventManager().AddHandler(func(s bot.Session, i *event.InteractionCreate) {
+	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 		switch i.Type {
 		case types.InteractionApplicationCommand:
 			if h, ok := commandsHandlers[i.CommandData().Name]; ok {
-				h(s, i)
+				h(ctx, s, i)
 			}
 		case types.InteractionModalSubmit:
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
@@ -136,11 +137,11 @@ func main() {
 		cmdIDs[rcmd.ID] = rcmd.Name
 	}
 
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -157,5 +158,4 @@ func main() {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}
 	}
-
 }

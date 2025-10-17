@@ -21,7 +21,7 @@ var (
 	dgBot *Session // Stores a global discordgo bot session
 
 	envOAuth2Token  = os.Getenv("DG_OAUTH2_TOKEN")  // Token to use when authenticating using OAuth2 token
-	envBotToken     = os.Getenv("DGB_TOKEN")        // Token to use when authenticating the bot account
+	envBotToken     = os.Getenv("DG_TOKEN")         // Token to use when authenticating the bot account
 	envGuild        = os.Getenv("DG_GUILD")         // Application ID to use for tests
 	envChannel      = os.Getenv("DG_CHANNEL")       // Application ID to use for tests
 	envVoiceChannel = os.Getenv("DG_VOICE_CHANNEL") // Application ID to use for tests
@@ -47,7 +47,6 @@ func TestMain(m *testing.M) {
 
 // TestNewToken tests the New() function with a Token.
 func TestNewToken(t *testing.T) {
-
 	if envOAuth2Token == "" {
 		t.Skip("Skipping New(token), DGU_TOKEN not set")
 	}
@@ -70,7 +69,9 @@ func TestOpenClose(t *testing.T) {
 
 	d := NewWithLogLevel(envOAuth2Token, slog.LevelDebug)
 
-	if err := d.Open(); err != nil {
+	ctx := context.Background()
+
+	if err := d.Open(ctx); err != nil {
 		t.Fatalf("TestClose, d.Open failed: %+v", err)
 	}
 
@@ -83,11 +84,11 @@ func TestOpenClose(t *testing.T) {
 		// UpdateStatus - maybe we move this into wsapi_test.go but the websocket
 		// created here is needed.  This helps tests that the websocket was setup
 		// and it is working.
-		if err := d.BotAPI().UpdateGameStatus(0, time.Now().String()); err != nil {
+		if err := d.BotAPI().UpdateGameStatus(ctx, 0, time.Now().String()); err != nil {
 			t.Errorf("UpdateStatus error: %+v", err)
 		}
 
-		if err := d.Close(); err != nil {
+		if err := d.Close(ctx); err != nil {
 			d.ForceClose()
 			t.Fatalf("TestClose, d.Close failed: %+v", err)
 		}
@@ -105,17 +106,17 @@ func TestOpenClose(t *testing.T) {
 
 func TestAddHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s bot.Session, m *event.MessageCreate) {
+	testHandler := func(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
 	interfaceHandlerCalled := int32(0)
-	interfaceHandler := func(s bot.Session, i interface{}) {
+	interfaceHandler := func(ctx context.Context, s bot.Session, i interface{}) {
 		atomic.AddInt32(&interfaceHandlerCalled, 1)
 	}
 
 	bogusHandlerCalled := int32(0)
-	bogusHandler := func(s bot.Session, se *bot.Session) {
+	bogusHandler := func(ctx context.Context, s bot.Session, se *bot.Session) {
 		atomic.AddInt32(&bogusHandlerCalled, 1)
 	}
 
@@ -128,8 +129,8 @@ func TestAddHandler(t *testing.T) {
 	d.EventManager().AddHandler(interfaceHandler)
 	d.EventManager().AddHandler(bogusHandler)
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageDeleteType, &event.MessageDelete{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageDeleteType, &event.MessageDelete{})
 
 	<-time.After(500 * time.Millisecond)
 
@@ -150,7 +151,7 @@ func TestAddHandler(t *testing.T) {
 
 func TestRemoveHandler(t *testing.T) {
 	testHandlerCalled := int32(0)
-	testHandler := func(s bot.Session, m *event.MessageCreate) {
+	testHandler := func(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		atomic.AddInt32(&testHandlerCalled, 1)
 	}
 
@@ -159,11 +160,11 @@ func TestRemoveHandler(t *testing.T) {
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	r := d.EventManager().AddHandler(testHandler)
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
 
 	r()
 
-	d.EventManager().(*event.Manager).EmitEvent(&d, event.MessageCreateType, &event.MessageCreate{})
+	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
 
 	<-time.After(500 * time.Millisecond)
 

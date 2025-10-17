@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -26,15 +27,15 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
 
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	event := createAmazingEvent(s)
 	transformEventToExternalEvent(s, event)

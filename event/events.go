@@ -28,6 +28,9 @@ type Connect struct{}
 // This is a synthetic event and is not dispatched by Discord.
 type Disconnect struct{}
 
+// Event is a general event for unsupported event.
+type Event struct{}
+
 // RateLimit is the data for a RateLimit event.
 // This is a synthetic event and is not dispatched by Discord.
 type RateLimit struct {
