@@ -81,7 +81,7 @@ type Session struct {
 	// Cancel listen goroutines
 	cancelListen func()
 	// Wait for listen goroutines to stop
-	waitListen sync.WaitGroup
+	waitListen *syncListener
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *atomic.Int64
 	// Stores sessions current Discord Resume Gateway.

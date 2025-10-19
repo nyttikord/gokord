@@ -27,6 +27,7 @@ func main() {
 	flag.Parse()
 	if token == "" {
 		println("token not set, use '-token' to set it")
+		os.Exit(1)
 		return
 	}
 	var ctx context.Context

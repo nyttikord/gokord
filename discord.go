@@ -57,6 +57,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		LastHeartbeatAck:                   time.Now().UTC(),
 		logger:                             logger,
 		RWMutex:                            &sync.RWMutex{},
+		waitListen:                         &syncListener{logger: logger},
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface)

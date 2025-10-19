@@ -156,8 +156,21 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	if s.cancelListen != nil {
 		s.logger.Debug("closing goroutines")
 		s.cancelListen()
-		s.waitListen.Wait()
-		s.logger.Debug("goroutines closed")
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		done := make(chan struct{}, 1)
+		go func() {
+			s.waitListen.Wait()
+			s.logger.Debug("goroutines closed")
+			done <- struct{}{}
+		}()
+		select {
+		case <-done:
+		case <-ctx2.Done():
+			s.logger.Warn("closing goroutines", "error", ctx2.Err())
+			s.logger.Warn("force free goroutines")
+			s.waitListen.ForceFree()
+		}
 	}
 
 	for _, v := range s.voiceAPI.Connections {

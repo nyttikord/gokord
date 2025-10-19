@@ -168,7 +168,6 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 	var ctx2 context.Context
 	ctx2, s.cancelListen = context.WithCancel(ctx)
-	s.waitListen.Add(2)
 
 	restart := func(err error) {
 		s.logger.Info("closing websocket")
@@ -187,10 +186,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 	}
 
 	// Start sending heartbeats and reading messages from Discord.
-	go func() {
+	s.waitListen.Add(func(free func()) {
 		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
 		last, err := s.heartbeats(ctx2)
-		s.waitListen.Done()
+		free()
 		select {
 		case <-ctx2.Done():
 			s.logger.Debug("exiting heartbeats")
@@ -199,10 +198,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
 			restart(err)
 		}
-	}()
-	go func() {
+	})
+	s.waitListen.Add(func(free func()) {
 		err := s.listen(ctx2)
-		s.waitListen.Done()
+		free()
 		select {
 		case <-ctx2.Done():
 			s.logger.Debug("exiting listening events")
@@ -211,7 +210,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
 			restart(err)
 		}
-	}()
+	})
 }
 
 // listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
