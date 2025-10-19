@@ -1,6 +1,12 @@
+// Package event contains everything related to events emmitted by Discord.
+//
+// You can handle any of these events with the Manager.
+//
+// The default bot.Session, which is gokord.Session, receives these events via the Websocket API.
 package event
 
 import (
+	"context"
 	"log/slog"
 	"sync"
 
@@ -16,10 +22,10 @@ type Manager struct {
 	handlers     map[string][]*eventHandlerInstance
 	onceHandlers map[string][]*eventHandlerInstance
 
-	onInterface func(any)
+	onInterface func(context.Context, any)
 }
 
-func NewManager(s bot.Session, onInterface func(any)) *Manager {
+func NewManager(s bot.Session, onInterface func(context.Context, any)) *Manager {
 	return &Manager{
 		RWMutex:      sync.RWMutex{},
 		Logger:       func() *slog.Logger { return s.Logger().With("module", "event") },

@@ -3,7 +3,7 @@ module github.com/nyttikord/gokord
 go 1.24.0
 
 require (
-	github.com/gorilla/websocket v1.5.3
+	github.com/coder/websocket v1.8.14
 	golang.org/x/crypto v0.42.0
 )
 

@@ -19,7 +19,6 @@ var (
 )
 
 func init() {
-
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.StringVar(&AvatarFile, "f", "", "Avatar File Name")
 	flag.StringVar(&AvatarURL, "u", "", "URL to the avatar image")
@@ -32,7 +31,6 @@ func init() {
 }
 
 func main() {
-
 	// Create a new Discord session using the provided login information.
 	dg := gokord.New("Bot " + Token)
 

@@ -1,6 +1,7 @@
 package voice
 
 import (
+	"context"
 	"encoding/binary"
 	"net"
 	"time"
@@ -10,7 +11,7 @@ import (
 
 // opusSender will listen on the given channel and send any pre-encoded opus audio to Discord.
 // This is a proof of concept.
-func (v *Connection) opusSender(udpConn *net.UDPConn, close <-chan struct{}, opus <-chan []byte, rate, size int) {
+func (v *Connection) opusSender(ctx context.Context, udpConn *net.UDPConn, close <-chan struct{}, opus <-chan []byte, rate, size int) {
 	if udpConn == nil || close == nil {
 		return
 	}
@@ -58,7 +59,7 @@ func (v *Connection) opusSender(udpConn *net.UDPConn, close <-chan struct{}, opu
 		speaking := v.speaking
 		v.RUnlock()
 		if !speaking {
-			err := v.Speaking(true)
+			err := v.Speaking(ctx, true)
 			if err != nil {
 				v.Logger.Error("sending speaking packet", "error", err)
 			}
@@ -117,7 +118,7 @@ type Packet struct {
 // opusReceiver listens on the UDP socket for incoming packets and sends them across the given channel.
 //
 // NOTE: This function may change names later.
-func (v *Connection) opusReceiver(udpConn *net.UDPConn, close <-chan struct{}, c chan *Packet) {
+func (v *Connection) opusReceiver(ctx context.Context, udpConn *net.UDPConn, close <-chan struct{}, c chan *Packet) {
 	if udpConn == nil || close == nil {
 		return
 	}
@@ -139,7 +140,7 @@ func (v *Connection) opusReceiver(udpConn *net.UDPConn, close <-chan struct{}, c
 				v.Logger.Error("udp read", "error", err, "endpoint", v.endpoint)
 				v.Logger.Debug("voice", "struct", v)
 
-				go v.Reconnect()
+				go v.Reconnect(ctx)
 			}
 			return
 		}

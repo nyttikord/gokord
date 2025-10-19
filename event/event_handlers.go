@@ -4,8 +4,9 @@
 package event
 
 import (
+	"context"
+
 	"github.com/nyttikord/gokord/bot"
-	"github.com/nyttikord/gokord/discord"
 )
 
 // Following are all the event types.
@@ -88,7 +89,7 @@ const (
 )
 
 // applicationCommandPermissionsUpdateHandler is an event handler for ApplicationCommandPermissionsUpdate events.
-type applicationCommandPermissionsUpdateHandler func(bot.Session, *ApplicationCommandPermissionsUpdate)
+type applicationCommandPermissionsUpdateHandler func(context.Context, bot.Session, *ApplicationCommandPermissionsUpdate)
 
 // Type returns the event type for ApplicationCommandPermissionsUpdate events.
 func (eh applicationCommandPermissionsUpdateHandler) Type() string {
@@ -101,14 +102,14 @@ func (eh applicationCommandPermissionsUpdateHandler) New() any {
 }
 
 // Handle is the handler for ApplicationCommandPermissionsUpdate events.
-func (eh applicationCommandPermissionsUpdateHandler) Handle(s bot.Session, i any) {
+func (eh applicationCommandPermissionsUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ApplicationCommandPermissionsUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // autoModerationActionExecutionHandler is an event handler for AutoModerationActionExecution events.
-type autoModerationActionExecutionHandler func(bot.Session, *AutoModerationActionExecution)
+type autoModerationActionExecutionHandler func(context.Context, bot.Session, *AutoModerationActionExecution)
 
 // Type returns the event type for AutoModerationActionExecution events.
 func (eh autoModerationActionExecutionHandler) Type() string {
@@ -121,14 +122,14 @@ func (eh autoModerationActionExecutionHandler) New() any {
 }
 
 // Handle is the handler for AutoModerationActionExecution events.
-func (eh autoModerationActionExecutionHandler) Handle(s bot.Session, i any) {
+func (eh autoModerationActionExecutionHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*AutoModerationActionExecution); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // autoModerationRuleCreateHandler is an event handler for AutoModerationRuleCreate events.
-type autoModerationRuleCreateHandler func(bot.Session, *AutoModerationRuleCreate)
+type autoModerationRuleCreateHandler func(context.Context, bot.Session, *AutoModerationRuleCreate)
 
 // Type returns the event type for AutoModerationRuleCreate events.
 func (eh autoModerationRuleCreateHandler) Type() string {
@@ -141,14 +142,14 @@ func (eh autoModerationRuleCreateHandler) New() any {
 }
 
 // Handle is the handler for AutoModerationRuleCreate events.
-func (eh autoModerationRuleCreateHandler) Handle(s bot.Session, i any) {
+func (eh autoModerationRuleCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*AutoModerationRuleCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // autoModerationRuleDeleteHandler is an event handler for AutoModerationRuleDelete events.
-type autoModerationRuleDeleteHandler func(bot.Session, *AutoModerationRuleDelete)
+type autoModerationRuleDeleteHandler func(context.Context, bot.Session, *AutoModerationRuleDelete)
 
 // Type returns the event type for AutoModerationRuleDelete events.
 func (eh autoModerationRuleDeleteHandler) Type() string {
@@ -161,14 +162,14 @@ func (eh autoModerationRuleDeleteHandler) New() any {
 }
 
 // Handle is the handler for AutoModerationRuleDelete events.
-func (eh autoModerationRuleDeleteHandler) Handle(s bot.Session, i any) {
+func (eh autoModerationRuleDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*AutoModerationRuleDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // autoModerationRuleUpdateHandler is an event handler for AutoModerationRuleUpdate events.
-type autoModerationRuleUpdateHandler func(bot.Session, *AutoModerationRuleUpdate)
+type autoModerationRuleUpdateHandler func(context.Context, bot.Session, *AutoModerationRuleUpdate)
 
 // Type returns the event type for AutoModerationRuleUpdate events.
 func (eh autoModerationRuleUpdateHandler) Type() string {
@@ -181,14 +182,14 @@ func (eh autoModerationRuleUpdateHandler) New() any {
 }
 
 // Handle is the handler for AutoModerationRuleUpdate events.
-func (eh autoModerationRuleUpdateHandler) Handle(s bot.Session, i any) {
+func (eh autoModerationRuleUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*AutoModerationRuleUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // channelCreateHandler is an event handler for ChannelCreate events.
-type channelCreateHandler func(bot.Session, *ChannelCreate)
+type channelCreateHandler func(context.Context, bot.Session, *ChannelCreate)
 
 // Type returns the event type for ChannelCreate events.
 func (eh channelCreateHandler) Type() string {
@@ -201,14 +202,14 @@ func (eh channelCreateHandler) New() any {
 }
 
 // Handle is the handler for ChannelCreate events.
-func (eh channelCreateHandler) Handle(s bot.Session, i any) {
+func (eh channelCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ChannelCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // channelDeleteHandler is an event handler for ChannelDelete events.
-type channelDeleteHandler func(bot.Session, *ChannelDelete)
+type channelDeleteHandler func(context.Context, bot.Session, *ChannelDelete)
 
 // Type returns the event type for ChannelDelete events.
 func (eh channelDeleteHandler) Type() string {
@@ -221,14 +222,14 @@ func (eh channelDeleteHandler) New() any {
 }
 
 // Handle is the handler for ChannelDelete events.
-func (eh channelDeleteHandler) Handle(s bot.Session, i any) {
+func (eh channelDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ChannelDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // channelPinsUpdateHandler is an event handler for ChannelPinsUpdate events.
-type channelPinsUpdateHandler func(bot.Session, *ChannelPinsUpdate)
+type channelPinsUpdateHandler func(context.Context, bot.Session, *ChannelPinsUpdate)
 
 // Type returns the event type for ChannelPinsUpdate events.
 func (eh channelPinsUpdateHandler) Type() string {
@@ -241,14 +242,14 @@ func (eh channelPinsUpdateHandler) New() any {
 }
 
 // Handle is the handler for ChannelPinsUpdate events.
-func (eh channelPinsUpdateHandler) Handle(s bot.Session, i any) {
+func (eh channelPinsUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ChannelPinsUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // channelUpdateHandler is an event handler for ChannelUpdate events.
-type channelUpdateHandler func(bot.Session, *ChannelUpdate)
+type channelUpdateHandler func(context.Context, bot.Session, *ChannelUpdate)
 
 // Type returns the event type for ChannelUpdate events.
 func (eh channelUpdateHandler) Type() string {
@@ -261,14 +262,14 @@ func (eh channelUpdateHandler) New() any {
 }
 
 // Handle is the handler for ChannelUpdate events.
-func (eh channelUpdateHandler) Handle(s bot.Session, i any) {
+func (eh channelUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ChannelUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // connectHandler is an event handler for Connect events.
-type connectHandler func(bot.Session, *Connect)
+type connectHandler func(context.Context, bot.Session, *Connect)
 
 // Type returns the event type for Connect events.
 func (eh connectHandler) Type() string {
@@ -276,14 +277,14 @@ func (eh connectHandler) Type() string {
 }
 
 // Handle is the handler for Connect events.
-func (eh connectHandler) Handle(s bot.Session, i any) {
+func (eh connectHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*Connect); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // disconnectHandler is an event handler for Disconnect events.
-type disconnectHandler func(bot.Session, *Disconnect)
+type disconnectHandler func(context.Context, bot.Session, *Disconnect)
 
 // Type returns the event type for Disconnect events.
 func (eh disconnectHandler) Type() string {
@@ -291,14 +292,14 @@ func (eh disconnectHandler) Type() string {
 }
 
 // Handle is the handler for Disconnect events.
-func (eh disconnectHandler) Handle(s bot.Session, i any) {
+func (eh disconnectHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*Disconnect); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // entitlementCreateHandler is an event handler for EntitlementCreate events.
-type entitlementCreateHandler func(bot.Session, *EntitlementCreate)
+type entitlementCreateHandler func(context.Context, bot.Session, *EntitlementCreate)
 
 // Type returns the event type for EntitlementCreate events.
 func (eh entitlementCreateHandler) Type() string {
@@ -311,14 +312,14 @@ func (eh entitlementCreateHandler) New() any {
 }
 
 // Handle is the handler for EntitlementCreate events.
-func (eh entitlementCreateHandler) Handle(s bot.Session, i any) {
+func (eh entitlementCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*EntitlementCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // entitlementDeleteHandler is an event handler for EntitlementDelete events.
-type entitlementDeleteHandler func(bot.Session, *EntitlementDelete)
+type entitlementDeleteHandler func(context.Context, bot.Session, *EntitlementDelete)
 
 // Type returns the event type for EntitlementDelete events.
 func (eh entitlementDeleteHandler) Type() string {
@@ -331,14 +332,14 @@ func (eh entitlementDeleteHandler) New() any {
 }
 
 // Handle is the handler for EntitlementDelete events.
-func (eh entitlementDeleteHandler) Handle(s bot.Session, i any) {
+func (eh entitlementDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*EntitlementDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // entitlementUpdateHandler is an event handler for EntitlementUpdate events.
-type entitlementUpdateHandler func(bot.Session, *EntitlementUpdate)
+type entitlementUpdateHandler func(context.Context, bot.Session, *EntitlementUpdate)
 
 // Type returns the event type for EntitlementUpdate events.
 func (eh entitlementUpdateHandler) Type() string {
@@ -351,14 +352,14 @@ func (eh entitlementUpdateHandler) New() any {
 }
 
 // Handle is the handler for EntitlementUpdate events.
-func (eh entitlementUpdateHandler) Handle(s bot.Session, i any) {
+func (eh entitlementUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*EntitlementUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // eventHandler is an event handler for Event events.
-type eventHandler func(bot.Session, *discord.Event)
+type eventHandler func(context.Context, bot.Session, *Event)
 
 // Type returns the event type for Event events.
 func (eh eventHandler) Type() string {
@@ -366,14 +367,14 @@ func (eh eventHandler) Type() string {
 }
 
 // Handle is the handler for Event events.
-func (eh eventHandler) Handle(s bot.Session, i any) {
-	if t, ok := i.(*discord.Event); ok {
-		eh(s, t)
+func (eh eventHandler) Handle(ctx context.Context, s bot.Session, i any) {
+	if t, ok := i.(*Event); ok {
+		eh(ctx, s, t)
 	}
 }
 
 // guildAuditLogEntryCreateHandler is an event handler for GuildAuditLogEntryCreate events.
-type guildAuditLogEntryCreateHandler func(bot.Session, *GuildAuditLogEntryCreate)
+type guildAuditLogEntryCreateHandler func(context.Context, bot.Session, *GuildAuditLogEntryCreate)
 
 // Type returns the event type for GuildAuditLogEntryCreate events.
 func (eh guildAuditLogEntryCreateHandler) Type() string {
@@ -386,14 +387,14 @@ func (eh guildAuditLogEntryCreateHandler) New() any {
 }
 
 // Handle is the handler for GuildAuditLogEntryCreate events.
-func (eh guildAuditLogEntryCreateHandler) Handle(s bot.Session, i any) {
+func (eh guildAuditLogEntryCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildAuditLogEntryCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildBanAddHandler is an event handler for GuildBanAdd events.
-type guildBanAddHandler func(bot.Session, *GuildBanAdd)
+type guildBanAddHandler func(context.Context, bot.Session, *GuildBanAdd)
 
 // Type returns the event type for GuildBanAdd events.
 func (eh guildBanAddHandler) Type() string {
@@ -406,14 +407,14 @@ func (eh guildBanAddHandler) New() any {
 }
 
 // Handle is the handler for GuildBanAdd events.
-func (eh guildBanAddHandler) Handle(s bot.Session, i any) {
+func (eh guildBanAddHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildBanAdd); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildBanRemoveHandler is an event handler for GuildBanRemove events.
-type guildBanRemoveHandler func(bot.Session, *GuildBanRemove)
+type guildBanRemoveHandler func(context.Context, bot.Session, *GuildBanRemove)
 
 // Type returns the event type for GuildBanRemove events.
 func (eh guildBanRemoveHandler) Type() string {
@@ -426,14 +427,14 @@ func (eh guildBanRemoveHandler) New() any {
 }
 
 // Handle is the handler for GuildBanRemove events.
-func (eh guildBanRemoveHandler) Handle(s bot.Session, i any) {
+func (eh guildBanRemoveHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildBanRemove); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildCreateHandler is an event handler for GuildCreate events.
-type guildCreateHandler func(bot.Session, *GuildCreate)
+type guildCreateHandler func(context.Context, bot.Session, *GuildCreate)
 
 // Type returns the event type for GuildCreate events.
 func (eh guildCreateHandler) Type() string {
@@ -446,14 +447,14 @@ func (eh guildCreateHandler) New() any {
 }
 
 // Handle is the handler for GuildCreate events.
-func (eh guildCreateHandler) Handle(s bot.Session, i any) {
+func (eh guildCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildDeleteHandler is an event handler for GuildDelete events.
-type guildDeleteHandler func(bot.Session, *GuildDelete)
+type guildDeleteHandler func(context.Context, bot.Session, *GuildDelete)
 
 // Type returns the event type for GuildDelete events.
 func (eh guildDeleteHandler) Type() string {
@@ -466,14 +467,14 @@ func (eh guildDeleteHandler) New() any {
 }
 
 // Handle is the handler for GuildDelete events.
-func (eh guildDeleteHandler) Handle(s bot.Session, i any) {
+func (eh guildDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildEmojisUpdateHandler is an event handler for GuildEmojisUpdate events.
-type guildEmojisUpdateHandler func(bot.Session, *GuildEmojisUpdate)
+type guildEmojisUpdateHandler func(context.Context, bot.Session, *GuildEmojisUpdate)
 
 // Type returns the event type for GuildEmojisUpdate events.
 func (eh guildEmojisUpdateHandler) Type() string {
@@ -486,14 +487,14 @@ func (eh guildEmojisUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildEmojisUpdate events.
-func (eh guildEmojisUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildEmojisUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildEmojisUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildIntegrationsUpdateHandler is an event handler for GuildIntegrationsUpdate events.
-type guildIntegrationsUpdateHandler func(bot.Session, *GuildIntegrationsUpdate)
+type guildIntegrationsUpdateHandler func(context.Context, bot.Session, *GuildIntegrationsUpdate)
 
 // Type returns the event type for GuildIntegrationsUpdate events.
 func (eh guildIntegrationsUpdateHandler) Type() string {
@@ -506,14 +507,14 @@ func (eh guildIntegrationsUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildIntegrationsUpdate events.
-func (eh guildIntegrationsUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildIntegrationsUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildIntegrationsUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildMemberAddHandler is an event handler for GuildMemberAdd events.
-type guildMemberAddHandler func(bot.Session, *GuildMemberAdd)
+type guildMemberAddHandler func(context.Context, bot.Session, *GuildMemberAdd)
 
 // Type returns the event type for GuildMemberAdd events.
 func (eh guildMemberAddHandler) Type() string {
@@ -526,14 +527,14 @@ func (eh guildMemberAddHandler) New() any {
 }
 
 // Handle is the handler for GuildMemberAdd events.
-func (eh guildMemberAddHandler) Handle(s bot.Session, i any) {
+func (eh guildMemberAddHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildMemberAdd); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildMemberRemoveHandler is an event handler for GuildMemberRemove events.
-type guildMemberRemoveHandler func(bot.Session, *GuildMemberRemove)
+type guildMemberRemoveHandler func(context.Context, bot.Session, *GuildMemberRemove)
 
 // Type returns the event type for GuildMemberRemove events.
 func (eh guildMemberRemoveHandler) Type() string {
@@ -546,14 +547,14 @@ func (eh guildMemberRemoveHandler) New() any {
 }
 
 // Handle is the handler for GuildMemberRemove events.
-func (eh guildMemberRemoveHandler) Handle(s bot.Session, i any) {
+func (eh guildMemberRemoveHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildMemberRemove); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildMemberUpdateHandler is an event handler for GuildMemberUpdate events.
-type guildMemberUpdateHandler func(bot.Session, *GuildMemberUpdate)
+type guildMemberUpdateHandler func(context.Context, bot.Session, *GuildMemberUpdate)
 
 // Type returns the event type for GuildMemberUpdate events.
 func (eh guildMemberUpdateHandler) Type() string {
@@ -566,14 +567,14 @@ func (eh guildMemberUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildMemberUpdate events.
-func (eh guildMemberUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildMemberUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildMemberUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildMembersChunkHandler is an event handler for GuildMembersChunk events.
-type guildMembersChunkHandler func(bot.Session, *GuildMembersChunk)
+type guildMembersChunkHandler func(context.Context, bot.Session, *GuildMembersChunk)
 
 // Type returns the event type for GuildMembersChunk events.
 func (eh guildMembersChunkHandler) Type() string {
@@ -586,14 +587,14 @@ func (eh guildMembersChunkHandler) New() any {
 }
 
 // Handle is the handler for GuildMembersChunk events.
-func (eh guildMembersChunkHandler) Handle(s bot.Session, i any) {
+func (eh guildMembersChunkHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildMembersChunk); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildRoleCreateHandler is an event handler for GuildRoleCreate events.
-type guildRoleCreateHandler func(bot.Session, *GuildRoleCreate)
+type guildRoleCreateHandler func(context.Context, bot.Session, *GuildRoleCreate)
 
 // Type returns the event type for GuildRoleCreate events.
 func (eh guildRoleCreateHandler) Type() string {
@@ -606,14 +607,14 @@ func (eh guildRoleCreateHandler) New() any {
 }
 
 // Handle is the handler for GuildRoleCreate events.
-func (eh guildRoleCreateHandler) Handle(s bot.Session, i any) {
+func (eh guildRoleCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildRoleCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildRoleDeleteHandler is an event handler for GuildRoleDelete events.
-type guildRoleDeleteHandler func(bot.Session, *GuildRoleDelete)
+type guildRoleDeleteHandler func(context.Context, bot.Session, *GuildRoleDelete)
 
 // Type returns the event type for GuildRoleDelete events.
 func (eh guildRoleDeleteHandler) Type() string {
@@ -626,14 +627,14 @@ func (eh guildRoleDeleteHandler) New() any {
 }
 
 // Handle is the handler for GuildRoleDelete events.
-func (eh guildRoleDeleteHandler) Handle(s bot.Session, i any) {
+func (eh guildRoleDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildRoleDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildRoleUpdateHandler is an event handler for GuildRoleUpdate events.
-type guildRoleUpdateHandler func(bot.Session, *GuildRoleUpdate)
+type guildRoleUpdateHandler func(context.Context, bot.Session, *GuildRoleUpdate)
 
 // Type returns the event type for GuildRoleUpdate events.
 func (eh guildRoleUpdateHandler) Type() string {
@@ -646,14 +647,14 @@ func (eh guildRoleUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildRoleUpdate events.
-func (eh guildRoleUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildRoleUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildRoleUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildScheduledEventCreateHandler is an event handler for GuildScheduledEventCreate events.
-type guildScheduledEventCreateHandler func(bot.Session, *GuildScheduledEventCreate)
+type guildScheduledEventCreateHandler func(context.Context, bot.Session, *GuildScheduledEventCreate)
 
 // Type returns the event type for GuildScheduledEventCreate events.
 func (eh guildScheduledEventCreateHandler) Type() string {
@@ -666,14 +667,14 @@ func (eh guildScheduledEventCreateHandler) New() any {
 }
 
 // Handle is the handler for GuildScheduledEventCreate events.
-func (eh guildScheduledEventCreateHandler) Handle(s bot.Session, i any) {
+func (eh guildScheduledEventCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildScheduledEventCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildScheduledEventDeleteHandler is an event handler for GuildScheduledEventDelete events.
-type guildScheduledEventDeleteHandler func(bot.Session, *GuildScheduledEventDelete)
+type guildScheduledEventDeleteHandler func(context.Context, bot.Session, *GuildScheduledEventDelete)
 
 // Type returns the event type for GuildScheduledEventDelete events.
 func (eh guildScheduledEventDeleteHandler) Type() string {
@@ -686,14 +687,14 @@ func (eh guildScheduledEventDeleteHandler) New() any {
 }
 
 // Handle is the handler for GuildScheduledEventDelete events.
-func (eh guildScheduledEventDeleteHandler) Handle(s bot.Session, i any) {
+func (eh guildScheduledEventDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildScheduledEventDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildScheduledEventUpdateHandler is an event handler for GuildScheduledEventUpdate events.
-type guildScheduledEventUpdateHandler func(bot.Session, *GuildScheduledEventUpdate)
+type guildScheduledEventUpdateHandler func(context.Context, bot.Session, *GuildScheduledEventUpdate)
 
 // Type returns the event type for GuildScheduledEventUpdate events.
 func (eh guildScheduledEventUpdateHandler) Type() string {
@@ -706,14 +707,14 @@ func (eh guildScheduledEventUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildScheduledEventUpdate events.
-func (eh guildScheduledEventUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildScheduledEventUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildScheduledEventUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildScheduledEventUserAddHandler is an event handler for GuildScheduledEventUserAdd events.
-type guildScheduledEventUserAddHandler func(bot.Session, *GuildScheduledEventUserAdd)
+type guildScheduledEventUserAddHandler func(context.Context, bot.Session, *GuildScheduledEventUserAdd)
 
 // Type returns the event type for GuildScheduledEventUserAdd events.
 func (eh guildScheduledEventUserAddHandler) Type() string {
@@ -726,14 +727,14 @@ func (eh guildScheduledEventUserAddHandler) New() any {
 }
 
 // Handle is the handler for GuildScheduledEventUserAdd events.
-func (eh guildScheduledEventUserAddHandler) Handle(s bot.Session, i any) {
+func (eh guildScheduledEventUserAddHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildScheduledEventUserAdd); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildScheduledEventUserRemoveHandler is an event handler for GuildScheduledEventUserRemove events.
-type guildScheduledEventUserRemoveHandler func(bot.Session, *GuildScheduledEventUserRemove)
+type guildScheduledEventUserRemoveHandler func(context.Context, bot.Session, *GuildScheduledEventUserRemove)
 
 // Type returns the event type for GuildScheduledEventUserRemove events.
 func (eh guildScheduledEventUserRemoveHandler) Type() string {
@@ -746,14 +747,14 @@ func (eh guildScheduledEventUserRemoveHandler) New() any {
 }
 
 // Handle is the handler for GuildScheduledEventUserRemove events.
-func (eh guildScheduledEventUserRemoveHandler) Handle(s bot.Session, i any) {
+func (eh guildScheduledEventUserRemoveHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildScheduledEventUserRemove); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildStickersUpdateHandler is an event handler for GuildStickersUpdate events.
-type guildStickersUpdateHandler func(bot.Session, *GuildStickersUpdate)
+type guildStickersUpdateHandler func(context.Context, bot.Session, *GuildStickersUpdate)
 
 // Type returns the event type for GuildStickersUpdate events.
 func (eh guildStickersUpdateHandler) Type() string {
@@ -766,14 +767,14 @@ func (eh guildStickersUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildStickersUpdate events.
-func (eh guildStickersUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildStickersUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildStickersUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // guildUpdateHandler is an event handler for GuildUpdate events.
-type guildUpdateHandler func(bot.Session, *GuildUpdate)
+type guildUpdateHandler func(context.Context, bot.Session, *GuildUpdate)
 
 // Type returns the event type for GuildUpdate events.
 func (eh guildUpdateHandler) Type() string {
@@ -786,14 +787,14 @@ func (eh guildUpdateHandler) New() any {
 }
 
 // Handle is the handler for GuildUpdate events.
-func (eh guildUpdateHandler) Handle(s bot.Session, i any) {
+func (eh guildUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*GuildUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // integrationCreateHandler is an event handler for IntegrationCreate events.
-type integrationCreateHandler func(bot.Session, *IntegrationCreate)
+type integrationCreateHandler func(context.Context, bot.Session, *IntegrationCreate)
 
 // Type returns the event type for IntegrationCreate events.
 func (eh integrationCreateHandler) Type() string {
@@ -806,14 +807,14 @@ func (eh integrationCreateHandler) New() any {
 }
 
 // Handle is the handler for IntegrationCreate events.
-func (eh integrationCreateHandler) Handle(s bot.Session, i any) {
+func (eh integrationCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*IntegrationCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // integrationDeleteHandler is an event handler for IntegrationDelete events.
-type integrationDeleteHandler func(bot.Session, *IntegrationDelete)
+type integrationDeleteHandler func(context.Context, bot.Session, *IntegrationDelete)
 
 // Type returns the event type for IntegrationDelete events.
 func (eh integrationDeleteHandler) Type() string {
@@ -826,14 +827,14 @@ func (eh integrationDeleteHandler) New() any {
 }
 
 // Handle is the handler for IntegrationDelete events.
-func (eh integrationDeleteHandler) Handle(s bot.Session, i any) {
+func (eh integrationDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*IntegrationDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // integrationUpdateHandler is an event handler for IntegrationUpdate events.
-type integrationUpdateHandler func(bot.Session, *IntegrationUpdate)
+type integrationUpdateHandler func(context.Context, bot.Session, *IntegrationUpdate)
 
 // Type returns the event type for IntegrationUpdate events.
 func (eh integrationUpdateHandler) Type() string {
@@ -846,14 +847,14 @@ func (eh integrationUpdateHandler) New() any {
 }
 
 // Handle is the handler for IntegrationUpdate events.
-func (eh integrationUpdateHandler) Handle(s bot.Session, i any) {
+func (eh integrationUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*IntegrationUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // interactionCreateHandler is an event handler for InteractionCreate events.
-type interactionCreateHandler func(bot.Session, *InteractionCreate)
+type interactionCreateHandler func(context.Context, bot.Session, *InteractionCreate)
 
 // Type returns the event type for InteractionCreate events.
 func (eh interactionCreateHandler) Type() string {
@@ -866,14 +867,14 @@ func (eh interactionCreateHandler) New() any {
 }
 
 // Handle is the handler for InteractionCreate events.
-func (eh interactionCreateHandler) Handle(s bot.Session, i any) {
+func (eh interactionCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*InteractionCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // inviteCreateHandler is an event handler for InviteCreate events.
-type inviteCreateHandler func(bot.Session, *InviteCreate)
+type inviteCreateHandler func(context.Context, bot.Session, *InviteCreate)
 
 // Type returns the event type for InviteCreate events.
 func (eh inviteCreateHandler) Type() string {
@@ -886,14 +887,14 @@ func (eh inviteCreateHandler) New() any {
 }
 
 // Handle is the handler for InviteCreate events.
-func (eh inviteCreateHandler) Handle(s bot.Session, i any) {
+func (eh inviteCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*InviteCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // inviteDeleteHandler is an event handler for InviteDelete events.
-type inviteDeleteHandler func(bot.Session, *InviteDelete)
+type inviteDeleteHandler func(context.Context, bot.Session, *InviteDelete)
 
 // Type returns the event type for InviteDelete events.
 func (eh inviteDeleteHandler) Type() string {
@@ -906,14 +907,14 @@ func (eh inviteDeleteHandler) New() any {
 }
 
 // Handle is the handler for InviteDelete events.
-func (eh inviteDeleteHandler) Handle(s bot.Session, i any) {
+func (eh inviteDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*InviteDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageCreateHandler is an event handler for MessageCreate events.
-type messageCreateHandler func(bot.Session, *MessageCreate)
+type messageCreateHandler func(context.Context, bot.Session, *MessageCreate)
 
 // Type returns the event type for MessageCreate events.
 func (eh messageCreateHandler) Type() string {
@@ -926,14 +927,14 @@ func (eh messageCreateHandler) New() any {
 }
 
 // Handle is the handler for MessageCreate events.
-func (eh messageCreateHandler) Handle(s bot.Session, i any) {
+func (eh messageCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageDeleteHandler is an event handler for MessageDelete events.
-type messageDeleteHandler func(bot.Session, *MessageDelete)
+type messageDeleteHandler func(context.Context, bot.Session, *MessageDelete)
 
 // Type returns the event type for MessageDelete events.
 func (eh messageDeleteHandler) Type() string {
@@ -946,14 +947,14 @@ func (eh messageDeleteHandler) New() any {
 }
 
 // Handle is the handler for MessageDelete events.
-func (eh messageDeleteHandler) Handle(s bot.Session, i any) {
+func (eh messageDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageDeleteBulkHandler is an event handler for MessageDeleteBulk events.
-type messageDeleteBulkHandler func(bot.Session, *MessageDeleteBulk)
+type messageDeleteBulkHandler func(context.Context, bot.Session, *MessageDeleteBulk)
 
 // Type returns the event type for MessageDeleteBulk events.
 func (eh messageDeleteBulkHandler) Type() string {
@@ -966,14 +967,14 @@ func (eh messageDeleteBulkHandler) New() any {
 }
 
 // Handle is the handler for MessageDeleteBulk events.
-func (eh messageDeleteBulkHandler) Handle(s bot.Session, i any) {
+func (eh messageDeleteBulkHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageDeleteBulk); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messagePollVoteAddHandler is an event handler for MessagePollVoteAdd events.
-type messagePollVoteAddHandler func(bot.Session, *MessagePollVoteAdd)
+type messagePollVoteAddHandler func(context.Context, bot.Session, *MessagePollVoteAdd)
 
 // Type returns the event type for MessagePollVoteAdd events.
 func (eh messagePollVoteAddHandler) Type() string {
@@ -986,14 +987,14 @@ func (eh messagePollVoteAddHandler) New() any {
 }
 
 // Handle is the handler for MessagePollVoteAdd events.
-func (eh messagePollVoteAddHandler) Handle(s bot.Session, i any) {
+func (eh messagePollVoteAddHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessagePollVoteAdd); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messagePollVoteRemoveHandler is an event handler for MessagePollVoteRemove events.
-type messagePollVoteRemoveHandler func(bot.Session, *MessagePollVoteRemove)
+type messagePollVoteRemoveHandler func(context.Context, bot.Session, *MessagePollVoteRemove)
 
 // Type returns the event type for MessagePollVoteRemove events.
 func (eh messagePollVoteRemoveHandler) Type() string {
@@ -1006,14 +1007,14 @@ func (eh messagePollVoteRemoveHandler) New() any {
 }
 
 // Handle is the handler for MessagePollVoteRemove events.
-func (eh messagePollVoteRemoveHandler) Handle(s bot.Session, i any) {
+func (eh messagePollVoteRemoveHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessagePollVoteRemove); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageReactionAddHandler is an event handler for MessageReactionAdd events.
-type messageReactionAddHandler func(bot.Session, *MessageReactionAdd)
+type messageReactionAddHandler func(context.Context, bot.Session, *MessageReactionAdd)
 
 // Type returns the event type for MessageReactionAdd events.
 func (eh messageReactionAddHandler) Type() string {
@@ -1026,14 +1027,14 @@ func (eh messageReactionAddHandler) New() any {
 }
 
 // Handle is the handler for MessageReactionAdd events.
-func (eh messageReactionAddHandler) Handle(s bot.Session, i any) {
+func (eh messageReactionAddHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageReactionAdd); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageReactionRemoveHandler is an event handler for MessageReactionRemove events.
-type messageReactionRemoveHandler func(bot.Session, *MessageReactionRemove)
+type messageReactionRemoveHandler func(context.Context, bot.Session, *MessageReactionRemove)
 
 // Type returns the event type for MessageReactionRemove events.
 func (eh messageReactionRemoveHandler) Type() string {
@@ -1046,14 +1047,14 @@ func (eh messageReactionRemoveHandler) New() any {
 }
 
 // Handle is the handler for MessageReactionRemove events.
-func (eh messageReactionRemoveHandler) Handle(s bot.Session, i any) {
+func (eh messageReactionRemoveHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageReactionRemove); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageReactionRemoveAllHandler is an event handler for MessageReactionRemoveAll events.
-type messageReactionRemoveAllHandler func(bot.Session, *MessageReactionRemoveAll)
+type messageReactionRemoveAllHandler func(context.Context, bot.Session, *MessageReactionRemoveAll)
 
 // Type returns the event type for MessageReactionRemoveAll events.
 func (eh messageReactionRemoveAllHandler) Type() string {
@@ -1066,14 +1067,14 @@ func (eh messageReactionRemoveAllHandler) New() any {
 }
 
 // Handle is the handler for MessageReactionRemoveAll events.
-func (eh messageReactionRemoveAllHandler) Handle(s bot.Session, i any) {
+func (eh messageReactionRemoveAllHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageReactionRemoveAll); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // messageUpdateHandler is an event handler for MessageUpdate events.
-type messageUpdateHandler func(bot.Session, *MessageUpdate)
+type messageUpdateHandler func(context.Context, bot.Session, *MessageUpdate)
 
 // Type returns the event type for MessageUpdate events.
 func (eh messageUpdateHandler) Type() string {
@@ -1086,14 +1087,14 @@ func (eh messageUpdateHandler) New() any {
 }
 
 // Handle is the handler for MessageUpdate events.
-func (eh messageUpdateHandler) Handle(s bot.Session, i any) {
+func (eh messageUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*MessageUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // presenceUpdateHandler is an event handler for PresenceUpdate events.
-type presenceUpdateHandler func(bot.Session, *PresenceUpdate)
+type presenceUpdateHandler func(context.Context, bot.Session, *PresenceUpdate)
 
 // Type returns the event type for PresenceUpdate events.
 func (eh presenceUpdateHandler) Type() string {
@@ -1106,14 +1107,14 @@ func (eh presenceUpdateHandler) New() any {
 }
 
 // Handle is the handler for PresenceUpdate events.
-func (eh presenceUpdateHandler) Handle(s bot.Session, i any) {
+func (eh presenceUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*PresenceUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // presencesReplaceHandler is an event handler for PresencesReplace events.
-type presencesReplaceHandler func(bot.Session, *PresencesReplace)
+type presencesReplaceHandler func(context.Context, bot.Session, *PresencesReplace)
 
 // Type returns the event type for PresencesReplace events.
 func (eh presencesReplaceHandler) Type() string {
@@ -1126,14 +1127,14 @@ func (eh presencesReplaceHandler) New() any {
 }
 
 // Handle is the handler for PresencesReplace events.
-func (eh presencesReplaceHandler) Handle(s bot.Session, i any) {
+func (eh presencesReplaceHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*PresencesReplace); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // rateLimitHandler is an event handler for RateLimit events.
-type rateLimitHandler func(bot.Session, *RateLimit)
+type rateLimitHandler func(context.Context, bot.Session, *RateLimit)
 
 // Type returns the event type for RateLimit events.
 func (eh rateLimitHandler) Type() string {
@@ -1141,14 +1142,14 @@ func (eh rateLimitHandler) Type() string {
 }
 
 // Handle is the handler for RateLimit events.
-func (eh rateLimitHandler) Handle(s bot.Session, i any) {
+func (eh rateLimitHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*RateLimit); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // readyHandler is an event handler for Ready events.
-type readyHandler func(bot.Session, *Ready)
+type readyHandler func(context.Context, bot.Session, *Ready)
 
 // Type returns the event type for Ready events.
 func (eh readyHandler) Type() string {
@@ -1161,14 +1162,14 @@ func (eh readyHandler) New() any {
 }
 
 // Handle is the handler for Ready events.
-func (eh readyHandler) Handle(s bot.Session, i any) {
+func (eh readyHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*Ready); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // resumedHandler is an event handler for Resumed events.
-type resumedHandler func(bot.Session, *Resumed)
+type resumedHandler func(context.Context, bot.Session, *Resumed)
 
 // Type returns the event type for Resumed events.
 func (eh resumedHandler) Type() string {
@@ -1181,14 +1182,14 @@ func (eh resumedHandler) New() any {
 }
 
 // Handle is the handler for Resumed events.
-func (eh resumedHandler) Handle(s bot.Session, i any) {
+func (eh resumedHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*Resumed); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // stageInstanceEventCreateHandler is an event handler for StageInstanceEventCreate events.
-type stageInstanceEventCreateHandler func(bot.Session, *StageInstanceEventCreate)
+type stageInstanceEventCreateHandler func(context.Context, bot.Session, *StageInstanceEventCreate)
 
 // Type returns the event type for StageInstanceEventCreate events.
 func (eh stageInstanceEventCreateHandler) Type() string {
@@ -1201,14 +1202,14 @@ func (eh stageInstanceEventCreateHandler) New() any {
 }
 
 // Handle is the handler for StageInstanceEventCreate events.
-func (eh stageInstanceEventCreateHandler) Handle(s bot.Session, i any) {
+func (eh stageInstanceEventCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*StageInstanceEventCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // stageInstanceEventDeleteHandler is an event handler for StageInstanceEventDelete events.
-type stageInstanceEventDeleteHandler func(bot.Session, *StageInstanceEventDelete)
+type stageInstanceEventDeleteHandler func(context.Context, bot.Session, *StageInstanceEventDelete)
 
 // Type returns the event type for StageInstanceEventDelete events.
 func (eh stageInstanceEventDeleteHandler) Type() string {
@@ -1221,14 +1222,14 @@ func (eh stageInstanceEventDeleteHandler) New() any {
 }
 
 // Handle is the handler for StageInstanceEventDelete events.
-func (eh stageInstanceEventDeleteHandler) Handle(s bot.Session, i any) {
+func (eh stageInstanceEventDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*StageInstanceEventDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // stageInstanceEventUpdateHandler is an event handler for StageInstanceEventUpdate events.
-type stageInstanceEventUpdateHandler func(bot.Session, *StageInstanceEventUpdate)
+type stageInstanceEventUpdateHandler func(context.Context, bot.Session, *StageInstanceEventUpdate)
 
 // Type returns the event type for StageInstanceEventUpdate events.
 func (eh stageInstanceEventUpdateHandler) Type() string {
@@ -1241,14 +1242,14 @@ func (eh stageInstanceEventUpdateHandler) New() any {
 }
 
 // Handle is the handler for StageInstanceEventUpdate events.
-func (eh stageInstanceEventUpdateHandler) Handle(s bot.Session, i any) {
+func (eh stageInstanceEventUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*StageInstanceEventUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // subscriptionCreateHandler is an event handler for SubscriptionCreate events.
-type subscriptionCreateHandler func(bot.Session, *SubscriptionCreate)
+type subscriptionCreateHandler func(context.Context, bot.Session, *SubscriptionCreate)
 
 // Type returns the event type for SubscriptionCreate events.
 func (eh subscriptionCreateHandler) Type() string {
@@ -1261,14 +1262,14 @@ func (eh subscriptionCreateHandler) New() any {
 }
 
 // Handle is the handler for SubscriptionCreate events.
-func (eh subscriptionCreateHandler) Handle(s bot.Session, i any) {
+func (eh subscriptionCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*SubscriptionCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // subscriptionDeleteHandler is an event handler for SubscriptionDelete events.
-type subscriptionDeleteHandler func(bot.Session, *SubscriptionDelete)
+type subscriptionDeleteHandler func(context.Context, bot.Session, *SubscriptionDelete)
 
 // Type returns the event type for SubscriptionDelete events.
 func (eh subscriptionDeleteHandler) Type() string {
@@ -1281,14 +1282,14 @@ func (eh subscriptionDeleteHandler) New() any {
 }
 
 // Handle is the handler for SubscriptionDelete events.
-func (eh subscriptionDeleteHandler) Handle(s bot.Session, i any) {
+func (eh subscriptionDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*SubscriptionDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // subscriptionUpdateHandler is an event handler for SubscriptionUpdate events.
-type subscriptionUpdateHandler func(bot.Session, *SubscriptionUpdate)
+type subscriptionUpdateHandler func(context.Context, bot.Session, *SubscriptionUpdate)
 
 // Type returns the event type for SubscriptionUpdate events.
 func (eh subscriptionUpdateHandler) Type() string {
@@ -1301,14 +1302,14 @@ func (eh subscriptionUpdateHandler) New() any {
 }
 
 // Handle is the handler for SubscriptionUpdate events.
-func (eh subscriptionUpdateHandler) Handle(s bot.Session, i any) {
+func (eh subscriptionUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*SubscriptionUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadCreateHandler is an event handler for ThreadCreate events.
-type threadCreateHandler func(bot.Session, *ThreadCreate)
+type threadCreateHandler func(context.Context, bot.Session, *ThreadCreate)
 
 // Type returns the event type for ThreadCreate events.
 func (eh threadCreateHandler) Type() string {
@@ -1321,14 +1322,14 @@ func (eh threadCreateHandler) New() any {
 }
 
 // Handle is the handler for ThreadCreate events.
-func (eh threadCreateHandler) Handle(s bot.Session, i any) {
+func (eh threadCreateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadCreate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadDeleteHandler is an event handler for ThreadDelete events.
-type threadDeleteHandler func(bot.Session, *ThreadDelete)
+type threadDeleteHandler func(context.Context, bot.Session, *ThreadDelete)
 
 // Type returns the event type for ThreadDelete events.
 func (eh threadDeleteHandler) Type() string {
@@ -1341,14 +1342,14 @@ func (eh threadDeleteHandler) New() any {
 }
 
 // Handle is the handler for ThreadDelete events.
-func (eh threadDeleteHandler) Handle(s bot.Session, i any) {
+func (eh threadDeleteHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadDelete); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadListSyncHandler is an event handler for ThreadListSync events.
-type threadListSyncHandler func(bot.Session, *ThreadListSync)
+type threadListSyncHandler func(context.Context, bot.Session, *ThreadListSync)
 
 // Type returns the event type for ThreadListSync events.
 func (eh threadListSyncHandler) Type() string {
@@ -1361,14 +1362,14 @@ func (eh threadListSyncHandler) New() any {
 }
 
 // Handle is the handler for ThreadListSync events.
-func (eh threadListSyncHandler) Handle(s bot.Session, i any) {
+func (eh threadListSyncHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadListSync); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadMemberUpdateHandler is an event handler for ThreadMemberUpdate events.
-type threadMemberUpdateHandler func(bot.Session, *ThreadMemberUpdate)
+type threadMemberUpdateHandler func(context.Context, bot.Session, *ThreadMemberUpdate)
 
 // Type returns the event type for ThreadMemberUpdate events.
 func (eh threadMemberUpdateHandler) Type() string {
@@ -1381,14 +1382,14 @@ func (eh threadMemberUpdateHandler) New() any {
 }
 
 // Handle is the handler for ThreadMemberUpdate events.
-func (eh threadMemberUpdateHandler) Handle(s bot.Session, i any) {
+func (eh threadMemberUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadMemberUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadMembersUpdateHandler is an event handler for ThreadMembersUpdate events.
-type threadMembersUpdateHandler func(bot.Session, *ThreadMembersUpdate)
+type threadMembersUpdateHandler func(context.Context, bot.Session, *ThreadMembersUpdate)
 
 // Type returns the event type for ThreadMembersUpdate events.
 func (eh threadMembersUpdateHandler) Type() string {
@@ -1401,14 +1402,14 @@ func (eh threadMembersUpdateHandler) New() any {
 }
 
 // Handle is the handler for ThreadMembersUpdate events.
-func (eh threadMembersUpdateHandler) Handle(s bot.Session, i any) {
+func (eh threadMembersUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadMembersUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // threadUpdateHandler is an event handler for ThreadUpdate events.
-type threadUpdateHandler func(bot.Session, *ThreadUpdate)
+type threadUpdateHandler func(context.Context, bot.Session, *ThreadUpdate)
 
 // Type returns the event type for ThreadUpdate events.
 func (eh threadUpdateHandler) Type() string {
@@ -1421,14 +1422,14 @@ func (eh threadUpdateHandler) New() any {
 }
 
 // Handle is the handler for ThreadUpdate events.
-func (eh threadUpdateHandler) Handle(s bot.Session, i any) {
+func (eh threadUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*ThreadUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // typingStartHandler is an event handler for TypingStart events.
-type typingStartHandler func(bot.Session, *TypingStart)
+type typingStartHandler func(context.Context, bot.Session, *TypingStart)
 
 // Type returns the event type for TypingStart events.
 func (eh typingStartHandler) Type() string {
@@ -1441,14 +1442,14 @@ func (eh typingStartHandler) New() any {
 }
 
 // Handle is the handler for TypingStart events.
-func (eh typingStartHandler) Handle(s bot.Session, i any) {
+func (eh typingStartHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*TypingStart); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // userUpdateHandler is an event handler for UserUpdate events.
-type userUpdateHandler func(bot.Session, *UserUpdate)
+type userUpdateHandler func(context.Context, bot.Session, *UserUpdate)
 
 // Type returns the event type for UserUpdate events.
 func (eh userUpdateHandler) Type() string {
@@ -1461,14 +1462,14 @@ func (eh userUpdateHandler) New() any {
 }
 
 // Handle is the handler for UserUpdate events.
-func (eh userUpdateHandler) Handle(s bot.Session, i any) {
+func (eh userUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*UserUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // voiceServerUpdateHandler is an event handler for VoiceServerUpdate events.
-type voiceServerUpdateHandler func(bot.Session, *VoiceServerUpdate)
+type voiceServerUpdateHandler func(context.Context, bot.Session, *VoiceServerUpdate)
 
 // Type returns the event type for VoiceServerUpdate events.
 func (eh voiceServerUpdateHandler) Type() string {
@@ -1481,14 +1482,14 @@ func (eh voiceServerUpdateHandler) New() any {
 }
 
 // Handle is the handler for VoiceServerUpdate events.
-func (eh voiceServerUpdateHandler) Handle(s bot.Session, i any) {
+func (eh voiceServerUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*VoiceServerUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // voiceStateUpdateHandler is an event handler for VoiceStateUpdate events.
-type voiceStateUpdateHandler func(bot.Session, *VoiceStateUpdate)
+type voiceStateUpdateHandler func(context.Context, bot.Session, *VoiceStateUpdate)
 
 // Type returns the event type for VoiceStateUpdate events.
 func (eh voiceStateUpdateHandler) Type() string {
@@ -1501,14 +1502,14 @@ func (eh voiceStateUpdateHandler) New() any {
 }
 
 // Handle is the handler for VoiceStateUpdate events.
-func (eh voiceStateUpdateHandler) Handle(s bot.Session, i any) {
+func (eh voiceStateUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*VoiceStateUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 // webhooksUpdateHandler is an event handler for WebhooksUpdate events.
-type webhooksUpdateHandler func(bot.Session, *WebhooksUpdate)
+type webhooksUpdateHandler func(context.Context, bot.Session, *WebhooksUpdate)
 
 // Type returns the event type for WebhooksUpdate events.
 func (eh webhooksUpdateHandler) Type() string {
@@ -1521,161 +1522,161 @@ func (eh webhooksUpdateHandler) New() any {
 }
 
 // Handle is the handler for WebhooksUpdate events.
-func (eh webhooksUpdateHandler) Handle(s bot.Session, i any) {
+func (eh webhooksUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	if t, ok := i.(*WebhooksUpdate); ok {
-		eh(s, t)
+		eh(ctx, s, t)
 	}
 }
 
 func handlerForInterface(handler any) Handler {
 	switch v := handler.(type) {
-	case func(bot.Session, any):
+	case func(context.Context, bot.Session, any):
 		return interfaceHandler(v)
-	case func(bot.Session, *ApplicationCommandPermissionsUpdate):
+	case func(context.Context, bot.Session, *ApplicationCommandPermissionsUpdate):
 		return applicationCommandPermissionsUpdateHandler(v)
-	case func(bot.Session, *AutoModerationActionExecution):
+	case func(context.Context, bot.Session, *AutoModerationActionExecution):
 		return autoModerationActionExecutionHandler(v)
-	case func(bot.Session, *AutoModerationRuleCreate):
+	case func(context.Context, bot.Session, *AutoModerationRuleCreate):
 		return autoModerationRuleCreateHandler(v)
-	case func(bot.Session, *AutoModerationRuleDelete):
+	case func(context.Context, bot.Session, *AutoModerationRuleDelete):
 		return autoModerationRuleDeleteHandler(v)
-	case func(bot.Session, *AutoModerationRuleUpdate):
+	case func(context.Context, bot.Session, *AutoModerationRuleUpdate):
 		return autoModerationRuleUpdateHandler(v)
-	case func(bot.Session, *ChannelCreate):
+	case func(context.Context, bot.Session, *ChannelCreate):
 		return channelCreateHandler(v)
-	case func(bot.Session, *ChannelDelete):
+	case func(context.Context, bot.Session, *ChannelDelete):
 		return channelDeleteHandler(v)
-	case func(bot.Session, *ChannelPinsUpdate):
+	case func(context.Context, bot.Session, *ChannelPinsUpdate):
 		return channelPinsUpdateHandler(v)
-	case func(bot.Session, *ChannelUpdate):
+	case func(context.Context, bot.Session, *ChannelUpdate):
 		return channelUpdateHandler(v)
-	case func(bot.Session, *Connect):
+	case func(context.Context, bot.Session, *Connect):
 		return connectHandler(v)
-	case func(bot.Session, *Disconnect):
+	case func(context.Context, bot.Session, *Disconnect):
 		return disconnectHandler(v)
-	case func(bot.Session, *EntitlementCreate):
+	case func(context.Context, bot.Session, *EntitlementCreate):
 		return entitlementCreateHandler(v)
-	case func(bot.Session, *EntitlementDelete):
+	case func(context.Context, bot.Session, *EntitlementDelete):
 		return entitlementDeleteHandler(v)
-	case func(bot.Session, *EntitlementUpdate):
+	case func(context.Context, bot.Session, *EntitlementUpdate):
 		return entitlementUpdateHandler(v)
-	case func(bot.Session, *discord.Event):
+	case func(context.Context, bot.Session, *Event):
 		return eventHandler(v)
-	case func(bot.Session, *GuildAuditLogEntryCreate):
+	case func(context.Context, bot.Session, *GuildAuditLogEntryCreate):
 		return guildAuditLogEntryCreateHandler(v)
-	case func(bot.Session, *GuildBanAdd):
+	case func(context.Context, bot.Session, *GuildBanAdd):
 		return guildBanAddHandler(v)
-	case func(bot.Session, *GuildBanRemove):
+	case func(context.Context, bot.Session, *GuildBanRemove):
 		return guildBanRemoveHandler(v)
-	case func(bot.Session, *GuildCreate):
+	case func(context.Context, bot.Session, *GuildCreate):
 		return guildCreateHandler(v)
-	case func(bot.Session, *GuildDelete):
+	case func(context.Context, bot.Session, *GuildDelete):
 		return guildDeleteHandler(v)
-	case func(bot.Session, *GuildEmojisUpdate):
+	case func(context.Context, bot.Session, *GuildEmojisUpdate):
 		return guildEmojisUpdateHandler(v)
-	case func(bot.Session, *GuildIntegrationsUpdate):
+	case func(context.Context, bot.Session, *GuildIntegrationsUpdate):
 		return guildIntegrationsUpdateHandler(v)
-	case func(bot.Session, *GuildMemberAdd):
+	case func(context.Context, bot.Session, *GuildMemberAdd):
 		return guildMemberAddHandler(v)
-	case func(bot.Session, *GuildMemberRemove):
+	case func(context.Context, bot.Session, *GuildMemberRemove):
 		return guildMemberRemoveHandler(v)
-	case func(bot.Session, *GuildMemberUpdate):
+	case func(context.Context, bot.Session, *GuildMemberUpdate):
 		return guildMemberUpdateHandler(v)
-	case func(bot.Session, *GuildMembersChunk):
+	case func(context.Context, bot.Session, *GuildMembersChunk):
 		return guildMembersChunkHandler(v)
-	case func(bot.Session, *GuildRoleCreate):
+	case func(context.Context, bot.Session, *GuildRoleCreate):
 		return guildRoleCreateHandler(v)
-	case func(bot.Session, *GuildRoleDelete):
+	case func(context.Context, bot.Session, *GuildRoleDelete):
 		return guildRoleDeleteHandler(v)
-	case func(bot.Session, *GuildRoleUpdate):
+	case func(context.Context, bot.Session, *GuildRoleUpdate):
 		return guildRoleUpdateHandler(v)
-	case func(bot.Session, *GuildScheduledEventCreate):
+	case func(context.Context, bot.Session, *GuildScheduledEventCreate):
 		return guildScheduledEventCreateHandler(v)
-	case func(bot.Session, *GuildScheduledEventDelete):
+	case func(context.Context, bot.Session, *GuildScheduledEventDelete):
 		return guildScheduledEventDeleteHandler(v)
-	case func(bot.Session, *GuildScheduledEventUpdate):
+	case func(context.Context, bot.Session, *GuildScheduledEventUpdate):
 		return guildScheduledEventUpdateHandler(v)
-	case func(bot.Session, *GuildScheduledEventUserAdd):
+	case func(context.Context, bot.Session, *GuildScheduledEventUserAdd):
 		return guildScheduledEventUserAddHandler(v)
-	case func(bot.Session, *GuildScheduledEventUserRemove):
+	case func(context.Context, bot.Session, *GuildScheduledEventUserRemove):
 		return guildScheduledEventUserRemoveHandler(v)
-	case func(bot.Session, *GuildStickersUpdate):
+	case func(context.Context, bot.Session, *GuildStickersUpdate):
 		return guildStickersUpdateHandler(v)
-	case func(bot.Session, *GuildUpdate):
+	case func(context.Context, bot.Session, *GuildUpdate):
 		return guildUpdateHandler(v)
-	case func(bot.Session, *IntegrationCreate):
+	case func(context.Context, bot.Session, *IntegrationCreate):
 		return integrationCreateHandler(v)
-	case func(bot.Session, *IntegrationDelete):
+	case func(context.Context, bot.Session, *IntegrationDelete):
 		return integrationDeleteHandler(v)
-	case func(bot.Session, *IntegrationUpdate):
+	case func(context.Context, bot.Session, *IntegrationUpdate):
 		return integrationUpdateHandler(v)
-	case func(bot.Session, *InteractionCreate):
+	case func(context.Context, bot.Session, *InteractionCreate):
 		return interactionCreateHandler(v)
-	case func(bot.Session, *InviteCreate):
+	case func(context.Context, bot.Session, *InviteCreate):
 		return inviteCreateHandler(v)
-	case func(bot.Session, *InviteDelete):
+	case func(context.Context, bot.Session, *InviteDelete):
 		return inviteDeleteHandler(v)
-	case func(bot.Session, *MessageCreate):
+	case func(context.Context, bot.Session, *MessageCreate):
 		return messageCreateHandler(v)
-	case func(bot.Session, *MessageDelete):
+	case func(context.Context, bot.Session, *MessageDelete):
 		return messageDeleteHandler(v)
-	case func(bot.Session, *MessageDeleteBulk):
+	case func(context.Context, bot.Session, *MessageDeleteBulk):
 		return messageDeleteBulkHandler(v)
-	case func(bot.Session, *MessagePollVoteAdd):
+	case func(context.Context, bot.Session, *MessagePollVoteAdd):
 		return messagePollVoteAddHandler(v)
-	case func(bot.Session, *MessagePollVoteRemove):
+	case func(context.Context, bot.Session, *MessagePollVoteRemove):
 		return messagePollVoteRemoveHandler(v)
-	case func(bot.Session, *MessageReactionAdd):
+	case func(context.Context, bot.Session, *MessageReactionAdd):
 		return messageReactionAddHandler(v)
-	case func(bot.Session, *MessageReactionRemove):
+	case func(context.Context, bot.Session, *MessageReactionRemove):
 		return messageReactionRemoveHandler(v)
-	case func(bot.Session, *MessageReactionRemoveAll):
+	case func(context.Context, bot.Session, *MessageReactionRemoveAll):
 		return messageReactionRemoveAllHandler(v)
-	case func(bot.Session, *MessageUpdate):
+	case func(context.Context, bot.Session, *MessageUpdate):
 		return messageUpdateHandler(v)
-	case func(bot.Session, *PresenceUpdate):
+	case func(context.Context, bot.Session, *PresenceUpdate):
 		return presenceUpdateHandler(v)
-	case func(bot.Session, *PresencesReplace):
+	case func(context.Context, bot.Session, *PresencesReplace):
 		return presencesReplaceHandler(v)
-	case func(bot.Session, *RateLimit):
+	case func(context.Context, bot.Session, *RateLimit):
 		return rateLimitHandler(v)
-	case func(bot.Session, *Ready):
+	case func(context.Context, bot.Session, *Ready):
 		return readyHandler(v)
-	case func(bot.Session, *Resumed):
+	case func(context.Context, bot.Session, *Resumed):
 		return resumedHandler(v)
-	case func(bot.Session, *StageInstanceEventCreate):
+	case func(context.Context, bot.Session, *StageInstanceEventCreate):
 		return stageInstanceEventCreateHandler(v)
-	case func(bot.Session, *StageInstanceEventDelete):
+	case func(context.Context, bot.Session, *StageInstanceEventDelete):
 		return stageInstanceEventDeleteHandler(v)
-	case func(bot.Session, *StageInstanceEventUpdate):
+	case func(context.Context, bot.Session, *StageInstanceEventUpdate):
 		return stageInstanceEventUpdateHandler(v)
-	case func(bot.Session, *SubscriptionCreate):
+	case func(context.Context, bot.Session, *SubscriptionCreate):
 		return subscriptionCreateHandler(v)
-	case func(bot.Session, *SubscriptionDelete):
+	case func(context.Context, bot.Session, *SubscriptionDelete):
 		return subscriptionDeleteHandler(v)
-	case func(bot.Session, *SubscriptionUpdate):
+	case func(context.Context, bot.Session, *SubscriptionUpdate):
 		return subscriptionUpdateHandler(v)
-	case func(bot.Session, *ThreadCreate):
+	case func(context.Context, bot.Session, *ThreadCreate):
 		return threadCreateHandler(v)
-	case func(bot.Session, *ThreadDelete):
+	case func(context.Context, bot.Session, *ThreadDelete):
 		return threadDeleteHandler(v)
-	case func(bot.Session, *ThreadListSync):
+	case func(context.Context, bot.Session, *ThreadListSync):
 		return threadListSyncHandler(v)
-	case func(bot.Session, *ThreadMemberUpdate):
+	case func(context.Context, bot.Session, *ThreadMemberUpdate):
 		return threadMemberUpdateHandler(v)
-	case func(bot.Session, *ThreadMembersUpdate):
+	case func(context.Context, bot.Session, *ThreadMembersUpdate):
 		return threadMembersUpdateHandler(v)
-	case func(bot.Session, *ThreadUpdate):
+	case func(context.Context, bot.Session, *ThreadUpdate):
 		return threadUpdateHandler(v)
-	case func(bot.Session, *TypingStart):
+	case func(context.Context, bot.Session, *TypingStart):
 		return typingStartHandler(v)
-	case func(bot.Session, *UserUpdate):
+	case func(context.Context, bot.Session, *UserUpdate):
 		return userUpdateHandler(v)
-	case func(bot.Session, *VoiceServerUpdate):
+	case func(context.Context, bot.Session, *VoiceServerUpdate):
 		return voiceServerUpdateHandler(v)
-	case func(bot.Session, *VoiceStateUpdate):
+	case func(context.Context, bot.Session, *VoiceStateUpdate):
 		return voiceStateUpdateHandler(v)
-	case func(bot.Session, *WebhooksUpdate):
+	case func(context.Context, bot.Session, *WebhooksUpdate):
 		return webhooksUpdateHandler(v)
 	}
 

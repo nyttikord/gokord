@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/bot/botapi"
@@ -61,7 +62,7 @@ type Session struct {
 	// The http.Client used for REST requests.
 	Client *http.Client
 	// The websocket.Dialer used for WebSocket connection.
-	Dialer *websocket.Dialer
+	//Dialer *websocket.
 	// The UserAgent used for REST APIs.
 	UserAgent string
 	// Stores the LastHeartbeatAck that was received (in UTC).
@@ -77,8 +78,10 @@ type Session struct {
 	eventManager *event.Manager
 	// The websocket connection.
 	ws *websocket.Conn
-	// When false, the Session is not listening
-	listening *atomic.Bool
+	// Cancel listen goroutines
+	cancelListen func()
+	// Wait for listen goroutines to stop
+	waitListen *syncListener
 	// sequence tracks the current gateway api websocket sequence number.
 	sequence *atomic.Int64
 	// Stores sessions current Discord Resume Gateway.
@@ -125,20 +128,20 @@ type GatewayStatusUpdate struct {
 // OpenAndBlock calls Session.Open and block the program until an OS signal is received.
 // It returns an error if Session.Open or Session.Close return an error.
 // When this function returns, the session is already disconnected.
-func (s *Session) OpenAndBlock() error {
-	err := s.Open()
+func (s *Session) OpenAndBlock(ctx context.Context) error {
+	err := s.Open(ctx)
 	if err != nil {
 		return err
 	}
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
-	err = s.Close()
-	if err != nil {
-		s.ForceClose()
-		return err
+	select {
+	case <-sc:
+		return s.Close(ctx)
+	case <-ctx.Done():
+		s.logger.Error("waiting to close", "error", ctx.Err())
+		return s.Close(context.Background())
 	}
-	return nil
 }
 
 func (s *Session) Logger() *slog.Logger {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -29,10 +30,10 @@ func init() { flag.Parse() }
 
 func main() {
 	s := gokord.New("Bot " + *BotToken)
-	s.EventManager().AddHandler(func(s bot.Session, r *event.Ready) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
-	s.EventManager().AddHandler(func(s bot.Session, m *event.MessageCreate) {
+	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
 				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
@@ -66,11 +67,11 @@ func main() {
 	})
 	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
 
-	err := s.Open()
+	err := s.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
+	defer s.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

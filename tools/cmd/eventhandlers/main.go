@@ -23,7 +23,11 @@ var HandlerTmpl = template.Must(template.New("Handler").Funcs(template.FuncMap{
 
 package event 
 
-import "github.com/nyttikord/gokord/bot"
+import (
+	"context"
+
+	"github.com/nyttikord/gokord/bot"
+)
 
 // Following are all the event types.
 // Event type values are used to match the events returned by Discord.
@@ -33,7 +37,7 @@ const ({{range .}}
 )
 {{range .}}
 // {{privateName .}}Handler is an event handler for {{.}} events.
-type {{privateName .}}Handler func(bot.Session, *{{.}})
+type {{privateName .}}Handler func(context.Context, bot.Session, *{{.}})
 
 // Type returns the event type for {{.}} events.
 func (eh {{privateName .}}Handler) Type() string {
@@ -45,18 +49,18 @@ func (eh {{privateName .}}Handler) New() any {
   return &{{.}}{}
 }{{end}}
 // Handle is the handler for {{.}} events.
-func (eh {{privateName .}}Handler) Handle(s bot.Session, i any) {
+func (eh {{privateName .}}Handler) Handle(ctx context.Context, s bot.Session, i any) {
   if t, ok := i.(*{{.}}); ok {
-    eh(s, t)
+    eh(ctx, s, t)
   }
 }
 
 {{end}}
 func handlerForInterface(handler any) Handler {
   switch v := handler.(type) {
-  case func(bot.Session, any):
+  case func(context.Context, bot.Session, any):
     return interfaceHandler(v){{range .}}
-  case func(bot.Session, *{{.}}):
+  case func(context.Context, bot.Session, *{{.}}):
     return {{privateName .}}Handler(v){{end}}
   }
 
