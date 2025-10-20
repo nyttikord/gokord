@@ -167,9 +167,8 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 		select {
 		case <-done:
 		case <-ctx2.Done():
-			s.logger.Warn("closing goroutines", "error", ctx2.Err())
-			s.logger.Warn("force free goroutines")
-			s.waitListen.ForceFree()
+			s.logger.Error("cannot close goroutines")
+			panic(ctx2.Err())
 		}
 	}
 
