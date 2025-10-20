@@ -172,7 +172,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 	restart := func(err error) {
 		s.logger.Info("closing websocket")
 		var errClose websocket.CloseError
-		if errors.As(err, &errClose) || errors.Is(errClose, io.EOF) {
+		if errors.As(err, &errClose) || errors.Is(err, io.EOF) {
 			err = s.ForceClose() // connection was already closed, just in case
 		} else {
 			err = s.CloseWithCode(ctx, websocket.StatusInternalError)
