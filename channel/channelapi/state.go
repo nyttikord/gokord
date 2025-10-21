@@ -93,7 +93,7 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 		s.GetMutex().Lock()
 		defer s.GetMutex().Unlock()
 
-		slices.DeleteFunc(s.privateChannels, func(c *channel.Channel) bool { return c.ID == chann.ID })
+		s.privateChannels = slices.DeleteFunc(s.privateChannels, func(c *channel.Channel) bool { return c.ID == chann.ID })
 		return s.storage.Delete(state.KeyChannel(chann))
 	}
 
@@ -109,9 +109,9 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 	defer s.GetMutex().Unlock()
 
 	if chann.IsThread() {
-		slices.DeleteFunc(g.Threads, func(c *channel.Channel) bool { return c.ID == chann.ID })
+		g.Threads = slices.DeleteFunc(g.Threads, func(c *channel.Channel) bool { return c.ID == chann.ID })
 	} else {
-		slices.DeleteFunc(g.Channels, func(c *channel.Channel) bool { return c.ID == chann.ID })
+		g.Channels = slices.DeleteFunc(g.Channels, func(c *channel.Channel) bool { return c.ID == chann.ID })
 	}
 
 	err = s.GuildState().GuildAdd(g)
@@ -191,7 +191,7 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
+	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
 
 	return s.storage.Write(state.KeyChannel(c), c)
 }
@@ -294,13 +294,8 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	for idx, member := range thread.Members {
-		for _, removedMember := range removedMembers {
-			if member.ID == removedMember {
-				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
-				break
-			}
-		}
+	for _, removedMember := range removedMembers {
+		thread.Members = slices.DeleteFunc(thread.Members, func(m *channel.ThreadMember) bool { return m.ID == removedMember })
 	}
 
 	for _, addedMember := range addedMembers {

@@ -67,10 +67,14 @@ func MultipartBodyWithJSON(data interface{}, files []*File) (requestContentType 
 }
 
 func Copy(chann Channel) Channel {
-	chann.LastPinTimestamp = &*chann.LastPinTimestamp
-	chann.ThreadMetadata = &*chann.ThreadMetadata
-	chann.Member = &*chann.Member
-	chann.DefaultSortOrder = &*chann.DefaultSortOrder
+	lp := *chann.LastPinTimestamp
+	chann.LastPinTimestamp = &lp
+	thm := *chann.ThreadMetadata
+	chann.ThreadMetadata = &thm
+	m := *chann.Member
+	chann.Member = &m
+	d := *chann.DefaultSortOrder
+	chann.DefaultSortOrder = &d
 	// Recipients
 	// Messages
 	// PermissionOverwrites

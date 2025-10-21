@@ -60,7 +60,7 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 	if err != nil {
 		return err
 	}
-	slices.DeleteFunc(s.guilds, func(s string) bool { return s == guild.ID })
+	s.guilds = slices.DeleteFunc(s.guilds, func(s string) bool { return s == guild.ID })
 	return nil
 }
 
@@ -119,7 +119,7 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	slices.DeleteFunc(g.Roles, func(r *guild.Role) bool { return r.ID == roleID })
+	g.Roles = slices.DeleteFunc(g.Roles, func(r *guild.Role) bool { return r.ID == roleID })
 
 	return s.storage.Write(state.KeyGuild(g), g)
 }
