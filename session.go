@@ -161,9 +161,7 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState, &state.MapStorage[guild.Guild]{
-			Copy: guild.Copy,
-		})}
+		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState, &state.MapStorage[guild.Guild]{})}
 	}
 	return s.guildAPI
 }
@@ -172,9 +170,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
 		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(
-			s.sessionState, &state.MapStorage[channel.Channel]{
-				Copy: channel.Copy,
-			},
+			s.sessionState, &state.MapStorage[channel.Channel]{},
 		)}
 	}
 	return s.channelAPI

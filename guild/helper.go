@@ -2,14 +2,10 @@ package guild
 
 import (
 	"sort"
-	"sync"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
-	"github.com/nyttikord/gokord/emoji"
-	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/user/status"
 )
 
 // MemberPermissions calculates the permissions for a user.Member.
@@ -100,98 +96,4 @@ func FirstRoleColor(g *Guild, memberRoles []string) int {
 	}
 
 	return 0
-}
-
-func Copy(g Guild) Guild {
-	var wg sync.WaitGroup
-
-	// deep copy of everything
-	// copy() builtin does not copy pointers
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		roles := make([]*Role, len(g.Roles))
-		for i, role := range g.Roles {
-			r := *role
-			roles[i] = &r
-		}
-		g.Roles = roles
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		emojis := make([]*emoji.Emoji, len(g.Emojis))
-		for i, e := range g.Emojis {
-			em := *e
-			emojis[i] = &em
-		}
-		g.Emojis = emojis
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		members := make([]*user.Member, len(g.Members))
-		for i, m := range g.Members {
-			me := *m
-			members[i] = &me
-		}
-		g.Members = members
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		presences := make([]*status.Presence, len(g.Presences))
-		for i, p := range g.Presences {
-			pr := *p
-			presences[i] = &pr
-		}
-		g.Presences = presences
-	}()
-
-	wg.Add(3)
-	go func() {
-		defer wg.Done()
-		channels := make([]*channel.Channel, len(g.Channels))
-		for i, c := range g.Channels {
-			ch := *c
-			channels[i] = &ch
-		}
-		g.Channels = channels
-	}()
-	go func() {
-		defer wg.Done()
-		threads := make([]*channel.Channel, len(g.Threads))
-		for i, c := range g.Threads {
-			t := *c
-			threads[i] = &t
-		}
-		g.Threads = threads
-	}()
-	go func() {
-		defer wg.Done()
-		stages := make([]*channel.StageInstance, len(g.StageInstances))
-		for i, c := range g.StageInstances {
-			s := *c
-			stages[i] = &s
-		}
-		g.StageInstances = stages
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		voices := make([]*user.VoiceState, len(g.VoiceStates))
-		for i, vs := range g.VoiceStates {
-			v := *vs
-			voices[i] = &v
-		}
-		g.VoiceStates = voices
-	}()
-
-	wg.Wait()
-
-	return g
 }

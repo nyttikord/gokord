@@ -77,30 +77,26 @@ func KeyChannelRaw(channelID string) Key {
 //
 // To conform with the immutability required by Storage, Copy must be set to a function copying T, including pointers in
 // struct.
-type MapStorage[T any] struct {
-	storage map[Key]T
-	// Copy is a function copying the type T, including pointers in struct.
-	Copy func(T) T
-}
+type MapStorage[T any] map[Key]T
 
-func (m *MapStorage[T]) Get(key Key) (any, error) {
-	v, ok := m.storage[key]
+func (m MapStorage[T]) Get(key Key) (any, error) {
+	v, ok := m[key]
 	if !ok {
 		return v, ErrItemNotFound
 	}
-	return m.Copy(v), nil
+	return DeepCopy(v), nil
 }
 
-func (m *MapStorage[T]) Write(key Key, data any) error {
+func (m MapStorage[T]) Write(key Key, data any) error {
 	v, ok := data.(T)
 	if !ok {
 		return ErrInvalidDataType
 	}
-	m.storage[key] = m.Copy(v)
+	m[key] = DeepCopy(v)
 	return nil
 }
 
-func (m *MapStorage[T]) Delete(key Key) error {
-	delete(m.storage, key)
+func (m MapStorage[T]) Delete(key Key) error {
+	delete(m, key)
 	return nil
 }
