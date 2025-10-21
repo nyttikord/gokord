@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/rand/v2"
 	"net/http"
 	"strings"
@@ -169,18 +168,9 @@ func (s *Session) finishConnection(ctx context.Context) {
 	var ctx2 context.Context
 	ctx2, s.cancelListen = context.WithCancel(ctx)
 
-	restart := func(err error) {
+	restart := func() {
 		s.logger.Info("closing websocket")
-		var errClose websocket.CloseError
-		if errors.As(err, &errClose) || errors.Is(err, io.EOF) {
-			err = s.ForceClose() // connection was already closed, just in case
-		} else {
-			err = s.CloseWithCode(ctx, websocket.StatusInternalError)
-		}
-		if err != nil {
-			// if we can't close, we must crash the app
-			panic(err)
-		}
+		s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
 		s.logger.Info("reconnecting")
 		s.forceReconnect(ctx)
 	}
@@ -196,7 +186,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 			return
 		default:
 			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
-			restart(err)
+			restart()
 		}
 	})
 	s.waitListen.Add(func(free func()) {
@@ -208,7 +198,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 			return
 		default:
 			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
-			restart(err)
+			restart()
 		}
 	})
 }
