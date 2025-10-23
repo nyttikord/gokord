@@ -32,7 +32,6 @@ func (s *Session) reconnect(ctx context.Context) error {
 	if !s.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
 	}
-	s.logger.Info("trying to reconnect to gateway")
 
 	s.Lock()
 	defer s.Unlock()
@@ -48,7 +47,6 @@ func (s *Session) reconnect(ctx context.Context) error {
 	p.Data.SessionID = s.sessionID
 	p.Data.Sequence = s.sequence.Load()
 
-	s.logger.Info("sending resume packet to gateway")
 	err = s.GatewayWriteStruct(ctx, p)
 	if err != nil {
 		return errors.Join(err, ErrSendingResumePacket)
@@ -101,7 +99,7 @@ func (s *Session) reconnect(ctx context.Context) error {
 		return nil
 	}
 	for _, v := range s.voiceAPI.Connections {
-		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
+		s.logger.Debug("reconnecting voice connection to guild", "guild", v.GuildID)
 		go v.Reconnect(ctx)
 
 		// This is here just to prevent violently spamming the voice reconnects.

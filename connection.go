@@ -64,7 +64,7 @@ func (s *Session) setupGateway(ctx context.Context, gateway string) error {
 	gateway += "/?v=" + discord.APIVersion + "&encoding=json"
 
 	// Connect to the Gateway
-	s.logger.Info("connecting to gateway", "gateway", gateway)
+	s.logger.Debug("connecting to gateway", "gateway", gateway)
 	header := http.Header{}
 	header.Add("accept-encoding", "zlib")
 	var err error
@@ -168,7 +168,12 @@ func (s *Session) finishConnection(ctx context.Context) {
 	var ctx2 context.Context
 	ctx2, s.cancelListen = context.WithCancel(ctx)
 
+	restarting := false
 	restart := func() {
+		if restarting {
+			return
+		}
+		restarting = true
 		s.logger.Info("closing websocket")
 		s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
 		s.logger.Info("reconnecting")
