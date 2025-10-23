@@ -166,7 +166,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
 	var ctx2 context.Context
-	ctx2, s.cancelListen = context.WithCancel(ctx)
+	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
 
 	restarting := false
 	restart := func() {

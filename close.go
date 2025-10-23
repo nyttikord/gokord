@@ -151,23 +151,8 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 		return ErrWSNotFound
 	}
 
-	if s.cancelListen != nil {
-		s.logger.Debug("closing goroutines")
-		s.cancelListen()
-		ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-		done := make(chan struct{}, 1)
-		go func() {
-			s.waitListen.Wait()
-			s.logger.Debug("goroutines closed")
-			done <- struct{}{}
-		}()
-		select {
-		case <-done:
-		case <-ctx2.Done():
-			s.logger.Error("cannot close goroutines")
-			panic(ctx2.Err())
-		}
+	if err := s.waitListen.Close(ctx); err != nil {
+		panic(err)
 	}
 
 	for _, v := range s.voiceAPI.Connections {
@@ -219,6 +204,9 @@ func (s *Session) ForceClose() error {
 			}
 		}
 	}()
+	if err := s.waitListen.Close(context.Background()); err != nil {
+		panic(err)
+	}
 	err = s.ws.CloseNow()
 	// avoid returning an error is the websocket is closed, because this method must close the websocket and if this is
 	// already closed, there is no error

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/nyttikord/gokord/logger"
 )
@@ -14,6 +15,7 @@ type syncListener struct {
 	state  atomic.Uint32
 	wg     sync.WaitGroup
 	logger *slog.Logger
+	cancel func()
 }
 
 func (m *syncListener) Add(fn func(free func())) {
@@ -31,6 +33,30 @@ func (m *syncListener) Add(fn func(free func())) {
 
 func (m *syncListener) Wait() {
 	m.wg.Wait()
+}
+
+func (m *syncListener) Close(ctx context.Context) error {
+	if m.cancel == nil {
+		return nil
+	}
+	m.logger.Debug("closing goroutines")
+	m.cancel()
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	done := make(chan struct{}, 1)
+	go func() {
+		m.Wait()
+		m.logger.Debug("goroutines closed")
+		done <- struct{}{}
+	}()
+	select {
+	case <-done:
+	case <-ctx2.Done():
+		m.logger.Error("cannot close goroutines")
+		return ctx2.Err()
+	}
+	m.cancel = nil
+	return nil
 }
 
 func (m *syncListener) ForceFree() {
