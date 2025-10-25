@@ -123,185 +123,110 @@ const (
 // A Guild holds all data related to a specific Discord Guild.
 // Guilds are also sometimes referred to as Servers in the Discord client.
 type Guild struct {
-	// The ID of the Guild.
-	ID string `json:"id"`
-
-	// The Name of the Guild (2–100 characters).
-	Name string `json:"name"`
-
+	ID   string `json:"id"`   // The ID of the Guild.
+	Name string `json:"name"` // The Name of the Guild (2–100 characters).
 	// The hash of the Guild's Icon.
 	// Use Guild.IconURL to retrieve the icon itself.
-	Icon string `json:"icon"`
-
-	// The voice Region of the Guild.
-	Region string `json:"region"`
-
-	// The ID of the AFK voice channel.Channel.
-	AfkChannelID string `json:"afk_channel_id"`
-
-	// The user.User ID of the owner of the Guild.
-	OwnerID string `json:"owner_id"`
-
-	// If we are the owner of the Guild
-	Owner bool `json:"owner"`
-
+	Icon         string `json:"icon"`
+	Region       string `json:"region"`         // The voice Region of the Guild.
+	AfkChannelID string `json:"afk_channel_id"` // The ID of the AFK voice channel.Channel.
+	OwnerID      string `json:"owner_id"`       // The user.User ID of the owner of the Guild.
+	Owner        bool   `json:"owner"`          // If we are the owner of the Guild.
 	// The time at which the current user.User joined the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
-	JoinedAt time.Time `json:"joined_at"`
-
-	// The hash of the Guild's DiscoverySplash.
-	DiscoverySplash string `json:"discovery_splash"`
-
-	// The hash of the Guild's Splash.
-	Splash string `json:"splash"`
-
-	// The timeout, in seconds, before a user.User is considered AFK in voice.
-	AfkTimeout int `json:"afk_timeout"`
-
+	JoinedAt        time.Time `json:"joined_at"`
+	DiscoverySplash string    `json:"discovery_splash"` // The hash of the Guild's DiscoverySplash.
+	Splash          string    `json:"splash"`           // The hash of the Guild's Splash.
+	AfkTimeout      int       `json:"afk_timeout"`      // The timeout, in seconds, before a user.User is considered AFK in voice.
 	// The number of Members in the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
-	MemberCount int `json:"member_count"`
-
-	// The VerificationLevel required for the Guild.
-	VerificationLevel VerificationLevel `json:"verification_level"`
-
+	MemberCount       int               `json:"member_count"`
+	VerificationLevel VerificationLevel `json:"verification_level"` // The VerificationLevel required for the Guild.
 	// Whether the Guild is considered large.
 	//
 	// This is determined by a member threshold in the identify packet, and is currently hard-coded at 250 members in
 	// the library.
 	Large bool `json:"large"`
-
 	// The DefaultMessageNotifications setting for the Guild.
 	DefaultMessageNotifications MessageNotifications `json:"default_message_notifications"`
-
-	// A list of Roles in the Guild.
-	Roles []*Role `json:"roles"`
-
-	// A list of the custom Emojis present in the Guild.
-	Emojis []*emoji.Emoji `json:"emojis"`
-
-	// A list of the custom Stickers present in the Guild.
-	Stickers []*emoji.Sticker `json:"stickers"`
-
+	Roles                       []*Role              `json:"roles"`    // A list of Roles in the Guild.
+	Emojis                      []*emoji.Emoji       `json:"emojis"`   // A list of the custom Emojis present in the Guild.
+	Stickers                    []*emoji.Sticker     `json:"stickers"` // A list of the custom Stickers present in the Guild.
 	// A list of the Members in the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
 	Members []*user.Member `json:"members"`
-
 	// A list of partial Presences for members in the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
 	Presences []*status.Presence `json:"presences"`
-
 	// The maximum number of Presences for the Guild (the default value, currently 25000, is in effect when null is returned)
 	MaxPresences int `json:"max_presences"`
-
-	// The maximum number of Members for the Guild
-	MaxMembers int `json:"max_members"`
-
+	MaxMembers   int `json:"max_members"` // The maximum number of Members for the Guild
 	// A list of Channels in the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
 	Channels []*channel.Channel `json:"channels"`
-
 	// A list of all active Threads in the Guild that current user.User has permission to view.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events and thus is only present in
 	// state-cached guilds.
 	Threads []*channel.Channel `json:"threads"`
-
 	// A list of VoiceStates for the Guild.
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
 	VoiceStates []*user.VoiceState `json:"voice_states"`
-
 	// Whether this Guild is currently unavailable (most likely due to outage).
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
 	// state-cached guilds.
 	Unavailable bool `json:"unavailable"`
-
 	// The ExplicitContentFilter of the Guild.
 	ExplicitContentFilter ExplicitContentFilterLevel `json:"explicit_content_filter"`
-
-	// The NSFWLevel of the Guild.
-	NSFWLevel NSFWLevel `json:"nsfw_level"`
-
-	// The list of enabled Guild Features.
-	Features []Feature `json:"features"`
-
-	// Required MfaLevel for the Guild.
-	MfaLevel MfaLevel `json:"mfa_level"`
-
-	// The application.Application ID of the Guild if bot created.
-	ApplicationID string `json:"application_id"`
-
-	// Whether the Server Widget is enabled
-	WidgetEnabled bool `json:"widget_enabled"`
-
-	// The channel.Channel ID for the Server Widget
-	WidgetChannelID string `json:"widget_channel_id"`
-
+	NSFWLevel             NSFWLevel                  `json:"nsfw_level"`        // The NSFWLevel of the Guild.
+	Features              []Feature                  `json:"features"`          // The list of enabled Guild Features.
+	MfaLevel              MfaLevel                   `json:"mfa_level"`         // Required MfaLevel for the Guild.
+	ApplicationID         string                     `json:"application_id"`    // The application.Application ID of the Guild if bot created.
+	WidgetEnabled         bool                       `json:"widget_enabled"`    // Whether the Server Widget is enabled
+	WidgetChannelID       string                     `json:"widget_channel_id"` // The channel.Channel ID for the Server Widget
 	// The channel.Channel ID to which system messages are sent (e.g., join and leave messages)
-	SystemChannelID string `json:"system_channel_id"`
-
-	// The SystemChannelFlags for the Guild.
-	SystemChannelFlags SystemChannelFlag `json:"system_channel_flags"`
-
-	// The ID of the rules channel.Channel.
-	RulesChannelID string `json:"rules_channel_id"`
-
-	// The VanityURLCode for the Guild.
-	VanityURLCode string `json:"vanity_url_code"`
-
-	// The Description for the Guild.
-	Description string `json:"description"`
-
+	SystemChannelID    string            `json:"system_channel_id"`
+	SystemChannelFlags SystemChannelFlag `json:"system_channel_flags"` // The SystemChannelFlags for the Guild.
+	RulesChannelID     string            `json:"rules_channel_id"`     // The ID of the rules channel.Channel.
+	VanityURLCode      string            `json:"vanity_url_code"`      // The VanityURLCode for the Guild.
+	Description        string            `json:"description"`          // The Description for the Guild.
 	// The hash of the Guild's Banner.
 	// Use Guild.BannerURL to retrieve the banner itself.
-	Banner string `json:"banner"`
-
-	// The PremiumTier of the Guild.
-	PremiumTier PremiumTier `json:"premium_tier"`
-
+	Banner      string      `json:"banner"`
+	PremiumTier PremiumTier `json:"premium_tier"` // The PremiumTier of the Guild.
 	// The total number of users currently boosting this server.
 	PremiumSubscriptionCount int `json:"premium_subscription_count"`
-
 	// The preferred locale of a guild with the "PUBLIC" feature;
 	// used in server discovery and notices from Discord;
 	// defaults to discord.LocaleEnglishUS.
 	PreferredLocale discord.Locale `json:"preferred_locale"`
-
 	// The ID of the channel.Channel where admins and moderators of guilds with the "PUBLIC" feature receive notices
 	// from Discord.
 	PublicUpdatesChannelID string `json:"public_updates_channel_id"`
-
-	// The maximum amount of users in a video channel.Channel.
-	MaxVideoChannelUsers int `json:"max_video_channel_users"`
-
+	MaxVideoChannelUsers   int    `json:"max_video_channel_users"` // The maximum amount of users in a video channel.Channel.
 	// Approximate number of Members in this Guild.
 	//
 	// NOTE: returned from the GET /guild/<id> endpoint when with_counts is true.
 	ApproximateMemberCount int `json:"approximate_member_count"`
-
 	// Approximate number of non-offline Members in this Guild.
 	//
 	// NOTE: returned from the GET /guild/<id> endpoint when with_counts is true.
-	ApproximatePresenceCount int `json:"approximate_presence_count"`
-
-	// Permissions of our user.User.
-	Permissions int64 `json:"permissions,string"`
-
-	// StageInstances in the Guild.
-	StageInstances []*channel.StageInstance `json:"stage_instances"`
+	ApproximatePresenceCount int                      `json:"approximate_presence_count"`
+	Permissions              int64                    `json:"permissions,string"` // Permissions of our user.User.
+	StageInstances           []*channel.StageInstance `json:"stage_instances"`    // StageInstances in the Guild.
 }
 
 // IconURL returns a URL to the Guild.Icon.

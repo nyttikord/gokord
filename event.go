@@ -49,7 +49,7 @@ func (s *Session) onInterface(ctx context.Context, i any) {
 	}
 	err := s.sessionState.onInterface(s, i)
 	if err != nil {
-		s.logger.Debug("dispatching internal event", "error", err)
+		s.logger.Error("dispatching internal event", "error", err)
 	}
 }
 

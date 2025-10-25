@@ -99,6 +99,10 @@ type Session struct {
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
 	voiceAPI   *voice.Requester
+
+	UserStorage    state.Storage // UserStorage is the state.Storage used for the UserAPI
+	ChannelStorage state.Storage // ChannelStorage is the state.Storage used for the ChannelAPI
+	GuildStorage   state.Storage // GuildStorage is the state.Storage used for the GuildAPI
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
@@ -151,7 +155,8 @@ func (s *Session) Logger() *slog.Logger {
 // UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
-		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState)}
+		s.Logger().Debug("creating new user state")
+		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState, s.UserStorage)}
 	}
 	return s.userAPI
 }
@@ -159,7 +164,8 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState)}
+		s.Logger().Debug("creating new guild state")
+		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState, s.GuildStorage)}
 	}
 	return s.guildAPI
 }
@@ -167,7 +173,8 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
-		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.sessionState)}
+		s.Logger().Debug("creating new channel state")
+		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
 }

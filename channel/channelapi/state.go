@@ -2,6 +2,7 @@ package channelapi
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
@@ -11,7 +12,7 @@ import (
 
 type State struct {
 	state.State
-	channelMap      map[string]*channel.Channel
+	storage         state.Storage
 	privateChannels []*channel.Channel
 }
 
@@ -24,52 +25,25 @@ var (
 	ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
 )
 
-func NewState(state state.State) *State {
+func NewState(state state.State, storage state.Storage) *State {
 	return &State{
 		State:           state,
-		channelMap:      make(map[string]*channel.Channel),
+		storage:         storage,
 		privateChannels: make([]*channel.Channel, 0),
 	}
 }
 
 // AppendGuildChannel is for internal use only.
 // Use ChannelAdd instead.
-func (s *State) AppendGuildChannel(c *channel.Channel) {
-	s.channelMap[c.ID] = c
+func (s *State) AppendGuildChannel(c *channel.Channel) error {
+	return s.storage.Write(state.KeyChannel(c), *c)
 }
 
 // ChannelAdd adds a channel.Channel to the current State, or updates it if it already exists.
 // Channels may exist either as PrivateChannels or inside a guild.Guild.
-func (s *State) ChannelAdd(channel *channel.Channel) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+func (s *State) ChannelAdd(chann *channel.Channel) error {
+	g, err := s.GuildState().Guild(chann.GuildID)
 
-	// If the channel exists, replace it
-	if c, ok := s.channelMap[channel.ID]; ok {
-		if channel.Messages == nil {
-			channel.Messages = c.Messages
-		}
-		if channel.PermissionOverwrites == nil {
-			channel.PermissionOverwrites = c.PermissionOverwrites
-		}
-		if channel.ThreadMetadata == nil {
-			channel.ThreadMetadata = c.ThreadMetadata
-		}
-
-		*c = *channel
-		return nil
-	}
-
-	if channel.Type == types.ChannelDM || channel.Type == types.ChannelGroupDM {
-		s.privateChannels = append(s.privateChannels, channel)
-		s.channelMap[channel.ID] = channel
-		return nil
-	}
-
-	// required
-	s.GetMutex().Unlock()
-	g, err := s.GuildState().Guild(channel.GuildID)
-	s.GetMutex().Lock()
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
@@ -77,39 +51,63 @@ func (s *State) ChannelAdd(channel *channel.Channel) error {
 		return err
 	}
 
-	if channel.IsThread() {
-		g.Threads = append(g.Threads, channel)
-	} else {
-		g.Channels = append(g.Channels, channel)
+	if c, err := s.Channel(chann.ID); err == nil {
+		if chann.Messages == nil {
+			chann.Messages = c.Messages
+		}
+		if chann.PermissionOverwrites == nil {
+			chann.PermissionOverwrites = c.PermissionOverwrites
+		}
+		if chann.ThreadMetadata == nil {
+			chann.ThreadMetadata = c.ThreadMetadata
+		}
 	}
 
-	s.channelMap[channel.ID] = channel
+	fn := func(sl []*channel.Channel) {
+		id := slices.IndexFunc(sl, func(c *channel.Channel) bool { return c.ID == chann.ID })
+		if id == -1 {
+			sl = append(sl, chann)
+		} else {
+			sl[id] = chann
+		}
+	}
 
-	return nil
+	if chann.Type == types.ChannelDM || chann.Type == types.ChannelGroupDM {
+		fn(s.privateChannels)
+	} else {
+		if chann.IsThread() {
+			fn(g.Threads)
+		} else {
+			fn(g.Channels)
+		}
+		err = s.GuildState().GuildAdd(g)
+		if err != nil {
+			return err
+		}
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	return s.AppendGuildChannel(chann)
 }
 
 // ChannelRemove removes a channel.Channel from current State.
-func (s *State) ChannelRemove(channel *channel.Channel) error {
-	_, err := s.Channel(channel.ID)
+func (s *State) ChannelRemove(chann *channel.Channel) error {
+	_, err := s.Channel(chann.ID)
 	if err != nil {
 		return err
 	}
 
-	if channel.Type == types.ChannelDM || channel.Type == types.ChannelGroupDM {
+	if chann.Type == types.ChannelDM || chann.Type == types.ChannelGroupDM {
 		s.GetMutex().Lock()
 		defer s.GetMutex().Unlock()
 
-		for i, c := range s.privateChannels {
-			if c.ID == channel.ID {
-				s.privateChannels = append(s.privateChannels[:i], s.privateChannels[i+1:]...)
-				break
-			}
-		}
-		delete(s.channelMap, channel.ID)
-		return nil
+		s.privateChannels = slices.DeleteFunc(s.privateChannels, func(c *channel.Channel) bool { return c.ID == chann.ID })
+		return s.storage.Delete(state.KeyChannel(chann))
 	}
 
-	g, err := s.GuildState().Guild(channel.GuildID)
+	g, err := s.GuildState().Guild(chann.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
@@ -117,28 +115,21 @@ func (s *State) ChannelRemove(channel *channel.Channel) error {
 		return err
 	}
 
+	if chann.IsThread() {
+		g.Threads = slices.DeleteFunc(g.Threads, func(c *channel.Channel) bool { return c.ID == chann.ID })
+	} else {
+		g.Channels = slices.DeleteFunc(g.Channels, func(c *channel.Channel) bool { return c.ID == chann.ID })
+	}
+
+	err = s.GuildState().GuildAdd(g)
+	if err != nil {
+		return err
+	}
+
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	if channel.IsThread() {
-		for i, t := range g.Threads {
-			if t.ID == channel.ID {
-				g.Threads = append(g.Threads[:i], g.Threads[i+1:]...)
-				break
-			}
-		}
-	} else {
-		for i, c := range g.Channels {
-			if c.ID == channel.ID {
-				g.Channels = append(g.Channels[:i], g.Channels[i+1:]...)
-				break
-			}
-		}
-	}
-
-	delete(s.channelMap, channel.ID)
-
-	return nil
+	return s.storage.Delete(state.KeyChannel(chann))
 }
 
 // Channel returns the channel.Channel.
@@ -146,11 +137,12 @@ func (s *State) Channel(channelID string) (*channel.Channel, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
 
-	if c, ok := s.channelMap[channelID]; ok {
-		return c, nil
+	cRaw, err := s.storage.Get(state.KeyChannelRaw(channelID))
+	if err != nil {
+		return nil, err
 	}
-
-	return nil, state.ErrStateNotFound
+	c := cRaw.(channel.Channel)
+	return &c, nil
 }
 
 // PrivateChannels returns all private channels.
@@ -170,48 +162,42 @@ func (s *State) MessageAdd(message *channel.Message) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	// If the message exists, merge in the new message contents.
-	for _, m := range c.Messages {
-		if m.ID == message.ID {
-			if message.Content != "" {
-				m.Content = message.Content
-			}
-			if message.EditedTimestamp != nil {
-				m.EditedTimestamp = message.EditedTimestamp
-			}
-			if message.Mentions != nil {
-				m.Mentions = message.Mentions
-			}
-			if message.Embeds != nil {
-				m.Embeds = message.Embeds
-			}
-			if message.Attachments != nil {
-				m.Attachments = message.Attachments
-			}
-			if !message.Timestamp.IsZero() {
-				m.Timestamp = message.Timestamp
-			}
-			if message.Author != nil {
-				m.Author = message.Author
-			}
-			if message.Components != nil {
-				m.Components = message.Components
-			}
-
-			return nil
+	if m, err := s.Message(message.ChannelID, message.ID); err == nil {
+		if message.Content == "" {
+			message.Content = m.Content
 		}
+		if message.EditedTimestamp == nil {
+			message.EditedTimestamp = m.EditedTimestamp
+		}
+		if message.Mentions == nil {
+			message.Mentions = m.Mentions
+		}
+		if message.Embeds == nil {
+			message.Embeds = m.Embeds
+		}
+		if message.Attachments == nil {
+			message.Attachments = m.Attachments
+		}
+		if message.Timestamp.IsZero() {
+			message.Timestamp = m.Timestamp
+		}
+		if message.Author == nil {
+			message.Author = m.Author
+		}
+		if message.Components == nil {
+			message.Components = m.Components
+		}
+		id := slices.IndexFunc(c.Messages, func(m *channel.Message) bool { return m.ID == message.ID })
+		c.Messages[id] = message
+	} else {
+		c.Messages = append(c.Messages, message)
 	}
-
-	c.Messages = append(c.Messages, message)
 
 	if len(c.Messages) > s.Params().MaxMessageCount {
 		c.Messages = c.Messages[len(c.Messages)-s.Params().MaxMessageCount:]
 	}
 
-	return nil
+	return s.ChannelAdd(c)
 }
 
 // MessageRemove removes a channel.Message from the current State.
@@ -229,17 +215,9 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
 
-	for i, m := range c.Messages {
-		if m.ID == messageID {
-			c.Messages = append(c.Messages[:i], c.Messages[i+1:]...)
-			return nil
-		}
-	}
-
-	return state.ErrStateNotFound
+	return s.ChannelAdd(c)
 }
 
 // Message gets a message by channel and message ID.
@@ -251,9 +229,6 @@ func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 		}
 		return nil, err
 	}
-
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
 
 	for _, m := range c.Messages {
 		if m.ID == messageID {
@@ -282,15 +257,15 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	messages := make(map[string][]*channel.Message, len(g.Threads))
 	// converting channelIDs to map to have better perf
 	var channels map[string]struct{} // stored value is never used, we use it like a set
-	if channelIDs != nil {
+	if len(channelIDs) > 0 {
 		channels = make(map[string]struct{}, len(channelIDs))
 		for _, id := range channelIDs {
 			channels[id] = struct{}{}
 		}
 	}
 	// removing from map archived/deleted thread and saving untouched threads
-	for _, c := range s.channelMap {
-		if c.GuildID == guildID && c.IsThread() {
+	for i, c := range g.Channels {
+		if c.IsThread() {
 			// if thread is in sync list
 			ok := true
 			if channels != nil {
@@ -301,7 +276,7 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 				// if the thread continue to exist, it will be added later
 				// we just save cached messages before
 				messages[c.ID] = c.Messages
-				delete(s.channelMap, c.ID)
+				g.Channels = slices.Delete(g.Channels, i, i+1)
 			} else {
 				// saved because we don't want to touch it
 				ths = append(ths, c)
@@ -312,18 +287,19 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	for _, c := range threads {
 		// we add cached messages if we have deleted the thread previously
 		c.Messages = messages[c.ID]
+		for _, m := range members {
+			if m.ID == c.ID {
+				c.Member = m
+			}
+		}
 		ths = append(ths, c)
-		s.channelMap[c.ID] = c
-	}
-	g.Threads = ths
-
-	for _, m := range members {
-		if c, ok := s.channelMap[m.ID]; ok {
-			c.Member = m
+		err = s.ChannelAdd(c)
+		if err != nil {
+			return err
 		}
 	}
-
-	return nil
+	g.Threads = ths
+	return s.GuildState().GuildAdd(g)
 }
 
 // ThreadMembersUpdate updates thread members list.
@@ -339,13 +315,8 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	for idx, member := range thread.Members {
-		for _, removedMember := range removedMembers {
-			if member.ID == removedMember {
-				thread.Members = append(thread.Members[:idx], thread.Members[idx+1:]...)
-				break
-			}
-		}
+	for _, removedMember := range removedMembers {
+		thread.Members = slices.DeleteFunc(thread.Members, func(m *channel.ThreadMember) bool { return m.ID == removedMember })
 	}
 
 	for _, addedMember := range addedMembers {
@@ -369,7 +340,7 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 	}
 	thread.MemberCount = count
 
-	return nil
+	return s.ChannelAdd(thread)
 }
 
 // ThreadMemberUpdate sets or updates member data for the current user.
@@ -387,8 +358,6 @@ func (s *State) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 }
 
 // UserChannelPermissions returns the permission of a user in a channel.
-// userID    : The ID of the user to calculate permissions for.
-// channelID : The ID of the channel to calculate permission for.
 func (s *State) UserChannelPermissions(userID, channelID string) (int64, error) {
 	c, err := s.Channel(channelID)
 	if err != nil {

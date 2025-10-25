@@ -7,8 +7,6 @@
 package state
 
 import (
-	"iter"
-
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/guild"
@@ -45,15 +43,15 @@ type Channel interface {
 
 	// AppendGuildChannel is for internal use only.
 	// Use ChannelAdd instead.
-	AppendGuildChannel(c *channel.Channel)
+	AppendGuildChannel(c *channel.Channel) error
 }
 
 // Guild represents the State related to guild.Guild (including guild.Role) and emoji.Emoji.
 type Guild interface {
-	GuildAdd(*guild.Guild)
+	GuildAdd(*guild.Guild) error
 	GuildRemove(*guild.Guild) error
 	Guild(string) (*guild.Guild, error)
-	Guilds() iter.Seq[*guild.Guild]
+	Guilds() []string
 
 	RoleAdd(string, *guild.Role) error
 	RoleRemove(string, string) error

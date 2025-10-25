@@ -39,6 +39,7 @@ func main() {
 		defer cancel()
 	}
 	dg := gokord.NewWithLogLevel("Bot "+token, slog.LevelDebug)
+	dg.SyncEvents = true
 	dg.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		s.Logger().Info("bot ready")
 	})

@@ -2,6 +2,7 @@ package userapi
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -11,25 +12,18 @@ import (
 
 type State struct {
 	state.State
+	storage   state.Storage
 	memberMap map[string]map[string]*user.Member
 }
 
 var ErrGuildNotCached = errors.New("member's guild not cached")
 
-func NewState(state state.State) *State {
+func NewState(state state.State, storage state.Storage) *State {
 	return &State{
 		State:     state,
+		storage:   storage,
 		memberMap: make(map[string]map[string]*user.Member),
 	}
-}
-
-func (s *State) createMemberMap(g *guild.Guild) map[string]*user.Member {
-	members := make(map[string]*user.Member)
-	for _, m := range g.Members {
-		members[m.User.ID] = m
-	}
-	s.memberMap[g.ID] = members
-	return members
 }
 
 // MemberAdd adds a user.Member to the current State, or updates it if it already exists.
@@ -42,31 +36,35 @@ func (s *State) MemberAdd(member *user.Member) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	members, ok := s.memberMap[member.GuildID]
-	if !ok {
-		members = s.createMemberMap(g)
-	}
-
-	m, ok := members[member.User.ID]
-	if !ok {
-		members[member.User.ID] = member
-		g.Members = append(g.Members, member)
-	} else {
-		// We are about to replace `m` in the state with `member`, but first we need to
-		// make sure we preserve any fields that the `member` doesn't contain from `m`.
+	if m, err := s.Member(member.GuildID, member.User.ID); err == nil {
 		if member.JoinedAt.IsZero() {
 			member.JoinedAt = m.JoinedAt
 		}
-		*m = *member
 	}
-	return nil
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
+
+	id := slices.IndexFunc(g.Members, func(m *user.Member) bool { return m.User.ID == member.User.ID })
+	if id == -1 {
+		g.Members = append(g.Members, member)
+	} else {
+		g.Members[id] = member
+	}
+	err = s.GuildState().GuildAdd(g)
+	if err != nil {
+		return err
+	}
+
+	return s.storage.Write(state.KeyMember(member), *member)
 }
 
 // MemberRemove removes a user.Member from current State.
 func (s *State) MemberRemove(member *user.Member) error {
+	_, err := s.Member(member.GuildID, member.User.ID)
+	if err != nil {
+		return err
+	}
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
@@ -78,25 +76,13 @@ func (s *State) MemberRemove(member *user.Member) error {
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	members, ok := s.memberMap[member.GuildID]
-	if !ok {
-		return state.ErrStateNotFound
+	g.Members = slices.DeleteFunc(g.Members, func(m *user.Member) bool { return m.User.ID == member.User.ID })
+	err = s.GuildState().GuildAdd(g)
+	if err != nil {
+		return err
 	}
 
-	_, ok = members[member.User.ID]
-	if !ok {
-		return state.ErrStateNotFound
-	}
-	delete(members, member.User.ID)
-
-	for i, m := range g.Members {
-		if m.User.ID == member.User.ID {
-			g.Members = append(g.Members[:i], g.Members[i+1:]...)
-			return nil
-		}
-	}
-	// this is technically not reachable
-	return state.ErrStateNotFound
+	return s.storage.Delete(state.KeyMember(member))
 }
 
 // Member returns the user.Member from a guild.Guild.
@@ -104,17 +90,12 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
 
-	members, ok := s.memberMap[guildID]
-	if !ok {
-		return nil, state.ErrStateNotFound
+	mRaw, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
+	if err != nil {
+		return nil, err
 	}
-
-	m, ok := members[userID]
-	if ok {
-		return m, nil
-	}
-
-	return nil, state.ErrStateNotFound
+	m := mRaw.(user.Member)
+	return &m, nil
 }
 
 // PresenceAdd adds a status.Presence to the current State, or updates it if it already exists.
@@ -127,53 +108,42 @@ func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 		return err
 	}
 
+	if p, err := s.Presence(guildID, presence.User.ID); err == nil {
+		if presence.Status == "" {
+			presence.Status = p.Status
+		}
+		if presence.ClientStatus.Desktop == "" {
+			presence.ClientStatus.Desktop = p.ClientStatus.Desktop
+		}
+		if presence.ClientStatus.Mobile == "" {
+			presence.ClientStatus.Mobile = p.ClientStatus.Mobile
+		}
+		if presence.ClientStatus.Web == "" {
+			presence.ClientStatus.Web = p.ClientStatus.Web
+		}
+		if presence.User.Avatar == "" {
+			presence.User.Avatar = p.User.Avatar
+		}
+		if presence.User.Discriminator == "" {
+			presence.User.Discriminator = p.User.Discriminator
+		}
+		if presence.User.Email == "" {
+			presence.User.Email = p.User.Email
+		}
+		if presence.User.Token == "" {
+			presence.User.Token = p.User.Token
+		}
+		if presence.User.Username == "" {
+			presence.User.Username = p.User.Username
+		}
+		id := slices.IndexFunc(g.Presences, func(p *status.Presence) bool { return p.User.ID == presence.User.ID })
+		g.Presences[id] = presence
+	} else {
+		g.Presences = append(g.Presences, presence)
+	}
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 
-	for i, p := range g.Presences {
-		if p.User.ID == presence.User.ID {
-			//g.Presences[i] = presence
-
-			//Update status
-			g.Presences[i].Activities = presence.Activities
-			if presence.Status != "" {
-				g.Presences[i].Status = presence.Status
-			}
-			if presence.ClientStatus.Desktop != "" {
-				g.Presences[i].ClientStatus.Desktop = presence.ClientStatus.Desktop
-			}
-			if presence.ClientStatus.Mobile != "" {
-				g.Presences[i].ClientStatus.Mobile = presence.ClientStatus.Mobile
-			}
-			if presence.ClientStatus.Web != "" {
-				g.Presences[i].ClientStatus.Web = presence.ClientStatus.Web
-			}
-
-			//Update the optionally sent user information
-			//ID Is a mandatory field so you should not need to check if it is empty
-			g.Presences[i].User.ID = presence.User.ID
-
-			if presence.User.Avatar != "" {
-				g.Presences[i].User.Avatar = presence.User.Avatar
-			}
-			if presence.User.Discriminator != "" {
-				g.Presences[i].User.Discriminator = presence.User.Discriminator
-			}
-			if presence.User.Email != "" {
-				g.Presences[i].User.Email = presence.User.Email
-			}
-			if presence.User.Token != "" {
-				g.Presences[i].User.Token = presence.User.Token
-			}
-			if presence.User.Username != "" {
-				g.Presences[i].User.Username = presence.User.Username
-			}
-
-			return nil
-		}
-	}
-
-	g.Presences = append(g.Presences, presence)
 	return nil
 }
 
@@ -184,17 +154,19 @@ func (s *State) PresenceRemove(guildID string, presence *status.Presence) error 
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	for i, p := range g.Presences {
-		if p.User.ID == presence.User.ID {
-			g.Presences = append(g.Presences[:i], g.Presences[i+1:]...)
-			return nil
-		}
+	_, err = s.Presence(guildID, presence.User.ID)
+	if err != nil {
+		return err
 	}
 
-	return state.ErrStateNotFound
+	g.Presences = slices.DeleteFunc(g.Presences, func(p *status.Presence) bool { return p.User.ID == presence.User.ID })
+
+	err = s.GuildState().GuildAdd(g)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Presence returns the status.Presence from a guild.Guild.
@@ -203,9 +175,6 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
 
 	for _, p := range g.Presences {
 		if p.User.ID == userID {
