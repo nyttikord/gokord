@@ -32,7 +32,10 @@ func (s *Session) reconnect(ctx context.Context) error {
 	if !s.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
 	}
-	s.logger.Info("trying to reconnect to gateway")
+
+	if err := s.waitListen.Close(ctx); err != nil {
+		panic(err)
+	}
 
 	s.Lock()
 	defer s.Unlock()
@@ -48,7 +51,6 @@ func (s *Session) reconnect(ctx context.Context) error {
 	p.Data.SessionID = s.sessionID
 	p.Data.Sequence = s.sequence.Load()
 
-	s.logger.Info("sending resume packet to gateway")
 	err = s.GatewayWriteStruct(ctx, p)
 	if err != nil {
 		return errors.Join(err, ErrSendingResumePacket)
@@ -101,7 +103,7 @@ func (s *Session) reconnect(ctx context.Context) error {
 		return nil
 	}
 	for _, v := range s.voiceAPI.Connections {
-		s.logger.Info("reconnecting voice connection to guild", "guild", v.GuildID)
+		s.logger.Debug("reconnecting voice connection to guild", "guild", v.GuildID)
 		go v.Reconnect(ctx)
 
 		// This is here just to prevent violently spamming the voice reconnects.
@@ -153,23 +155,8 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 		return ErrWSNotFound
 	}
 
-	if s.cancelListen != nil {
-		s.logger.Debug("closing goroutines")
-		s.cancelListen()
-		ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-		done := make(chan struct{}, 1)
-		go func() {
-			s.waitListen.Wait()
-			s.logger.Debug("goroutines closed")
-			done <- struct{}{}
-		}()
-		select {
-		case <-done:
-		case <-ctx2.Done():
-			s.logger.Error("cannot close goroutines")
-			panic(ctx2.Err())
-		}
+	if err := s.waitListen.Close(ctx); err != nil {
+		panic(err)
 	}
 
 	for _, v := range s.voiceAPI.Connections {
@@ -212,6 +199,9 @@ func (s *Session) ForceClose() error {
 	s.Lock()
 	defer s.Unlock()
 	var err error
+	if err = s.waitListen.Close(context.Background()); err != nil {
+		panic(err)
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool

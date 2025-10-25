@@ -137,7 +137,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 			for _, a := range goa.attrs {
 				buf = h.appendAttr(buf, a)
 			}
-			buf = fmt.Appendf(buf, "!}!") // I don't know where I should put it
+			//buf = fmt.Appendf(buf, "}") // I don't know where I should put it
 		}
 	}
 	r.Attrs(func(a slog.Attr) bool {
@@ -160,42 +160,35 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	}
 	buf = fmt.Appendf(buf, " ")
 	a.Key = escapeSpace(a.Key)
+	buf = fmt.Appendf(buf, "%s=", a.Key)
+	if val, ok := a.Value.Any().(fmt.Stringer); ok {
+		return fmt.Appendf(buf, "%s", escapeSpace(val.String()))
+	}
+	if val, ok := a.Value.Any().([]byte); ok {
+		return fmt.Appendf(buf, "%s", escapeSpace(string(val)))
+	}
 	switch a.Value.Kind() {
 	case slog.KindString:
-		buf = fmt.Appendf(buf, "%s=%s", a.Key, escapeSpace(a.Value.String()))
+		buf = fmt.Appendf(buf, "%s", escapeSpace(a.Value.String()))
 	case slog.KindTime:
-		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value.Time().Format(time.RFC3339))
+		buf = fmt.Appendf(buf, "%s", a.Value.Time().Format(time.RFC3339))
 	case slog.KindGroup:
-		if b, ok := a.Value.Any().([]byte); ok {
-			buf = fmt.Appendf(buf, "%s=%s", a.Key, escapeSpace(string(b)))
-		} else {
-			attrs := a.Value.Group()
-			// Ignore empty groups.
-			if len(attrs) == 0 {
-				return buf
-			}
-			if a.Key != "" {
-				buf = fmt.Appendf(buf, "%s={", a.Key)
-			}
-			for _, ga := range attrs {
-				buf = h.appendAttr(buf, ga)
-			}
-			if a.Key != "" {
-				buf[len(buf)-1] = '}' // replace last space by }
-			}
+		attrs := a.Value.Group()
+		// Ignore empty groups.
+		if len(attrs) == 0 {
+			return buf
+		}
+		if a.Key != "" {
+			buf = fmt.Appendf(buf, "%s={", a.Key)
+		}
+		for _, ga := range attrs {
+			buf = h.appendAttr(buf, ga)
+		}
+		if a.Key != "" {
+			buf[len(buf)-1] = '}' // replace last space by }
 		}
 	default:
-		var val any
-		val = a.Value
-		if s, ok := val.(fmt.Stringer); ok {
-			val = s.String()
-		} else if b, ok := val.([]byte); ok {
-			val = string(b)
-		}
-		if s, ok := val.(string); ok {
-			s = escapeSpace(s)
-		}
-		buf = fmt.Appendf(buf, "%s=%s", a.Key, a.Value)
+		buf = fmt.Appendf(buf, "%v", a.Value.Any())
 	}
 	return buf
 }

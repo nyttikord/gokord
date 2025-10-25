@@ -64,7 +64,7 @@ func (s *Session) setupGateway(ctx context.Context, gateway string) error {
 	gateway += "/?v=" + discord.APIVersion + "&encoding=json"
 
 	// Connect to the Gateway
-	s.logger.Info("connecting to gateway", "gateway", gateway)
+	s.logger.Debug("connecting to gateway", "gateway", gateway)
 	header := http.Header{}
 	header.Add("accept-encoding", "zlib")
 	var err error
@@ -166,9 +166,14 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
 	var ctx2 context.Context
-	ctx2, s.cancelListen = context.WithCancel(ctx)
+	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
 
+	restarting := false
 	restart := func() {
+		if restarting {
+			return
+		}
+		restarting = true
 		s.logger.Info("closing websocket")
 		s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
 		s.logger.Info("reconnecting")
@@ -177,7 +182,6 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {
-		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
 		last, err := s.heartbeats(ctx2)
 		free()
 		select {
@@ -237,6 +241,11 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
+	select {
+	case <-time.After(time.Duration(rand.Float32() * float32(s.heartbeatInterval))):
+	case <-ctx.Done():
+		return time.Now().UTC(), nil
+	}
 	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(s.heartbeatInterval)
@@ -246,7 +255,7 @@ func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	// first heartbeat
 	err = s.heartbeat(ctx)
 
-	for err == nil && time.Now().UTC().Sub(last) <= (s.heartbeatInterval*FailedHeartbeatAcks) {
+	for err == nil && time.Now().UTC().Sub(last) <= s.heartbeatInterval*FailedHeartbeatAcks {
 		select {
 		case <-ticker.C:
 			s.RLock()

@@ -71,7 +71,7 @@ type CommandOption struct {
 type CommandOptionChoice struct {
 	Name              string                    `json:"name"`
 	NameLocalizations map[discord.Locale]string `json:"name_localizations,omitempty"`
-	Value             interface{}               `json:"value"`
+	Value             any                       `json:"value"`
 }
 
 // CommandPermissions represents a single user.User or guild.Role permission for a Command.
