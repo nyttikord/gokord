@@ -8,9 +8,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/logger"
+	"github.com/nyttikord/gokord/state"
+	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/voice"
 )
 
@@ -58,6 +62,9 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		logger:                             logger,
 		RWMutex:                            &sync.RWMutex{},
 		waitListen:                         &syncListener{logger: logger},
+		UserStorage:                        &state.MapStorage[user.Member]{},
+		ChannelStorage:                     &state.MapStorage[channel.Channel]{},
+		GuildStorage:                       &state.MapStorage[guild.Guild]{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface)

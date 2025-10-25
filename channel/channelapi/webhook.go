@@ -149,7 +149,7 @@ func (s Requester) webhookExecute(method, uri, bucket string, wait bool, threadI
 		v.Set("wait", "true")
 	}
 
-	if data.Components != nil && len(data.Components) > 0 {
+	if len(data.Components) > 0 {
 		v.Set("with_components", "true")
 	}
 
