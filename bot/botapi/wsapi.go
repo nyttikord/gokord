@@ -10,7 +10,8 @@ import (
 
 // Requester handles everything inside the bot package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
+	discord.WSRequester
 	//State *State
 }
 

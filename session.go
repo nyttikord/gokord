@@ -3,7 +3,6 @@ package gokord
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -16,7 +15,6 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
-	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
@@ -51,26 +49,14 @@ type Session struct {
 	// e.g. false = launch event handlers in their own goroutines.
 	SyncEvents bool
 
-	// Exposed but should not be modified by Application.
+	rest *restSession
 
-	// Max number of REST API retries.
-	MaxRestRetries int
-	// Status stores the current status of the websocket connection this is being tested, may stay, may go away.
-	status int32
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
-	// The http.Client used for REST requests.
-	Client *http.Client
-	// The websocket.Dialer used for WebSocket connection.
-	//Dialer *websocket.
-	// The UserAgent used for REST APIs.
-	UserAgent string
 	// Stores the LastHeartbeatAck that was received (in UTC).
 	LastHeartbeatAck time.Time
 	// Stores the LastHeartbeatSent (in UTC).
 	LastHeartbeatSent time.Time
-	// Used to deal with rate limits.
-	RateLimiter *discord.RateLimiter
 	// heartbeatInterval is the interval between two heartbeats
 	heartbeatInterval time.Duration
 
@@ -156,7 +142,7 @@ func (s *Session) Logger() *slog.Logger {
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
 		s.Logger().Debug("creating new user state")
-		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState, s.UserStorage)}
+		s.userAPI = &userapi.Requester{RESTRequester: s.rest, State: userapi.NewState(s.sessionState, s.UserStorage)}
 	}
 	return s.userAPI
 }
@@ -165,7 +151,12 @@ func (s *Session) UserAPI() *userapi.Requester {
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
 		s.Logger().Debug("creating new guild state")
-		s.guildAPI = &guildapi.Requester{API: s, State: guildapi.NewState(s.sessionState, s.GuildStorage)}
+		s.guildAPI = &guildapi.Requester{
+			RESTRequester: s.rest,
+			WSRequester:   s,
+			VoiceAPI:      s.VoiceAPI,
+			State:         guildapi.NewState(s.sessionState, s.GuildStorage),
+		}
 	}
 	return s.guildAPI
 }
@@ -174,29 +165,29 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
 		s.Logger().Debug("creating new channel state")
-		s.channelAPI = &channelapi.Requester{Requester: s, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
+		s.channelAPI = &channelapi.Requester{RESTRequester: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{Requester: s}
+	return &inviteapi.Requester{RESTRequester: s.rest}
 }
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{API: s}
+	return &interactionapi.Requester{API: s.rest, ChannelAPI: s.ChannelAPI}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{Requester: s}
+	return &applicationapi.Requester{RESTRequester: s.rest}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{Requester: s}
+	return &botapi.Requester{RESTRequester: s.rest}
 }
 
 // VoiceAPI returns a voice.Requester to interact with the voice package.

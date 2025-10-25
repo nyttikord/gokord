@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -81,15 +82,36 @@ func unmarshal(data []byte, v any) error {
 	return nil
 }
 
-func (s *Session) Unmarshal(bytes []byte, i any) error {
+// restSession is the part of the Session responsible for the REST API.
+type restSession struct {
+	identify               *Identify
+	logger                 *slog.Logger
+	shouldRetryOnRateLimit *bool
+	eventManager           *event.Manager
+	// Max number of REST API retries.
+	MaxRestRetries int
+	// The http.Client used for REST requests.
+	Client *http.Client
+	// The UserAgent used for REST APIs.
+	UserAgent string
+	// Used to deal with rate limits.
+	RateLimiter *discord.RateLimiter
+	EmitEvent   func(ctx context.Context, t string, i any)
+}
+
+func (s *restSession) Logger() *slog.Logger {
+	return s.logger
+}
+
+func (s *restSession) Unmarshal(bytes []byte, i any) error {
 	return unmarshal(bytes, i)
 }
 
-func (s *Session) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
+func (s *restSession) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
 	return s.RequestWithBucketID(method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
 }
 
-func (s *Session) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
+func (s *restSession) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
 	var body []byte
 	if data != nil {
 		var err error
@@ -101,14 +123,14 @@ func (s *Session) RequestWithBucketID(method, urlStr string, data any, bucketID 
 	return s.RequestRaw(method, urlStr, "application/json", body, bucketID, 0, options...)
 }
 
-func (s *Session) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *restSession) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	if bucketID == "" {
 		bucketID = strings.SplitN(urlStr, "?", 2)[0]
 	}
 	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
 }
 
-func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *restSession) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	s.logger.Debug(fmt.Sprintf("%s :: %s", method, urlStr))
 	s.logger.Debug("PAYLOAD", "content", string(b))
 
@@ -123,8 +145,8 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 
 	// Not used on initial login..
 	// TODO: Verify if a login, otherwise complain about no-token
-	if s.Identify.Token != "" {
-		req.Header.Set("authorization", s.Identify.Token)
+	if s.identify.Token != "" {
+		req.Header.Set("authorization", s.identify.Token)
 	}
 
 	// Discord's API returns a 400 Bad Request is Content-Type is set, but the
@@ -137,7 +159,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 	req.Header.Set("User-Agent", s.UserAgent)
 
 	cfg := &discord.RequestConfig{
-		ShouldRetryOnRateLimit: s.ShouldRetryOnRateLimit,
+		ShouldRetryOnRateLimit: *s.shouldRetryOnRateLimit,
 		MaxRestRetries:         s.MaxRestRetries,
 		Client:                 s.Client,
 		Request:                req,
@@ -194,7 +216,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 		if cfg.ShouldRetryOnRateLimit {
 			s.logger.Info("rate limited", "url", urlStr, "retry in", rl.RetryAfter)
 			// background because it will never use the websocket -> this is an internal event
-			s.eventManager.EmitEvent(context.Background(), s, event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
+			s.EmitEvent(context.Background(), event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
 			// we can make the above smarter
@@ -205,7 +227,7 @@ func (s *Session) RequestWithLockedBucket(method, urlStr, contentType string, b 
 			err = &RateLimitError{&event.RateLimit{TooManyRequests: &rl, URL: urlStr}}
 		}
 	case http.StatusUnauthorized:
-		if strings.Index(s.Identify.Token, "Bot ") != 0 {
+		if strings.Index(s.identify.Token, "Bot ") != 0 {
 			s.logger.Error(ErrUnauthorized.Error())
 			err = ErrUnauthorized
 		}

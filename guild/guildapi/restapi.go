@@ -20,16 +20,12 @@ var (
 	ErrGuildNoSplash   = errors.New("guild does not have a splash set")
 )
 
-// API adds methods to discord.Requester to be used in the interaction package.
-type API interface {
-	discord.Requester
-	VoiceAPI() *voice.Requester
-}
-
 // Requester handles everything inside the guild package.
 type Requester struct {
-	API
-	State *State
+	discord.RESTRequester
+	discord.WSRequester
+	State    *State
+	VoiceAPI func() *voice.Requester
 }
 
 // UserGuilds returns an array of guild.UserGuild structures for all guilds.

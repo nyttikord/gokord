@@ -10,15 +10,15 @@ import (
 	"github.com/nyttikord/gokord/interaction"
 )
 
-// API adds methods to discord.Requester to be used in the interaction package.
+// API adds methods to discord.RESTRequester to be used in the interaction package.
 type API interface {
-	discord.Requester
-	ChannelAPI() *channelapi.Requester
+	discord.RESTRequester
 }
 
 // Requester handles everything inside the interaction package.
 type Requester struct {
 	API
+	ChannelAPI func() *channelapi.Requester
 }
 
 // Respond creates the response to an interaction.Interaction.
