@@ -195,3 +195,36 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 }
 
 func (*Label) modal() {}
+
+// FileUpload represents file upload Component.
+type FileUpload struct {
+	// CustomID is a developer-defined identifier for the FileUpload.
+	CustomID string `json:"custom_id,omitempty"`
+	// Minimum number of items that must be uploaded (defaults to 1); min 0, max 10.
+	MinValues *int `json:"min_values,omitempty"`
+	// Maximum number of items that can be uploaded (defaults to 1); max 10.
+	MaxValues int `json:"max_values,omitempty"`
+	// Whether the file upload requires files to be uploaded before submitting the modal (defaults to true).
+	Required *bool `json:"required,omitempty"`
+	// IDs of the uploaded files found in the resolved data.
+	Values []string `json:"values"`
+
+	// Unique identifier for the Component; autopopulated through increment if not provided.
+	ID int `json:"id,omitempty"`
+}
+
+func (s *FileUpload) Type() types.Component {
+	return types.ComponentFileUpload
+}
+
+func (s *FileUpload) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		FileUpload
+		Type types.Component `json:"type"`
+	}{
+		FileUpload: *s,
+		Type:       s.Type(),
+	})
+}
+
+func (s *FileUpload) modal() {}

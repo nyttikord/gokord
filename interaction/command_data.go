@@ -73,7 +73,7 @@ type CommandInteractionDataOption struct {
 	Name string              `json:"name"`
 	Type types.CommandOption `json:"type"`
 	// NOTE: Contains the value specified by Type.
-	Value   interface{}                     `json:"value,omitempty"`
+	Value   any                             `json:"value,omitempty"`
 	Options []*CommandInteractionDataOption `json:"options,omitempty"`
 
 	// NOTE: autocomplete Interaction only.
