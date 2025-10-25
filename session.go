@@ -176,7 +176,7 @@ func (s *Session) InviteAPI() *inviteapi.Requester {
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{API: s.REST, ChannelAPI: s.ChannelAPI}
+	return &interactionapi.Requester{RESTRequester: s.REST, ChannelAPI: s.ChannelAPI}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
