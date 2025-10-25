@@ -13,7 +13,6 @@ import (
 type State struct {
 	state.State
 	storage         state.Storage
-	channelMap      map[string]*channel.Channel
 	privateChannels []*channel.Channel
 }
 
@@ -30,7 +29,6 @@ func NewState(state state.State, storage state.Storage) *State {
 	return &State{
 		State:           state,
 		storage:         storage,
-		channelMap:      make(map[string]*channel.Channel),
 		privateChannels: make([]*channel.Channel, 0),
 	}
 }
@@ -65,9 +63,6 @@ func (s *State) ChannelAdd(chann *channel.Channel) error {
 		}
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	fn := func(sl []*channel.Channel) {
 		id := slices.IndexFunc(sl, func(c *channel.Channel) bool { return c.ID == chann.ID })
 		if id == -1 {
@@ -90,6 +85,9 @@ func (s *State) ChannelAdd(chann *channel.Channel) error {
 			return err
 		}
 	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	return s.AppendGuildChannel(chann)
 }
@@ -117,9 +115,6 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	if chann.IsThread() {
 		g.Threads = slices.DeleteFunc(g.Threads, func(c *channel.Channel) bool { return c.ID == chann.ID })
 	} else {
@@ -130,6 +125,9 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 	if err != nil {
 		return err
 	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	return s.storage.Delete(state.KeyChannel(chann))
 }
@@ -144,7 +142,6 @@ func (s *State) Channel(channelID string) (*channel.Channel, error) {
 		return nil, err
 	}
 	c := cRaw.(channel.Channel)
-
 	return &c, nil
 }
 
@@ -190,24 +187,18 @@ func (s *State) MessageAdd(message *channel.Message) error {
 		if message.Components == nil {
 			message.Components = m.Components
 		}
+		id := slices.IndexFunc(c.Messages, func(m *channel.Message) bool { return m.ID == message.ID })
+		c.Messages[id] = message
+	} else {
+		c.Messages = append(c.Messages, message)
 	}
-
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	// If the message exists, merge in the new message contents.
-	for i, m := range c.Messages {
-		if m.ID == message.ID {
-			c.Messages[i] = message
-			return s.storage.Write(state.KeyChannel(c), c)
-		}
-	}
-
-	c.Messages = append(c.Messages, message)
 
 	if len(c.Messages) > s.Params().MaxMessageCount {
 		c.Messages = c.Messages[len(c.Messages)-s.Params().MaxMessageCount:]
 	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	return s.storage.Write(state.KeyChannel(c), c)
 }
@@ -227,10 +218,10 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 		return err
 	}
 
+	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
+
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
-
-	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
 
 	return s.storage.Write(state.KeyChannel(c), c)
 }
@@ -244,9 +235,6 @@ func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 		}
 		return nil, err
 	}
-
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
 
 	for _, m := range c.Messages {
 		if m.ID == messageID {
@@ -275,15 +263,15 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 	messages := make(map[string][]*channel.Message, len(g.Threads))
 	// converting channelIDs to map to have better perf
 	var channels map[string]struct{} // stored value is never used, we use it like a set
-	if channelIDs != nil {
+	if len(channelIDs) > 0 {
 		channels = make(map[string]struct{}, len(channelIDs))
 		for _, id := range channelIDs {
 			channels[id] = struct{}{}
 		}
 	}
 	// removing from map archived/deleted thread and saving untouched threads
-	for _, c := range s.channelMap {
-		if c.GuildID == guildID && c.IsThread() {
+	for i, c := range g.Channels {
+		if c.IsThread() {
 			// if thread is in sync list
 			ok := true
 			if channels != nil {
@@ -294,7 +282,7 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 				// if the thread continue to exist, it will be added later
 				// we just save cached messages before
 				messages[c.ID] = c.Messages
-				delete(s.channelMap, c.ID)
+				g.Channels = slices.Delete(g.Channels, i, i+1)
 			} else {
 				// saved because we don't want to touch it
 				ths = append(ths, c)

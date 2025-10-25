@@ -23,6 +23,7 @@ import (
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/state"
+	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -153,7 +154,7 @@ func (s *Session) Logger() *slog.Logger {
 // UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
-		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState)}
+		s.userAPI = &userapi.Requester{Requester: s, State: userapi.NewState(s.sessionState, &state.MapStorage[user.Member]{})}
 	}
 	return s.userAPI
 }

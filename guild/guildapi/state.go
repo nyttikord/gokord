@@ -95,8 +95,8 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 //
 // Useful for querying if @me is in a guild:
 //
-//	   _, err := discordgo.Session.State.Application(guildID)
-//		  isInGuild := errors.Is(err, state.ErrStateNotFound)
+//	_, err := s.GuildState().Guild(guildID)
+//	isInGuild := !errors.Is(err, state.ErrStateNotFound)
 func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	s.GetMutex().RLock()
 	defer s.GetMutex().RUnlock()
@@ -121,19 +121,14 @@ func (s *State) RoleAdd(guildID string, role *guild.Role) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	for i, r := range g.Roles {
-		if r.ID == role.ID {
-			g.Roles[i] = role
-			return s.storage.Write(state.KeyGuild(g), g)
-		}
+	if _, err = s.Role(guildID, role.ID); err == nil {
+		id := slices.IndexFunc(g.Roles, func(r *guild.Role) bool { return r.ID == role.ID })
+		g.Roles[id] = role
+	} else {
+		g.Roles = append(g.Roles, role)
 	}
 
-	g.Roles = append(g.Roles, role)
-
-	return s.storage.Write(state.KeyGuild(g), g)
+	return s.GuildAdd(g)
 }
 
 // RoleRemove removes a guild.Role from current State.
@@ -143,12 +138,9 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	g.Roles = slices.DeleteFunc(g.Roles, func(r *guild.Role) bool { return r.ID == roleID })
 
-	return s.storage.Write(state.KeyGuild(g), g)
+	return s.GuildAdd(g)
 }
 
 // Role returns the guild.Role from a guild.Guild.
@@ -157,9 +149,6 @@ func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
 
 	for _, r := range g.Roles {
 		if r.ID == roleID {
@@ -177,9 +166,6 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		return nil, err
 	}
 
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
-
 	for _, e := range g.Emojis {
 		if e.ID == emojiID {
 			return e, nil
@@ -190,24 +176,20 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 }
 
 // EmojiAdd adds an emoji.Emoji to the current State.
-func (s *State) EmojiAdd(guildID string, emoji *emoji.Emoji) error {
+func (s *State) EmojiAdd(guildID string, em *emoji.Emoji) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	for i, e := range g.Emojis {
-		if e.ID == emoji.ID {
-			g.Emojis[i] = emoji
-			return s.storage.Write(state.KeyGuild(g), g)
-		}
+	if _, err = s.Emoji(guildID, em.ID); err == nil {
+		id := slices.IndexFunc(g.Emojis, func(e *emoji.Emoji) bool { return e.ID == em.ID })
+		g.Emojis[id] = em
+	} else {
+		g.Emojis = append(g.Emojis, em)
 	}
 
-	g.Emojis = append(g.Emojis, emoji)
-	return s.storage.Write(state.KeyGuild(g), g)
+	return s.GuildAdd(g)
 }
 
 // EmojisAdd adds multiple emoji.Emoji to the current State.
