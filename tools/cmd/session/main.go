@@ -42,19 +42,6 @@ func main() {
 	dg.SyncEvents = true
 	dg.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		s.Logger().Info("bot ready")
-		for _, g := range r.Guilds {
-			chans, err := s.GuildAPI().Channels(g.ID)
-			if err != nil {
-				s.Logger().Error("getting channels", "error", err, "guild", g.ID)
-				continue
-			}
-			for _, c := range chans {
-				err = s.ChannelAPI().State.ChannelAdd(c)
-				if err != nil {
-					s.Logger().Error("adding channel", "error", err)
-				}
-			}
-		}
 	})
 	err := dg.OpenAndBlock(ctx)
 	if err != nil && !errors.Is(err, ctx.Err()) {

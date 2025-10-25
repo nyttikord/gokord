@@ -1,6 +1,7 @@
 package state
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/nyttikord/gokord/channel"
@@ -75,12 +76,25 @@ func KeyChannelRaw(channelID string) Key {
 // It uses a Go map to store data.
 type MapStorage[T any] map[Key]T
 
+// deepCopy is an ugly code performing a deep copy.
+// It works, but feel free to refactor it if you have any better idea.
+// (The proposition https://github.com/golang-design/reflect using reflect package does not work sadly...)
+func deepCopy[T any](t T) (T, error) {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return t, err
+	}
+	var copied T
+	err = json.Unmarshal(b, &copied)
+	return copied, err
+}
+
 func (m MapStorage[T]) Get(key Key) (any, error) {
 	v, ok := m[key]
 	if !ok {
 		return v, ErrStateNotFound
 	}
-	return DeepCopy(v), nil
+	return deepCopy(v)
 }
 
 func (m MapStorage[T]) Write(key Key, data any) error {
@@ -88,8 +102,9 @@ func (m MapStorage[T]) Write(key Key, data any) error {
 	if !ok {
 		return ErrInvalidDataType
 	}
-	m[key] = DeepCopy(v)
-	return nil
+	var err error
+	m[key], err = deepCopy(v)
+	return err
 }
 
 func (m MapStorage[T]) Delete(key Key) error {
