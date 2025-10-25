@@ -60,7 +60,6 @@ func (s *Session) onReady(r *event.Ready) {
 
 	// Store the ResumeGatewayURL within the Session struct.
 	s.resumeGatewayURL = r.ResumeGatewayURL
-	//s.logger.Debug("bot ready", "session_id", s.sessionID, "resume_url", r.ResumeGatewayURL)
 }
 
 // getGatewayEvent returns the discord.Event associated with the message given.

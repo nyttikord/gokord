@@ -57,7 +57,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		LastHeartbeatAck:                   time.Now().UTC(),
 		logger:                             logger,
 		RWMutex:                            &sync.RWMutex{},
-		waitListen:                         &syncListener{logger: logger},
+		waitListen:                         &syncListener{logger: logger.With("module", "ws")},
 		UserStorage:                        &state.MapStorage[user.Member]{},
 		ChannelStorage:                     &state.MapStorage[channel.Channel]{},
 		GuildStorage:                       &state.MapStorage[guild.Guild]{},
