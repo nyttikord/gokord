@@ -24,6 +24,33 @@ func NewState(state state.State, storage state.Storage) *State {
 
 // GuildAdd adds a guild.Guild to the current State, or updates it if it already exists.
 func (s *State) GuildAdd(g *guild.Guild) error {
+	if gl, err := s.Guild(g.ID); err == nil {
+		if g.MemberCount == 0 {
+			g.MemberCount = gl.MemberCount
+		}
+		if g.Roles == nil {
+			g.Roles = gl.Roles
+		}
+		if g.Emojis == nil {
+			g.Emojis = gl.Emojis
+		}
+		if g.Members == nil {
+			g.Members = gl.Members
+		}
+		if g.Presences == nil {
+			g.Presences = gl.Presences
+		}
+		if g.Channels == nil {
+			g.Channels = gl.Channels
+		}
+		if g.Threads == nil {
+			g.Threads = gl.Threads
+		}
+		if g.VoiceStates == nil {
+			g.VoiceStates = gl.VoiceStates
+		}
+	}
+
 	s.GetMutex().Lock()
 	defer s.GetMutex().Unlock()
 

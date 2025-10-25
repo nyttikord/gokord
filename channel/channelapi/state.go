@@ -46,15 +46,27 @@ func (s *State) AppendGuildChannel(c *channel.Channel) error {
 func (s *State) ChannelAdd(chann *channel.Channel) error {
 	g, err := s.GuildState().Guild(chann.GuildID)
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
 	if err != nil {
 		if errors.Is(err, state.ErrStateNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
 	}
+
+	if c, err := s.Channel(chann.ID); err == nil {
+		if chann.Messages == nil {
+			chann.Messages = c.Messages
+		}
+		if chann.PermissionOverwrites == nil {
+			chann.PermissionOverwrites = c.PermissionOverwrites
+		}
+		if chann.ThreadMetadata == nil {
+			chann.ThreadMetadata = c.ThreadMetadata
+		}
+	}
+
+	s.GetMutex().Lock()
+	defer s.GetMutex().Unlock()
 
 	fn := func(sl []*channel.Channel) {
 		id := slices.IndexFunc(sl, func(c *channel.Channel) bool { return c.ID == chann.ID })
@@ -151,6 +163,33 @@ func (s *State) MessageAdd(message *channel.Message) error {
 			return errors.Join(err, ErrChannelNotCached)
 		}
 		return err
+	}
+
+	if m, err := s.Message(message.ChannelID, message.ID); err == nil {
+		if message.Content == "" {
+			message.Content = m.Content
+		}
+		if message.EditedTimestamp == nil {
+			message.EditedTimestamp = m.EditedTimestamp
+		}
+		if message.Mentions == nil {
+			message.Mentions = m.Mentions
+		}
+		if message.Embeds == nil {
+			message.Embeds = m.Embeds
+		}
+		if message.Attachments == nil {
+			message.Attachments = m.Attachments
+		}
+		if message.Timestamp.IsZero() {
+			message.Timestamp = m.Timestamp
+		}
+		if message.Author == nil {
+			message.Author = m.Author
+		}
+		if message.Components == nil {
+			message.Components = m.Components
+		}
 	}
 
 	s.GetMutex().Lock()
