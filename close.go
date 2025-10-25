@@ -195,6 +195,9 @@ func (s *Session) ForceClose() error {
 	s.Lock()
 	defer s.Unlock()
 	var err error
+	if err = s.waitListen.Close(context.Background()); err != nil {
+		panic(err)
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -204,9 +207,6 @@ func (s *Session) ForceClose() error {
 			}
 		}
 	}()
-	if err := s.waitListen.Close(context.Background()); err != nil {
-		panic(err)
-	}
 	err = s.ws.CloseNow()
 	// avoid returning an error is the websocket is closed, because this method must close the websocket and if this is
 	// already closed, there is no error

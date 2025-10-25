@@ -182,7 +182,6 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {
-		time.Sleep(time.Duration(rand.Float32() * float32(s.heartbeatInterval)))
 		last, err := s.heartbeats(ctx2)
 		free()
 		select {
@@ -242,6 +241,11 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
+	select {
+	case <-time.After(time.Duration(rand.Float32()) * s.heartbeatInterval):
+	case <-ctx.Done():
+		return time.Now().UTC(), nil
+	}
 	s.logger.Debug("starting heartbeats")
 	var err error
 	ticker := time.NewTicker(s.heartbeatInterval)
@@ -251,7 +255,7 @@ func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	// first heartbeat
 	err = s.heartbeat(ctx)
 
-	for err == nil && time.Now().UTC().Sub(last) <= (s.heartbeatInterval*FailedHeartbeatAcks) {
+	for err == nil && time.Now().UTC().Sub(last) <= s.heartbeatInterval*FailedHeartbeatAcks {
 		select {
 		case <-ticker.C:
 			s.RLock()
