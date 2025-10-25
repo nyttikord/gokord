@@ -56,7 +56,7 @@ func (s *State) MemberAdd(member *user.Member) error {
 		return err
 	}
 
-	return s.storage.Write(state.KeyMember(member), member)
+	return s.storage.Write(state.KeyMember(member), *member)
 }
 
 // MemberRemove removes a user.Member from current State.

@@ -144,7 +144,10 @@ func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 	}
 
 	for _, g := range r.Guilds {
-		s.GuildState().GuildAdd(g)
+		err := s.GuildState().GuildAdd(g)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, c := range r.PrivateChannels {
@@ -170,9 +173,9 @@ func (s *sessionState) onInterface(se *Session, i interface{}) error {
 	var err error
 	switch t := i.(type) {
 	case *event.GuildCreate:
-		s.GuildState().GuildAdd(t.Guild)
+		err = s.GuildState().GuildAdd(t.Guild)
 	case *event.GuildUpdate:
-		s.GuildState().GuildAdd(t.Guild)
+		err = s.GuildState().GuildAdd(t.Guild)
 	case *event.GuildDelete:
 		var old *guild.Guild
 		old, err = s.GuildState().Guild(t.ID)
@@ -416,11 +419,9 @@ func (s *sessionState) onInterface(se *Session, i interface{}) error {
 					m.User.Username = t.User.Username
 				}
 			}
-
 			err = s.MemberState().MemberAdd(m)
 		}
-
 	}
 
-	return nil
+	return err
 }

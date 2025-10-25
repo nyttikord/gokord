@@ -175,7 +175,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 		restarting = true
 		s.logger.Info("closing websocket")
-		s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
+		err := s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
+		if err != nil {
+			panic(err)
+		}
 		s.logger.Info("reconnecting")
 		s.forceReconnect(ctx)
 	}

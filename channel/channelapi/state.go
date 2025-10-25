@@ -36,7 +36,7 @@ func NewState(state state.State, storage state.Storage) *State {
 // AppendGuildChannel is for internal use only.
 // Use ChannelAdd instead.
 func (s *State) AppendGuildChannel(c *channel.Channel) error {
-	return s.storage.Write(state.KeyChannel(c), c)
+	return s.storage.Write(state.KeyChannel(c), *c)
 }
 
 // ChannelAdd adds a channel.Channel to the current State, or updates it if it already exists.
@@ -197,10 +197,7 @@ func (s *State) MessageAdd(message *channel.Message) error {
 		c.Messages = c.Messages[len(c.Messages)-s.Params().MaxMessageCount:]
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	return s.storage.Write(state.KeyChannel(c), c)
+	return s.ChannelAdd(c)
 }
 
 // MessageRemove removes a channel.Message from the current State.
@@ -220,10 +217,7 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 
 	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
-
-	return s.storage.Write(state.KeyChannel(c), c)
+	return s.ChannelAdd(c)
 }
 
 // Message gets a message by channel and message ID.

@@ -70,7 +70,7 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 		}
 	}
 
-	err := s.storage.Write(state.KeyGuild(g), g)
+	err := s.storage.Write(state.KeyGuild(g), *g)
 	if err != nil {
 		return err
 	}

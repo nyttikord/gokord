@@ -18,7 +18,6 @@ const (
 )
 
 var (
-	ErrItemNotFound    = errors.New("item not found in storage")
 	ErrInvalidDataType = errors.New("invalid data type")
 )
 
@@ -74,15 +73,12 @@ func KeyChannelRaw(channelID string) Key {
 
 // MapStorage is the standard implementation of Storage used if no implementation is given.
 // It uses a Go map to store data.
-//
-// To conform with the immutability required by Storage, Copy must be set to a function copying T, including pointers in
-// struct.
 type MapStorage[T any] map[Key]T
 
 func (m MapStorage[T]) Get(key Key) (any, error) {
 	v, ok := m[key]
 	if !ok {
-		return v, ErrItemNotFound
+		return v, ErrStateNotFound
 	}
 	return DeepCopy(v), nil
 }
