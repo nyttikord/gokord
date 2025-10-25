@@ -37,8 +37,6 @@ type Session struct {
 	ShouldReconnectOnError bool
 	// Should voice connections reconnect on a session reconnect.
 	ShouldReconnectVoiceOnSessionError bool
-	// Should the session retry requests when rate limited.
-	ShouldRetryOnRateLimit bool
 	// Identify is sent during initial handshake with the discord gateway.
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
@@ -49,7 +47,8 @@ type Session struct {
 	// e.g. false = launch event handlers in their own goroutines.
 	SyncEvents bool
 
-	rest *restSession
+	// REST contains the Session interacting with the REST API.
+	REST *RESTSession
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
@@ -142,7 +141,7 @@ func (s *Session) Logger() *slog.Logger {
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
 		s.Logger().Debug("creating new user state")
-		s.userAPI = &userapi.Requester{RESTRequester: s.rest, State: userapi.NewState(s.sessionState, s.UserStorage)}
+		s.userAPI = &userapi.Requester{RESTRequester: s.REST, State: userapi.NewState(s.sessionState, s.UserStorage)}
 	}
 	return s.userAPI
 }
@@ -152,7 +151,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
 		s.Logger().Debug("creating new guild state")
 		s.guildAPI = &guildapi.Requester{
-			RESTRequester: s.rest,
+			RESTRequester: s.REST,
 			WSRequester:   s,
 			VoiceAPI:      s.VoiceAPI,
 			State:         guildapi.NewState(s.sessionState, s.GuildStorage),
@@ -165,29 +164,29 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
 		s.Logger().Debug("creating new channel state")
-		s.channelAPI = &channelapi.Requester{RESTRequester: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
+		s.channelAPI = &channelapi.Requester{RESTRequester: s.REST, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{RESTRequester: s.rest}
+	return &inviteapi.Requester{RESTRequester: s.REST}
 }
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{API: s.rest, ChannelAPI: s.ChannelAPI}
+	return &interactionapi.Requester{API: s.REST, ChannelAPI: s.ChannelAPI}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{RESTRequester: s.rest}
+	return &applicationapi.Requester{RESTRequester: s.REST}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{RESTRequester: s.rest}
+	return &botapi.Requester{RESTRequester: s.REST}
 }
 
 // VoiceAPI returns a voice.Requester to interact with the voice package.

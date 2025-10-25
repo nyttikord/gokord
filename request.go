@@ -82,11 +82,12 @@ func unmarshal(data []byte, v any) error {
 	return nil
 }
 
-// restSession is the part of the Session responsible for the REST API.
-type restSession struct {
-	identify               *Identify
-	logger                 *slog.Logger
-	shouldRetryOnRateLimit *bool
+// RESTSession is the part of the Session responsible for the REST API.
+type RESTSession struct {
+	identify *Identify
+	logger   *slog.Logger
+	// Should the session retry requests when rate limited.
+	ShouldRetryOnRateLimit bool
 	eventManager           *event.Manager
 	// Max number of REST API retries.
 	MaxRestRetries int
@@ -95,23 +96,23 @@ type restSession struct {
 	// The UserAgent used for REST APIs.
 	UserAgent string
 	// Used to deal with rate limits.
-	RateLimiter *discord.RateLimiter
-	EmitEvent   func(ctx context.Context, t string, i any)
+	RateLimiter        *discord.RateLimiter
+	emitRateLimitEvent func(ctx context.Context, evt *event.RateLimit)
 }
 
-func (s *restSession) Logger() *slog.Logger {
+func (s *RESTSession) Logger() *slog.Logger {
 	return s.logger
 }
 
-func (s *restSession) Unmarshal(bytes []byte, i any) error {
+func (s *RESTSession) Unmarshal(bytes []byte, i any) error {
 	return unmarshal(bytes, i)
 }
 
-func (s *restSession) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
 	return s.RequestWithBucketID(method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
 }
 
-func (s *restSession) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
 	var body []byte
 	if data != nil {
 		var err error
@@ -123,14 +124,14 @@ func (s *restSession) RequestWithBucketID(method, urlStr string, data any, bucke
 	return s.RequestRaw(method, urlStr, "application/json", body, bucketID, 0, options...)
 }
 
-func (s *restSession) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	if bucketID == "" {
 		bucketID = strings.SplitN(urlStr, "?", 2)[0]
 	}
 	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
 }
 
-func (s *restSession) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	s.logger.Debug(fmt.Sprintf("%s :: %s", method, urlStr))
 	s.logger.Debug("PAYLOAD", "content", string(b))
 
@@ -159,7 +160,7 @@ func (s *restSession) RequestWithLockedBucket(method, urlStr, contentType string
 	req.Header.Set("User-Agent", s.UserAgent)
 
 	cfg := &discord.RequestConfig{
-		ShouldRetryOnRateLimit: *s.shouldRetryOnRateLimit,
+		ShouldRetryOnRateLimit: s.ShouldRetryOnRateLimit,
 		MaxRestRetries:         s.MaxRestRetries,
 		Client:                 s.Client,
 		Request:                req,
@@ -216,7 +217,7 @@ func (s *restSession) RequestWithLockedBucket(method, urlStr, contentType string
 		if cfg.ShouldRetryOnRateLimit {
 			s.logger.Info("rate limited", "url", urlStr, "retry in", rl.RetryAfter)
 			// background because it will never use the websocket -> this is an internal event
-			s.EmitEvent(context.Background(), event.RateLimitType, &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
+			s.emitRateLimitEvent(context.Background(), &event.RateLimit{TooManyRequests: &rl, URL: urlStr})
 
 			time.Sleep(rl.RetryAfter)
 			// we can make the above smarter

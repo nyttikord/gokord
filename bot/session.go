@@ -78,8 +78,8 @@ type EventManager interface {
 	//
 	// See AddHandler for more details.
 	AddHandlerOnce(any) func()
-	// EmitEvent calls internal methods, fires handlers and fires the "any" event.
+	// emitEvent calls internal methods, fires handlers and fires the "any" event.
 	//
 	// NOTE: I don't know if this should be private, or not
-	//EmitEvent(Session, string, any)
+	//emitEvent(Session, string, any)
 }
