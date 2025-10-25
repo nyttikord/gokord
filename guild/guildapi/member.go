@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -237,19 +239,43 @@ func (r Requester) MemberMove(guildID string, userID string, channelID *string, 
 // MemberNickname updates the nickname of a user.Member in a guild.Guild.
 //
 // NOTE: To reset the nickname, set it to an empty string.
+//
+// NOTE: Use MemberModifyCurrent to modify the current member. If you still use "@me" as a userID, you will get a
+// warning.
 func (r Requester) MemberNickname(guildID, userID, nickname string, options ...discord.RequestOption) error {
-	data := struct {
-		Nick string `json:"nick"`
-	}{nickname}
-
 	if userID == "@me" {
-		userID += "/nick"
+		r.Logger().WarnContext(
+			logger.NewContext(context.Background(), 1),
+			"this endpoint is deprecated for the current member, use MemberModifyCurrent instead",
+		)
+		return r.MemberModifyCurrent(guildID, nickname, "", "", "", options...)
 	}
 
 	_, err := r.RequestWithBucketID(
 		http.MethodPatch,
 		discord.EndpointGuildMember(guildID, userID),
-		data,
+		struct {
+			Nick string `json:"nick"`
+		}{nickname},
+		discord.EndpointGuildMember(guildID, ""),
+		options...,
+	)
+	return err
+}
+
+// MemberModifyCurrent updates the nickname, the avatar, the banner and the bio of the current user.Member.
+//
+// NOTE: Set any parameter to "" to avoid modifying it.
+func (r Requester) MemberModifyCurrent(guildID string, nick, avatar, banner, bio string, options ...discord.RequestOption) error {
+	_, err := r.RequestWithBucketID(
+		http.MethodPatch,
+		discord.EndpointGuildMember(guildID, "@me"),
+		struct {
+			Nick   string `json:"nick,omitempty"`
+			Avatar string `json:"avatar,omitempty"`
+			Banner string `json:"banner,omitempty"`
+			Bio    string `json:"bio,omitempty"`
+		}{nick, avatar, banner, bio},
 		discord.EndpointGuildMember(guildID, ""),
 		options...,
 	)
