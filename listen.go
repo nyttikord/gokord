@@ -18,7 +18,6 @@ func (m *syncListener) Add(fn func(free func())) {
 	m.wg.Add(1)
 	go fn(func() {
 		m.wg.Done()
-		m.logger.Debug("free called")
 	})
 }
 

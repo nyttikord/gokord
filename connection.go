@@ -242,7 +242,7 @@ func (s *Session) HeartbeatLatency() time.Duration {
 // If you do not send these heartbeats Discord will disconnect the websocket connection after a few seconds.
 func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	select {
-	case <-time.After(time.Duration(rand.Float32()) * s.heartbeatInterval):
+	case <-time.After(time.Duration(rand.Float32() * float32(s.heartbeatInterval))):
 	case <-ctx.Done():
 		return time.Now().UTC(), nil
 	}

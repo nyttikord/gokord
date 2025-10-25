@@ -33,6 +33,10 @@ func (s *Session) reconnect(ctx context.Context) error {
 		return ErrShouldNotReconnect
 	}
 
+	if err := s.waitListen.Close(ctx); err != nil {
+		panic(err)
+	}
+
 	s.Lock()
 	defer s.Unlock()
 
