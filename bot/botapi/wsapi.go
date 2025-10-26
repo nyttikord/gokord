@@ -52,7 +52,7 @@ func newUpdateStatusData(idle int, activityType types.Activity, name, url string
 // If idle>0 then set status to idle.
 // If name!="" then set game.
 // if otherwise, set status to active, and no activity.
-func (r *Requester) UpdateGameStatus(ctx context.Context, idle int, name string) (err error) {
+func (r Requester) UpdateGameStatus(ctx context.Context, idle int, name string) (err error) {
 	return r.UpdateStatusComplex(ctx, *newUpdateStatusData(idle, types.ActivityGame, name, ""))
 }
 
@@ -60,7 +60,7 @@ func (r *Requester) UpdateGameStatus(ctx context.Context, idle int, name string)
 // If idle>0 then set status to idle.
 // If name!="" then set movie/stream.
 // if otherwise, set status to active, and no activity.
-func (r *Requester) UpdateWatchStatus(ctx context.Context, idle int, name string) (err error) {
+func (r Requester) UpdateWatchStatus(ctx context.Context, idle int, name string) (err error) {
 	return r.UpdateStatusComplex(ctx, *newUpdateStatusData(idle, types.ActivityWatching, name, ""))
 }
 
@@ -69,7 +69,7 @@ func (r *Requester) UpdateWatchStatus(ctx context.Context, idle int, name string
 // If name!="" then set game.
 // If name!="" and url!="" then set the status type to streaming with the URL set.
 // if otherwise, set status to active, and no game.
-func (r *Requester) UpdateStreamingStatus(ctx context.Context, idle int, name string, url string) (err error) {
+func (r Requester) UpdateStreamingStatus(ctx context.Context, idle int, name string, url string) (err error) {
 	gameType := types.ActivityGame
 	if url != "" {
 		gameType = types.ActivityStreaming
@@ -80,14 +80,14 @@ func (r *Requester) UpdateStreamingStatus(ctx context.Context, idle int, name st
 // UpdateListeningStatus is used to set the user to "Listening to..."
 // If name!="" then set to what user is listening to
 // Else, set user to active and no activity.
-func (r *Requester) UpdateListeningStatus(ctx context.Context, name string) (err error) {
+func (r Requester) UpdateListeningStatus(ctx context.Context, name string) (err error) {
 	return r.UpdateStatusComplex(ctx, *newUpdateStatusData(0, types.ActivityListening, name, ""))
 }
 
 // UpdateCustomStatus is used to update the user's custom status.
 // If state!="" then set the custom status.
 // Else, set user to active and remove the custom status.
-func (r *Requester) UpdateCustomStatus(ctx context.Context, state string) (err error) {
+func (r Requester) UpdateCustomStatus(ctx context.Context, state string) (err error) {
 	data := UpdateStatusData{
 		Status: "online",
 	}
@@ -105,8 +105,8 @@ func (r *Requester) UpdateCustomStatus(ctx context.Context, state string) (err e
 }
 
 // UpdateStatusComplex allows for sending the raw status update data untouched by discordgo.
-func (r *Requester) UpdateStatusComplex(ctx context.Context, usd UpdateStatusData) (err error) {
-	if usd.Activities == nil {
+func (r Requester) UpdateStatusComplex(ctx context.Context, usd UpdateStatusData) (err error) {
+	if len(usd.Activities) == 0 {
 		usd.Activities = make([]*status.Activity, 0)
 	}
 	return r.GatewayWriteStruct(ctx, updateStatusOp{discord.GatewayOpCodePresenceUpdate, usd})

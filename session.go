@@ -52,9 +52,9 @@ type Session struct {
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
-	// Stores the LastHeartbeatAck that was received (in UTC).
+	// Stores when the LastHeartbeatAck was received (UTC).
 	LastHeartbeatAck time.Time
-	// Stores the LastHeartbeatSent (in UTC).
+	// Stores the LastHeartbeatSent (UTC).
 	LastHeartbeatSent time.Time
 	// heartbeatInterval is the interval between two heartbeats
 	heartbeatInterval time.Duration
@@ -186,7 +186,7 @@ func (s *Session) ApplicationAPI() *applicationapi.Requester {
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{RESTRequester: s.REST}
+	return &botapi.Requester{RESTRequester: s.REST, WSRequester: s}
 }
 
 // VoiceAPI returns a voice.Requester to interact with the voice package.
