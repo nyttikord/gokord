@@ -100,7 +100,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		return s.heartbeat(ctx)
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("closing and reconnecting in response to Op7")
-		err := s.ForceClose() // was already closed
+		err := s.Close(ctx)
 		if err != nil {
 			// if we can't close, we must crash the app
 			panic(err)
