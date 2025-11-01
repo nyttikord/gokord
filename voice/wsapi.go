@@ -11,7 +11,8 @@ import (
 
 // Requester handles everything inside the voice package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
+	discord.WSRequester
 
 	sync.RWMutex
 	Connections map[string]*Connection
@@ -39,7 +40,7 @@ func (r *Requester) ChannelJoin(ctx context.Context, guildID, channelID string, 
 	r.RUnlock()
 
 	if v == nil {
-		v = &Connection{Logger: r.Requester.Logger().With("module", "voice")}
+		v = &Connection{Logger: r.RESTRequester.Logger().With("module", "voice")}
 		r.Lock()
 		r.Connections[guildID] = v
 		r.Unlock()

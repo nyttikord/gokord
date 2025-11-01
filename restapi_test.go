@@ -241,7 +241,7 @@ func TestWithContext(t *testing.T) {
 	testErr := errors.New("test")
 
 	// Intercept the request to assert the context.
-	session.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+	session.REST.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		val, _ := r.Context().Value(key{}).(string)
 		if val != "value" {
 			t.Errorf("missing value in context (got %q, wanted %q)", val, "value")

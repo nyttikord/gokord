@@ -185,8 +185,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {
+		s.Logger().Info("new heartbeats")
 		last, err := s.heartbeats(ctx2)
 		free()
+		s.Logger().Info("heartbeats ended")
 		select {
 		case <-ctx2.Done():
 			s.logger.Debug("exiting heartbeats")
@@ -197,8 +199,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
+		s.Logger().Info("new listening")
 		err := s.listen(ctx2)
 		free()
+		s.Logger().Info("listening ended")
 		select {
 		case <-ctx2.Done():
 			s.logger.Debug("exiting listening events")
@@ -226,6 +230,7 @@ func (s *Session) listen(ctx context.Context) error {
 			}
 		}
 	}
+	s.logger.Info("returning")
 	return err
 }
 

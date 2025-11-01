@@ -8,8 +8,8 @@ import (
 	"github.com/coder/websocket"
 )
 
-// Requester is used to interact with the Discord API.
-type Requester interface {
+// RESTRequester is used to interact with the Discord API.
+type RESTRequester interface {
 	Logger() *slog.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 	Request(method string, urlStr string, data interface{}, options ...RequestOption) ([]byte, error)
@@ -25,9 +25,12 @@ type Requester interface {
 	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i interface{}) error
+}
 
+type WSRequester interface {
 	// GatewayWriteStruct writes a struck as a json to Discord gateway.
 	GatewayWriteStruct(context.Context, any) error
+	// GatewayDial dials a new websocket connection.
 	GatewayDial(context.Context, string, http.Header) (*websocket.Conn, *http.Response, error)
 }
 

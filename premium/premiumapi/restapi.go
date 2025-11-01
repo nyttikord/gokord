@@ -14,7 +14,7 @@ import (
 
 // Requester handles everything inside the premium package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
 }
 
 // SKUs returns all premium.SKU for a given application.Application.
