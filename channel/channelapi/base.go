@@ -20,7 +20,7 @@ var (
 
 // Requester handles everything inside the channel package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
 	State *State
 }
 

@@ -11,7 +11,7 @@ import (
 
 // Requester handles everything inside the application package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
 }
 
 // Application returns an application.Application.

@@ -39,9 +39,9 @@ func main() {
 		defer cancel()
 	}
 	dg := gokord.NewWithLogLevel("Bot "+token, slog.LevelDebug)
-	dg.SyncEvents = true
-	dg.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
+	dg.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
 		s.Logger().Info("bot ready")
+		s.BotAPI().UpdateGameStatus(ctx, 0, "testing!")
 	})
 	err := dg.OpenAndBlock(ctx)
 	if err != nil && !errors.Is(err, ctx.Err()) {

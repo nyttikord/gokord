@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
@@ -50,28 +52,41 @@ func NewWithLogLevel(token string, logLevel slog.Level) *Session {
 // See NewWithLogLevel to modify the default slog.Level.
 func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s := &Session{
-		RateLimiter:                        discord.NewRateLimiter(),
-		StateEnabled:                       true,
-		ShouldReconnectOnError:             true,
-		ShouldReconnectVoiceOnSessionError: true,
-		ShouldRetryOnRateLimit:             true,
-		MaxRestRetries:                     3,
-		Client:                             &http.Client{Timeout: 20 * time.Second},
-		UserAgent:                          "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
-		LastHeartbeatAck:                   time.Now().UTC(),
-		logger:                             logger,
-		RWMutex:                            &sync.RWMutex{},
-		waitListen:                         &syncListener{logger: logger},
-		UserStorage:                        &state.MapStorage[user.Member]{},
-		ChannelStorage:                     &state.MapStorage[channel.Channel]{},
-		GuildStorage:                       &state.MapStorage[guild.Guild]{},
+		Options: bot.Options{
+			StateEnabled:                       true,
+			ShouldReconnectOnError:             true,
+			ShouldReconnectVoiceOnSessionError: true,
+			ShouldRetryOnRateLimit:             true,
+			MaxRestRetries:                     3,
+		},
+		LastHeartbeatAck: time.Now().UTC(),
+		logger:           logger,
+		RWMutex:          &sync.RWMutex{},
+		waitListen:       &syncListener{logger: logger.With("module", "ws")},
+		UserStorage:      &state.MapStorage[user.Member]{},
+		ChannelStorage:   &state.MapStorage[channel.Channel]{},
+		GuildStorage:     &state.MapStorage[guild.Guild]{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface)
 
+	s.REST = &RESTSession{
+		identify:     &s.Identify,
+		logger:       logger.With("module", "rest"),
+		Options:      &s.Options,
+		eventManager: s.eventManager,
+		Client:       &http.Client{Timeout: 20 * time.Second},
+		UserAgent:    "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
+		RateLimiter:  discord.NewRateLimiter(),
+		emitRateLimitEvent: func(ctx context.Context, rl *event.RateLimit) {
+			s.eventManager.EmitEvent(ctx, s, event.RateLimitType, rl)
+		},
+	}
+
 	s.voiceAPI = &voice.Requester{
-		Requester:   s,
-		Connections: make(map[string]*voice.Connection),
+		RESTRequester: s.REST,
+		WSRequester:   s,
+		Connections:   make(map[string]*voice.Connection),
 	}
 
 	// Initialize Identify with defaults values.

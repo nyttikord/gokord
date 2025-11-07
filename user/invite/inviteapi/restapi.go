@@ -11,7 +11,7 @@ import (
 
 // Requester handles everything inside the invite package.
 type Requester struct {
-	discord.Requester
+	discord.RESTRequester
 }
 
 // Invite returns the invite.Invite.

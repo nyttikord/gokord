@@ -48,6 +48,24 @@ type Session interface {
 	SessionState() state.Bot
 }
 
+// Options for the Session.
+type Options struct {
+	// Should the session reconnect the websocket on errors.
+	ShouldReconnectOnError bool
+	// Should voice connections reconnect on a session reconnect.
+	ShouldReconnectVoiceOnSessionError bool
+	// Should the session retry requests when rate limited.
+	ShouldRetryOnRateLimit bool
+	// Max number of REST API retries.
+	MaxRestRetries int
+	// Should state tracking be enabled.
+	// State tracking is the best way for getting the users active guilds and the members of the guilds.
+	StateEnabled bool
+	// Whether to call event handlers synchronously.
+	// e.g. false = launch event handlers in their own goroutines.
+	SyncEvents bool
+}
+
 // EventManager handles events for the Session.
 type EventManager interface {
 	// AddHandler allows you to add an event handler that will be fired anytime the Discord WSAPI event that matches the
@@ -78,8 +96,4 @@ type EventManager interface {
 	//
 	// See AddHandler for more details.
 	AddHandlerOnce(any) func()
-	// EmitEvent calls internal methods, fires handlers and fires the "any" event.
-	//
-	// NOTE: I don't know if this should be private, or not
-	//EmitEvent(Session, string, any)
 }

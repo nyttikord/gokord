@@ -29,12 +29,8 @@ type resumePacket struct {
 }
 
 func (s *Session) reconnect(ctx context.Context) error {
-	if !s.ShouldReconnectOnError {
+	if !s.Options.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
-	}
-
-	if err := s.waitListen.Close(ctx); err != nil {
-		panic(err)
 	}
 
 	s.Lock()
@@ -99,7 +95,7 @@ func (s *Session) reconnect(ctx context.Context) error {
 	// If the gw reconnect works properly, voice should stay alive.
 	// However, there seems to be cases where something "weird" happens.
 	// So we're doing this for now just to improve stability in those edge cases.
-	if !s.ShouldReconnectVoiceOnSessionError {
+	if !s.Options.ShouldReconnectVoiceOnSessionError {
 		return nil
 	}
 	for _, v := range s.voiceAPI.Connections {
@@ -119,6 +115,9 @@ func (s *Session) forceReconnect(ctx context.Context) {
 	err := s.reconnect(ctx)
 	if err == nil {
 		return
+	}
+	if errors.Is(err, ErrShouldNotReconnect) {
+		panic(err)
 	}
 	// if the reconnects fail, we close the websocket
 	s.logger.Warn("reconnecting to gateway", "error", err)
@@ -155,9 +154,7 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 		return ErrWSNotFound
 	}
 
-	if err := s.waitListen.Close(ctx); err != nil {
-		panic(err)
-	}
+	s.waitListen.Close(ctx)
 
 	for _, v := range s.voiceAPI.Connections {
 		err := v.Disconnect(ctx)
@@ -174,7 +171,6 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.wsMutex.Unlock()
 	if err != nil {
 		s.logger.Warn("closing websocket", "error", err, "gateway", s.gateway)
-		s.logger.Warn("force closing")
 		s.Unlock()
 		err = s.ForceClose()
 		s.Lock()
@@ -187,6 +183,9 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
+	if err := s.waitListen.Wait(ctx); err != nil {
+		panic(err)
+	}
 
 	return nil
 }
@@ -198,10 +197,9 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 func (s *Session) ForceClose() error {
 	s.Lock()
 	defer s.Unlock()
+	s.logger.Info("force closing")
 	var err error
-	if err = s.waitListen.Close(context.Background()); err != nil {
-		panic(err)
-	}
+	s.waitListen.Close(context.Background())
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -215,6 +213,9 @@ func (s *Session) ForceClose() error {
 	// avoid returning an error is the websocket is closed, because this method must close the websocket and if this is
 	// already closed, there is no error
 	if err != nil && !errors.Is(err, net.ErrClosed) {
+		return err
+	}
+	if err = s.waitListen.Wait(context.Background()); err != nil {
 		return err
 	}
 	s.ws = nil

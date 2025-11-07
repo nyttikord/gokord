@@ -11,7 +11,7 @@ import (
 
 // Gateway returns the websocket Gateway address
 func (s *Session) Gateway(options ...discord.RequestOption) (string, error) {
-	response, err := s.Request(http.MethodGet, discord.EndpointGateway, nil, options...)
+	response, err := s.REST.Request(http.MethodGet, discord.EndpointGateway, nil, options...)
 	if err != nil {
 		return "", err
 	}
@@ -38,7 +38,7 @@ func (s *Session) Gateway(options ...discord.RequestOption) (string, error) {
 
 // GatewayBot returns the websocket Gateway address and the recommended number of shards
 func (s *Session) GatewayBot(options ...discord.RequestOption) (*GatewayBotResponse, error) {
-	response, err := s.Request(http.MethodGet, discord.EndpointGatewayBot, nil, options...)
+	response, err := s.REST.Request(http.MethodGet, discord.EndpointGatewayBot, nil, options...)
 	if err != nil {
 		return nil, err
 	}
