@@ -139,7 +139,7 @@ func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 	s.application = r.Application
 	s.Unlock()
 
-	if !se.StateEnabled {
+	if !se.Options.StateEnabled {
 		return nil
 	}
 
@@ -166,7 +166,7 @@ func (s *sessionState) onInterface(se *Session, i interface{}) error {
 		return s.onReady(se, r)
 	}
 
-	if !se.StateEnabled {
+	if !se.Options.StateEnabled {
 		return nil
 	}
 

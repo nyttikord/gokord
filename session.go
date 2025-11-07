@@ -33,19 +33,13 @@ type Session struct {
 	// General configurable settings.
 
 	MFA bool
-	// Should the session reconnect the websocket on errors.
-	ShouldReconnectOnError bool
-	// Should voice connections reconnect on a session reconnect.
-	ShouldReconnectVoiceOnSessionError bool
+
+	// Options of the Session.
+	Options bot.Options
+
 	// Identify is sent during initial handshake with the discord gateway.
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
-	// Should state tracking be enabled.
-	// State tracking is the best way for getting the users active guilds and the members of the guilds.
-	StateEnabled bool
-	// Whether to call event handlers synchronously.
-	// e.g. false = launch event handlers in their own goroutines.
-	SyncEvents bool
 
 	// REST contains the Session interacting with the REST API.
 	REST *RESTSession

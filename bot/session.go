@@ -48,6 +48,20 @@ type Session interface {
 	SessionState() state.Bot
 }
 
+// Options for the Session.
+type Options struct {
+	// Should the session reconnect the websocket on errors.
+	ShouldReconnectOnError bool
+	// Should voice connections reconnect on a session reconnect.
+	ShouldReconnectVoiceOnSessionError bool
+	// Should state tracking be enabled.
+	// State tracking is the best way for getting the users active guilds and the members of the guilds.
+	StateEnabled bool
+	// Whether to call event handlers synchronously.
+	// e.g. false = launch event handlers in their own goroutines.
+	SyncEvents bool
+}
+
 // EventManager handles events for the Session.
 type EventManager interface {
 	// AddHandler allows you to add an event handler that will be fired anytime the Discord WSAPI event that matches the

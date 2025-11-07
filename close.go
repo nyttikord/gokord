@@ -29,7 +29,7 @@ type resumePacket struct {
 }
 
 func (s *Session) reconnect(ctx context.Context) error {
-	if !s.ShouldReconnectOnError {
+	if !s.Options.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
 	}
 
@@ -95,7 +95,7 @@ func (s *Session) reconnect(ctx context.Context) error {
 	// If the gw reconnect works properly, voice should stay alive.
 	// However, there seems to be cases where something "weird" happens.
 	// So we're doing this for now just to improve stability in those edge cases.
-	if !s.ShouldReconnectVoiceOnSessionError {
+	if !s.Options.ShouldReconnectVoiceOnSessionError {
 		return nil
 	}
 	for _, v := range s.voiceAPI.Connections {
