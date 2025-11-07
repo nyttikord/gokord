@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -87,10 +88,8 @@ type RESTSession struct {
 	identify *Identify
 	logger   *slog.Logger
 	// Should the session retry requests when rate limited.
-	ShouldRetryOnRateLimit bool
-	eventManager           *event.Manager
-	// Max number of REST API retries.
-	MaxRestRetries int
+	Options      *bot.Options
+	eventManager *event.Manager
 	// The http.Client used for REST requests.
 	Client *http.Client
 	// The UserAgent used for REST APIs.
@@ -160,8 +159,8 @@ func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string
 	req.Header.Set("User-Agent", s.UserAgent)
 
 	cfg := &discord.RequestConfig{
-		ShouldRetryOnRateLimit: s.ShouldRetryOnRateLimit,
-		MaxRestRetries:         s.MaxRestRetries,
+		ShouldRetryOnRateLimit: s.Options.ShouldRetryOnRateLimit,
+		MaxRestRetries:         s.Options.MaxRestRetries,
 		Client:                 s.Client,
 		Request:                req,
 	}
