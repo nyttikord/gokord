@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand/v2"
 	"net/http"
 	"strings"
@@ -105,17 +106,20 @@ func (s *Session) setupListen(ctx context.Context) {
 	wsRead := make(chan readResult)
 	s.wsRead = wsRead
 	go func() {
-		defer func() {
-			s.wsRead = nil
-		}()
 		s.logger.Info("listening started")
 		err := s.listen(ctx2, wsRead)
 		select {
 		case <-ctx2.Done():
+			s.wsRead = nil
 			return
 		default:
+			if errors.Is(err, io.EOF) {
+				s.logger.Warn("EOF received, restarting")
+				s.wsRead = nil
+				s.forceReconnect(ctx)
+				return
+			}
 			s.logger.Error("listening websocket")
-			//TODO: handle EOL?
 			panic(err)
 		}
 	}()
