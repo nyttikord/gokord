@@ -33,10 +33,20 @@ func (s *Session) reconnect(ctx context.Context) error {
 		return ErrShouldNotReconnect
 	}
 
+	err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
+	if err != nil {
+		if !errors.Is(err, net.ErrClosed) {
+			s.logger.Warn("error while closing", "error", err)
+		}
+		if err = s.ForceClose(); err != nil {
+			return err
+		}
+	}
+
 	s.Lock()
 	defer s.Unlock()
 
-	err := s.setupGateway(ctx, s.resumeGatewayURL)
+	err = s.setupGateway(ctx, s.resumeGatewayURL)
 	if err != nil {
 		return err
 	}

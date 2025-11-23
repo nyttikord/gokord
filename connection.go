@@ -197,11 +197,11 @@ func (s *Session) finishConnection(ctx context.Context) {
 			return
 		}
 		restarting = true
-		s.logger.Info("closing websocket")
+		/*s.logger.Info("closing websocket")
 		err := s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
 		if err != nil {
 			panic(err)
-		}
+		}*/
 		s.logger.Info("reconnecting")
 		s.forceReconnect(ctx)
 	}
@@ -233,7 +233,6 @@ func (s *Session) finishConnection(ctx context.Context) {
 				s.logger.Debug("exiting dispatching events")
 				return
 			}
-			//err = s.listen(ctx2)
 		}
 		free()
 		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)

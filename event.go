@@ -99,30 +99,30 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		s.logger.Debug("sending heartbeat in response to Op1")
 		return s.heartbeat(ctx)
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
-		s.logger.Info("closing and reconnecting in response to Op7")
-		err := s.Close(ctx)
+		s.logger.Info("reconnecting in response to Op7")
+		/*err := s.Close(ctx)
 		if err != nil {
 			// if we can't close, we must crash the app
 			panic(err)
-		}
+		}*/
 		s.forceReconnect(ctx)
 		return nil
 	case discord.GatewayOpCodeInvalidSession:
 		s.logger.Warn("invalid session received, reconnecting")
-		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
-		if err != nil {
-			// if we can't close, we must crash the app
-			panic(err)
-		}
-
 		var resumable bool
-		if err = json.Unmarshal(e.RawData, &resumable); err != nil {
+		if err := json.Unmarshal(e.RawData, &resumable); err != nil {
 			return err
 		}
 
 		if resumable {
 			s.forceReconnect(ctx)
 			return nil
+		}
+
+		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
+		if err != nil {
+			// if we can't close, we must crash the app
+			panic(err)
 		}
 
 		s.logger.Info("gateway session is not resumable, discarding its information")
