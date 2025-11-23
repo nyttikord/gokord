@@ -57,8 +57,6 @@ type Session struct {
 	eventManager *event.Manager
 	// The websocket connection.
 	ws *websocket.Conn
-	// Cancel listen goroutines
-	cancelListen func()
 	// Wait for listen goroutines to stop
 	waitListen *syncListener
 	// sequence tracks the current gateway api websocket sequence number.
@@ -71,6 +69,10 @@ type Session struct {
 	sessionID string
 	// Used to make sure gateway websocket writes do not happen concurrently.
 	wsMutex sync.Mutex
+	// Used to receive result of ws.Read
+	wsRead <-chan readResult
+	// cancel wsRead
+	cancelWSRead func()
 
 	// API with state.State
 

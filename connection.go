@@ -94,6 +94,33 @@ func (s *Session) handleHello(e *discord.Event) error {
 	return nil
 }
 
+func (s *Session) setupListen(ctx context.Context) {
+	if s.wsRead != nil {
+		s.logger.Info("listen already running")
+		return
+	}
+	ctx2, cancel := context.WithCancel(ctx)
+	s.cancelWSRead = cancel
+
+	wsRead := make(chan readResult)
+	s.wsRead = wsRead
+	go func() {
+		defer func() {
+			s.wsRead = nil
+		}()
+		s.logger.Info("listening started")
+		err := s.listen(ctx2, wsRead)
+		select {
+		case <-ctx2.Done():
+			return
+		default:
+			s.logger.Error("listening websocket")
+			//TODO: handle EOL?
+			panic(err)
+		}
+	}()
+}
+
 // connect must be called when Session's mutex is locked.
 func (s *Session) connect(ctx context.Context) error {
 	var err error
@@ -106,17 +133,16 @@ func (s *Session) connect(ctx context.Context) error {
 		}
 	}()
 
+	s.setupListen(ctx)
+
 	// if we can't connect in 10s, returns an error
 	ctx2, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	errc := make(chan error, 1)
 	go func() {
 		// The first response from Discord should be an Op 10 (Hello) Packet.
-		mt, m, err := s.ws.Read(ctx2)
-		if err != nil {
-			errc <- err
-		}
-		e, err := getGatewayEvent(mt, m)
+		res := <-s.wsRead
+		e, err := res.getEvent()
 		if err != nil {
 			errc <- err
 		}
@@ -134,11 +160,8 @@ func (s *Session) connect(ctx context.Context) error {
 		}
 
 		// Now Discord should send us a READY packet.
-		mt, m, err = s.ws.Read(ctx)
-		if err != nil {
-			errc <- errors.Join(err, ErrReadingReadyPacket)
-		}
-		e, err = getGatewayEvent(mt, m)
+		res = <-s.wsRead
+		e, err = res.getEvent()
 		if err != nil {
 			errc <- errors.Join(err, ErrReadingReadyPacket)
 		}
@@ -199,38 +222,36 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Info("new listening")
-		err := s.listen(ctx2)
-		free()
-		s.Logger().Info("listening ended")
-		select {
-		case <-ctx2.Done():
-			s.logger.Debug("exiting listening events")
-			return
-		default:
-			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
-			restart()
+		s.Logger().Info("dispatching events started")
+		var err error
+		for err == nil {
+			select {
+			case res := <-s.wsRead:
+				err = res.dispatch(s, ctx2)
+			case <-ctx2.Done():
+				free()
+				s.logger.Debug("exiting dispatching events")
+				return
+			}
+			//err = s.listen(ctx2)
 		}
+		free()
+		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
+		restart()
 	})
 }
 
-// listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
-// occurs.
-func (s *Session) listen(ctx context.Context) error {
+// listen polls the websocket connection for data, it will stop when an error occurs.
+func (s *Session) listen(ctx context.Context, c chan<- readResult) error {
 	var messageType websocket.MessageType
 	var message []byte
 	var err error
 	for err == nil {
 		messageType, message, err = s.ws.Read(ctx)
 		if err == nil {
-			var e *discord.Event
-			e, err = getGatewayEvent(messageType, message)
-			if err == nil {
-				err = s.onGatewayEvent(ctx, e)
-			}
+			c <- readResult{messageType, message}
 		}
 	}
-	s.logger.Info("returning")
 	return err
 }
 
@@ -286,4 +307,22 @@ func (s *Session) heartbeat(ctx context.Context) error {
 	s.LastHeartbeatSent = time.Now().UTC()
 	s.logger.Debug("sending websocket heartbeat", "sequence", seq)
 	return s.GatewayWriteStruct(ctx, heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
+}
+
+type readResult struct {
+	MessageType websocket.MessageType
+	Message     []byte
+}
+
+func (r *readResult) getEvent() (*discord.Event, error) {
+	return getGatewayEvent(r.MessageType, r.Message)
+}
+
+// dispatch the event received
+func (r *readResult) dispatch(s *Session, ctx context.Context) error {
+	e, err := r.getEvent()
+	if err == nil {
+		err = s.onGatewayEvent(ctx, e)
+	}
+	return err
 }

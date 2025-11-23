@@ -61,16 +61,15 @@ func (s *Session) reconnect(ctx context.Context) error {
 			}
 		}
 	}()
+
+	s.setupListen(ctx)
+
 	// handle missed event
 	e := new(discord.Event)
 	e.Type = ""
 	for e.Type != event.ResumedType {
-		mt, m, err := s.ws.Read(ctx)
-		if err != nil {
-			return errors.Join(err, ErrHandlingMissedEvents)
-		}
-		e, err = getGatewayEvent(mt, m)
-		if err != nil {
+		res := <-s.wsRead
+		if err := res.dispatch(s, ctx); err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
 		switch e.Operation {
@@ -155,6 +154,10 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 
 	s.waitListen.Close(ctx)
+	s.cancelWSRead()
+	if err := s.waitListen.Wait(ctx); err != nil {
+		panic(err)
+	}
 
 	for _, v := range s.voiceAPI.Connections {
 		err := v.Disconnect(ctx)
@@ -183,9 +186,6 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
-	if err := s.waitListen.Wait(ctx); err != nil {
-		panic(err)
-	}
 
 	return nil
 }
@@ -200,6 +200,7 @@ func (s *Session) ForceClose() error {
 	s.logger.Info("force closing")
 	var err error
 	s.waitListen.Close(context.Background())
+	s.cancelWSRead()
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -209,13 +210,13 @@ func (s *Session) ForceClose() error {
 			}
 		}
 	}()
+	if err = s.waitListen.Wait(context.Background()); err != nil {
+		return err
+	}
 	err = s.ws.CloseNow()
 	// avoid returning an error is the websocket is closed, because this method must close the websocket and if this is
 	// already closed, there is no error
 	if err != nil && !errors.Is(err, net.ErrClosed) {
-		return err
-	}
-	if err = s.waitListen.Wait(context.Background()); err != nil {
 		return err
 	}
 	s.ws = nil
