@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/rand/v2"
 	"net/http"
 	"strings"
@@ -93,36 +92,6 @@ func (s *Session) handleHello(e *discord.Event) error {
 	}
 	s.heartbeatInterval = h.HeartbeatInterval * time.Millisecond
 	return nil
-}
-
-func (s *Session) setupListen(ctx context.Context) {
-	if s.wsRead != nil {
-		s.logger.Info("listen already running")
-		return
-	}
-	ctx2, cancel := context.WithCancel(ctx)
-	s.cancelWSRead = cancel
-
-	wsRead := make(chan readResult)
-	s.wsRead = wsRead
-	go func() {
-		s.logger.Info("listening started")
-		err := s.listen(ctx2, wsRead)
-		select {
-		case <-ctx2.Done():
-			s.wsRead = nil
-			return
-		default:
-			if errors.Is(err, io.EOF) {
-				s.logger.Warn("EOF received, restarting")
-				s.wsRead = nil
-				s.forceReconnect(ctx)
-				return
-			}
-			s.logger.Error("listening websocket")
-			panic(err)
-		}
-	}()
 }
 
 // connect must be called when Session's mutex is locked.
@@ -244,20 +213,6 @@ func (s *Session) finishConnection(ctx context.Context) {
 	})
 }
 
-// listen polls the websocket connection for data, it will stop when an error occurs.
-func (s *Session) listen(ctx context.Context, c chan<- readResult) error {
-	var messageType websocket.MessageType
-	var message []byte
-	var err error
-	for err == nil {
-		messageType, message, err = s.ws.Read(ctx)
-		if err == nil {
-			c <- readResult{messageType, message}
-		}
-	}
-	return err
-}
-
 type helloOp struct {
 	HeartbeatInterval time.Duration `json:"heartbeat_interval"`
 }
@@ -310,22 +265,4 @@ func (s *Session) heartbeat(ctx context.Context) error {
 	s.LastHeartbeatSent = time.Now().UTC()
 	s.logger.Debug("sending websocket heartbeat", "sequence", seq)
 	return s.GatewayWriteStruct(ctx, heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
-}
-
-type readResult struct {
-	MessageType websocket.MessageType
-	Message     []byte
-}
-
-func (r *readResult) getEvent() (*discord.Event, error) {
-	return getGatewayEvent(r.MessageType, r.Message)
-}
-
-// dispatch the event received
-func (r *readResult) dispatch(s *Session, ctx context.Context) error {
-	e, err := r.getEvent()
-	if err == nil {
-		err = s.onGatewayEvent(ctx, e)
-	}
-	return err
 }
