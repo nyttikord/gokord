@@ -2,8 +2,6 @@ package gokord
 
 import (
 	"context"
-	"errors"
-	"io"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -27,19 +25,13 @@ func (s *Session) setupListen(ctx context.Context) {
 	go func() {
 		s.logger.Info("listening started")
 		err := s.listen(ctx2, wsRead)
+		s.wsRead = nil
 		select {
 		case <-ctx2.Done():
-			s.wsRead = nil
 			return
 		default:
-			if errors.Is(err, io.EOF) {
-				s.logger.Warn("EOF received, restarting")
-				s.wsRead = nil
-				s.forceReconnect(ctx)
-				return
-			}
-			s.logger.Error("listening websocket")
-			panic(err)
+			s.logger.Warn("listening websocket", "error", err, "gateway", s.gateway)
+			s.forceReconnect(ctx)
 		}
 	}()
 }
