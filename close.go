@@ -29,9 +29,15 @@ type resumePacket struct {
 }
 
 func (s *Session) reconnect(ctx context.Context) error {
+	if s.restarting.Load() {
+		return nil
+	}
 	if !s.Options.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
 	}
+
+	s.restarting.Store(true)
+	defer s.restarting.Store(false)
 
 	err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
 	if err != nil {
@@ -79,7 +85,9 @@ func (s *Session) reconnect(ctx context.Context) error {
 	e.Type = ""
 	for e.Type != event.ResumedType {
 		res := <-s.wsRead
-		if err := res.dispatch(s, ctx); err != nil {
+		var err error
+		e, err = res.getEvent()
+		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
 		switch e.Operation {
@@ -121,6 +129,9 @@ func (s *Session) reconnect(ctx context.Context) error {
 // If the reconnection fails, it opens a new session.
 // If it cannot create a new session, it panics.
 func (s *Session) forceReconnect(ctx context.Context) {
+	if s.restarting.Load() {
+		return
+	}
 	err := s.reconnect(ctx)
 	if err == nil {
 		return

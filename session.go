@@ -73,6 +73,8 @@ type Session struct {
 	wsRead <-chan readResult
 	// cancel wsRead
 	cancelWSRead func()
+	// true if the session is restarting
+	restarting atomic.Bool
 
 	// API with state.State
 
