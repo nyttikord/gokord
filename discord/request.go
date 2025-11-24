@@ -12,9 +12,9 @@ import (
 type RESTRequester interface {
 	Logger() *slog.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
-	Request(method string, urlStr string, data interface{}, options ...RequestOption) ([]byte, error)
+	Request(method string, urlStr string, data any, options ...RequestOption) ([]byte, error)
 	// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.
-	RequestWithBucketID(method string, urlStr string, data interface{}, bucketID string, options ...RequestOption) ([]byte, error)
+	RequestWithBucketID(method string, urlStr string, data any, bucketID string, options ...RequestOption) ([]byte, error)
 	// RequestRaw makes a (GET/POST/...) Requests to Discord REST API.
 	// Preferably use the other request methods but this lets you send JSON directly if that's what you have.
 	//
@@ -24,7 +24,7 @@ type RESTRequester interface {
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
 	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
-	Unmarshal(bytes []byte, i interface{}) error
+	Unmarshal(bytes []byte, i any) error
 }
 
 type WSRequester interface {

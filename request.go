@@ -197,7 +197,7 @@ func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string
 	case http.StatusOK:
 	case http.StatusCreated:
 	case http.StatusNoContent:
-	case http.StatusBadGateway:
+	case http.StatusInternalServerError, http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusBadGateway:
 		// Retry sending request if possible
 		if sequence < cfg.MaxRestRetries {
 			s.logger.Warn("failed, retrying...", "url", urlStr, "status", resp.Status)
