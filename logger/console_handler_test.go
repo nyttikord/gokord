@@ -1,5 +1,31 @@
 package logger
 
+import (
+	"log/slog"
+	"net"
+	"testing"
+)
+
+func TestHandler_appendAttr(t *testing.T) {
+	h := new(ConsoleHandler)
+	buf := make([]byte, 0, 1024)
+	buf = h.appendAttr(buf, slog.Attr{
+		Key:   "key",
+		Value: slog.AnyValue([]byte("hello world")),
+	})
+	if string(buf) != ` key="hello world"` {
+		t.Errorf("invalid buf, got=%s", buf)
+	}
+	buf = make([]byte, 0, 1024)
+	buf = h.appendAttr(buf, slog.Attr{
+		Key:   "error",
+		Value: slog.AnyValue(net.ErrClosed),
+	})
+	if string(buf) != ` error="`+net.ErrClosed.Error()+`"` {
+		t.Errorf("invalid buf, got=%s", buf)
+	}
+}
+
 /*func TestSlogtest(t *testing.T) {
 	var buf bytes.Buffer
 	err := slogtest.TestHandler(New(&buf, nil), func() []map[string]any {
