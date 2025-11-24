@@ -368,3 +368,15 @@ type MessageReaction struct {
 	ChannelID string      `json:"channel_id"`
 	GuildID   string      `json:"guild_id,omitempty"`
 }
+
+// MessagePinned represents a pinned Message.
+type MessagePinned struct {
+	PinnedAt time.Time `json:"pinned_at"` // PinnedAt is the time when the message was pinned.
+	Message  *Message  `json:"message"`   // Message pinned.
+}
+
+// MessagesPinned contains a list of MessagePinned in a channel.Channel.
+type MessagesPinned struct {
+	Items   []*MessagePinned `json:"items"`
+	HasMore bool             `json:"has_more"`
+}
