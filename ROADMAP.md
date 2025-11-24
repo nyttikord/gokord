@@ -53,6 +53,10 @@ library.
 Now, you must use contexts to open and close the bot.
 Events gives the current context in the handler, so you will have to modify every handlers to follow the new signature. 
 
+The library is more stable, thanks to contexts.
+
+## `0.34.0`
+
 Imports some features from [`anhgelus/gokord`](https://github.com/anhgelus/gokord) to provide useful structs to manage:
 - slash commands
 - interaction responses

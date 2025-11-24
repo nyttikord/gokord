@@ -106,17 +106,16 @@ func (s *Session) connect(ctx context.Context) error {
 		}
 	}()
 
+	s.setupListen(ctx)
+
 	// if we can't connect in 10s, returns an error
 	ctx2, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	errc := make(chan error, 1)
 	go func() {
 		// The first response from Discord should be an Op 10 (Hello) Packet.
-		mt, m, err := s.ws.Read(ctx2)
-		if err != nil {
-			errc <- err
-		}
-		e, err := getGatewayEvent(mt, m)
+		res := <-s.wsRead
+		e, err := res.getEvent()
 		if err != nil {
 			errc <- err
 		}
@@ -134,11 +133,8 @@ func (s *Session) connect(ctx context.Context) error {
 		}
 
 		// Now Discord should send us a READY packet.
-		mt, m, err = s.ws.Read(ctx)
-		if err != nil {
-			errc <- errors.Join(err, ErrReadingReadyPacket)
-		}
-		e, err = getGatewayEvent(mt, m)
+		res = <-s.wsRead
+		e, err = res.getEvent()
 		if err != nil {
 			errc <- errors.Join(err, ErrReadingReadyPacket)
 		}
@@ -168,30 +164,18 @@ func (s *Session) finishConnection(ctx context.Context) {
 	var ctx2 context.Context
 	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
 
-	restarting := false
 	restart := func() {
-		if restarting {
-			return
-		}
-		restarting = true
-		s.logger.Info("closing websocket")
-		err := s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
-		if err != nil {
-			panic(err)
-		}
 		s.logger.Info("reconnecting")
-		s.forceReconnect(ctx)
+		s.forceReconnect(ctx, true)
 	}
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Info("new heartbeats")
 		last, err := s.heartbeats(ctx2)
 		free()
-		s.Logger().Info("heartbeats ended")
+		s.Logger().Debug("heartbeats ended")
 		select {
 		case <-ctx2.Done():
-			s.logger.Debug("exiting heartbeats")
 			return
 		default:
 			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
@@ -199,39 +183,22 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Info("new listening")
-		err := s.listen(ctx2)
-		free()
-		s.Logger().Info("listening ended")
-		select {
-		case <-ctx2.Done():
-			s.logger.Debug("exiting listening events")
-			return
-		default:
-			s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
-			restart()
-		}
-	})
-}
-
-// listen polls the websocket connection for events, it will stop when the listening channel is closed, or when an error
-// occurs.
-func (s *Session) listen(ctx context.Context) error {
-	var messageType websocket.MessageType
-	var message []byte
-	var err error
-	for err == nil {
-		messageType, message, err = s.ws.Read(ctx)
-		if err == nil {
-			var e *discord.Event
-			e, err = getGatewayEvent(messageType, message)
-			if err == nil {
-				err = s.onGatewayEvent(ctx, e)
+		s.Logger().Debug("dispatching events started")
+		var err error
+		for err == nil {
+			select {
+			case res := <-s.wsRead:
+				err = res.dispatch(s, ctx)
+			case <-ctx2.Done():
+				free()
+				s.logger.Debug("exiting dispatching events")
+				return
 			}
 		}
-	}
-	s.logger.Info("returning")
-	return err
+		free()
+		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
+		restart()
+	})
 }
 
 type helloOp struct {

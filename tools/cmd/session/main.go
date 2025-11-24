@@ -20,7 +20,7 @@ var (
 
 func init() {
 	flag.StringVar(&token, "token", os.Getenv("DG_TOKEN"), "token of the bot (required)")
-	flag.IntVar(&timeout, "timeout", 0, "timeout in minutes")
+	flag.IntVar(&timeout, "timeout", timeout, "timeout in minutes")
 }
 
 func main() {

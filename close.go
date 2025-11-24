@@ -28,15 +28,34 @@ type resumePacket struct {
 	} `json:"d"`
 }
 
-func (s *Session) reconnect(ctx context.Context) error {
+func (s *Session) reconnect(ctx context.Context, forceClose bool) error {
+	if s.restarting.Load() {
+		return nil
+	}
 	if !s.Options.ShouldReconnectOnError {
 		return ErrShouldNotReconnect
+	}
+
+	s.restarting.Store(true)
+	defer s.restarting.Store(false)
+
+	var err error
+	if !forceClose {
+		err = s.CloseWithCode(ctx, websocket.StatusServiceRestart)
+	}
+	if forceClose || err != nil {
+		if !forceClose && !errors.Is(err, net.ErrClosed) {
+			s.logger.Warn("error while closing", "error", err)
+		}
+		if err = s.ForceClose(); err != nil {
+			return err
+		}
 	}
 
 	s.Lock()
 	defer s.Unlock()
 
-	err := s.setupGateway(ctx, s.resumeGatewayURL)
+	err = s.setupGateway(ctx, s.resumeGatewayURL)
 	if err != nil {
 		return err
 	}
@@ -61,15 +80,16 @@ func (s *Session) reconnect(ctx context.Context) error {
 			}
 		}
 	}()
+
+	s.setupListen(ctx)
+
 	// handle missed event
 	e := new(discord.Event)
 	e.Type = ""
 	for e.Type != event.ResumedType {
-		mt, m, err := s.ws.Read(ctx)
-		if err != nil {
-			return errors.Join(err, ErrHandlingMissedEvents)
-		}
-		e, err = getGatewayEvent(mt, m)
+		res := <-s.wsRead
+		var err error
+		e, err = res.getEvent()
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
 		}
@@ -111,8 +131,11 @@ func (s *Session) reconnect(ctx context.Context) error {
 // forceReconnect the session.
 // If the reconnection fails, it opens a new session.
 // If it cannot create a new session, it panics.
-func (s *Session) forceReconnect(ctx context.Context) {
-	err := s.reconnect(ctx)
+func (s *Session) forceReconnect(ctx context.Context, forceClose bool) {
+	if s.restarting.Load() {
+		return
+	}
+	err := s.reconnect(ctx, forceClose)
 	if err == nil {
 		return
 	}
@@ -155,6 +178,7 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 
 	s.waitListen.Close(ctx)
+	s.cancelWSRead()
 
 	for _, v := range s.voiceAPI.Connections {
 		err := v.Disconnect(ctx)
@@ -164,7 +188,7 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 	// TODO: stop any reconnecting voice channels
 
-	s.logger.Info("closing websocket")
+	s.logger.Debug("closing websocket")
 	// is a clean stop
 	s.wsMutex.Lock()
 	err := s.ws.Close(closeCode, "")
@@ -180,12 +204,13 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	if err != nil {
 		return err
 	}
+	if err := s.waitListen.Wait(ctx); err != nil {
+		return err
+	}
+
 	s.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
 	s.Lock()
-	if err := s.waitListen.Wait(ctx); err != nil {
-		panic(err)
-	}
 
 	return nil
 }
@@ -200,6 +225,7 @@ func (s *Session) ForceClose() error {
 	s.logger.Info("force closing")
 	var err error
 	s.waitListen.Close(context.Background())
+	s.cancelWSRead()
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool

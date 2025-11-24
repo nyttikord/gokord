@@ -167,6 +167,9 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 	if val, ok := a.Value.Any().([]byte); ok {
 		return fmt.Appendf(buf, "%s", escapeSpace(string(val)))
 	}
+	if val, ok := a.Value.Any().(error); ok {
+		return fmt.Appendf(buf, "%s", escapeSpace(val.Error()))
+	}
 	switch a.Value.Kind() {
 	case slog.KindString:
 		buf = fmt.Appendf(buf, "%s", escapeSpace(a.Value.String()))
