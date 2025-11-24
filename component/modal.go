@@ -46,6 +46,8 @@ type SelectMenu struct {
 	// This value determines the maximal amount of selected items in the menu.
 	// If MaxValues or MinValues are greater than one then the user can select multiple items in the Component.
 	MaxValues int `json:"max_values,omitempty"`
+	// Default: true
+	Required *bool `json:"required,omitempty"`
 	// List of default values for autopopulated select menus.
 	//
 	// NOTE: Number of entries should be in the range defined by MinValues and MaxValues.
