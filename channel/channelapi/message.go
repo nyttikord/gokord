@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
@@ -283,14 +284,30 @@ func (s Requester) MessageUnpin(channelID, messageID string, options ...discord.
 	return
 }
 
-// MessagesPinned returns all pinned channel.Message within the given channel.Channel.
-func (s Requester) MessagesPinned(channelID string, options ...discord.RequestOption) ([]*channel.Message, error) {
+// MessagesPinned returns channel.MessagesPinned within the given channel.Channel.
+//
+// limit is the max number of users to return (max 50).
+// If provided all messages returned will be before the given time.
+func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int, options ...discord.RequestOption) (*channel.MessagesPinned, error) {
+	uri := discord.EndpointChannelMessagesPins(channelID)
+
+	v := url.Values{}
+	if before != nil {
+		v.Set("before", before.Format(time.RFC3339))
+	}
+	if limit > 0 {
+		v.Set("limit", strconv.Itoa(limit))
+	}
+	if len(v) > 0 {
+		uri += "?" + v.Encode()
+	}
+
 	body, err := s.Request(http.MethodGet, discord.EndpointChannelMessagesPins(channelID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	var m []*channel.Message
+	var m *channel.MessagesPinned
 	return m, json.Unmarshal(body, &m)
 }
 
@@ -363,15 +380,13 @@ func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID str
 // If provided all reactions returned will be after afterID.
 func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string, options ...discord.RequestOption) ([]*user.User, error) {
 	// emoji such as  #⃣ need to have # escaped
-	emojiID = strings.Replace(emojiID, "#", "%23", -1)
+	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	uri := discord.EndpointMessageReactions(channelID, messageID, emojiID)
 
 	v := url.Values{}
-
 	if limit > 0 {
 		v.Set("limit", strconv.Itoa(limit))
 	}
-
 	if afterID != "" {
 		v.Set("after", afterID)
 	}
