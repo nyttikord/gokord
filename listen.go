@@ -31,7 +31,7 @@ func (s *Session) setupListen(ctx context.Context) {
 			return
 		default:
 			s.logger.Warn("listening websocket", "error", err, "gateway", s.gateway)
-			s.forceReconnect(ctx)
+			s.forceReconnect(ctx, true)
 		}
 	}()
 }

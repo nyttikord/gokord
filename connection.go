@@ -164,30 +164,18 @@ func (s *Session) finishConnection(ctx context.Context) {
 	var ctx2 context.Context
 	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
 
-	restarting := false
 	restart := func() {
-		if restarting {
-			return
-		}
-		restarting = true
-		/*s.logger.Info("closing websocket")
-		err := s.ForceClose() // force closing because the websocket is always unusable in this state according to our tests
-		if err != nil {
-			panic(err)
-		}*/
 		s.logger.Info("reconnecting")
-		s.forceReconnect(ctx)
+		s.forceReconnect(ctx, true)
 	}
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Info("new heartbeats")
 		last, err := s.heartbeats(ctx2)
 		free()
-		s.Logger().Info("heartbeats ended")
+		s.Logger().Debug("heartbeats ended")
 		select {
 		case <-ctx2.Done():
-			s.logger.Debug("exiting heartbeats")
 			return
 		default:
 			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
@@ -195,12 +183,12 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Info("dispatching events started")
+		s.Logger().Debug("dispatching events started")
 		var err error
 		for err == nil {
 			select {
 			case res := <-s.wsRead:
-				err = res.dispatch(s, ctx2)
+				err = res.dispatch(s, ctx)
 			case <-ctx2.Done():
 				free()
 				s.logger.Debug("exiting dispatching events")

@@ -100,12 +100,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		return s.heartbeat(ctx)
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("reconnecting in response to Op7")
-		/*err := s.Close(ctx)
-		if err != nil {
-			// if we can't close, we must crash the app
-			panic(err)
-		}*/
-		s.forceReconnect(ctx)
+		s.forceReconnect(ctx, false)
 		return nil
 	case discord.GatewayOpCodeInvalidSession:
 		s.logger.Warn("invalid session received, reconnecting")
@@ -115,7 +110,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		}
 
 		if resumable {
-			s.forceReconnect(ctx)
+			s.forceReconnect(ctx, false)
 			return nil
 		}
 
