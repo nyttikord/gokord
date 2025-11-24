@@ -103,7 +103,6 @@ func (r Requester) BanDelete(guildID, userID string, options ...discord.RequestO
 // If afterID is set, every member ID will be after this.
 // limit is the maximum number of members to return (max 1000).
 func (r Requester) Members(guildID string, afterID string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
-
 	uri := discord.EndpointGuildMembers(guildID)
 
 	v := url.Values{}
@@ -126,13 +125,20 @@ func (r Requester) Members(guildID string, afterID string, limit int, options ..
 	}
 
 	var m []*user.Member
-	return m, r.Unmarshal(body, &m)
+	err = r.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+	// The returned object doesn't have the GuildID attribute so we will set it here.
+	for _, mem := range m {
+		mem.GuildID = guildID
+	}
+	return m, nil
 }
 
 // MembersSearch returns a list of user.Member whose username or nickname starts with a provided string.
 // limit is the maximum number of members to return (min 1, max 1000).
 func (r Requester) MembersSearch(guildID, query string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
-
 	uri := discord.EndpointGuildMembersSearch(guildID)
 
 	queryParams := url.Values{}
