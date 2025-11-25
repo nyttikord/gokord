@@ -16,17 +16,20 @@ import (
 
 const (
 	AnsiReset       = "\033[0m"
-	AnsiRed         = "\033[91m"
-	AnsiGreen       = "\033[32m"
-	AnsiYellow      = "\033[33m"
-	AnsiBlue        = "\033[34m"
-	AnsiMagenta     = "\033[35m"
-	AnsiCyan        = "\033[36m"
+	AnsiRed         = "\033[38;5;9m"
+	AnsiGrey        = "\033[38;5;244m"
+	AnsiGreen       = "\033[38;5;2m"
+	AnsiYellow      = "\033[38;5;11m"
+	AnsiBlue        = "\033[38;5;6m"
+	AnsiMagenta     = "\033[38;5;13m"
+	AnsiCyan        = "\033[38;5;14m"
 	AnsiWhite       = "\033[37m"
 	AnsiBlueBold    = "\033[34;1m"
 	AnsiMagentaBold = "\033[35;1m"
 	AnsiRedBold     = "\033[31;1m"
 	AnsiYellowBold  = "\033[33;1m"
+
+	AnsiNotImportant = AnsiGrey
 )
 
 // ConsoleHandler represents the default slog.Handler used by gokord.
@@ -86,6 +89,18 @@ func FromContext(ctx context.Context) (int, bool) {
 	return caller, ok
 }
 
+func color(level slog.Level) string {
+	if level >= slog.LevelError {
+		return AnsiRed
+	} else if level >= slog.LevelWarn {
+		return AnsiYellow
+	} else if level >= slog.LevelInfo {
+		return AnsiGreen
+	} else {
+		return AnsiReset
+	}
+}
+
 // Enabled indicates if the given slog.Level is enabled.
 func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.opts.Level.Level()
@@ -95,9 +110,9 @@ func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf := make([]byte, 0, 1024)
 	if !r.Time.IsZero() {
-		buf = fmt.Appendf(buf, "%s ", r.Time.Format(time.DateTime))
+		buf = fmt.Appendf(buf, "%s%s%s ", AnsiNotImportant, r.Time.Format(time.DateTime), AnsiReset)
 	}
-	buf = fmt.Appendf(buf, "[%s] ", r.Level)
+	buf = fmt.Appendf(buf, "[%s%s%s] ", color(r.Level), r.Level, AnsiReset)
 	if r.PC != 0 {
 		caller, ok := FromContext(ctx)
 		var file string
@@ -113,14 +128,9 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		} else {
 			file = files[len(files)-2] + "/" + files[len(files)-1]
 		}
-		buf = fmt.Appendf(buf, "%s:%d - ", file, line)
+		buf = fmt.Appendf(buf, "%s%s:%d - %s", AnsiNotImportant, file, line, AnsiReset)
 	}
-	if r.Level >= slog.LevelError {
-		buf = fmt.Appendf(buf, AnsiRed)
-	} else if r.Level >= slog.LevelWarn {
-		buf = fmt.Appendf(buf, AnsiYellow)
-	}
-	buf = fmt.Appendf(buf, "%s%s", r.Message, AnsiReset)
+	buf = fmt.Appendf(buf, "%s%s%s%s", color(r.Level), r.Message, AnsiReset, AnsiNotImportant)
 	// Handle state from WithGroup and WithAttrs.
 	goas := h.goas
 	if r.NumAttrs() == 0 {
@@ -144,7 +154,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		buf = h.appendAttr(buf, a)
 		return true
 	})
-	buf = fmt.Appendf(buf, "\n")
+	buf = fmt.Appendf(buf, "%s\n", AnsiReset)
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	_, err := h.out.Write(buf)
