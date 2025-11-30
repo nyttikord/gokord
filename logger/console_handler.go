@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -36,10 +37,11 @@ const (
 //
 // See New to create a new ConsoleHandler with the given Options.
 type ConsoleHandler struct {
-	opts Options
-	goas []groupOrAttrs
-	mu   *sync.Mutex
-	out  io.Writer
+	opts              Options
+	goas              []groupOrAttrs
+	mu                *sync.Mutex
+	out               io.Writer
+	maxFileLineLength *int
 }
 
 // Options of the ConsoleHandler.
@@ -48,16 +50,25 @@ type Options struct {
 	// Levels with lower levels are discarded.
 	// If nil, the Handler uses [slog.LevelInfo].
 	Level slog.Leveler
+
+	// MaxFileLineLength is the maximum length of the caller part.
+	// Default value is 35.
+	MaxFileLineLength int
+	// If NotAlign, everything logged will be aligned dynamically.
+	NotAlign bool
 }
 
 // New creates a new ConsoleHandler.
 func New(out io.Writer, opts *Options) *ConsoleHandler {
-	h := &ConsoleHandler{out: out, mu: &sync.Mutex{}}
+	h := &ConsoleHandler{out: out, mu: &sync.Mutex{}, maxFileLineLength: new(int)}
 	if opts != nil {
 		h.opts = *opts
 	}
 	if h.opts.Level == nil {
 		h.opts.Level = slog.LevelInfo
+	}
+	if h.opts.MaxFileLineLength == 0 {
+		h.opts.MaxFileLineLength = 35
 	}
 	return h
 }
@@ -66,6 +77,13 @@ type key int
 
 const (
 	callerSkipKey key = 0
+)
+
+var maxLength = max(
+	len(slog.LevelDebug.String()),
+	len(slog.LevelInfo.String()),
+	len(slog.LevelWarn.String()),
+	len(slog.LevelError.String()),
 )
 
 // NewContext returns a new context.Context with the callerSkip given.
@@ -108,11 +126,19 @@ func (h *ConsoleHandler) Enabled(ctx context.Context, level slog.Level) bool {
 
 // Handle a slog.Record.
 func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	buf := make([]byte, 0, 1024)
 	if !r.Time.IsZero() {
 		buf = fmt.Appendf(buf, "%s%s%s ", AnsiNotImportant, r.Time.Format(time.DateTime), AnsiReset)
 	}
-	buf = fmt.Appendf(buf, "[%s%s%s] ", color(r.Level), r.Level, AnsiReset)
+	sp := " "
+	if !h.opts.NotAlign {
+		for range maxLength - len(r.Level.String()) {
+			sp += " "
+		}
+	}
+	buf = fmt.Appendf(buf, "[%s%s%s]%s", color(r.Level), r.Level, AnsiReset, sp)
 	if r.PC != 0 {
 		caller, ok := FromContext(ctx)
 		var file string
@@ -128,7 +154,20 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		} else {
 			file = files[len(files)-2] + "/" + files[len(files)-1]
 		}
-		buf = fmt.Appendf(buf, "%s%s:%d - %s", AnsiNotImportant, file, line, AnsiReset)
+
+		fileLine := fmt.Sprintf("%s:%d", file, line)
+		sp = " "
+		if !h.opts.NotAlign {
+			if len(fileLine) > h.opts.MaxFileLineLength {
+				lineStr := strconv.Itoa(line)
+				fileLine = fmt.Sprintf("...%s:%s", file[4+len(lineStr)+len(file)-h.opts.MaxFileLineLength:], lineStr)
+			}
+			*h.maxFileLineLength = max(len(fileLine), *h.maxFileLineLength)
+			for range *h.maxFileLineLength - len(fileLine) {
+				sp += " "
+			}
+		}
+		buf = fmt.Appendf(buf, "%s%s%s- %s", AnsiNotImportant, fileLine, sp, AnsiReset)
 	}
 	buf = fmt.Appendf(buf, "%s%s%s%s", color(r.Level), r.Message, AnsiReset, AnsiNotImportant)
 	// Handle state from WithGroup and WithAttrs.
@@ -155,8 +194,6 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		return true
 	})
 	buf = fmt.Appendf(buf, "%s\n", AnsiReset)
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	_, err := h.out.Write(buf)
 	return err
 }
