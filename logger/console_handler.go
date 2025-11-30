@@ -152,7 +152,13 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		if len(files) == 1 {
 			file = files[len(files)-1]
 		} else {
-			file = files[len(files)-2] + "/" + files[len(files)-1]
+			// remove package version from log
+			packge := files[len(files)-2]
+			i := strings.Index(packge, "@")
+			if i == -1 {
+				i = len(packge)
+			}
+			file = packge[:i] + "/" + files[len(files)-1]
 		}
 
 		fileLine := fmt.Sprintf("%s:%d", file, line)
