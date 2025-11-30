@@ -32,6 +32,7 @@ const VERSION = "0.33.0"
 //	e.g. "Bearer ..."
 //
 // See NewWithLogLevel to modify the default slog.Level.
+// See NewWithLoggerOptions to set the logger.Options for the logger.
 // See NewWithLogger to set the default slog.Logger.
 func New(token string) *Session {
 	return NewWithLogLevel(token, slog.LevelInfo)
@@ -40,15 +41,26 @@ func New(token string) *Session {
 // NewWithLogLevel creates a new Discord session with provided token and set the slog.Level of the logger.
 //
 // See New for the full documentation.
+// See NewWithLoggerOptions to set the logger.Options for the logger.
 // See NewWithLogger to set the default slog.Logger.
 func NewWithLogLevel(token string, logLevel slog.Level) *Session {
-	return NewWithLogger(token, slog.New(logger.New(os.Stdout, &logger.Options{Level: logLevel})))
+	return NewWithLoggerOptions(token, &logger.Options{Level: logLevel})
+}
+
+// NewWithLoggerOptions creates a new Discord session with provided token and options for the logger.
+//
+// See New for the full documentation.
+// See NewWithLogLevel to set the slog.Level without providing other logger.Options.
+// See NewWithLogger to set the default slog.Logger.
+func NewWithLoggerOptions(token string, opt *logger.Options) *Session {
+	return NewWithLogger(token, slog.New(logger.New(os.Stdout, opt)))
 }
 
 // NewWithLogger creates a new Discord session with provided token and set the logger.
 //
 // See New for the full documentation.
 // See NewWithLogLevel to modify the default slog.Level.
+// See NewWithLoggerOptions to set the logger.Options for the logger.
 func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s := &Session{
 		Options: bot.Options{
