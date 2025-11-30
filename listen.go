@@ -58,41 +58,41 @@ type syncListener struct {
 	counter atomic.Uint32
 }
 
-func (s *syncListener) Add(fn func(free func())) {
-	s.wg.Add(1)
-	s.counter.Add(1)
+func (sc *syncListener) Add(fn func(free func())) {
+	sc.wg.Add(1)
+	sc.counter.Add(1)
 	go fn(func() {
-		s.wg.Done()
-		s.counter.Store(s.counter.Load() - 1)
+		sc.wg.Done()
+		sc.counter.Store(sc.counter.Load() - 1)
 	})
 }
 
-func (s *syncListener) Wait(ctx context.Context) error {
+func (sc *syncListener) Wait(ctx context.Context) error {
 	ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	done := make(chan struct{}, 1)
 	go func() {
-		s.wg.Wait()
-		s.logger.Debug("goroutines closed")
+		sc.wg.Wait()
+		sc.logger.Debug("goroutines closed")
 		done <- struct{}{}
 	}()
 	select {
 	case <-done:
 	case <-ctx2.Done():
-		s.logger.Error("cannot close goroutines", "remaining", s.counter.Load())
+		sc.logger.Error("cannot close goroutines", "remaining", sc.counter.Load())
 		return ctx2.Err()
 	}
-	s.cancel = nil
+	sc.cancel = nil
 	return nil
 }
 
-func (s *syncListener) Close(ctx context.Context) {
-	if s.cancel == nil {
-		s.logger.WarnContext(logger.NewContext(context.Background(), 1), "cancel func was already called (or was never set)")
+func (sc *syncListener) Close() {
+	if sc.cancel == nil {
+		sc.logger.WarnContext(logger.NewContext(context.Background(), 1), "cancel func was already called (or was never set)")
 		return
 	}
-	s.logger.Debug("closing goroutines")
-	s.cancel()
+	sc.logger.Debug("closing goroutines")
+	sc.cancel()
 }
 
 type readResult struct {
@@ -105,10 +105,10 @@ func (r *readResult) getEvent() (*discord.Event, error) {
 }
 
 // dispatch the event received
-func (r *readResult) dispatch(s *Session, ctx context.Context) error {
+func (r *readResult) dispatch(s *Session, ctx context.Context) (*eventHandlingResult, error) {
 	e, err := r.getEvent()
 	if err == nil {
-		err = s.onGatewayEvent(ctx, e)
+		return s.onGatewayEvent(ctx, e)
 	}
-	return err
+	return nil, err
 }

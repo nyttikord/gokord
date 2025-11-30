@@ -91,27 +91,33 @@ func getGatewayEvent(messageType websocket.MessageType, message []byte) (*discor
 	return e, nil
 }
 
+type eventHandlingResult struct {
+	restart        bool
+	force          bool
+	openNewSession bool
+}
+
 // onGatewayEvent is the "event handler" for all messages received on the Discord Gateway API websocket connection.
-func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
+//
+// Return nil if everything is good, false if the ws must be restarted and true if it must be force restarted.
+func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventHandlingResult, error) {
 	// handle special opcode
 	switch e.Operation {
 	case discord.GatewayOpCodeHeartbeat: // must respond with a heartbeat packet within 5 seconds
 		s.logger.Debug("sending heartbeat in response to Op1")
-		return s.heartbeat(ctx)
+		return nil, s.heartbeat(ctx)
 	case discord.GatewayOpCodeReconnect: // must immediately disconnect from gateway and reconnect to new gateway
 		s.logger.Info("reconnecting in response to Op7")
-		s.forceReconnect(ctx, false)
-		return nil
+		return &eventHandlingResult{restart: true}, nil
 	case discord.GatewayOpCodeInvalidSession:
 		s.logger.Warn("invalid session received, reconnecting")
 		var resumable bool
 		if err := json.Unmarshal(e.RawData, &resumable); err != nil {
-			return err
+			return nil, err
 		}
 
 		if resumable {
-			s.forceReconnect(ctx, false)
-			return nil
+			return &eventHandlingResult{restart: true}, nil
 		}
 
 		err := s.CloseWithCode(ctx, websocket.StatusServiceRestart)
@@ -124,16 +130,13 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		s.resumeGatewayURL = ""
 		s.sessionID = ""
 		s.sequence.Store(0)
-		if err = s.Open(ctx); err != nil {
-			panic(err)
-		}
-		return nil
+		return &eventHandlingResult{openNewSession: true}, nil
 	case discord.GatewayOpCodeHeartbeatAck:
-		s.Lock()
+		s.mu.Lock()
 		s.LastHeartbeatAck = time.Now().UTC()
-		s.Unlock()
+		s.mu.Unlock()
 		s.logger.Debug("got heartbeat ACK", "ping", s.HeartbeatLatency())
-		return nil
+		return nil, nil
 	}
 
 	// Do not try to Dispatch a non-Dispatch Message
@@ -147,7 +150,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 			"type", e.Type,
 			"raw", string(e.RawData),
 		)
-		return nil
+		return nil, nil
 	}
 
 	s.sequence.Store(e.Sequence)
@@ -161,7 +164,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 			s.logger.Warn("failed to unmarshal event", "type", e.Type, "raw", e.RawData)
 			// READY events are always emitted
 			if e.Type != event.ReadyType {
-				return err
+				return nil, err
 			}
 		}
 		typ = e.Type
@@ -178,5 +181,5 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) error {
 		d = e
 	}
 	s.eventManager.EmitEvent(ctx, s, typ, d)
-	return nil
+	return nil, nil
 }

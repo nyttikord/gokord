@@ -56,6 +56,9 @@ type Options struct {
 	MaxFileLineLength int
 	// If NotAlign, everything logged will be aligned dynamically.
 	NotAlign bool
+	// If ArgsAreImportant, args are in default terminal color.
+	// If not, they are in AnsiNotImportant (default).
+	ArgsAreImportant bool
 }
 
 // New creates a new ConsoleHandler.
@@ -175,7 +178,10 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		}
 		buf = fmt.Appendf(buf, "%s%s%s- %s", AnsiNotImportant, fileLine, sp, AnsiReset)
 	}
-	buf = fmt.Appendf(buf, "%s%s%s%s", color(r.Level), r.Message, AnsiReset, AnsiNotImportant)
+	buf = fmt.Appendf(buf, "%s%s%s", color(r.Level), r.Message, AnsiReset)
+	if !h.opts.ArgsAreImportant {
+		buf = fmt.Appendf(buf, "%s", AnsiNotImportant)
+	}
 	// Handle state from WithGroup and WithAttrs.
 	goas := h.goas
 	if r.NumAttrs() == 0 {

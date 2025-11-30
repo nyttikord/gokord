@@ -52,8 +52,8 @@ func (s *Session) reconnect(ctx context.Context, forceClose bool) error {
 		}
 	}
 
-	s.Lock()
-	defer s.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	err = s.setupGateway(ctx, s.resumeGatewayURL)
 	if err != nil {
@@ -99,9 +99,13 @@ func (s *Session) reconnect(ctx context.Context, forceClose bool) error {
 		case discord.GatewayOpCodeInvalidSession:
 			return ErrInvalidSession
 		default:
-			s.Unlock() // required
-			err = s.onGatewayEvent(ctx, e)
-			s.Lock()
+			s.mu.Unlock() // required
+			var res *eventHandlingResult
+			res, err = s.onGatewayEvent(ctx, e)
+			s.mu.Lock()
+			if res != nil {
+				s.logger.Warn("requesting restart, ignoring", "event", e)
+			}
 		}
 		if err != nil {
 			return errors.Join(err, ErrHandlingMissedEvents)
@@ -169,15 +173,19 @@ func (s *Session) Close(ctx context.Context) error {
 // If it returns an error, the session is not closed.
 // TODO: Add support for Voice WS/UDP connections
 func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusCode) error {
-	s.Lock()
-	defer s.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.logger.Info("closing", "code", closeCode)
 
 	if s.ws == nil {
 		return ErrWSNotFound
 	}
-
-	s.waitListen.Close(ctx)
+	select {
+	case <-ctx.Done():
+		s.logger.Info("context already cancelled")
+	default:
+	}
+	s.waitListen.Close()
 	s.cancelWSRead()
 
 	for _, v := range s.voiceAPI.Connections {
@@ -195,22 +203,27 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.wsMutex.Unlock()
 	if err != nil {
 		s.logger.Warn("closing websocket", "error", err, "gateway", s.gateway)
-		s.Unlock()
+		s.mu.Unlock()
 		err = s.ForceClose()
-		s.Lock()
+		s.mu.Lock()
 	}
 	// required
 	s.ws = nil
 	if err != nil {
 		return err
 	}
+	select {
+	case <-ctx.Done():
+		s.logger.Info("context already cancelled")
+	default:
+	}
 	if err := s.waitListen.Wait(ctx); err != nil {
 		return err
 	}
 
-	s.Unlock()
+	s.mu.Unlock()
 	s.eventManager.EmitEvent(ctx, s, event.DisconnectType, &event.Disconnect{})
-	s.Lock()
+	s.mu.Lock()
 
 	return nil
 }
@@ -220,11 +233,11 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 //
 // It doesn't send an event.Disconnect, unlike Close or CloseWithCode.
 func (s *Session) ForceClose() error {
-	s.Lock()
-	defer s.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.logger.Info("force closing")
 	var err error
-	s.waitListen.Close(context.Background())
+	s.waitListen.Close()
 	s.cancelWSRead()
 	defer func() {
 		if r := recover(); r != nil {

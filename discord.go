@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"sync"
 	"time"
 
 	"github.com/nyttikord/gokord/bot"
@@ -61,7 +60,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		},
 		LastHeartbeatAck: time.Now().UTC(),
 		logger:           logger,
-		RWMutex:          &sync.RWMutex{},
+		mu:               &mutex{logger: logger.With("module", "mutex")},
 		waitListen:       &syncListener{logger: logger.With("module", "ws")},
 		UserStorage:      &state.MapStorage[user.Member]{},
 		ChannelStorage:   &state.MapStorage[channel.Channel]{},

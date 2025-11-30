@@ -14,6 +14,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -24,8 +25,8 @@ var (
 // Open creates a websocket connection to Discord.
 // https://discord.com/developers/docs/topics/gateway#connecting
 func (s *Session) Open(ctx context.Context) error {
-	s.Lock()
-	defer s.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	// If the websock is already open, bail out here.
 	if s.ws != nil {
 		return ErrWSAlreadyOpen
@@ -142,9 +143,10 @@ func (s *Session) connect(ctx context.Context) error {
 			s.logger.Error("invalid READY packet", "type got", e.Type)
 			errc <- ErrReadingReadyPacket
 		}
-		s.Unlock() // required to dispatch ready
-		err = s.onGatewayEvent(ctx, e)
-		s.Lock()
+		s.mu.Unlock() // required to dispatch ready
+		// ignoring restart because ready event cannot restart
+		_, err = s.onGatewayEvent(ctx, e)
+		s.mu.Lock()
 		errc <- err
 	}()
 
@@ -161,12 +163,12 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.logger.Debug("connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
-	var ctx2 context.Context
-	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
-
-	restart := func() {
-		s.logger.Info("reconnecting")
-		s.forceReconnect(ctx, true)
+	/*var ctx2 context.Context
+	ctx2, s.waitListen.cancel = context.WithCancel(ctx)*/
+	ctx2, cancel := context.WithCancel(ctx)
+	s.waitListen.cancel = func() {
+		s.logger.InfoContext(logger.NewContext(context.Background(), 1), "context cancelled")
+		cancel()
 	}
 
 	// Start sending heartbeats and reading messages from Discord.
@@ -179,16 +181,18 @@ func (s *Session) finishConnection(ctx context.Context) {
 			return
 		default:
 			s.logger.Warn("sending heartbeats", "error", err, "time since last ACK", time.Now().UTC().Sub(last))
-			restart()
+			s.logger.Info("reconnecting")
+			s.forceReconnect(ctx, true)
 		}
 	})
 	s.waitListen.Add(func(free func()) {
 		s.Logger().Debug("dispatching events started")
 		var err error
-		for err == nil {
+		var res *eventHandlingResult
+		for err == nil && res == nil {
 			select {
-			case res := <-s.wsRead:
-				err = res.dispatch(s, ctx)
+			case read := <-s.wsRead:
+				res, err = read.dispatch(s, ctx2)
 			case <-ctx2.Done():
 				free()
 				s.logger.Debug("exiting dispatching events")
@@ -196,8 +200,19 @@ func (s *Session) finishConnection(ctx context.Context) {
 			}
 		}
 		free()
+		if res != nil {
+			if res.restart {
+				s.forceReconnect(ctx, res.force)
+			} else if res.openNewSession {
+				if err := s.Open(ctx); err != nil {
+					panic(err)
+				}
+			}
+			return
+		}
 		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
-		restart()
+		s.logger.Info("reconnecting")
+		s.forceReconnect(ctx, true)
 	})
 }
 
@@ -233,9 +248,9 @@ func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	for err == nil && time.Now().UTC().Sub(last) <= s.heartbeatInterval*FailedHeartbeatAcks {
 		select {
 		case <-ticker.C:
-			s.RLock()
+			s.mu.RLock()
 			last = s.LastHeartbeatAck
-			s.RUnlock()
+			s.mu.RUnlock()
 
 			err = s.heartbeat(ctx)
 		case <-ctx.Done():

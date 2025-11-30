@@ -18,6 +18,7 @@ import (
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
@@ -25,9 +26,24 @@ import (
 	"github.com/nyttikord/gokord/voice"
 )
 
+type mutex struct {
+	sync.RWMutex
+	logger *slog.Logger
+}
+
+func (m *mutex) Lock() {
+	m.logger.DebugContext(logger.NewContext(context.Background(), 1), "locking")
+	m.RWMutex.Lock()
+}
+
+func (m *mutex) Unlock() {
+	m.logger.DebugContext(logger.NewContext(context.Background(), 1), "unlocking")
+	m.RWMutex.Unlock()
+}
+
 // Session represents a connection to the Discord API.
 type Session struct {
-	*sync.RWMutex
+	mu     *mutex
 	logger *slog.Logger
 
 	// General configurable settings.
