@@ -54,11 +54,13 @@ type Options struct {
 	// MaxFileLineLength is the maximum length of the caller part.
 	// Default value is 35.
 	MaxFileLineLength int
-	// If NotAlign, everything logged will be aligned dynamically.
-	NotAlign bool
+	// If Align, everything logged will be aligned dynamically.
+	Align bool
 	// If ArgsAreImportant, args are in default terminal color.
 	// If not, they are in AnsiNotImportant (default).
 	ArgsAreImportant bool
+	// If TrimVersion, package versions are removed from the caller part.
+	TrimVersion bool
 }
 
 // New creates a new ConsoleHandler.
@@ -136,7 +138,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		buf = fmt.Appendf(buf, "%s%s%s ", AnsiNotImportant, r.Time.Format(time.DateTime), AnsiReset)
 	}
 	sp := " "
-	if !h.opts.NotAlign {
+	if h.opts.Align {
 		for range maxLength - len(r.Level.String()) {
 			sp += " "
 		}
@@ -158,7 +160,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 			// remove package version from log
 			packge := files[len(files)-2]
 			i := strings.Index(packge, "@")
-			if i == -1 {
+			if !h.opts.TrimVersion || i == -1 {
 				i = len(packge)
 			}
 			file = packge[:i] + "/" + files[len(files)-1]
@@ -166,7 +168,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 
 		fileLine := fmt.Sprintf("%s:%d", file, line)
 		sp = " "
-		if !h.opts.NotAlign {
+		if h.opts.Align {
 			if len(fileLine) > h.opts.MaxFileLineLength {
 				lineStr := strconv.Itoa(line)
 				fileLine = fmt.Sprintf("...%s:%s", file[4+len(lineStr)+len(file)-h.opts.MaxFileLineLength:], lineStr)

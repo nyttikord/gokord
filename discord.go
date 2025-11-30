@@ -44,7 +44,7 @@ func New(token string) *Session {
 // See NewWithLoggerOptions to set the logger.Options for the logger.
 // See NewWithLogger to set the default slog.Logger.
 func NewWithLogLevel(token string, logLevel slog.Level) *Session {
-	return NewWithLoggerOptions(token, &logger.Options{Level: logLevel})
+	return NewWithLoggerOptions(token, &logger.Options{Level: logLevel, Align: true, TrimVersion: true})
 }
 
 // NewWithLoggerOptions creates a new Discord session with provided token and options for the logger.

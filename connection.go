@@ -14,7 +14,6 @@ import (
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
-	"github.com/nyttikord/gokord/logger"
 )
 
 var (
@@ -163,13 +162,8 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.logger.Debug("connected to Discord, emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
-	/*var ctx2 context.Context
-	ctx2, s.waitListen.cancel = context.WithCancel(ctx)*/
-	ctx2, cancel := context.WithCancel(ctx)
-	s.waitListen.cancel = func() {
-		s.logger.InfoContext(logger.NewContext(context.Background(), 1), "context cancelled")
-		cancel()
-	}
+	var ctx2 context.Context
+	ctx2, s.waitListen.cancel = context.WithCancel(ctx)
 
 	// Start sending heartbeats and reading messages from Discord.
 	s.waitListen.Add(func(free func()) {

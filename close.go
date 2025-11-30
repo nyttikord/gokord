@@ -180,11 +180,6 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	if s.ws == nil {
 		return ErrWSNotFound
 	}
-	select {
-	case <-ctx.Done():
-		s.logger.Info("context already cancelled")
-	default:
-	}
 	s.waitListen.Close()
 	s.cancelWSRead()
 
@@ -211,11 +206,6 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	s.ws = nil
 	if err != nil {
 		return err
-	}
-	select {
-	case <-ctx.Done():
-		s.logger.Info("context already cancelled")
-	default:
 	}
 	if err := s.waitListen.Wait(ctx); err != nil {
 		return err
