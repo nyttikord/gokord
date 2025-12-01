@@ -62,10 +62,10 @@ type Session struct {
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
-	// Stores when the LastHeartbeatAck was received (UTC).
-	LastHeartbeatAck time.Time
-	// Stores the LastHeartbeatSent (UTC).
-	LastHeartbeatSent time.Time
+	// Stores when the lastHeartbeatAck was received (UTC).
+	lastHeartbeatAck atomic.Int64
+	// Stores the lastHeartbeatSent (UTC).
+	lastHeartbeatSent atomic.Int64
 	// heartbeatInterval is the interval between two heartbeats
 	heartbeatInterval time.Duration
 
@@ -221,4 +221,16 @@ func (s *Session) SessionState() state.Bot {
 // SetStateParams sets the state.Params for the state.State
 func (s *Session) SetStateParams(params state.Params) {
 	s.sessionState.params = params
+}
+
+// LastHeartbeatAck returns the time.Time of the last heartbeat ack received.
+func (s *Session) LastHeartbeatAck() time.Time {
+	last := s.lastHeartbeatAck.Load()
+	return time.Unix(last/1000, (last%1000)*int64(time.Millisecond))
+}
+
+// LastHeartbeatAck returns the time.Time of the last heartbeat sent.
+func (s *Session) LastHeartbeatSent() time.Time {
+	last := s.lastHeartbeatSent.Load()
+	return time.Unix(last/1000, (last%1000)*int64(time.Millisecond))
 }

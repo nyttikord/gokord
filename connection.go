@@ -85,7 +85,7 @@ type heartbeatOp struct {
 
 func (s *Session) handleHello(e *discord.Event) error {
 	s.logger.Debug("Op 10 (Hello) received")
-	s.LastHeartbeatAck = time.Now().UTC()
+	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 	var h helloOp
 	if err := json.Unmarshal(e.RawData, &h); err != nil {
 		return errors.Join(err, fmt.Errorf("cannot unmarshal HelloOp"))
@@ -219,7 +219,7 @@ const FailedHeartbeatAcks = 5
 
 // HeartbeatLatency returns the latency between heartbeat acknowledgement and heartbeat send.
 func (s *Session) HeartbeatLatency() time.Duration {
-	return s.LastHeartbeatAck.Sub(s.LastHeartbeatSent)
+	return s.LastHeartbeatAck().Sub(s.LastHeartbeatSent())
 }
 
 // heartbeat sends regular heartbeats to Discord so it knows the client is still connected.
@@ -242,10 +242,7 @@ func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 	for err == nil && time.Now().UTC().Sub(last) <= s.heartbeatInterval*FailedHeartbeatAcks {
 		select {
 		case <-ticker.C:
-			s.mu.RLock()
-			last = s.LastHeartbeatAck
-			s.mu.RUnlock()
-
+			last = s.LastHeartbeatAck()
 			err = s.heartbeat(ctx)
 		case <-ctx.Done():
 			return last, nil
@@ -259,7 +256,7 @@ func (s *Session) heartbeats(ctx context.Context) (time.Time, error) {
 
 func (s *Session) heartbeat(ctx context.Context) error {
 	seq := s.sequence.Load()
-	s.LastHeartbeatSent = time.Now().UTC()
+	s.lastHeartbeatSent.Store(time.Now().UnixMilli())
 	s.logger.Debug("sending websocket heartbeat", "sequence", seq)
 	return s.GatewayWriteStruct(ctx, heartbeatOp{discord.GatewayOpCodeHeartbeat, seq})
 }

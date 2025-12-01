@@ -70,16 +70,16 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 			ShouldRetryOnRateLimit:             true,
 			MaxRestRetries:                     3,
 		},
-		LastHeartbeatAck: time.Now().UTC(),
-		logger:           logger,
-		mu:               &mutex{logger: logger.With("module", "mutex")},
-		waitListen:       &syncListener{logger: logger.With("module", "ws")},
-		UserStorage:      &state.MapStorage[user.Member]{},
-		ChannelStorage:   &state.MapStorage[channel.Channel]{},
-		GuildStorage:     &state.MapStorage[guild.Guild]{},
+		logger:         logger,
+		mu:             &mutex{logger: logger.With("module", "mutex")},
+		waitListen:     &syncListener{logger: logger.With("module", "ws")},
+		UserStorage:    &state.MapStorage[user.Member]{},
+		ChannelStorage: &state.MapStorage[channel.Channel]{},
+		GuildStorage:   &state.MapStorage[guild.Guild]{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface)
+	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
 	s.REST = &RESTSession{
 		identify:     &s.Identify,

@@ -132,9 +132,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 		s.sequence.Store(0)
 		return &eventHandlingResult{openNewSession: true}, nil
 	case discord.GatewayOpCodeHeartbeatAck:
-		s.mu.Lock()
-		s.LastHeartbeatAck = time.Now().UTC()
-		s.mu.Unlock()
+		s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 		s.logger.Debug("got heartbeat ACK", "ping", s.HeartbeatLatency())
 		return nil, nil
 	}
