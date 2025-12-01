@@ -23,7 +23,7 @@ func (s *Session) setupListen(ctx context.Context) {
 	wsRead := make(chan readResult)
 	s.wsRead = wsRead
 	go func() {
-		s.logger.Info("listening started")
+		s.logger.Debug("listening started")
 		err := s.listen(ctx2, wsRead)
 		s.wsRead = nil
 		select {

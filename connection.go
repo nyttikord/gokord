@@ -159,7 +159,8 @@ func (s *Session) connect(ctx context.Context) error {
 
 // TODO: rename this method
 func (s *Session) finishConnection(ctx context.Context) {
-	s.logger.Debug("connected to Discord, emitting connect event")
+	s.logger.Info("connected to Discord")
+	s.logger.Debug("emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
 	var ctx2 context.Context
