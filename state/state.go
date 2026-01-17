@@ -2,7 +2,6 @@ package state
 
 import (
 	"errors"
-	"sync"
 )
 
 // ErrStateNotFound is returned when the state cache requested is not found
@@ -10,9 +9,6 @@ var ErrStateNotFound = errors.New("state cache not found")
 
 // State represents the cache to prevent using too much requests.
 type State interface {
-	// GetMutex returns sync.RWMutex associated with the State.
-	GetMutex() *sync.RWMutex
-
 	// MemberState returns the state of user.Member.
 	MemberState() Member
 	// ChannelState returns the state for channel package.

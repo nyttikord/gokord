@@ -2,6 +2,7 @@ package guildapi
 
 import (
 	"slices"
+	"sync"
 
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
@@ -10,6 +11,7 @@ import (
 
 type State struct {
 	state.State
+	mu      sync.RWMutex
 	storage state.Storage
 	guilds  []string
 }
@@ -51,12 +53,11 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 		}
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	// Update the channels to point to the right gd
 	for _, c := range g.Channels {
-		// no need to unlock here
 		if err := s.ChannelState().AppendGuildChannel(c); err != nil {
 			return err
 		}
@@ -64,7 +65,6 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 
 	// Add all the threads to the state in case of thread sync list.
 	for _, t := range g.Threads {
-		// no need to unlock here
 		if err := s.ChannelState().AppendGuildChannel(t); err != nil {
 			return err
 		}
@@ -80,8 +80,8 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 
 // GuildRemove removes a guild.Guild from current State.
 func (s *State) GuildRemove(guild *guild.Guild) error {
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	err := s.storage.Delete(state.KeyGuild(guild))
 	if err != nil {
@@ -98,8 +98,8 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 //	_, err := s.GuildState().Guild(guildID)
 //	isInGuild := !errors.Is(err, state.ErrStateNotFound)
 func (s *State) Guild(guildID string) (*guild.Guild, error) {
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	gRaw, err := s.storage.Get(state.KeyGuildRaw(guildID))
 	if err != nil {

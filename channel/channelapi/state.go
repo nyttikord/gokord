@@ -3,6 +3,7 @@ package channelapi
 import (
 	"errors"
 	"slices"
+	"sync"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
@@ -12,6 +13,7 @@ import (
 
 type State struct {
 	state.State
+	mu              sync.RWMutex
 	storage         state.Storage
 	privateChannels []*channel.Channel
 }
@@ -86,8 +88,8 @@ func (s *State) ChannelAdd(chann *channel.Channel) error {
 		}
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	return s.AppendGuildChannel(chann)
 }
@@ -100,8 +102,8 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 	}
 
 	if chann.Type == types.ChannelDM || chann.Type == types.ChannelGroupDM {
-		s.GetMutex().Lock()
-		defer s.GetMutex().Unlock()
+		s.mu.Lock()
+		defer s.mu.Unlock()
 
 		s.privateChannels = slices.DeleteFunc(s.privateChannels, func(c *channel.Channel) bool { return c.ID == chann.ID })
 		return s.storage.Delete(state.KeyChannel(chann))
@@ -126,16 +128,16 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	return s.storage.Delete(state.KeyChannel(chann))
 }
 
 // Channel returns the channel.Channel.
 func (s *State) Channel(channelID string) (*channel.Channel, error) {
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	cRaw, err := s.storage.Get(state.KeyChannelRaw(channelID))
 	if err != nil {
@@ -250,8 +252,8 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	ths := make([]*channel.Channel, 0, len(g.Threads))
 	messages := make(map[string][]*channel.Message, len(g.Threads))
@@ -312,8 +314,6 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 		}
 		return err
 	}
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
 
 	for _, removedMember := range removedMembers {
 		thread.Members = slices.DeleteFunc(thread.Members, func(m *channel.ThreadMember) bool { return m.ID == removedMember })
@@ -322,17 +322,13 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 	for _, addedMember := range addedMembers {
 		thread.Members = append(thread.Members, addedMember.ThreadMember)
 		if addedMember.Member != nil {
-			s.GetMutex().Unlock() // unlock to add the member
 			err = s.MemberState().MemberAdd(addedMember.Member)
-			s.GetMutex().Lock()
 			if err != nil {
 				return err
 			}
 		}
 		if addedMember.Presence != nil {
-			s.GetMutex().Unlock() // unlock to add the presence
 			err = s.MemberState().PresenceAdd(guildID, addedMember.Presence)
-			s.GetMutex().Lock()
 			if err != nil {
 				return err
 			}

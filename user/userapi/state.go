@@ -3,6 +3,7 @@ package userapi
 import (
 	"errors"
 	"slices"
+	"sync"
 
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -12,6 +13,7 @@ import (
 
 type State struct {
 	state.State
+	mu        sync.RWMutex
 	storage   state.Storage
 	memberMap map[string]map[string]*user.Member
 }
@@ -42,8 +44,8 @@ func (s *State) MemberAdd(member *user.Member) error {
 		}
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	id := slices.IndexFunc(g.Members, func(m *user.Member) bool { return m.User.ID == member.User.ID })
 	if id == -1 {
@@ -73,8 +75,8 @@ func (s *State) MemberRemove(member *user.Member) error {
 		return err
 	}
 
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	g.Members = slices.DeleteFunc(g.Members, func(m *user.Member) bool { return m.User.ID == member.User.ID })
 	err = s.GuildState().GuildAdd(g)
@@ -87,8 +89,8 @@ func (s *State) MemberRemove(member *user.Member) error {
 
 // Member returns the user.Member from a guild.Guild.
 func (s *State) Member(guildID, userID string) (*user.Member, error) {
-	s.GetMutex().RLock()
-	defer s.GetMutex().RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	mRaw, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
 	if err != nil {
@@ -141,10 +143,8 @@ func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	} else {
 		g.Presences = append(g.Presences, presence)
 	}
-	s.GetMutex().Lock()
-	defer s.GetMutex().Unlock()
 
-	return nil
+	return s.GuildState().GuildAdd(g)
 }
 
 // PresenceRemove removes a status.Presence from the current State.
@@ -161,12 +161,7 @@ func (s *State) PresenceRemove(guildID string, presence *status.Presence) error 
 
 	g.Presences = slices.DeleteFunc(g.Presences, func(p *status.Presence) bool { return p.User.ID == presence.User.ID })
 
-	err = s.GuildState().GuildAdd(g)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.GuildState().GuildAdd(g)
 }
 
 // Presence returns the status.Presence from a guild.Guild.
