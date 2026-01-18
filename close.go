@@ -146,7 +146,7 @@ func (s *Session) forceReconnect(ctx context.Context, forceClose bool) {
 		// if we can't close, we must crash the app
 		panic(err)
 	}
-	s.Logger().Warn("opening a new session")
+	s.logger.Warn("opening a new session")
 	err = s.Open(ctx)
 	if err != nil {
 		err = errors.Join(err, fmt.Errorf("failed to force reconnect"))
