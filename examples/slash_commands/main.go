@@ -308,17 +308,17 @@ var (
 			}
 
 			if opt, ok := optionMap["channel-option"]; ok {
-				margs = append(margs, opt.ChannelValue(s.ChannelAPI(), s.ChannelAPI().State).ID)
+				margs = append(margs, opt.ChannelValue(ctx, s.ChannelAPI().State).ID)
 				msgformat += "> channel-option: <#%s>\n"
 			}
 
 			if opt, ok := optionMap["user-option"]; ok {
-				margs = append(margs, opt.UserValue(s.UserAPI()).ID)
+				margs = append(margs, opt.UserValue(ctx).ID)
 				msgformat += "> user-option: <@%s>\n"
 			}
 
 			if opt, ok := optionMap["role-option"]; ok {
-				margs = append(margs, opt.RoleValue("", s.GuildAPI(), s.GuildAPI().State).ID)
+				margs = append(margs, opt.RoleValue(ctx, "", s.GuildAPI().State).ID)
 				msgformat += "> role-option: <@&%s>\n"
 			}
 
