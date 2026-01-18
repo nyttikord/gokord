@@ -3,11 +3,8 @@ package gokord
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"testing"
-
-	"github.com/nyttikord/gokord/discord"
 )
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
@@ -20,7 +17,9 @@ func TestChannelMessageSend(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelAPI().MessageSend(envChannel, "Running REST API Tests!")
+	ctx := context.Background()
+
+	_, err := dg.ChannelAPI().MessageSend(ctx, envChannel, "Running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -29,7 +28,6 @@ func TestChannelMessageSend(t *testing.T) {
 /*
 // removed for now, only works on BOT accounts now
 func TestUserAvatar(t *testing.T) {
-
 	if dg == nil {
 		t.Skip("Cannot TestUserAvatar, dg not set.")
 	}
@@ -92,7 +90,9 @@ func TestUserChannelCreate(t *testing.T) {
 		t.Skip("Skipped, DG_ADMIN not set.")
 	}
 
-	_, err := dg.UserAPI().ChannelCreate(envAdmin)
+	ctx := context.Background()
+
+	_, err := dg.UserAPI().ChannelCreate(ctx, envAdmin)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -105,7 +105,9 @@ func TestUserGuilds(t *testing.T) {
 		t.Skip("Cannot TestUserGuilds, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().UserGuilds(10, "", "", false)
+	ctx := context.Background()
+
+	_, err := dg.GuildAPI().UserGuilds(ctx, 10, "", "", false)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -115,7 +117,7 @@ func TestGateway(t *testing.T) {
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
-	_, err := dg.Gateway()
+	_, err := dg.Gateway(context.Background())
 	if err != nil {
 		t.Errorf("Gateway() returned error: %+v", err)
 	}
@@ -125,7 +127,7 @@ func TestGatewayBot(t *testing.T) {
 	if dgBot == nil {
 		t.Skip("Skipping, dgBot not set.")
 	}
-	_, err := dgBot.GatewayBot()
+	_, err := dgBot.GatewayBot(context.Background())
 	if err != nil {
 		t.Errorf("GatewayBot() returned error: %+v", err)
 	}
@@ -136,7 +138,7 @@ func TestVoiceRegions(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.VoiceAPI().VoiceRegions()
+	_, err := dg.GuildAPI().VoiceRegions(context.Background())
 	if err != nil {
 		t.Errorf("VoiceRegions() returned error: %+v", err)
 	}
@@ -150,7 +152,7 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().Roles(envGuild)
+	_, err := dg.GuildAPI().Roles(context.Background(), envGuild)
 	if err != nil {
 		t.Errorf("GuildRoles(envGuild) returned error: %+v", err)
 	}
@@ -166,7 +168,7 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	err := dg.GuildAPI().MemberNickname(envGuild, "@me/nick", "B1nzyRocks")
+	err := dg.GuildAPI().MemberNickname(context.Background(), envGuild, "@me/nick", "B1nzyRocks")
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -182,7 +184,7 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelAPI().MessageSend(envChannel, "All done running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(context.Background(), envChannel, "All done running REST API Tests!")
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -198,7 +200,7 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().PruneCount(envGuild, 1)
+	_, err := dg.GuildAPI().PruneCount(context.Background(), envGuild, 1)
 	if err != nil {
 		t.Errorf("PruneCount returned error: %+v", err)
 	}
@@ -227,34 +229,6 @@ func Test_unmarshal(t *testing.T) {
 	err := unmarshal([]byte{}, &struct{}{})
 	if !errors.Is(err, ErrJSONUnmarshal) {
 		t.Errorf("Unexpected error type: %T", err)
-	}
-}
-
-func TestWithContext(t *testing.T) {
-	// Set up a test context.
-	type key struct{}
-	ctx := context.WithValue(context.Background(), key{}, "value")
-
-	// Set up a test client.
-	session := NewWithLogLevel("", slog.LevelDebug)
-
-	testErr := errors.New("test")
-
-	// Intercept the request to assert the context.
-	session.REST.Client.Transport = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-		val, _ := r.Context().Value(key{}).(string)
-		if val != "value" {
-			t.Errorf("missing value in context (got %q, wanted %q)", val, "value")
-		}
-		return nil, testErr
-	})
-
-	// Run any client method using WithContext.
-	_, err := session.UserAPI().User("", discord.WithContext(ctx))
-
-	// Verify that the assertion code was actually run.
-	if !errors.Is(err, testErr) {
-		t.Errorf("unexpected error %v returned from client", err)
 	}
 }
 

@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -8,8 +9,8 @@ import (
 )
 
 // Template returns a guild.Template for the given code.
-func (r Requester) Template(code string, options ...discord.RequestOption) (*guild.Template, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildTemplate(code), nil, options...)
+func (r Requester) Template(ctx context.Context, code string, options ...discord.RequestOption) (*guild.Template, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildTemplate(code), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -23,13 +24,13 @@ func (r Requester) Template(code string, options ...discord.RequestOption) (*gui
 // code is the Code of the guild.Template.
 // name is the name of the guild.Guild (2-100 characters).
 // icon is the base64 encoded 128x128 image for the guild.Guild icon.
-func (r Requester) CreateWithTemplate(templateCode, name, icon string, options ...discord.RequestOption) (*guild.Guild, error) {
+func (r Requester) CreateWithTemplate(ctx context.Context, templateCode, name, icon string, options ...discord.RequestOption) (*guild.Guild, error) {
 	data := struct {
 		Name string `json:"name"`
 		Icon string `json:"icon"`
 	}{name, icon}
 
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildTemplate(templateCode), data, options...)
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildTemplate(templateCode), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +40,8 @@ func (r Requester) CreateWithTemplate(templateCode, name, icon string, options .
 }
 
 // Templates returns every guild.Template of the given guild.Guild.
-func (r Requester) Templates(guildID string, options ...discord.RequestOption) ([]*guild.Template, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildTemplates(guildID), nil, options...)
+func (r Requester) Templates(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*guild.Template, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildTemplates(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,8 @@ func (r Requester) Templates(guildID string, options ...discord.RequestOption) (
 }
 
 // TemplateCreate creates a guild.Template for the guild.Guild.
-func (r Requester) TemplateCreate(guildID string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildTemplates(guildID), data, options...)
+func (r Requester) TemplateCreate(ctx context.Context, guildID string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildTemplates(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +64,9 @@ func (r Requester) TemplateCreate(guildID string, data *guild.TemplateParams, op
 // TemplateSync syncs the guild.Template to the guild.Guild's current state
 //
 // code is the code of the guild.Template.
-func (r Requester) TemplateSync(guildID, code string, options ...discord.RequestOption) error {
+func (r Requester) TemplateSync(ctx context.Context, guildID, code string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPut,
 		discord.EndpointGuildTemplateSync(guildID, code),
 		nil,
@@ -77,8 +79,9 @@ func (r Requester) TemplateSync(guildID, code string, options ...discord.Request
 // TemplateEdit modifies the guild.Template's metadata of the given guild.Guild.
 //
 // code is the code of the guild.Template.
-func (r Requester) TemplateEdit(guildID, code string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
+func (r Requester) TemplateEdit(ctx context.Context, guildID, code string, data *guild.TemplateParams, options ...discord.RequestOption) (*guild.Template, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointGuildTemplateSync(guildID, code),
 		data,
@@ -96,8 +99,9 @@ func (r Requester) TemplateEdit(guildID, code string, data *guild.TemplateParams
 // TemplateDelete deletes the guild.Template of the given guild.Guild.
 //
 // code is the code of the guild.Template.
-func (r Requester) TemplateDelete(guildID, templateCode string, options ...discord.RequestOption) error {
+func (r Requester) TemplateDelete(ctx context.Context, guildID, templateCode string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointGuildTemplateSync(guildID, templateCode),
 		nil,

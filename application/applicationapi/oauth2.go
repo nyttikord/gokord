@@ -2,6 +2,7 @@
 package applicationapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/application"
@@ -15,8 +16,9 @@ type Requester struct {
 }
 
 // Application returns an application.Application.
-func (r Requester) Application(appID string, options ...discord.RequestOption) (*application.Application, error) {
+func (r Requester) Application(ctx context.Context, appID string, options ...discord.RequestOption) (*application.Application, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointOAuth2Application(appID),
 		nil,
@@ -32,8 +34,8 @@ func (r Requester) Application(appID string, options ...discord.RequestOption) (
 }
 
 // Applications returns all application.Application for the authenticated user.Application.
-func (r Requester) Applications(options ...discord.RequestOption) ([]*application.Application, error) {
-	body, err := r.Request("GET", discord.EndpointOAuth2Applications, nil, options...)
+func (r Requester) Applications(ctx context.Context, options ...discord.RequestOption) ([]*application.Application, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointOAuth2Applications, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +47,13 @@ func (r Requester) Applications(options ...discord.RequestOption) ([]*applicatio
 // ApplicationCreate creates a new application.Application.
 //
 // uris are the redirect URIs (not required).
-func (r Requester) ApplicationCreate(ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+func (r Requester) ApplicationCreate(ctx context.Context, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
-	body, err := r.Request(http.MethodPost, discord.EndpointOAuth2Applications, data, options...)
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointOAuth2Applications, data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +63,14 @@ func (r Requester) ApplicationCreate(ap *application.Application, options ...dis
 }
 
 // ApplicationUpdate updates an existing application.Application.
-func (r Requester) ApplicationUpdate(appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
+func (r Requester) ApplicationUpdate(ctx context.Context, appID string, ap *application.Application, options ...discord.RequestOption) (*application.Application, error) {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}{ap.Name, ap.Description}
 
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPut,
 		discord.EndpointOAuth2Application(appID),
 		data,
@@ -83,8 +86,9 @@ func (r Requester) ApplicationUpdate(appID string, ap *application.Application, 
 }
 
 // ApplicationDelete deletes an existing application.Application.
-func (r Requester) ApplicationDelete(appID string, options ...discord.RequestOption) error {
+func (r Requester) ApplicationDelete(ctx context.Context, appID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointOAuth2Application(appID),
 		nil,
@@ -95,8 +99,9 @@ func (r Requester) ApplicationDelete(appID string, options ...discord.RequestOpt
 }
 
 // Assets returns application.Asset.
-func (r Requester) Assets(appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
+func (r Requester) Assets(ctx context.Context, appID string, options ...discord.RequestOption) ([]*application.Asset, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointOAuth2ApplicationAssets(appID),
 		nil,
@@ -114,8 +119,9 @@ func (r Requester) Assets(appID string, options ...discord.RequestOption) ([]*ap
 // BotCreate creates an application.Application Bot Account.
 //
 // NOTE: func name may change, if I can think up something better.
-func (r Requester) BotCreate(appID string, options ...discord.RequestOption) (*user.User, error) {
+func (r Requester) BotCreate(ctx context.Context, appID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPost,
 		discord.EndpointOAuth2ApplicationsBot(appID),
 		nil,

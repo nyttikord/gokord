@@ -1,6 +1,7 @@
 package channelapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/channel"
@@ -10,8 +11,8 @@ import (
 
 // PollAnswerVoters returns user.User who voted for a particular channel.PollAnswer in a channel.Poll on the given
 // channel.Message.
-func (s Requester) PollAnswerVoters(channelID, messageID string, answerID int, options ...discord.RequestOption) ([]*user.User, error) {
-	body, err := s.Request(http.MethodGet, discord.EndpointPollAnswerVoters(channelID, messageID, answerID), nil, options...)
+func (s Requester) PollAnswerVoters(ctx context.Context, channelID, messageID string, answerID int, options ...discord.RequestOption) ([]*user.User, error) {
+	body, err := s.Request(ctx, http.MethodGet, discord.EndpointPollAnswerVoters(channelID, messageID, answerID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +29,8 @@ func (s Requester) PollAnswerVoters(channelID, messageID string, answerID int, o
 }
 
 // PollExpire expires channel.Poll on the given channel.Message.
-func (s Requester) PollExpire(channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
-	body, err := s.Request(http.MethodPost, discord.EndpointPollExpire(channelID, messageID), nil, options...)
+func (s Requester) PollExpire(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
+	body, err := s.Request(ctx, http.MethodPost, discord.EndpointPollExpire(channelID, messageID), nil, options...)
 	if err != nil {
 		return nil, err
 	}

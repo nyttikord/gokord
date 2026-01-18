@@ -107,11 +107,11 @@ func (s *RESTSession) Unmarshal(bytes []byte, i any) error {
 	return unmarshal(bytes, i)
 }
 
-func (s *RESTSession) Request(method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
-	return s.RequestWithBucketID(method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
+func (s *RESTSession) Request(ctx context.Context, method, urlStr string, data any, options ...discord.RequestOption) ([]byte, error) {
+	return s.RequestWithBucketID(ctx, method, urlStr, data, strings.SplitN(urlStr, "?", 2)[0], options...)
 }
 
-func (s *RESTSession) RequestWithBucketID(method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestWithBucketID(ctx context.Context, method, urlStr string, data any, bucketID string, options ...discord.RequestOption) ([]byte, error) {
 	var body []byte
 	if data != nil {
 		var err error
@@ -120,17 +120,17 @@ func (s *RESTSession) RequestWithBucketID(method, urlStr string, data any, bucke
 			return nil, err
 		}
 	}
-	return s.RequestRaw(method, urlStr, "application/json", body, bucketID, 0, options...)
+	return s.RequestRaw(ctx, method, urlStr, "application/json", body, bucketID, 0, options...)
 }
 
-func (s *RESTSession) RequestRaw(method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestRaw(ctx context.Context, method, urlStr, contentType string, b []byte, bucketID string, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	if bucketID == "" {
 		bucketID = strings.SplitN(urlStr, "?", 2)[0]
 	}
-	return s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
+	return s.RequestWithLockedBucket(ctx, method, urlStr, contentType, b, s.RateLimiter.LockBucket(bucketID), sequence, options...)
 }
 
-func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
+func (s *RESTSession) RequestWithLockedBucket(ctx context.Context, method, urlStr, contentType string, b []byte, bucket *discord.Bucket, sequence int, options ...discord.RequestOption) ([]byte, error) {
 	s.logger.Debug(fmt.Sprintf("%s :: %s", method, urlStr))
 	s.logger.Debug("PAYLOAD", "content", string(b))
 
@@ -142,6 +142,7 @@ func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string
 		}
 		return nil, err
 	}
+	req.WithContext(ctx)
 
 	// Not used on initial login..
 	// TODO: Verify if a login, otherwise complain about no-token
@@ -201,7 +202,7 @@ func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string
 		// Retry sending request if possible
 		if sequence < cfg.MaxRestRetries {
 			s.logger.Warn("failed, retrying...", "url", urlStr, "status", resp.Status)
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence+1, options...)
+			response, err = s.RequestWithLockedBucket(ctx, method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence+1, options...)
 		} else {
 			err = fmt.Errorf("exceeded max HTTP retries %s, %s", resp.Status, response)
 		}
@@ -222,7 +223,7 @@ func (s *RESTSession) RequestWithLockedBucket(method, urlStr, contentType string
 			// we can make the above smarter
 			// this method can cause longer delays than required
 
-			response, err = s.RequestWithLockedBucket(method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence, options...)
+			response, err = s.RequestWithLockedBucket(ctx, method, urlStr, contentType, b, s.RateLimiter.LockBucketObject(bucket), sequence, options...)
 		} else {
 			err = &RateLimitError{&event.RateLimit{TooManyRequests: &rl, URL: urlStr}}
 		}

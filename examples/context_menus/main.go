@@ -73,8 +73,8 @@ var (
 		},
 	}
 	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"rickroll-em": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"rickroll-em": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Operation rickroll has begun",
@@ -86,10 +86,11 @@ var (
 			}
 
 			ch, err := s.UserAPI().ChannelCreate(
+				ctx,
 				i.CommandData().TargetID,
 			)
 			if err != nil {
-				_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+				_, err = s.InteractionAPI().FollowupMessageCreate(ctx, i.Interaction, true, &channel.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
 					Flags:   channel.MessageFlagsEphemeral,
 				})
@@ -98,6 +99,7 @@ var (
 				}
 			}
 			_, err = s.ChannelAPI().MessageSend(
+				ctx,
 				ch.ID,
 				fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
 			)
@@ -105,8 +107,8 @@ var (
 				panic(err)
 			}
 		},
-		"google-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"google-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: searchLink(
@@ -119,8 +121,8 @@ var (
 				panic(err)
 			}
 		},
-		"stackoverflow-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"stackoverflow-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: searchLink(
@@ -133,8 +135,8 @@ var (
 				panic(err)
 			}
 		},
-		"godoc-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"godoc-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: searchLink(
@@ -147,8 +149,8 @@ var (
 				panic(err)
 			}
 		},
-		"discordjs-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"discordjs-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: searchLink(
@@ -161,8 +163,8 @@ var (
 				panic(err)
 			}
 		},
-		"discordpy-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		"discordpy-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: searchLink(
@@ -192,7 +194,7 @@ func main() {
 	cmdIDs := make(map[string]string, len(commands))
 
 	for _, cmd := range commands {
-		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd)
+		rcmd, err := s.InteractionAPI().CommandCreate(context.Background(), *AppID, *GuildID, &cmd)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -217,7 +219,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id)
+		err := s.InteractionAPI().CommandDelete(context.Background(), *AppID, *GuildID, id)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

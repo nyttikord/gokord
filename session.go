@@ -167,7 +167,6 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 		s.guildAPI = &guildapi.Requester{
 			RESTRequester: s.REST,
 			WSRequester:   s,
-			VoiceAPI:      s.VoiceAPI,
 			State:         guildapi.NewState(s.sessionState, s.GuildStorage),
 		}
 	}

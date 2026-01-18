@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -8,8 +9,8 @@ import (
 )
 
 // AutoModerationRules returns a list of guild.AutoModerationRule in the given guild.Guild.
-func (r Requester) AutoModerationRules(guildID string, options ...discord.RequestOption) ([]*guild.AutoModerationRule, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID), nil, options...)
+func (r Requester) AutoModerationRules(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*guild.AutoModerationRule, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -19,8 +20,8 @@ func (r Requester) AutoModerationRules(guildID string, options ...discord.Reques
 }
 
 // AutoModerationRule returns a guild.AutoModerationRule.
-func (r Requester) AutoModerationRule(guildID, ruleID string, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildAutoModerationRule(guildID, ruleID), nil, options...)
+func (r Requester) AutoModerationRule(ctx context.Context, guildID, ruleID string, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildAutoModerationRule(guildID, ruleID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +31,8 @@ func (r Requester) AutoModerationRule(guildID, ruleID string, options ...discord
 }
 
 // AutoModerationRuleCreate creates a guild.AutoModerationRule and returns it.
-func (r Requester) AutoModerationRuleCreate(guildID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildAutoModerationRules(guildID), rule, options...)
+func (r Requester) AutoModerationRuleCreate(ctx context.Context, guildID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildAutoModerationRules(guildID), rule, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +42,8 @@ func (r Requester) AutoModerationRuleCreate(guildID string, rule *guild.AutoMode
 }
 
 // AutoModerationRuleEdit edits and returns the updated guild.AutoModerationRule.
-func (r Requester) AutoModerationRuleEdit(guildID, ruleID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
-	body, err := r.Request(http.MethodPatch, discord.EndpointGuildAutoModerationRule(guildID, ruleID), rule, options...)
+func (r Requester) AutoModerationRuleEdit(ctx context.Context, guildID, ruleID string, rule *guild.AutoModerationRule, options ...discord.RequestOption) (*guild.AutoModerationRule, error) {
+	body, err := r.Request(ctx, http.MethodPatch, discord.EndpointGuildAutoModerationRule(guildID, ruleID), rule, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func (r Requester) AutoModerationRuleEdit(guildID, ruleID string, rule *guild.Au
 }
 
 // AutoModerationRuleDelete deletes a guild.AutoModerationRule.
-func (r Requester) AutoModerationRuleDelete(guildID, ruleID string, options ...discord.RequestOption) error {
-	_, err := r.Request(http.MethodDelete, discord.EndpointGuildAutoModerationRule(guildID, ruleID), nil, options...)
+func (r Requester) AutoModerationRuleDelete(ctx context.Context, guildID, ruleID string, options ...discord.RequestOption) error {
+	_, err := r.Request(ctx, http.MethodDelete, discord.EndpointGuildAutoModerationRule(guildID, ruleID), nil, options...)
 	return err
 }

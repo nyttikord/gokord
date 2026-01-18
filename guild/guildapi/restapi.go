@@ -2,6 +2,7 @@ package guildapi
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"image"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user/invite"
-	"github.com/nyttikord/gokord/voice"
 )
 
 var (
@@ -24,8 +24,7 @@ var (
 type Requester struct {
 	discord.RESTRequester
 	discord.WSRequester
-	State    *State
-	VoiceAPI func() *voice.Requester
+	State *State
 }
 
 // UserGuilds returns an array of guild.UserGuild structures for all guilds.
@@ -34,7 +33,7 @@ type Requester struct {
 // If beforeID is set, it will return all guilds before this ID.
 // If afterID is set, it will return all guilds after this ID.
 // Set withCounts to true if you want to include approximate member and presence counts.
-func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bool, options ...discord.RequestOption) ([]*guild.UserGuild, error) {
+func (r Requester) UserGuilds(ctx context.Context, limit int, beforeID, afterID string, withCounts bool, options ...discord.RequestOption) ([]*guild.UserGuild, error) {
 	v := url.Values{}
 
 	if limit > 0 {
@@ -56,7 +55,7 @@ func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bo
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, uri, nil, discord.EndpointUserGuilds(""), options...)
+	body, err := r.RequestWithBucketID(ctx, http.MethodGet, uri, nil, discord.EndpointUserGuilds(""), options...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +65,8 @@ func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bo
 }
 
 // Invites returns the list of invite.Invite for the given guild.Guild.
-func (r Requester) Invites(guildID string, options ...discord.RequestOption) ([]*invite.Invite, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildInvites(guildID), nil, options...)
+func (r Requester) Invites(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*invite.Invite, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildInvites(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +76,8 @@ func (r Requester) Invites(guildID string, options ...discord.RequestOption) ([]
 }
 
 // Icon returns an image.Image of a guild.Guild icon.
-func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Guild(guildID, options...)
+func (r Requester) Icon(ctx context.Context, guildID string, options ...discord.RequestOption) (image.Image, error) {
+	g, err := r.Guild(ctx, guildID, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +87,7 @@ func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image
 	}
 
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointGuildIcon(guildID, g.Icon),
 		nil,
@@ -103,8 +103,8 @@ func (r Requester) Icon(guildID string, options ...discord.RequestOption) (image
 }
 
 // Splash returns an image.Image of a guild.Guild splash image.
-func (r Requester) Splash(guildID string, options ...discord.RequestOption) (image.Image, error) {
-	g, err := r.Guild(guildID, options...)
+func (r Requester) Splash(ctx context.Context, guildID string, options ...discord.RequestOption) (image.Image, error) {
+	g, err := r.Guild(ctx, guildID, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +114,7 @@ func (r Requester) Splash(guildID string, options ...discord.RequestOption) (ima
 	}
 
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointGuildSplash(guildID, g.Splash),
 		nil,
@@ -129,8 +130,8 @@ func (r Requester) Splash(guildID string, options ...discord.RequestOption) (ima
 }
 
 // Embed returns the guild.Embed for a guild.Guild.
-func (r Requester) Embed(guildID string, options ...discord.RequestOption) (*guild.Embed, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmbed(guildID), nil, options...)
+func (r Requester) Embed(ctx context.Context, guildID string, options ...discord.RequestOption) (*guild.Embed, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildEmbed(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +141,8 @@ func (r Requester) Embed(guildID string, options ...discord.RequestOption) (*gui
 }
 
 // EmbedEdit edits the guild.Embed of a guild.Guild.
-func (r Requester) EmbedEdit(guildID string, data *guild.Embed, options ...discord.RequestOption) error {
-	_, err := r.Request(http.MethodPatch, discord.EndpointGuildEmbed(guildID), data, options...)
+func (r Requester) EmbedEdit(ctx context.Context, guildID string, data *guild.Embed, options ...discord.RequestOption) error {
+	_, err := r.Request(ctx, http.MethodPatch, discord.EndpointGuildEmbed(guildID), data, options...)
 	return err
 }
 
@@ -151,7 +152,7 @@ func (r Requester) EmbedEdit(guildID string, data *guild.Embed, options ...disco
 // If provided all guild.AuditLog entries returned will be before the given beforeID.
 // If provided the guild.AuditLog will be filtered for the given actionType.
 // limit is the number of messages that can be returned (default 50, min 1, max 100).
-func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit int, options ...discord.RequestOption) (*guild.AuditLog, error) {
+func (r Requester) AuditLog(ctx context.Context, guildID, userID, beforeID string, actionType, limit int, options ...discord.RequestOption) (*guild.AuditLog, error) {
 	uri := discord.EndpointGuildAuditLogs(guildID)
 
 	v := url.Values{}
@@ -171,7 +172,7 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.Request(http.MethodGet, uri, nil, options...)
+	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}

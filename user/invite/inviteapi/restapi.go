@@ -2,6 +2,7 @@
 package inviteapi
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -15,8 +16,9 @@ type Requester struct {
 }
 
 // Invite returns the invite.Invite.
-func (r Requester) Invite(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
+func (r Requester) Invite(ctx context.Context, inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointInvite(inviteID),
 		nil,
@@ -32,8 +34,9 @@ func (r Requester) Invite(inviteID string, options ...discord.RequestOption) (*i
 }
 
 // InviteWithCounts returns the invite.Invite including approximate user.Member counts.
-func (r Requester) InviteWithCounts(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
+func (r Requester) InviteWithCounts(ctx context.Context, inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointInvite(inviteID)+"?with_counts=true",
 		nil,
@@ -53,7 +56,7 @@ func (r Requester) InviteWithCounts(inviteID string, options ...discord.RequestO
 // If specified, it includes specified guild scheduled event with guildScheduledEventID.
 // withCounts indicates whether to include approximate user.Member counts.
 // withExpiration indicates whether to include expiration time.
-func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCounts, withExpiration bool, options ...discord.RequestOption) (*invite.Invite, error) {
+func (r Requester) InviteComplex(ctx context.Context, inviteID, guildScheduledEventID string, withCounts, withExpiration bool, options ...discord.RequestOption) (*invite.Invite, error) {
 	endpoint := discord.EndpointInvite(inviteID)
 	v := url.Values{}
 	if guildScheduledEventID != "" {
@@ -70,7 +73,7 @@ func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCou
 		endpoint += "?" + v.Encode()
 	}
 
-	body, err := r.RequestWithBucketID(http.MethodGet, endpoint, nil, discord.EndpointInvite(""), options...)
+	body, err := r.RequestWithBucketID(ctx, http.MethodGet, endpoint, nil, discord.EndpointInvite(""), options...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +83,8 @@ func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCou
 }
 
 // InviteDelete deletes an existing invite.Invite.
-func (r Requester) InviteDelete(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
-	body, err := r.RequestWithBucketID(http.MethodDelete, discord.EndpointInvite(inviteID), nil, discord.EndpointInvite(""), options...)
+func (r Requester) InviteDelete(ctx context.Context, inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
+	body, err := r.RequestWithBucketID(ctx, http.MethodDelete, discord.EndpointInvite(inviteID), nil, discord.EndpointInvite(""), options...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +94,9 @@ func (r Requester) InviteDelete(inviteID string, options ...discord.RequestOptio
 }
 
 // InviteAccept accepts an invite.Invite.
-func (r Requester) InviteAccept(inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
+func (r Requester) InviteAccept(ctx context.Context, inviteID string, options ...discord.RequestOption) (*invite.Invite, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPost,
 		discord.EndpointInvite(inviteID),
 		nil,
@@ -108,8 +112,9 @@ func (r Requester) InviteAccept(inviteID string, options ...discord.RequestOptio
 }
 
 // TargetUsers returns a CSV with a single column Users containing the user.User IDs targetted by the invite.Invite.
-func (r Requester) TargetUsers(inviteID string, options ...discord.RequestOption) ([]byte, error) {
+func (r Requester) TargetUsers(ctx context.Context, inviteID string, options ...discord.RequestOption) ([]byte, error) {
 	return r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointInviteTargetUsers(inviteID),
 		nil,
@@ -120,8 +125,9 @@ func (r Requester) TargetUsers(inviteID string, options ...discord.RequestOption
 
 // TargetUsersUpdate updates the user.User allowed to see and accept this invite.Invite.
 // See invite.Invite TargetUsers.
-/*func (r Requester) TargetUsersUpdate(inviteID string, csvFile string, options ...discord.RequestOption) error {
+/*func (r Requester) TargetUsersUpdate(ctx context.Context, inviteID string, csvFile string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointInviteTargetUsers(inviteID)+"?target_users_file="+url.PathEscape(csvFile),
 		nil,
@@ -133,8 +139,9 @@ func (r Requester) TargetUsers(inviteID string, options ...discord.RequestOption
 
 // The Discord's documentation does not yet provide complete information.
 // Check https://discord.com/developers/docs/resources/invite#get-target-users-job-status for more information.
-func (r Requester) TargetUsersJobStatus(inviteID string, options ...discord.RequestOption) (*invite.TargetUsersJobStatus, error) {
+func (r Requester) TargetUsersJobStatus(ctx context.Context, inviteID string, options ...discord.RequestOption) (*invite.TargetUsersJobStatus, error) {
 	b, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointInviteTargetUsersJobStatus(inviteID),
 		nil,

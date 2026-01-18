@@ -34,7 +34,7 @@ func interactionAuthor(i *interaction.Interaction) *user.User {
 	return i.User
 }
 
-func handleEcho(_ context.Context, s bot.Session, i *event.InteractionCreate, opts optionMap) {
+func handleEcho(ctx context.Context, s bot.Session, i *event.InteractionCreate, opts optionMap) {
 	builder := new(strings.Builder)
 	if v, ok := opts["author"]; ok && v.BoolValue() {
 		author := interactionAuthor(i.Interaction)
@@ -42,7 +42,7 @@ func handleEcho(_ context.Context, s bot.Session, i *event.InteractionCreate, op
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: builder.String(),
@@ -105,7 +105,7 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := session.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands)
+	_, err := session.InteractionAPI().CommandBulkOverwrite(context.Background(), *App, *Guild, commands)
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}

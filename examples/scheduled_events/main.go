@@ -54,7 +54,7 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 	// Define the ending time (must be after starting time)
 	endingTime := startingTime.Add(30 * time.Minute)
 	// Create the event
-	scheduledEvent, err := s.GuildAPI().ScheduledEventCreate(*GuildID, &guild.ScheduledEventParams{
+	scheduledEvent, err := s.GuildAPI().ScheduledEventCreate(context.Background(), *GuildID, &guild.ScheduledEventParams{
 		Name:               "Amazing Event",
 		Description:        "This event will start in 1 hour and last 30 minutes",
 		ScheduledStartTime: &startingTime,
@@ -73,7 +73,7 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 }
 
 func transformEventToExternalEvent(s bot.Session, event *guild.ScheduledEvent) {
-	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(*GuildID, event.ID, &guild.ScheduledEventParams{
+	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(context.Background(), *GuildID, event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
 		EntityType: types.ScheduledEventEntityExternal,
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{

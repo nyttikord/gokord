@@ -3,6 +3,7 @@ package userapi
 
 import (
 	"bytes"
+	"context"
 	"image"
 	"net/http"
 
@@ -18,8 +19,9 @@ type Requester struct {
 }
 
 // User returns the user.User details of the given userID (can be @me to be the current user.User ID).
-func (s Requester) User(userID string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) User(ctx context.Context, userID string, options ...discord.RequestOption) (*user.User, error) {
 	body, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointUser(userID),
 		nil,
@@ -35,8 +37,9 @@ func (s Requester) User(userID string, options ...discord.RequestOption) (*user.
 }
 
 // AvatarDecode returns an image.Image of a user.User Avatar.
-func (s Requester) AvatarDecode(u *user.User, options ...discord.RequestOption) (image.Image, error) {
+func (s Requester) AvatarDecode(ctx context.Context, u *user.User, options ...discord.RequestOption) (image.Image, error) {
 	body, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointUserAvatar(u.ID, u.Avatar),
 		nil,
@@ -56,7 +59,7 @@ func (s Requester) AvatarDecode(u *user.User, options ...discord.RequestOption) 
 // NOTE: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
-func (s Requester) Update(username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
+func (s Requester) Update(ctx context.Context, username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
 	data := struct {
 		Username string `json:"username,omitempty"`
 		Avatar   string `json:"avatar,omitempty"`
@@ -64,6 +67,7 @@ func (s Requester) Update(username, avatar, banner string, options ...discord.Re
 	}{username, avatar, banner}
 
 	body, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointUser("@me"),
 		data,
@@ -79,8 +83,8 @@ func (s Requester) Update(username, avatar, banner string, options ...discord.Re
 }
 
 // Connections returns the current user.Connection.
-func (s Requester) Connections(options ...discord.RequestOption) ([]*user.Connection, error) {
-	response, err := s.Request(http.MethodGet, discord.EndpointUserConnections("@me"), nil, options...)
+func (s Requester) Connections(ctx context.Context, options ...discord.RequestOption) ([]*user.Connection, error) {
+	response, err := s.Request(ctx, http.MethodGet, discord.EndpointUserConnections("@me"), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +94,13 @@ func (s Requester) Connections(options ...discord.RequestOption) ([]*user.Connec
 }
 
 // ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User.
-func (s Requester) ChannelCreate(userID string, options ...discord.RequestOption) (*channel.Channel, error) {
+func (s Requester) ChannelCreate(ctx context.Context, userID string, options ...discord.RequestOption) (*channel.Channel, error) {
 	data := struct {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
 
 	body, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodPost,
 		discord.EndpointUserChannels("@me"),
 		data,
@@ -111,8 +116,8 @@ func (s Requester) ChannelCreate(userID string, options ...discord.RequestOption
 }
 
 // GuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
-func (s Requester) GuildMember(guildID string, options ...discord.RequestOption) (*user.Member, error) {
-	body, err := s.Request(http.MethodGet, discord.EndpointUserGuildMember("@me", guildID), nil, options...)
+func (s Requester) GuildMember(ctx context.Context, guildID string, options ...discord.RequestOption) (*user.Member, error) {
+	body, err := s.Request(ctx, http.MethodGet, discord.EndpointUserGuildMember("@me", guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}

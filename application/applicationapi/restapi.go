@@ -1,6 +1,7 @@
 package applicationapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/application"
@@ -9,8 +10,8 @@ import (
 )
 
 // Emojis returns all emoji.Emoji for the given application.Application
-func (r Requester) Emojis(appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmojis(appID), nil, options...)
+func (r Requester) Emojis(ctx context.Context, appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointApplicationEmojis(appID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,8 +25,8 @@ func (r Requester) Emojis(appID string, options ...discord.RequestOption) (emoji
 }
 
 // Emoji returns the emoji.Emoji for the given application.Application.
-func (r Requester) Emoji(appID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID), nil, options...)
+func (r Requester) Emoji(ctx context.Context, appID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +36,8 @@ func (r Requester) Emoji(appID, emojiID string, options ...discord.RequestOption
 }
 
 // EmojiCreate creates a new emoji.Emoji for the given application.Application.
-func (r Requester) EmojiCreate(appID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointApplicationEmojis(appID), data, options...)
+func (r Requester) EmojiCreate(ctx context.Context, appID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointApplicationEmojis(appID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +47,9 @@ func (r Requester) EmojiCreate(appID string, data *emoji.Params, options ...disc
 }
 
 // EmojiEdit modifies and returns updated emoji.Emoji for the given application.Application.
-func (r Requester) EmojiEdit(appID string, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
+func (r Requester) EmojiEdit(ctx context.Context, appID string, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointApplicationEmoji(appID, emojiID),
 		data,
@@ -63,8 +65,9 @@ func (r Requester) EmojiEdit(appID string, emojiID string, data *emoji.Params, o
 }
 
 // EmojiDelete deletes an emoji.Emoji for the given application.Application.
-func (r Requester) EmojiDelete(appID, emojiID string, options ...discord.RequestOption) error {
+func (r Requester) EmojiDelete(ctx context.Context, appID, emojiID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointApplicationEmoji(appID, emojiID),
 		nil,
@@ -75,8 +78,8 @@ func (r Requester) EmojiDelete(appID, emojiID string, options ...discord.Request
 }
 
 // RoleConnectionMetadata returns application.RoleConnectionMetadata.
-func (r Requester) RoleConnectionMetadata(appID string, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID), nil, options...)
+func (r Requester) RoleConnectionMetadata(ctx context.Context, appID string, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +89,8 @@ func (r Requester) RoleConnectionMetadata(appID string, options ...discord.Reque
 }
 
 // RoleConnectionMetadataUpdate updates and returns application.RoleConnectionMetadata.
-func (r Requester) RoleConnectionMetadataUpdate(appID string, metadata []*application.RoleConnectionMetadata, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
-	body, err := r.Request(http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID), metadata, options...)
+func (r Requester) RoleConnectionMetadataUpdate(ctx context.Context, appID string, metadata []*application.RoleConnectionMetadata, options ...discord.RequestOption) ([]*application.RoleConnectionMetadata, error) {
+	body, err := r.Request(ctx, http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID), metadata, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +100,8 @@ func (r Requester) RoleConnectionMetadataUpdate(appID string, metadata []*applic
 }
 
 // RoleConnection returns application.RoleConnection to the specified application.Application.
-func (r Requester) RoleConnection(appID string, options ...discord.RequestOption) (*application.RoleConnection, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointUserApplicationRoleConnection(appID), nil, options...)
+func (r Requester) RoleConnection(ctx context.Context, appID string, options ...discord.RequestOption) (*application.RoleConnection, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointUserApplicationRoleConnection(appID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +111,8 @@ func (r Requester) RoleConnection(appID string, options ...discord.RequestOption
 }
 
 // RoleConnectionUpdate updates and returns application.RoleConnection to the specified application.Application.
-func (r Requester) RoleConnectionUpdate(appID string, rconn *application.RoleConnection, options ...discord.RequestOption) (*application.RoleConnection, error) {
-	body, err := r.Request(http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID), rconn, options...)
+func (r Requester) RoleConnectionUpdate(ctx context.Context, appID string, rconn *application.RoleConnection, options ...discord.RequestOption) (*application.RoleConnection, error) {
+	body, err := r.Request(ctx, http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID), rconn, options...)
 	if err != nil {
 		return nil, err
 	}

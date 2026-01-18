@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -8,8 +9,8 @@ import (
 )
 
 // Emojis returns all emoji.Emoji.
-func (r Requester) Emojis(guildID string, options ...discord.RequestOption) ([]*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmojis(guildID), nil, options...)
+func (r Requester) Emojis(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*emoji.Emoji, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildEmojis(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -19,9 +20,9 @@ func (r Requester) Emojis(guildID string, options ...discord.RequestOption) ([]*
 }
 
 // Emoji returns the emoji.Emoji in the given guild.Guild.
-func (r Requester) Emoji(guildID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
+func (r Requester) Emoji(ctx context.Context, guildID, emojiID string, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	var body []byte
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildEmoji(guildID, emojiID), nil, options...)
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildEmoji(guildID, emojiID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +32,8 @@ func (r Requester) Emoji(guildID, emojiID string, options ...discord.RequestOpti
 }
 
 // EmojiCreate creates a new emoji.Emoji in the given guild.Guild.
-func (r Requester) EmojiCreate(guildID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildEmojis(guildID), data, options...)
+func (r Requester) EmojiCreate(ctx context.Context, guildID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildEmojis(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +43,9 @@ func (r Requester) EmojiCreate(guildID string, data *emoji.Params, options ...di
 }
 
 // EmojiEdit modifies and returns updated emoji.Emoji in the given guild.Guild.
-func (r Requester) EmojiEdit(guildID, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
+func (r Requester) EmojiEdit(ctx context.Context, guildID, emojiID string, data *emoji.Params, options ...discord.RequestOption) (*emoji.Emoji, error) {
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointGuildEmoji(guildID, emojiID),
 		data,
@@ -59,8 +61,9 @@ func (r Requester) EmojiEdit(guildID, emojiID string, data *emoji.Params, option
 }
 
 // EmojiDelete deletes an emoji.Emoji in the given guild.Guild.
-func (r Requester) EmojiDelete(guildID, emojiID string, options ...discord.RequestOption) error {
+func (r Requester) EmojiDelete(ctx context.Context, guildID, emojiID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointGuildEmoji(guildID, emojiID),
 		nil,
