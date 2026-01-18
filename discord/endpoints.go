@@ -225,8 +225,6 @@ var (
 		return EndpointWebhookMessage(aID, iToken, mID)
 	}
 
-	EndpointGuildCreate = EndpointAPI + "guilds"
-
 	EndpointInvite                     = func(iID string) string { return EndpointAPI + "invites/" + iID }
 	EndpointInviteTargetUsers          = func(iID string) string { return EndpointInvite(iID) + "/target-users" }
 	EndpointInviteTargetUsersJobStatus = func(iID string) string { return EndpointInviteTargetUsers(iID) + "/job-status" }

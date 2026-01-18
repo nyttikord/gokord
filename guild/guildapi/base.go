@@ -47,21 +47,6 @@ func (r Requester) GuildPreview(guildID string, options ...discord.RequestOption
 	return &gp, r.Unmarshal(body, &gp)
 }
 
-// GuildCreate creates a new guild.Guild with the given name.
-func (r Requester) GuildCreate(name string, options ...discord.RequestOption) (*guild.Guild, error) {
-	data := struct {
-		Name string `json:"name"`
-	}{name}
-
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildCreate, data, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var g guild.Guild
-	return &g, r.Unmarshal(body, &g)
-}
-
 // GuildEdit edits a guild.Guild with the given params.
 func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...discord.RequestOption) (*guild.Guild, error) {
 	// Bounds checking for VerificationLevel, interval: [0, 4]
