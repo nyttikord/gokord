@@ -225,12 +225,13 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 func (s *Session) ForceClose() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.logger.Info("force closing")
+	s.logger.Debug("force closing")
 	var err error
 	s.waitListen.Close()
 	s.cancelWSRead()
 	defer func() {
 		if r := recover(); r != nil {
+			s.logger.Error("crash during force close, recovered")
 			var ok bool
 			err, ok = r.(error)
 			if !ok {
