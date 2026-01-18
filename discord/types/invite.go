@@ -17,3 +17,12 @@ const (
 	InviteGroupDM Invite = 1
 	InviteFriend  Invite = 2
 )
+
+type TargetUsersJobStatus uint8
+
+const (
+	TargetUsersJobStatusUnspecified TargetUsersJobStatus = 0
+	TargetUsersJobStatusProcessing  TargetUsersJobStatus = 1
+	TargetUsersJobStatusCompleted   TargetUsersJobStatus = 2
+	TargetUsersJobStatusFailed      TargetUsersJobStatus = 3
+)

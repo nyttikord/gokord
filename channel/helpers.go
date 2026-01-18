@@ -15,7 +15,7 @@ import (
 //
 // data is the object to encode for payload_json in the multipart request.
 // files is the files to include in the request.
-func MultipartBodyWithJSON(data interface{}, files []*File) (requestContentType string, requestBody []byte, err error) {
+func MultipartBodyWithJSON(data any, files []*File) (requestContentType string, requestBody []byte, err error) {
 	body := &bytes.Buffer{}
 	bodywriter := multipart.NewWriter(body)
 

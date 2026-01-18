@@ -2,6 +2,7 @@
 package channelapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user/invite"
 )
 
@@ -79,12 +81,29 @@ func (s Requester) Invites(channelID string, options ...discord.RequestOption) (
 //
 // NOTE: invite.Invite must have MaxAge, MaxUses and Temporary.
 func (s Requester) InviteCreate(channelID string, i invite.Invite, options ...discord.RequestOption) (*invite.Invite, error) {
+	uID := ""
+	if i.TargetUser != nil {
+		uID = i.TargetUser.ID
+	}
+	appID := ""
+	if i.TargetApplication != nil {
+		appID = i.TargetApplication.ID
+	}
 	data := struct {
-		MaxAge    int  `json:"max_age"`
-		MaxUses   int  `json:"max_uses"`
-		Temporary bool `json:"temporary"`
-		Unique    bool `json:"unique"`
-	}{i.MaxAge, i.MaxUses, i.Temporary, i.Unique}
+		MaxAge            int                `json:"max_age"`
+		MaxUses           int                `json:"max_uses"`
+		Temporary         bool               `json:"temporary"`
+		Unique            bool               `json:"unique"`
+		TargetType        types.InviteTarget `json:"target_type"`
+		TargetUser        string             `json:"target_user_id"`
+		TargetApplication string             `json:"target_application_id"`
+		//TargerUsers       []byte             `json:"target_users_file,omitempty"`
+		Roles []string `json:"role_ids,omitempty"`
+	}{i.MaxAge, i.MaxUses, i.Temporary, i.Unique, i.TargetType, uID, appID, i.Roles}
+
+	if len(i.TargetUsersFile) > 0 {
+		s.Logger().WarnContext(logger.NewContext(context.Background(), 1), "InviteCreate does not support yet TargetUsersFile")
+	}
 
 	body, err := s.Request(http.MethodPost, discord.EndpointChannelInvites(channelID), data, options...)
 	if err != nil {

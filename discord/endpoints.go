@@ -227,7 +227,9 @@ var (
 
 	EndpointGuildCreate = EndpointAPI + "guilds"
 
-	EndpointInvite = func(iID string) string { return EndpointAPI + "invites/" + iID }
+	EndpointInvite                     = func(iID string) string { return EndpointAPI + "invites/" + iID }
+	EndpointInviteTargetUsers          = func(iID string) string { return EndpointInvite(iID) + "/target-users" }
+	EndpointInviteTargetUsersJobStatus = func(iID string) string { return EndpointInviteTargetUsers(iID) + "/job-status" }
 
 	EndpointEmoji         = func(eID string) string { return EndpointCDN + "emojis/" + eID + ".png" }
 	EndpointEmojiAnimated = func(eID string) string { return EndpointCDN + "emojis/" + eID + ".gif" }
