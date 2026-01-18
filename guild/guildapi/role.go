@@ -74,3 +74,15 @@ func (r Requester) RoleDelete(guildID, roleID string, options ...discord.Request
 	)
 	return err
 }
+
+// RoleMemberCounts returns a map of guild.Role ID to the number of user.Member with the role.
+// It doesn't include the @everyone guild.Role.
+func (r Requester) RoleMemberCounts(guildID string, options ...discord.RequestOption) (map[string]uint, error) {
+	body, err := r.Request(http.MethodGet, discord.EndpointGuildRoleMemberCounts(guildID), nil, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	var res map[string]uint
+	return res, r.Unmarshal(body, &res)
+}
