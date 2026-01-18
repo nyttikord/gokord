@@ -111,7 +111,7 @@ func TestAddHandler(t *testing.T) {
 	}
 
 	interfaceHandlerCalled := int32(0)
-	interfaceHandler := func(ctx context.Context, s bot.Session, i interface{}) {
+	interfaceHandler := func(ctx context.Context, s bot.Session, i any) {
 		atomic.AddInt32(&interfaceHandlerCalled, 1)
 	}
 
@@ -121,8 +121,8 @@ func TestAddHandler(t *testing.T) {
 	}
 
 	d := Session{}
-	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
+	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	d.EventManager().AddHandler(testHandler)
 	d.EventManager().AddHandler(testHandler)
 
@@ -156,8 +156,8 @@ func TestRemoveHandler(t *testing.T) {
 	}
 
 	d := Session{}
-	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
+	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	r := d.EventManager().AddHandler(testHandler)
 
 	d.EventManager().(*event.Manager).EmitEvent(context.Background(), &d, event.MessageCreateType, &event.MessageCreate{})
