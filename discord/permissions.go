@@ -60,6 +60,12 @@ const (
 	// When disabled, users will still be allowed to use their apps but the responses will be ephemeral.
 	// This only applies to apps not also installed to the server.
 	PermissionUseExternalApps = 1 << 50
+
+	// PermissionPinMessages allows user to pin messages in a channel.
+	PermissionPinMessages = 1 << 51
+
+	// PermissionBypassSlowmode allows user to bypass the slowmode in a channel.
+	PermissionBypassSlowmode = 1 << 52
 )
 
 // Voice permissions
