@@ -137,7 +137,7 @@ func (e *Manager) AddHandler(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		e.Logger().ErrorContext(
+		e.logger.ErrorContext(
 			logger.NewContext(context.Background(), 1),
 			"handler will never be called",
 			"error", ErrInvalidHandler,
@@ -156,7 +156,7 @@ func (e *Manager) AddHandlerOnce(handler any) func() {
 	eh := handlerForInterface(handler)
 
 	if eh == nil {
-		e.Logger().ErrorContext(
+		e.logger.ErrorContext(
 			logger.NewContext(context.Background(), 1),
 			"handler will never be called",
 			"error", ErrInvalidHandler,

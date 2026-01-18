@@ -146,7 +146,7 @@ func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 }
 
 // onInterface handles all events related to State.
-func (s *sessionState) onInterface(se *Session, i interface{}) error {
+func (s *sessionState) onInterface(se *Session, i any) error {
 	r, ok := i.(*event.Ready)
 	if ok {
 		return s.onReady(se, r)

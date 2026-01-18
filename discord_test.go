@@ -121,7 +121,7 @@ func TestAddHandler(t *testing.T) {
 	}
 
 	d := Session{}
-	d.eventManager = event.NewManager(&d, d.onInterface)
+	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	d.EventManager().AddHandler(testHandler)
 	d.EventManager().AddHandler(testHandler)
@@ -156,7 +156,7 @@ func TestRemoveHandler(t *testing.T) {
 	}
 
 	d := Session{}
-	d.eventManager = event.NewManager(&d, d.onInterface)
+	d.eventManager = event.NewManager(&d, d.onInterface, d.logger.With("module", "event"))
 	d.logger = slog.New(logger.New(os.Stdout, &logger.Options{Level: slog.LevelDebug}))
 	r := d.EventManager().AddHandler(testHandler)
 

@@ -76,7 +76,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		GuildStorage:   &state.MapStorage[guild.Guild]{},
 	}
 	s.sessionState = NewState(s).(*sessionState)
-	s.eventManager = event.NewManager(s, s.onInterface)
+	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
 	s.REST = &RESTSession{

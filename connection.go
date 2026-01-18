@@ -173,7 +173,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.waitListen.Add(func(free func()) {
 		last, err := s.heartbeats(ctx2)
 		free()
-		s.Logger().Debug("heartbeats ended")
+		s.logger.Debug("heartbeats ended")
 		select {
 		case <-ctx2.Done():
 			return
@@ -184,7 +184,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Debug("dispatching events started")
+		s.logger.Debug("dispatching events started")
 		var err error
 		var res *eventHandlingResult
 		for err == nil && res == nil {
