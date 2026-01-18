@@ -1,18 +1,13 @@
-# Gokord
-
-Gokord is a hard fork of [DiscordGo](https://github.com/bwmarrin/discordgo) because:
-- maintainers are inactives
-- the code base does not follow Go recommendations (and it has many spelling mistakes in its docs)
-- [maintainers do not want to upgrade Go and libraries used to a newer version fixing 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528)
-
-Check the [ROADMAP](/ROADMAP.md) for more information.
+# gokord
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/nyttikord/gokord.svg)](https://pkg.go.dev/github.com/nyttikord/gokord)
 [![CI](https://github.com/nyttikord/gokord/actions/workflows/ci.yml/badge.svg)](https://github.com/nyttikord/gokord/actions/workflows/ci.yml)
 
-Gokord is a [Go](https://go.dev/) package that provides low level bindings to the [Discord](https://discord.com/)
+gokord is a [Go](https://go.dev/) package that provides low level bindings to the [Discord](https://discord.com/)
 chat client API.
-Gokord has nearly complete support for all the Discord API endpoints, websocket interface, and voice interface.
+gokord has nearly complete support for all the Discord API endpoints, and websocket interface.
+We have decided to remove the really outdated voice API, because our maintainers do not use it.
+Feel free to open a PR to add it!
 
 <!--
 If you would like to help the Gokord package please use 
@@ -20,6 +15,14 @@ If you would like to help the Gokord package please use
 to add the official Gokord test bot **dgo** to your server. This provides 
 indispensable help to this project.
 -->
+
+gokord is a hard fork of [DiscordGo](https://github.com/bwmarrin/discordgo) because:
+- maintainers are inactives;
+- [maintainers do not want to upgrade to newer versions to fix 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528).
+
+Check the [ROADMAP](/ROADMAP.md) for more information.
+
+See below for the main differences between gokord and DiscordGo.
 
 ## Getting Started
 
@@ -52,16 +55,62 @@ err := dg.Open() // this starts the websocket and connect it to the Discord API.
 
 See Documentation and Examples below for more detailed information.
 
+## Why should you use gokord instead of DiscordGo?
+
+We have completely refactored the code base to clean it and to update it.
+
+### What you can see
+
+We have:
+- recoded the websocket to follow Discord documentations;
+- modified how goroutines were managed to avoid data races with Mutex (this actually leads to a faster code :D);
+- fixed lot of bugs related to invalid handling of rate limits;
+- updated the documentation;
+- added missing features.
+
+With gokord, you can also choose where you state is stored: you can stay with maps, or you can go with in-memory
+key-value database like Valkey or Redis.
+
+You can use our powerful logger based on `log/slog`!
+
+#### What you will see
+
+We are currently simplifying how data is shared between goroutines using `context` package to build a more seamless
+development experience.
+
+We are going to refactor how interactions are handled and we will create helpful structs to achieve the same goal.
+
+Check the [ROADMAP](./ROADMAP.md) to have the details ;D
+
+### What you cannot see
+
+Everything were stored in huge files (`restapi.go`, `websocket.go`, `structs.go`...) located in the package `discordgo`.
+We have decided to split these to increase the readability and the ease of maintenance of our code.
+
+We also have:
+- changed the websocket API to use a well-maintained one;
+- refactored how data are handled internally to avoid data races and to be faster;
+- modified how the code is written to fit with what we think that are the best practices.
+
+## Migrating to gokord from DiscordGo
+
+Due to its nature as a hard fork, migrating to gokord is equivalent to rewriting your application.
+Take a look at our examples to see the major differences.
+You can also check the documentation which is nearly complete.
+
 ## Documentation
 
 **NOTICE**: This library and the Discord API are unfinished.
 We are following the [Semantic Versioning](https://semver.org/) and we plan to release the `1.0.0` after cleaning the
 library.
 Next major breaking changes will only be introduced when the major version is increased.
-Please note that these breaking changes refer to our internal logic, not to the breaking changes introduced by Discord
-in their API.
 
-The Gokord code is fairly well documented at this point and this is currently the only documentation available.
+Currently, we are using Discord API v10.
+When we will switch to Discord API v11 with its breaking changes, we will increase the major version. 
+We can also increase it if we introduce breaking changes in our library.
+We *will not* increase it if Discord introduces breaking changes in the current supported API version.
+
+The gokord code is fairly well documented at this point and this is currently the only documentation available.
 Go reference (below) presents that information in a nice format.
 
 - [![Go Reference](https://pkg.go.dev/badge/github.com/nyttikord/gokord.svg)](https://pkg.go.dev/github.com/nyttikord/gokord)
@@ -70,7 +119,7 @@ Go reference (below) presents that information in a nice format.
 
 Below is a list of examples and other projects using Gokord. 
 
-- [Gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with Gokord (really outdated)
+- [gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with gokord (really outdated)
 
 If you want real world example, you can check [our bots](https://github.com/nyttikord) or 
 [Les Copaings Bot](https://git.anhgelus.world/anhgelus/les-copaings-bot).
