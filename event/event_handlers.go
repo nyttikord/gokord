@@ -83,6 +83,8 @@ const (
 	ThreadUpdateType                        = "THREAD_UPDATE"
 	TypingStartType                         = "TYPING_START"
 	UserUpdateType                          = "USER_UPDATE"
+	VoiceChannelStartTimeUpdateType         = "VOICE_CHANNEL_START_TIME_UPDATE"
+	VoiceChannelStatusUpdateType            = "VOICE_CHANNEL_STATUS_UPDATE"
 	VoiceServerUpdateType                   = "VOICE_SERVER_UPDATE"
 	VoiceStateUpdateType                    = "VOICE_STATE_UPDATE"
 	WebhooksUpdateType                      = "WEBHOOKS_UPDATE"
@@ -1468,6 +1470,46 @@ func (eh userUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
 	}
 }
 
+// voiceChannelStartTimeUpdateHandler is an event handler for VoiceChannelStartTimeUpdate events.
+type voiceChannelStartTimeUpdateHandler func(context.Context, bot.Session, *VoiceChannelStartTimeUpdate)
+
+// Type returns the event type for VoiceChannelStartTimeUpdate events.
+func (eh voiceChannelStartTimeUpdateHandler) Type() string {
+	return VoiceChannelStartTimeUpdateType
+}
+
+// New returns a new instance of VoiceChannelStartTimeUpdate.
+func (eh voiceChannelStartTimeUpdateHandler) New() any {
+	return &VoiceChannelStartTimeUpdate{}
+}
+
+// Handle is the handler for VoiceChannelStartTimeUpdate events.
+func (eh voiceChannelStartTimeUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
+	if t, ok := i.(*VoiceChannelStartTimeUpdate); ok {
+		eh(ctx, s, t)
+	}
+}
+
+// voiceChannelStatusUpdateHandler is an event handler for VoiceChannelStatusUpdate events.
+type voiceChannelStatusUpdateHandler func(context.Context, bot.Session, *VoiceChannelStatusUpdate)
+
+// Type returns the event type for VoiceChannelStatusUpdate events.
+func (eh voiceChannelStatusUpdateHandler) Type() string {
+	return VoiceChannelStatusUpdateType
+}
+
+// New returns a new instance of VoiceChannelStatusUpdate.
+func (eh voiceChannelStatusUpdateHandler) New() any {
+	return &VoiceChannelStatusUpdate{}
+}
+
+// Handle is the handler for VoiceChannelStatusUpdate events.
+func (eh voiceChannelStatusUpdateHandler) Handle(ctx context.Context, s bot.Session, i any) {
+	if t, ok := i.(*VoiceChannelStatusUpdate); ok {
+		eh(ctx, s, t)
+	}
+}
+
 // voiceServerUpdateHandler is an event handler for VoiceServerUpdate events.
 type voiceServerUpdateHandler func(context.Context, bot.Session, *VoiceServerUpdate)
 
@@ -1672,6 +1714,10 @@ func handlerForInterface(handler any) Handler {
 		return typingStartHandler(v)
 	case func(context.Context, bot.Session, *UserUpdate):
 		return userUpdateHandler(v)
+	case func(context.Context, bot.Session, *VoiceChannelStartTimeUpdate):
+		return voiceChannelStartTimeUpdateHandler(v)
+	case func(context.Context, bot.Session, *VoiceChannelStatusUpdate):
+		return voiceChannelStatusUpdateHandler(v)
 	case func(context.Context, bot.Session, *VoiceServerUpdate):
 		return voiceServerUpdateHandler(v)
 	case func(context.Context, bot.Session, *VoiceStateUpdate):
@@ -1750,6 +1796,8 @@ func init() {
 	registerInterfaceProvider(threadUpdateHandler(nil))
 	registerInterfaceProvider(typingStartHandler(nil))
 	registerInterfaceProvider(userUpdateHandler(nil))
+	registerInterfaceProvider(voiceChannelStartTimeUpdateHandler(nil))
+	registerInterfaceProvider(voiceChannelStatusUpdateHandler(nil))
 	registerInterfaceProvider(voiceServerUpdateHandler(nil))
 	registerInterfaceProvider(voiceStateUpdateHandler(nil))
 	registerInterfaceProvider(webhooksUpdateHandler(nil))
