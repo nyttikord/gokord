@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -30,6 +31,8 @@ func (s *Session) Open(ctx context.Context) error {
 	if s.ws != nil {
 		return ErrWSAlreadyOpen
 	}
+
+	ctx = bot.CreateContext(ctx, s.logger, s)
 
 	// init new sequence
 	s.sequence = &atomic.Int64{}
