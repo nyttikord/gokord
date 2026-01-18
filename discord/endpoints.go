@@ -264,7 +264,6 @@ func ChangeAPIVersion(v string) {
 	EndpointSKUs = EndpointAPI + "skus"
 	EndpointVoice = EndpointAPI + "/voice/"
 	EndpointVoiceRegions = EndpointVoice + "regions"
-	EndpointGuildCreate = EndpointAPI + "guilds"
 	EndpointApplications = EndpointAPI + "applications"
 	EndpointOAuth2 = EndpointAPI + "oauth2/"
 	EndpointOAuth2Applications = EndpointOAuth2 + "applications"

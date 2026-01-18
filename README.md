@@ -142,8 +142,3 @@ outside of that scope without first discussing it.
 
 Check [CONTRIBUTING.md](/CONTRIBUTING.md) for more information.
 
-## List of Discord APIs
-
-See [this chart](https://abal.moe/Discord/Libraries.html) for a feature 
-comparison and list of other Discord API libraries.
-
