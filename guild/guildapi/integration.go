@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -8,8 +9,8 @@ import (
 )
 
 // Integrations returns the list of user.Integration for a guild.Guild.
-func (r Requester) Integrations(guildID string, options ...discord.RequestOption) ([]*user.Integration, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildIntegrations(guildID), nil, options...)
+func (r Requester) Integrations(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*user.Integration, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildIntegrations(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -19,13 +20,13 @@ func (r Requester) Integrations(guildID string, options ...discord.RequestOption
 }
 
 // IntegrationCreate creates a guild.Guild user.Integration.
-func (r Requester) IntegrationCreate(guildID, integrationType, integrationID string, options ...discord.RequestOption) error {
+func (r Requester) IntegrationCreate(ctx context.Context, guildID, integrationType, integrationID string, options ...discord.RequestOption) error {
 	data := struct {
 		Type string `json:"type"`
 		ID   string `json:"id"`
 	}{integrationType, integrationID}
 
-	_, err := r.Request(http.MethodPost, discord.EndpointGuildIntegrations(guildID), data, options...)
+	_, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildIntegrations(guildID), data, options...)
 	return err
 }
 
@@ -34,7 +35,7 @@ func (r Requester) IntegrationCreate(guildID, integrationType, integrationID str
 // expireBehavior is the behavior when a user.Integration subscription lapses.
 // expireGracePeriod is the period (in seconds) where the user.Integration will ignore lapsed subscriptions.
 // enableEmoticons is true if emoticons should be synced for this user.Integration (twitch only currently).
-func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool, options ...discord.RequestOption) error {
+func (r Requester) IntegrationEdit(ctx context.Context, guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool, options ...discord.RequestOption) error {
 	data := struct {
 		ExpireBehavior    int  `json:"expire_behavior"`
 		ExpireGracePeriod int  `json:"expire_grace_period"`
@@ -42,6 +43,7 @@ func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior
 	}{expireBehavior, expireGracePeriod, enableEmoticons}
 
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointGuildIntegration(guildID, integrationID),
 		data,
@@ -52,8 +54,9 @@ func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior
 }
 
 // IntegrationDelete removes the user.Integration from the guild.Guild.
-func (r Requester) IntegrationDelete(guildID, integrationID string, options ...discord.RequestOption) (err error) {
+func (r Requester) IntegrationDelete(ctx context.Context, guildID, integrationID string, options ...discord.RequestOption) (err error) {
 	_, err = r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointGuildIntegration(guildID, integrationID),
 		nil,

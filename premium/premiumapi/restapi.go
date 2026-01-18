@@ -2,6 +2,7 @@
 package premiumapi
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -18,8 +19,8 @@ type Requester struct {
 }
 
 // SKUs returns all premium.SKU for a given application.Application.
-func (s *Requester) SKUs(appID string, options ...discord.RequestOption) ([]*premium.SKU, error) {
-	body, err := s.Request(http.MethodGet, discord.EndpointApplicationSKUs(appID), nil, options...)
+func (s *Requester) SKUs(ctx context.Context, appID string, options ...discord.RequestOption) ([]*premium.SKU, error) {
+	body, err := s.Request(ctx, http.MethodGet, discord.EndpointApplicationSKUs(appID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +32,7 @@ func (s *Requester) SKUs(appID string, options ...discord.RequestOption) ([]*pre
 // Entitlements returns all premium.Entitlement for a given application.Application, active and expired.
 //
 // filterOptions is the optional filter options; otherwise set it to nil.
-func (s *Requester) Entitlements(appID string, filterOptions *premium.EntitlementFilterOptions, options ...discord.RequestOption) ([]*premium.Entitlement, error) {
+func (s *Requester) Entitlements(ctx context.Context, appID string, filterOptions *premium.EntitlementFilterOptions, options ...discord.RequestOption) ([]*premium.Entitlement, error) {
 	endpoint := discord.EndpointEntitlements(appID)
 
 	queryParams := url.Values{}
@@ -39,7 +40,7 @@ func (s *Requester) Entitlements(appID string, filterOptions *premium.Entitlemen
 		if filterOptions.UserID != "" {
 			queryParams.Set("user_id", filterOptions.UserID)
 		}
-		if filterOptions.SkuIDs != nil && len(filterOptions.SkuIDs) > 0 {
+		if len(filterOptions.SkuIDs) > 0 {
 			queryParams.Set("sku_ids", strings.Join(filterOptions.SkuIDs, ","))
 		}
 		if filterOptions.Before != nil {
@@ -59,7 +60,7 @@ func (s *Requester) Entitlements(appID string, filterOptions *premium.Entitlemen
 		}
 	}
 
-	body, err := s.Request(http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
+	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +70,9 @@ func (s *Requester) Entitlements(appID string, filterOptions *premium.Entitlemen
 }
 
 // EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
-func (s *Requester) EntitlementConsume(appID, entitlementID string, options ...discord.RequestOption) error {
+func (s *Requester) EntitlementConsume(ctx context.Context, appID, entitlementID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodPost,
 		discord.EndpointEntitlementConsume(appID, entitlementID),
 		nil,
@@ -83,16 +85,17 @@ func (s *Requester) EntitlementConsume(appID, entitlementID string, options ...d
 // EntitlementTestCreate creates a test premium.Entitlement to a given premium.SKU for a given guild.Guild or user.User.
 //
 // Discord will act as though that user or guild has premium.Entitlement to your premium offering.
-func (s *Requester) EntitlementTestCreate(appID string, data *premium.EntitlementTest, options ...discord.RequestOption) error {
-	_, err := s.Request(http.MethodPost, discord.EndpointEntitlements(appID), data, options...)
+func (s *Requester) EntitlementTestCreate(ctx context.Context, appID string, data *premium.EntitlementTest, options ...discord.RequestOption) error {
+	_, err := s.Request(ctx, http.MethodPost, discord.EndpointEntitlements(appID), data, options...)
 	return err
 }
 
 // EntitlementTestDelete deletes a currently-active test premium.Entitlement.
 //
 // Discord will act as though that user.User or guild.Guild no longer has premium.Entitlement to your premium offering.
-func (s *Requester) EntitlementTestDelete(appID, entitlementID string, options ...discord.RequestOption) error {
+func (s *Requester) EntitlementTestDelete(ctx context.Context, appID, entitlementID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointEntitlement(appID, entitlementID),
 		nil,
@@ -107,7 +110,7 @@ func (s *Requester) EntitlementTestDelete(appID, entitlementID string, options .
 // before is an optional timestamp to retrieve premium.Subscription before this time.
 // after is an optional timestamp to retrieve premium.Subscription after this time.
 // limit is an optional maximum number of premium.Subscription to return (1-100, default 50).
-func (s *Requester) Subscriptions(skuID string, userID string, before, after *time.Time, limit int, options ...discord.RequestOption) ([]*premium.Subscription, error) {
+func (s *Requester) Subscriptions(ctx context.Context, skuID string, userID string, before, after *time.Time, limit int, options ...discord.RequestOption) ([]*premium.Subscription, error) {
 	endpoint := discord.EndpointSubscriptions(skuID)
 
 	queryParams := url.Values{}
@@ -124,7 +127,7 @@ func (s *Requester) Subscriptions(skuID string, userID string, before, after *ti
 		queryParams.Set("limit", strconv.Itoa(limit))
 	}
 
-	body, err := s.Request("GET", endpoint+"?"+queryParams.Encode(), nil, options...)
+	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +139,7 @@ func (s *Requester) Subscriptions(skuID string, userID string, before, after *ti
 // Subscription returns a premium.Subscription by its premium.SKU and premium.Subscription ID.
 //
 // userID for which to return the premium.Subscription. Required except for OAuth queries.
-func (s *Requester) Subscription(skuID, subscriptionID, userID string, options ...discord.RequestOption) (*premium.Subscription, error) {
+func (s *Requester) Subscription(ctx context.Context, skuID, subscriptionID, userID string, options ...discord.RequestOption) (*premium.Subscription, error) {
 	endpoint := discord.EndpointSubscription(skuID, subscriptionID)
 
 	queryParams := url.Values{}
@@ -145,7 +148,7 @@ func (s *Requester) Subscription(skuID, subscriptionID, userID string, options .
 		queryParams.Set("user_id", userID) //TODO: check if this is true
 	}
 
-	body, err := s.Request(http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
+	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
 	if err != nil {
 		return nil, err
 	}

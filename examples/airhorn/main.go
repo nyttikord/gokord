@@ -122,14 +122,14 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 
 // This function will be called (due to AddHandler above) every time a new
 // guild is joined.
-func guildCreate(_ context.Context, s bot.Session, event *event.GuildCreate) {
+func guildCreate(ctx context.Context, s bot.Session, event *event.GuildCreate) {
 	if event.Guild.Unavailable {
 		return
 	}
 
 	for _, channel := range event.Guild.Channels {
 		if channel.ID == event.Guild.ID {
-			_, _ = s.ChannelAPI().MessageSend(channel.ID, "Airhorn is ready! Type !airhorn while in a voice channel to play a sound.")
+			_, _ = s.ChannelAPI().MessageSend(ctx, channel.ID, "Airhorn is ready! Type !airhorn while in a voice channel to play a sound.")
 			return
 		}
 	}

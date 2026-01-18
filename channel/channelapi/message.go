@@ -1,6 +1,7 @@
 package channelapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -20,7 +21,7 @@ import (
 // If provided all messages returned will be before beforeID.
 // If provided all messages returned will be after afterID.
 // If provided all messages returned will be around aroundID.
-func (s Requester) Messages(channelID string, limit int, beforeID, afterID, aroundID string, options ...discord.RequestOption) ([]*channel.Message, error) {
+func (s Requester) Messages(ctx context.Context, channelID string, limit int, beforeID, afterID, aroundID string, options ...discord.RequestOption) ([]*channel.Message, error) {
 	uri := discord.EndpointChannelMessages(channelID)
 
 	v := url.Values{}
@@ -40,7 +41,7 @@ func (s Requester) Messages(channelID string, limit int, beforeID, afterID, arou
 		uri += "?" + v.Encode()
 	}
 
-	body, err := s.Request(http.MethodGet, uri, nil, options...)
+	body, err := s.Request(ctx, http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,9 @@ func (s Requester) Messages(channelID string, limit int, beforeID, afterID, arou
 }
 
 // Message gets channel.Message from a given channel.Channel.
-func (s Requester) Message(channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
+func (s Requester) Message(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
 	response, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		discord.EndpointChannelMessage(channelID, messageID),
 		nil,
@@ -67,14 +69,14 @@ func (s Requester) Message(channelID, messageID string, options ...discord.Reque
 }
 
 // MessageSend sends a simple channel.Message to the given channel.Channel.
-func (s Requester) MessageSend(channelID string, content string, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageSendComplex(channelID, &channel.MessageSend{
+func (s Requester) MessageSend(ctx context.Context, channelID string, content string, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageSendComplex(ctx, channelID, &channel.MessageSend{
 		Content: content,
 	}, options...)
 }
 
 // MessageSendComplex sends a channel.Message to the given channel.Channel.
-func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSend, options ...discord.RequestOption) (*channel.Message, error) {
+func (s Requester) MessageSendComplex(ctx context.Context, channelID string, data *channel.MessageSend, options ...discord.RequestOption) (*channel.Message, error) {
 	for _, embed := range data.Embeds {
 		if embed.Type == "" {
 			embed.Type = types.EmbedRich
@@ -96,9 +98,9 @@ func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSen
 		if encodeErr != nil {
 			return nil, encodeErr
 		}
-		response, err = s.RequestRaw(http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
+		response, err = s.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
 	} else {
-		response, err = s.Request(http.MethodPost, endpoint, data, options...)
+		response, err = s.Request(ctx, http.MethodPost, endpoint, data, options...)
 	}
 	if err != nil {
 		return nil, err
@@ -109,21 +111,21 @@ func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSen
 }
 
 // MessageSendTTS sends a simple channel.Message to the given channel.Channel with Text to Speech.
-func (s Requester) MessageSendTTS(channelID string, content string, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageSendComplex(channelID, &channel.MessageSend{
+func (s Requester) MessageSendTTS(ctx context.Context, channelID string, content string, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageSendComplex(ctx, channelID, &channel.MessageSend{
 		Content: content,
 		TTS:     true,
 	}, options...)
 }
 
 // MessageSendEmbed sends a channel.MessageEmbed to the given channel.Channel.
-func (s Requester) MessageSendEmbed(channelID string, embed *channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageSendEmbeds(channelID, []*channel.MessageEmbed{embed}, options...)
+func (s Requester) MessageSendEmbed(ctx context.Context, channelID string, embed *channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageSendEmbeds(ctx, channelID, []*channel.MessageEmbed{embed}, options...)
 }
 
 // MessageSendEmbeds sends multiple channel.MessageEmbed to the given channel.Channel.
-func (s Requester) MessageSendEmbeds(channelID string, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageSendComplex(channelID, &channel.MessageSend{
+func (s Requester) MessageSendEmbeds(ctx context.Context, channelID string, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageSendComplex(ctx, channelID, &channel.MessageSend{
 		Embeds: embeds,
 	}, options...)
 }
@@ -131,11 +133,11 @@ func (s Requester) MessageSendEmbeds(channelID string, embeds []*channel.Message
 // MessageSendReply sends a reply channel.Message to the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendReply(channelID string, content string, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
+func (s Requester) MessageSendReply(ctx context.Context, channelID string, content string, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
 	if reference == nil {
 		return nil, ErrReplyNilMessageRef
 	}
-	return s.MessageSendComplex(channelID, &channel.MessageSend{
+	return s.MessageSendComplex(ctx, channelID, &channel.MessageSend{
 		Content:   content,
 		Reference: reference,
 	}, options...)
@@ -144,30 +146,30 @@ func (s Requester) MessageSendReply(channelID string, content string, reference 
 // MessageSendEmbedReply sends a reply channel.MessageEmbed to the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendEmbedReply(channelID string, embed *channel.MessageEmbed, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageSendEmbedsReply(channelID, []*channel.MessageEmbed{embed}, reference, options...)
+func (s Requester) MessageSendEmbedReply(ctx context.Context, channelID string, embed *channel.MessageEmbed, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageSendEmbedsReply(ctx, channelID, []*channel.MessageEmbed{embed}, reference, options...)
 }
 
 // MessageSendEmbedsReply sends a reply with multiple channel.MessageEmbed in the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendEmbedsReply(channelID string, embeds []*channel.MessageEmbed, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
+func (s Requester) MessageSendEmbedsReply(ctx context.Context, channelID string, embeds []*channel.MessageEmbed, reference *channel.MessageReference, options ...discord.RequestOption) (*channel.Message, error) {
 	if reference == nil {
 		return nil, ErrReplyNilMessageRef
 	}
-	return s.MessageSendComplex(channelID, &channel.MessageSend{
+	return s.MessageSendComplex(ctx, channelID, &channel.MessageSend{
 		Embeds:    embeds,
 		Reference: reference,
 	}, options...)
 }
 
 // MessageEdit edits an existing channel.Message, replacing it entirely with the given content.
-func (s Requester) MessageEdit(channelID, messageID, content string, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetContent(content), options...)
+func (s Requester) MessageEdit(ctx context.Context, channelID, messageID, content string, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageEditComplex(ctx, channel.NewMessageEdit(channelID, messageID).SetContent(content), options...)
 }
 
 // MessageEditComplex edits an existing channel.Message, replacing it entirely with the given channel.MessageEdit.
-func (s Requester) MessageEditComplex(m *channel.MessageEdit, options ...discord.RequestOption) (*channel.Message, error) {
+func (s Requester) MessageEditComplex(ctx context.Context, m *channel.MessageEdit, options ...discord.RequestOption) (*channel.Message, error) {
 	if m.Embeds != nil {
 		for _, embed := range *m.Embeds {
 			if embed.Type == "" {
@@ -186,6 +188,7 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit, options ...discord
 			return nil, encodeErr
 		}
 		response, err = s.RequestRaw(
+			ctx,
 			http.MethodPatch,
 			endpoint,
 			contentType,
@@ -196,6 +199,7 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit, options ...discord
 		)
 	} else {
 		response, err = s.RequestWithBucketID(
+			ctx,
 			http.MethodPatch,
 			endpoint,
 			m,
@@ -212,25 +216,26 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit, options ...discord
 }
 
 // MessageEditEmbed edits an existing channel.Message, replacing it entirely with the given channel.MessageEmbed.
-func (s Requester) MessageEditEmbed(channelID, messageID string, embed *channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageEditEmbeds(channelID, messageID, []*channel.MessageEmbed{embed}, options...)
+func (s Requester) MessageEditEmbed(ctx context.Context, channelID, messageID string, embed *channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageEditEmbeds(ctx, channelID, messageID, []*channel.MessageEmbed{embed}, options...)
 }
 
 // MessageEditEmbeds edits an existing channel.Message, replacing it entirely with the multiple channel.MessageEmbed.
-func (s Requester) MessageEditEmbeds(channelID, messageID string, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds...), options...)
+func (s Requester) MessageEditEmbeds(ctx context.Context, channelID, messageID string, embeds []*channel.MessageEmbed, options ...discord.RequestOption) (*channel.Message, error) {
+	return s.MessageEditComplex(ctx, channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds...), options...)
 }
 
 // MessageDelete deletes a channel.Message from the given channel.Channel.
-func (s Requester) MessageDelete(channelID, messageID string, options ...discord.RequestOption) (err error) {
-	_, err = s.RequestWithBucketID(
+func (s Requester) MessageDelete(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) error {
+	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointChannelMessage(channelID, messageID),
 		nil,
 		discord.EndpointChannelMessage(channelID, ""),
 		options...,
 	)
-	return
+	return err
 }
 
 // MessagesBulkDelete bulk deletes the channel.Message from the channel.Channel.
@@ -239,13 +244,13 @@ func (s Requester) MessageDelete(channelID, messageID string, options ...discord
 //
 // If only one messageID is in the slice, it calls ChannelMessageDelete.
 // If the slice is empty, it does nothing.
-func (s Requester) MessagesBulkDelete(channelID string, messages []string, options ...discord.RequestOption) error {
+func (s Requester) MessagesBulkDelete(ctx context.Context, channelID string, messages []string, options ...discord.RequestOption) error {
 	if len(messages) == 0 {
 		return nil
 	}
 
 	if len(messages) == 1 {
-		return s.MessageDelete(channelID, messages[0], options...)
+		return s.MessageDelete(ctx, channelID, messages[0], options...)
 	}
 
 	if len(messages) > 100 {
@@ -256,13 +261,14 @@ func (s Requester) MessagesBulkDelete(channelID string, messages []string, optio
 		Messages []string `json:"messages"`
 	}{messages}
 
-	_, err := s.Request(http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID), data, options...)
+	_, err := s.Request(ctx, http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID), data, options...)
 	return err
 }
 
 // MessagePin pins a channel.Message within the given channel.Channel.
-func (s Requester) MessagePin(channelID, messageID string, options ...discord.RequestOption) error {
+func (s Requester) MessagePin(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) error {
 	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodPut,
 		discord.EndpointChannelMessagePin(channelID, messageID),
 		nil,
@@ -273,22 +279,23 @@ func (s Requester) MessagePin(channelID, messageID string, options ...discord.Re
 }
 
 // MessageUnpin unpins a channel.Message within the given channel.Channel.
-func (s Requester) MessageUnpin(channelID, messageID string, options ...discord.RequestOption) (err error) {
-	_, err = s.RequestWithBucketID(
+func (s Requester) MessageUnpin(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) error {
+	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointChannelMessagePin(channelID, messageID),
 		nil,
 		discord.EndpointChannelMessagePin(channelID, ""),
 		options...,
 	)
-	return
+	return err
 }
 
 // MessagesPinned returns channel.MessagesPinned within the given channel.Channel.
 //
 // limit is the max number of users to return (max 50).
 // If provided all messages returned will be before the given time.
-func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int, options ...discord.RequestOption) (*channel.MessagesPinned, error) {
+func (s Requester) MessagesPinned(ctx context.Context, channelID string, before *time.Time, limit int, options ...discord.RequestOption) (*channel.MessagesPinned, error) {
 	uri := discord.EndpointChannelMessagesPins(channelID)
 
 	v := url.Values{}
@@ -302,7 +309,7 @@ func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int
 		uri += "?" + v.Encode()
 	}
 
-	body, err := s.Request(http.MethodGet, discord.EndpointChannelMessagesPins(channelID), nil, options...)
+	body, err := s.Request(ctx, http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -312,8 +319,8 @@ func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int
 }
 
 // MessageCrosspost crossposts a channel.Message in a news channel.Channel to followers.
-func (s Requester) MessageCrosspost(channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
-	body, err := s.Request(http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID), nil, options...)
+func (s Requester) MessageCrosspost(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) (*channel.Message, error) {
+	body, err := s.Request(ctx, http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -325,10 +332,11 @@ func (s Requester) MessageCrosspost(channelID, messageID string, options ...disc
 // MessageReactionAdd creates an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string, options ...discord.RequestOption) error {
+func (s Requester) MessageReactionAdd(ctx context.Context, channelID, messageID, emojiID string, options ...discord.RequestOption) error {
 	// emoji such as  #⃣ need to have # escaped
-	emojiID = strings.Replace(emojiID, "#", "%23", -1)
+	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodPut,
 		discord.EndpointMessageReaction(channelID, messageID, emojiID, "@me"),
 		nil,
@@ -341,10 +349,11 @@ func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string, opti
 // MessageReactionRemove deletes an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID string, options ...discord.RequestOption) error {
+func (s Requester) MessageReactionRemove(ctx context.Context, channelID, messageID, emojiID, userID string, options ...discord.RequestOption) error {
 	// emoji such as  #⃣ need to have # escaped
-	emojiID = strings.Replace(emojiID, "#", "%23", -1)
+	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	_, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointMessageReaction(channelID, messageID, emojiID, userID),
 		nil,
@@ -355,8 +364,8 @@ func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID s
 }
 
 // MessageReactionsRemoveAll deletes all reactions from a channel.Message.
-func (s Requester) MessageReactionsRemoveAll(channelID, messageID string, options ...discord.RequestOption) error {
-	_, err := s.Request(http.MethodDelete, discord.EndpointMessageReactionsAll(channelID, messageID), nil, options...)
+func (s Requester) MessageReactionsRemoveAll(ctx context.Context, channelID, messageID string, options ...discord.RequestOption) error {
+	_, err := s.Request(ctx, http.MethodDelete, discord.EndpointMessageReactionsAll(channelID, messageID), nil, options...)
 
 	return err
 }
@@ -364,10 +373,10 @@ func (s Requester) MessageReactionsRemoveAll(channelID, messageID string, option
 // MessageReactionsRemoveEmoji deletes all reactions of a certain emoji.Emoji from a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID string, options ...discord.RequestOption) error {
+func (s Requester) MessageReactionsRemoveEmoji(ctx context.Context, channelID, messageID, emojiID string, options ...discord.RequestOption) error {
 	// emoji such as  #⃣ need to have # escaped
-	emojiID = strings.Replace(emojiID, "#", "%23", -1)
-	_, err := s.Request(http.MethodDelete, discord.EndpointMessageReactions(channelID, messageID, emojiID), nil, options...)
+	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
+	_, err := s.Request(ctx, http.MethodDelete, discord.EndpointMessageReactions(channelID, messageID, emojiID), nil, options...)
 
 	return err
 }
@@ -378,7 +387,7 @@ func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID str
 // limit is the max number of users to return (max 100).
 // If provided all reactions returned will be before beforeID.
 // If provided all reactions returned will be after afterID.
-func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string, options ...discord.RequestOption) ([]*user.User, error) {
+func (s Requester) MessageReactions(ctx context.Context, channelID, messageID, emojiID string, limit int, beforeID, afterID string, options ...discord.RequestOption) ([]*user.User, error) {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	uri := discord.EndpointMessageReactions(channelID, messageID, emojiID)
@@ -399,6 +408,7 @@ func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit 
 	}
 
 	body, err := s.RequestWithBucketID(
+		ctx,
 		http.MethodGet,
 		uri,
 		nil,

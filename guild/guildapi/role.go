@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,8 +10,8 @@ import (
 )
 
 // RoleCreate creates a new guild.Role.
-func (r Requester) RoleCreate(guildID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildRoles(guildID), data, options...)
+func (r Requester) RoleCreate(ctx context.Context, guildID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildRoles(guildID), data, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -20,8 +21,8 @@ func (r Requester) RoleCreate(guildID string, data *guild.RoleParams, options ..
 }
 
 // Roles returns all guild.Role for a given guild.Guild.
-func (r Requester) Roles(guildID string, options ...discord.RequestOption) ([]*guild.Role, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildRoles(guildID), nil, options...)
+func (r Requester) Roles(ctx context.Context, guildID string, options ...discord.RequestOption) ([]*guild.Role, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildRoles(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -31,13 +32,14 @@ func (r Requester) Roles(guildID string, options ...discord.RequestOption) ([]*g
 }
 
 // RoleEdit updates an existing guild.Role and returns updated data.
-func (r Requester) RoleEdit(guildID, roleID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
+func (r Requester) RoleEdit(ctx context.Context, guildID, roleID string, data *guild.RoleParams, options ...discord.RequestOption) (*guild.Role, error) {
 	// Prevent sending a color int that is too big.
 	if data.Color != nil && *data.Color > 0xFFFFFF {
 		return nil, fmt.Errorf("color value cannot be larger than 0xFFFFFF")
 	}
 
 	body, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodPatch,
 		discord.EndpointGuildRole(guildID, roleID),
 		data,
@@ -53,8 +55,8 @@ func (r Requester) RoleEdit(guildID, roleID string, data *guild.RoleParams, opti
 }
 
 // RoleReorder reoders guild.Role.
-func (r Requester) RoleReorder(guildID string, roles []*guild.Role, options ...discord.RequestOption) ([]*guild.Role, error) {
-	body, err := r.Request(http.MethodPatch, discord.EndpointGuildRoles(guildID), roles, options...)
+func (r Requester) RoleReorder(ctx context.Context, guildID string, roles []*guild.Role, options ...discord.RequestOption) ([]*guild.Role, error) {
+	body, err := r.Request(ctx, http.MethodPatch, discord.EndpointGuildRoles(guildID), roles, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +66,9 @@ func (r Requester) RoleReorder(guildID string, roles []*guild.Role, options ...d
 }
 
 // RoleDelete deletes a guild.Role.
-func (r Requester) RoleDelete(guildID, roleID string, options ...discord.RequestOption) error {
+func (r Requester) RoleDelete(ctx context.Context, guildID, roleID string, options ...discord.RequestOption) error {
 	_, err := r.RequestWithBucketID(
+		ctx,
 		http.MethodDelete,
 		discord.EndpointGuildRole(guildID, roleID),
 		nil,
@@ -77,8 +80,8 @@ func (r Requester) RoleDelete(guildID, roleID string, options ...discord.Request
 
 // RoleMemberCounts returns a map of guild.Role ID to the number of user.Member with the role.
 // It doesn't include the @everyone guild.Role.
-func (r Requester) RoleMemberCounts(guildID string, options ...discord.RequestOption) (map[string]uint, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildRoleMemberCounts(guildID), nil, options...)
+func (r Requester) RoleMemberCounts(ctx context.Context, guildID string, options ...discord.RequestOption) (map[string]uint, error) {
+	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildRoleMemberCounts(guildID), nil, options...)
 	if err != nil {
 		return nil, err
 	}

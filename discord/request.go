@@ -12,17 +12,17 @@ import (
 type RESTRequester interface {
 	Logger() *slog.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
-	Request(method string, urlStr string, data any, options ...RequestOption) ([]byte, error)
+	Request(ctx context.Context, method string, urlStr string, data any, options ...RequestOption) ([]byte, error)
 	// RequestWithBucketID makes a (GET/POST/...) http.Request to Discord REST API with JSON data.
-	RequestWithBucketID(method string, urlStr string, data any, bucketID string, options ...RequestOption) ([]byte, error)
+	RequestWithBucketID(ctx context.Context, method string, urlStr string, data any, bucketID string, options ...RequestOption) ([]byte, error)
 	// RequestRaw makes a (GET/POST/...) Requests to Discord REST API.
 	// Preferably use the other request methods but this lets you send JSON directly if that's what you have.
 	//
 	// sequence is the sequence number, if it fails with a 502 it will retry with sequence+1 until it either succeeds or
 	// sequence >= Session.MaxRestRetries
-	RequestRaw(method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
+	RequestRaw(ctx context.Context, method string, urlStr string, contentType string, data []byte, bucketID string, sequence int, options ...RequestOption) ([]byte, error)
 	// RequestWithLockedBucket makes a request using a bucket that's already been locked
-	RequestWithLockedBucket(method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
+	RequestWithLockedBucket(ctx context.Context, method string, urlStr string, contentType string, data []byte, bucket *Bucket, sequence int, options ...RequestOption) ([]byte, error)
 	// Unmarshal is for unmarshalling body returned by the Discord API.
 	Unmarshal(bytes []byte, i any) error
 }
@@ -86,11 +86,4 @@ func WithAuditLogReason(reason string) RequestOption {
 // WithLocale changes accepted locale of the request.
 func WithLocale(locale Locale) RequestOption {
 	return WithHeader("X-Discord-Locale", string(locale))
-}
-
-// WithContext changes context.Context of the request.
-func WithContext(ctx context.Context) RequestOption {
-	return func(cfg *RequestConfig) {
-		cfg.Request = cfg.Request.WithContext(ctx)
-	}
 }

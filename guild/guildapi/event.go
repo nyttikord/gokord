@@ -1,6 +1,7 @@
 package guildapi
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,13 +13,13 @@ import (
 // ScheduledEvents returns an array of guild.ScheduledEvent for a guild.Guild.
 //
 // userCount indicates whether to include the user count in the response.
-func (r Requester) ScheduledEvents(guildID string, userCount bool, options ...discord.RequestOption) ([]*guild.ScheduledEvent, error) {
+func (r Requester) ScheduledEvents(ctx context.Context, guildID string, userCount bool, options ...discord.RequestOption) ([]*guild.ScheduledEvent, error) {
 	uri := discord.EndpointGuildScheduledEvents(guildID)
 	if userCount {
 		uri += "?with_user_count=true"
 	}
 
-	body, err := r.Request(http.MethodGet, uri, nil, options...)
+	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -30,13 +31,13 @@ func (r Requester) ScheduledEvents(guildID string, userCount bool, options ...di
 // ScheduledEvent returns a specific guild.ScheduledEvent in a guild.Guild.
 //
 // userCount indicates whether to include the user count in the response.
-func (r Requester) ScheduledEvent(guildID, eventID string, userCount bool, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
+func (r Requester) ScheduledEvent(ctx context.Context, guildID, eventID string, userCount bool, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
 	uri := discord.EndpointGuildScheduledEvent(guildID, eventID)
 	if userCount {
 		uri += "?with_user_count=true"
 	}
 
-	body, err := r.Request(http.MethodGet, uri, nil, options...)
+	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +47,8 @@ func (r Requester) ScheduledEvent(guildID, eventID string, userCount bool, optio
 }
 
 // ScheduledEventCreate creates a guild.ScheduledEvent for a guild.Guild and returns it.
-func (r Requester) ScheduledEventCreate(guildID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
-	body, err := r.Request(http.MethodPost, discord.EndpointGuildScheduledEvents(guildID), event, options...)
+func (r Requester) ScheduledEventCreate(ctx context.Context, guildID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
+	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildScheduledEvents(guildID), event, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +58,8 @@ func (r Requester) ScheduledEventCreate(guildID string, event *guild.ScheduledEv
 }
 
 // ScheduledEventEdit updates a guild.ScheduledEvent for a guild.Guild and returns it.
-func (r Requester) ScheduledEventEdit(guildID, eventID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
-	body, err := r.Request(http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID), event, options...)
+func (r Requester) ScheduledEventEdit(ctx context.Context, guildID, eventID string, event *guild.ScheduledEventParams, options ...discord.RequestOption) (*guild.ScheduledEvent, error) {
+	body, err := r.Request(ctx, http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID), event, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +69,8 @@ func (r Requester) ScheduledEventEdit(guildID, eventID string, event *guild.Sche
 }
 
 // ScheduledEventDelete deletes a specific guild.ScheduledEvent in a guild.Guild.
-func (r Requester) ScheduledEventDelete(guildID, eventID string, options ...discord.RequestOption) error {
-	_, err := r.Request(http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID), nil, options...)
+func (r Requester) ScheduledEventDelete(ctx context.Context, guildID, eventID string, options ...discord.RequestOption) error {
+	_, err := r.Request(ctx, http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID), nil, options...)
 	return err
 }
 
@@ -79,7 +80,7 @@ func (r Requester) ScheduledEventDelete(guildID, eventID string, options ...disc
 // withMember indicates whether to include the member object in the response.
 // If is not empty all returned users entries will be before beforeID.
 // If is not empty all returned users entries will be after afterID.
-func (r Requester) ScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string, options ...discord.RequestOption) ([]*guild.ScheduledEventUser, error) {
+func (r Requester) ScheduledEventUsers(ctx context.Context, guildID, eventID string, limit int, withMember bool, beforeID, afterID string, options ...discord.RequestOption) ([]*guild.ScheduledEventUser, error) {
 	uri := discord.EndpointGuildScheduledEventUsers(guildID, eventID)
 
 	queryParams := url.Values{}
@@ -100,7 +101,7 @@ func (r Requester) ScheduledEventUsers(guildID, eventID string, limit int, withM
 		uri += "?" + queryParams.Encode()
 	}
 
-	body, err := r.Request("GET", uri, nil, options...)
+	body, err := r.Request(ctx, http.MethodPost, uri, nil, options...)
 	if err != nil {
 		return nil, err
 	}

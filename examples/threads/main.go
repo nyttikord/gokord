@@ -33,10 +33,10 @@ func main() {
 	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		fmt.Println("Bot is ready")
 	})
-	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, m *event.MessageCreate) {
+	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
-				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
+				thread, err := s.ChannelAPI().MessageThreadStartComplex(ctx, m.ChannelID, m.ID, &channel.ThreadStart{
 					Name:                "Pong game with " + m.Author.Username,
 					AutoArchiveDuration: 60,
 					Invitable:           false,
@@ -45,17 +45,17 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				_, _ = s.ChannelAPI().MessageSend(thread.ID, "pong")
+				_, _ = s.ChannelAPI().MessageSend(ctx, thread.ID, "pong")
 				m.ChannelID = thread.ID
 			} else {
-				_, _ = s.ChannelAPI().MessageSendReply(m.ChannelID, "pong", m.Reference())
+				_, _ = s.ChannelAPI().MessageSendReply(ctx, m.ChannelID, "pong", m.Reference())
 			}
 			games[m.ChannelID] = time.Now()
 			<-time.After(timeout)
 			if time.Since(games[m.ChannelID]) >= timeout {
 				archived := true
 				locked := true
-				_, err := s.ChannelAPI().ChannelEdit(m.ChannelID, &channel.Edit{
+				_, err := s.ChannelAPI().ChannelEdit(ctx, m.ChannelID, &channel.Edit{
 					Archived: &archived,
 					Locked:   &locked,
 				})
@@ -77,5 +77,4 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 	log.Println("Graceful shutdown")
-
 }
