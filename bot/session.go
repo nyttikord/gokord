@@ -14,7 +14,6 @@ import (
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
-	"github.com/nyttikord/gokord/voice"
 )
 
 // Session represents a bot session.
@@ -41,8 +40,6 @@ type Session interface {
 	ApplicationAPI() *applicationapi.Requester
 	// BotAPI returns a botapi.Requester to interact with the bot package.
 	BotAPI() *botapi.Requester
-	// VoiceAPI returns a voice.Requester to interact with the voice package.
-	VoiceAPI() *voice.Requester
 
 	// SessionState returns the state.Bot of the Session.
 	SessionState() state.Bot
@@ -52,8 +49,6 @@ type Session interface {
 type Options struct {
 	// Should the session reconnect the websocket on errors.
 	ShouldReconnectOnError bool
-	// Should voice connections reconnect on a session reconnect.
-	ShouldReconnectVoiceOnSessionError bool
 	// Should the session retry requests when rate limited.
 	ShouldRetryOnRateLimit bool
 	// Max number of REST API retries.

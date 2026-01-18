@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/discord"
@@ -122,21 +121,6 @@ func (s *Session) reconnect(ctx context.Context, forceClose bool) error {
 	s.logger.Info("successfully reconnected to gateway")
 
 	s.finishConnection(ctx)
-
-	// I'm not sure if this is actually needed.
-	// If the gw reconnect works properly, voice should stay alive.
-	// However, there seems to be cases where something "weird" happens.
-	// So we're doing this for now just to improve stability in those edge cases.
-	if !s.Options.ShouldReconnectVoiceOnSessionError {
-		return nil
-	}
-	for _, v := range s.voiceAPI.Connections {
-		s.logger.Debug("reconnecting voice connection to guild", "guild", v.GuildID)
-		go v.Reconnect(ctx)
-
-		// This is here just to prevent violently spamming the voice reconnects.
-		time.Sleep(1 * time.Second)
-	}
 	return nil
 }
 
@@ -190,14 +174,6 @@ func (s *Session) CloseWithCode(ctx context.Context, closeCode websocket.StatusC
 	}
 	s.waitListen.Close()
 	s.cancelWSRead()
-
-	for _, v := range s.voiceAPI.Connections {
-		err := v.Disconnect(ctx)
-		if err != nil {
-			s.logger.Error("disconnecting voice from channel", "error", err, "channel", v.ChannelID)
-		}
-	}
-	// TODO: stop any reconnecting voice channels
 
 	s.logger.Debug("closing websocket")
 	// is a clean stop

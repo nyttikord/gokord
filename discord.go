@@ -16,7 +16,6 @@ import (
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/voice"
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
@@ -64,11 +63,10 @@ func NewWithLoggerOptions(token string, opt *logger.Options) *Session {
 func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s := &Session{
 		Options: bot.Options{
-			StateEnabled:                       true,
-			ShouldReconnectOnError:             true,
-			ShouldReconnectVoiceOnSessionError: true,
-			ShouldRetryOnRateLimit:             true,
-			MaxRestRetries:                     3,
+			StateEnabled:           true,
+			ShouldReconnectOnError: true,
+			ShouldRetryOnRateLimit: true,
+			MaxRestRetries:         3,
 		},
 		logger:         logger,
 		mu:             &mutex{logger: logger.With("module", "mutex")},
@@ -92,12 +90,6 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		emitRateLimitEvent: func(ctx context.Context, rl *event.RateLimit) {
 			s.eventManager.EmitEvent(ctx, s, event.RateLimitType, rl)
 		},
-	}
-
-	s.voiceAPI = &voice.Requester{
-		RESTRequester: s.REST,
-		WSRequester:   s,
-		Connections:   make(map[string]*voice.Connection),
 	}
 
 	// Initialize Identify with defaults values.
