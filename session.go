@@ -23,7 +23,6 @@ import (
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
-	"github.com/nyttikord/gokord/voice"
 )
 
 type mutex struct {
@@ -97,7 +96,6 @@ type Session struct {
 	userAPI    *userapi.Requester
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
-	voiceAPI   *voice.Requester
 
 	UserStorage    state.Storage // UserStorage is the state.Storage used for the UserAPI
 	ChannelStorage state.Storage // ChannelStorage is the state.Storage used for the ChannelAPI
@@ -200,11 +198,6 @@ func (s *Session) ApplicationAPI() *applicationapi.Requester {
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
 	return &botapi.Requester{RESTRequester: s.REST, WSRequester: s}
-}
-
-// VoiceAPI returns a voice.Requester to interact with the voice package.
-func (s *Session) VoiceAPI() *voice.Requester {
-	return s.voiceAPI
 }
 
 // EventManager returns the event.Manager used by the Session.
