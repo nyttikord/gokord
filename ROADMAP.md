@@ -1,49 +1,9 @@
 # ROADMAP
 
-Goals of Gokord:
-- updating discordgo
+Goals of gokord:
+- updating DiscordGo
 - stay up to date with Discord API
 - provides a cleaner library to interact with Discord API
-
-## `0.30.0`
-
-Upgrades Go version and libraries to fix *4 CVE*! 
-See [bwmarrin/discordgo#1528](https://github.com/bwmarrin/discordgo/pull/1528) for more information.
-
-Supports primary guild (tag), colors for roles, label component and buyable user perks.
-
-Upgrades to API v10 (discordgo is still using API v9).
-
-## `0.31.0`
-
-**BREAKING CHANGES EVERYWHERE!**
-
-Reorganizes the source code.
-Currently, it's a mess.
-
-This release is unstable, and it is not recommended for production use.
-Only the REST API was heavily refactored.
-The Websocket API (including events and voice) was not touched.
-
-Huge files will be split into smaller ones.
-Subpackages will be created to be more maintainable and to be easier to use.
-
-## `0.32.0`
-
-**BREAKING CHANGES IN WEBSOCKET API AND IN STATE!**
-Including events and voice.
-
-Refactor the Websocket API (including events and voice).
-Rewrite how the Session works.
-Rewrite how the State is managed.
-Rewrite the logger to use the standard `log/slog`.
-
-This release follows the changes of `0.31.0`.
-It does not add new features, but continue the cleaning of the source code.
-
-The goal of this is to be more stable than the `0.31.0`.
-It looks like that this release can be used in production.
-We will deploy a bot using this version in production to verify this.
 
 ## `0.33.0`
 
@@ -60,6 +20,9 @@ This release can be used in production, yay :D
 (and it seems to be more stable than DiscordGo.)
 
 ## `0.34.0`
+
+**BREAKING CHANGES EVERYWHERE**
+Introduce contexts everywhere.
 
 New higher-level interaction package using contexts:
 - easier to declare
