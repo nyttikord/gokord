@@ -11,6 +11,7 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/logger"
@@ -86,7 +87,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		eventManager: s.eventManager,
 		Client:       &http.Client{Timeout: 20 * time.Second},
 		UserAgent:    "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
-		RateLimiter:  discord.NewRateLimiter(),
+		RateLimiter:  request.NewRateLimiter(),
 		emitRateLimitEvent: func(ctx context.Context, rl *event.RateLimit) {
 			s.eventManager.EmitEvent(ctx, s, event.RateLimitType, rl)
 		},

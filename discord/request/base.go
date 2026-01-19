@@ -1,0 +1,83 @@
+package request
+
+import (
+	"context"
+	"maps"
+	"net/http"
+
+	"github.com/nyttikord/gokord/discord"
+)
+
+// Request represents an HTTP request.
+// It is immutable: when you call a method, it returns a new Request with this option.
+type Request[T any] interface {
+	// Do executes the request.
+	Do(context.Context) (T, error)
+	// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
+	WithRetryOnRateLimit(bool) Request[T]
+	// WithRestRetries changes maximum amount of retries if request fails.
+	WithRestRetries(uint) Request[T]
+	// WithHeader sets a header in the request.
+	WithHeader(string, string) Request[T]
+	// WithAuditLogReason changes audit log reason associated with the request.
+	WithAuditLogReason(string) Request[T]
+	// WithLocale changes accepted locale of the request.
+	WithLocale(discord.Locale) Request[T]
+	// RequestConfig returns the RequestConfig used
+	RequestConfig() Config
+}
+
+type Config struct {
+	Header                 http.Header
+	ShouldRetryOnRateLimit *bool
+	MaxRestRetries         *uint
+}
+
+func NewConfig() Config {
+	return Config{Header: make(http.Header)}
+}
+
+type baseRequest[T any] Config
+
+func (r baseRequest[T]) Do(ctx context.Context) (T, error) {
+	panic("cannot execute a baseRequest")
+}
+
+func (r baseRequest[T]) WithRetryOnRateLimit(b bool) Request[T] {
+	dst := make(http.Header, len(r.Header))
+	maps.Copy(dst, r.Header)
+	r.Header = dst
+
+	r.ShouldRetryOnRateLimit = &b
+	return r
+}
+
+func (r baseRequest[T]) WithRestRetries(m uint) Request[T] {
+	dst := make(http.Header, len(r.Header))
+	maps.Copy(dst, r.Header)
+	r.Header = dst
+
+	r.MaxRestRetries = &m
+	return r
+}
+
+func (r baseRequest[T]) WithHeader(key, value string) Request[T] {
+	dst := make(http.Header, len(r.Header))
+	maps.Copy(dst, r.Header)
+	r.Header = dst
+
+	r.Header.Set(key, value)
+	return r
+}
+
+func (r baseRequest[T]) WithAuditLogReason(reason string) Request[T] {
+	return r.WithHeader("X-Audit-Log-Reason", reason)
+}
+
+func (r baseRequest[T]) WithLocale(locale discord.Locale) Request[T] {
+	return r.WithHeader("X-Discord-Locale", string(locale))
+}
+
+func (r baseRequest[T]) RequestConfig() Config {
+	return Config(r)
+}

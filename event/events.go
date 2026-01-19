@@ -6,7 +6,7 @@ import (
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/interaction"
@@ -35,7 +35,7 @@ type Event struct{}
 // RateLimit is the data for a RateLimit event.
 // This is a synthetic event and is not dispatched by Discord.
 type RateLimit struct {
-	*discord.TooManyRequests
+	*request.TooManyRequests
 	URL string
 }
 
