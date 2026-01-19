@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user/status"
 )
 
 // Requester handles everything inside the bot package.
 type Requester struct {
-	discord.RESTRequester
-	discord.WSRequester
+	request.RESTRequester
+	request.WSRequester
 	//State *State
 }
 

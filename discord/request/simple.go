@@ -1,6 +1,8 @@
 package request
 
-import "context"
+import (
+	"context"
+)
 
 // Simple is a basic request that returns nothing if there is no error
 type Simple struct {
@@ -12,17 +14,22 @@ type Simple struct {
 	data     any
 }
 
-func NewSimple(req RESTRequester, method, endpoint string, data any) Simple {
+func NewSimple(req RESTRequester, method, endpoint string) Simple {
 	return Simple{
 		req:      req,
 		method:   method,
 		endpoint: endpoint,
-		data:     data,
+		data:     nil,
 	}
 }
 
 func (r Simple) WithBucketID(bucket string) Simple {
 	r.bucket = bucket
+	return r
+}
+
+func (r Simple) WithData(data any) Simple {
+	r.data = data
 	return r
 }
 
@@ -42,20 +49,25 @@ type SimpleData[T any] struct {
 	method   string
 	bucket   string
 	endpoint string
-	data     T
+	data     any
 }
 
-func NewSimpleData[T any](req RESTRequester, method, endpoint string, data T) SimpleData[T] {
+func NewSimpleData[T any](req RESTRequester, method, endpoint string) SimpleData[T] {
 	return SimpleData[T]{
 		req:      req,
 		method:   method,
 		endpoint: endpoint,
-		data:     data,
+		data:     nil,
 	}
 }
 
 func (r SimpleData[T]) WithBucketID(bucket string) SimpleData[T] {
 	r.bucket = bucket
+	return r
+}
+
+func (r SimpleData[T]) WithData(data any) SimpleData[T] {
+	r.data = data
 	return r
 }
 
