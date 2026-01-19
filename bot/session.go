@@ -47,7 +47,7 @@ type Options struct {
 	// Should the session retry requests when rate limited.
 	ShouldRetryOnRateLimit bool
 	// Max number of REST API retries.
-	MaxRestRetries int
+	MaxRestRetries uint
 	// Should state tracking be enabled.
 	// State tracking is the best way for getting the users active guilds and the members of the guilds.
 	StateEnabled bool
