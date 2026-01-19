@@ -66,11 +66,11 @@ type Activity struct {
 	ApplicationID string         `json:"application_id,omitempty"`
 	State         string         `json:"state,omitempty"`
 	Details       string         `json:"details,omitempty"`
-	Timestamps    TimeStamps     `json:"timestamps,omitempty"`
-	Emoji         emoji.Emoji    `json:"emoji,omitempty"`
-	Party         Party          `json:"party,omitempty"`
-	Assets        Assets         `json:"assets,omitempty"`
-	Secrets       Secrets        `json:"secrets,omitempty"`
+	Timestamps    TimeStamps     `json:"timestamps"`
+	Emoji         emoji.Emoji    `json:"emoji"`
+	Party         Party          `json:"party"`
+	Assets        Assets         `json:"assets"`
+	Secrets       Secrets        `json:"secrets"`
 	Instance      bool           `json:"instance,omitempty"`
 	Flags         int            `json:"flags,omitempty"`
 }
@@ -86,11 +86,11 @@ func (activity *Activity) UnmarshalJSON(b []byte) error {
 		ApplicationID json.Number    `json:"application_id,omitempty"`
 		State         string         `json:"state,omitempty"`
 		Details       string         `json:"details,omitempty"`
-		Timestamps    TimeStamps     `json:"timestamps,omitempty"`
-		Emoji         emoji.Emoji    `json:"emoji,omitempty"`
-		Party         Party          `json:"party,omitempty"`
-		Assets        Assets         `json:"assets,omitempty"`
-		Secrets       Secrets        `json:"secrets,omitempty"`
+		Timestamps    TimeStamps     `json:"timestamps"`
+		Emoji         emoji.Emoji    `json:"emoji"`
+		Party         Party          `json:"party"`
+		Assets        Assets         `json:"assets"`
+		Secrets       Secrets        `json:"secrets"`
 		Instance      bool           `json:"instance,omitempty"`
 		Flags         int            `json:"flags,omitempty"`
 	}{}

@@ -2,7 +2,6 @@
 package premiumapi
 
 import (
-	"context"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -10,29 +9,24 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/premium"
+	. "github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/premium"
 )
 
 // Requester handles everything inside the premium package.
 type Requester struct {
-	discord.RESTRequester
+	RESTRequester
 }
 
 // SKUs returns all premium.SKU for a given application.Application.
-func (s *Requester) SKUs(ctx context.Context, appID string, options ...discord.RequestOption) ([]*premium.SKU, error) {
-	body, err := s.Request(ctx, http.MethodGet, discord.EndpointApplicationSKUs(appID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var skus []*premium.SKU
-	return skus, s.Unmarshal(body, &skus)
+func (r *Requester) SKUs(appID string) Request[[]*SKU] {
+	return NewSimpleData[[]*SKU](r, http.MethodGet, discord.EndpointApplicationSKUs(appID))
 }
 
 // Entitlements returns all premium.Entitlement for a given application.Application, active and expired.
 //
 // filterOptions is the optional filter options; otherwise set it to nil.
-func (s *Requester) Entitlements(ctx context.Context, appID string, filterOptions *premium.EntitlementFilterOptions, options ...discord.RequestOption) ([]*premium.Entitlement, error) {
+func (r *Requester) Entitlements(appID string, filterOptions *EntitlementFilterOptions) Request[[]*Entitlement] {
 	endpoint := discord.EndpointEntitlements(appID)
 
 	queryParams := url.Values{}
@@ -58,59 +52,44 @@ func (s *Requester) Entitlements(ctx context.Context, appID string, filterOption
 		if filterOptions.ExcludeEnded {
 			queryParams.Set("exclude_ended", "true")
 		}
+		endpoint += "?" + queryParams.Encode()
 	}
 
-	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var e []*premium.Entitlement
-	return e, s.Unmarshal(body, &e)
+	return NewSimpleData[[]*Entitlement](r, http.MethodGet, endpoint)
 }
 
 // EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
-func (s *Requester) EntitlementConsume(ctx context.Context, appID, entitlementID string, options ...discord.RequestOption) error {
-	_, err := s.RequestWithBucketID(
-		ctx,
-		http.MethodPost,
-		discord.EndpointEntitlementConsume(appID, entitlementID),
-		nil,
-		discord.EndpointEntitlementConsume(appID, ""),
-		options...,
-	)
-	return err
+func (r *Requester) EntitlementConsume(appID, entitlementID string) EmptyRequest {
+	req := NewSimple(
+		r, http.MethodPost, discord.EndpointEntitlementConsume(appID, entitlementID),
+	).WithBucketID(discord.EndpointEntitlementConsume(appID, ""))
+	return WrapAsEmpty(req)
 }
 
 // EntitlementTestCreate creates a test premium.Entitlement to a given premium.SKU for a given guild.Guild or user.User.
 //
 // Discord will act as though that user or guild has premium.Entitlement to your premium offering.
-func (s *Requester) EntitlementTestCreate(ctx context.Context, appID string, data *premium.EntitlementTest, options ...discord.RequestOption) error {
-	_, err := s.Request(ctx, http.MethodPost, discord.EndpointEntitlements(appID), data, options...)
-	return err
+func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) EmptyRequest {
+	req := NewSimple(r, http.MethodPost, discord.EndpointEntitlements(appID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // EntitlementTestDelete deletes a currently-active test premium.Entitlement.
 //
-// Discord will act as though that user.User or guild.Guild no longer has premium.Entitlement to your premium offering.
-func (s *Requester) EntitlementTestDelete(ctx context.Context, appID, entitlementID string, options ...discord.RequestOption) error {
-	_, err := s.RequestWithBucketID(
-		ctx,
-		http.MethodDelete,
-		discord.EndpointEntitlement(appID, entitlementID),
-		nil,
-		discord.EndpointEntitlement(appID, ""),
-		options...,
-	)
-	return err
+// Discord will act as though that user.User or guild.Guild no longer has Entitlement to your premium offering.
+func (r *Requester) EntitlementTestDelete(appID, entitlementID string) EmptyRequest {
+	req := NewSimple(
+		r, http.MethodDelete, discord.EndpointEntitlement(appID, entitlementID),
+	).WithBucketID(discord.EndpointEntitlement(appID, ""))
+	return WrapAsEmpty(req)
 }
 
 // Subscriptions returns all premium.Subscription containing the premium.SKU.
 //
-// before is an optional timestamp to retrieve premium.Subscription before this time.
-// after is an optional timestamp to retrieve premium.Subscription after this time.
-// limit is an optional maximum number of premium.Subscription to return (1-100, default 50).
-func (s *Requester) Subscriptions(ctx context.Context, skuID string, userID string, before, after *time.Time, limit int, options ...discord.RequestOption) ([]*premium.Subscription, error) {
+// before is an optional timestamp to retrieve Subscription before this time.
+// after is an optional timestamp to retrieve Subscription after this time.
+// limit is an optional maximum number of Subscription to return (1-100, default 50).
+func (r *Requester) Subscriptions(skuID string, userID string, before, after *time.Time, limit int) Request[[]*Subscription] {
 	endpoint := discord.EndpointSubscriptions(skuID)
 
 	queryParams := url.Values{}
@@ -127,32 +106,22 @@ func (s *Requester) Subscriptions(ctx context.Context, skuID string, userID stri
 		queryParams.Set("limit", strconv.Itoa(limit))
 	}
 
-	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var sub []*premium.Subscription
-	return sub, s.Unmarshal(body, &sub)
+	return NewSimpleData[[]*Subscription](r, http.MethodGet, endpoint+"?"+queryParams.Encode())
 }
 
 // Subscription returns a premium.Subscription by its premium.SKU and premium.Subscription ID.
 //
-// userID for which to return the premium.Subscription. Required except for OAuth queries.
-func (s *Requester) Subscription(ctx context.Context, skuID, subscriptionID, userID string, options ...discord.RequestOption) (*premium.Subscription, error) {
+// userID for which to return the premium.Subscription.
+// Required except for OAuth queries.
+func (r *Requester) Subscription(skuID, subscriptionID, userID string) Request[*Subscription] {
 	endpoint := discord.EndpointSubscription(skuID, subscriptionID)
 
 	queryParams := url.Values{}
 	if userID != "" {
 		// Unlike stated in the documentation, the user_id parameter is required here.
 		queryParams.Set("user_id", userID) //TODO: check if this is true
+		endpoint += "?" + queryParams.Encode()
 	}
 
-	body, err := s.Request(ctx, http.MethodGet, endpoint+"?"+queryParams.Encode(), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var sub premium.Subscription
-	return &sub, s.Unmarshal(body, &sub)
+	return NewSimpleData[*Subscription](r, http.MethodGet, endpoint)
 }

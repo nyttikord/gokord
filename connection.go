@@ -57,6 +57,7 @@ func (s *Session) Open(ctx context.Context) error {
 	}
 
 	s.finishConnection(ctx)
+	s.logger.Info("connected to Discord")
 
 	return nil
 }
@@ -164,7 +165,6 @@ func (s *Session) connect(ctx context.Context) error {
 
 // TODO: rename this method
 func (s *Session) finishConnection(ctx context.Context) {
-	s.logger.Info("connected to Discord")
 	s.logger.Debug("emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 

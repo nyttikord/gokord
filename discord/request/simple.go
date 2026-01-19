@@ -6,7 +6,7 @@ import (
 
 // Simple is a basic request that returns nothing if there is no error
 type Simple struct {
-	baseRequest[struct{}]
+	baseRequest[[]byte]
 	req      RESTRequester
 	method   string
 	bucket   string
@@ -33,14 +33,11 @@ func (r Simple) WithData(data any) Simple {
 	return r
 }
 
-func (r Simple) Do(ctx context.Context) (struct{}, error) {
-	var err error
+func (r Simple) Do(ctx context.Context) ([]byte, error) {
 	if len(r.bucket) == 0 {
-		_, err = r.req.Request(ctx, r.method, r.endpoint, r.data, r.RequestConfig())
-	} else {
-		_, err = r.req.RequestWithBucketID(ctx, r.method, r.endpoint, r.data, r.bucket, r.RequestConfig())
+		return r.req.Request(ctx, r.method, r.endpoint, r.data, r.RequestConfig())
 	}
-	return struct{}{}, err
+	return r.req.RequestWithBucketID(ctx, r.method, r.endpoint, r.data, r.bucket, r.RequestConfig())
 }
 
 type SimpleData[T any] struct {

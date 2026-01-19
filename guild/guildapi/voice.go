@@ -1,18 +1,12 @@
 package guildapi
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 )
 
-func (r *Requester) VoiceRegions(ctx context.Context, options ...discord.RequestOption) ([]*discord.VoiceRegion, error) {
-	body, err := r.Request(ctx, http.MethodGet, discord.EndpointVoiceRegions, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var vc []*discord.VoiceRegion
-	return vc, r.Unmarshal(body, &vc)
+func (r *Requester) VoiceRegions() Request[[]*discord.VoiceRegion] {
+	return NewSimpleData[[]*discord.VoiceRegion](r, http.MethodGet, discord.EndpointVoiceRegions)
 }

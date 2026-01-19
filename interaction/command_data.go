@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -14,19 +14,19 @@ import (
 // channelGetter represents a type fetching channel.Channel.
 type channelGetter interface {
 	// Channel returns the channel.Channel with the given ID.
-	Channel(context.Context, string, ...discord.RequestOption) (*channel.Channel, error)
+	Channel(string) request.Request[*channel.Channel]
 }
 
 // rolesGetter represents a type fetching []*guild.Role.
 type rolesGetter interface {
 	// Roles returns the []*guild.Role in the given guild.Guild.
-	Roles(context.Context, string, ...discord.RequestOption) ([]*guild.Role, error)
+	Roles(string) request.Request[[]*guild.Role]
 }
 
 // userGetter represents a type fetching user.User.
 type userGetter interface {
 	// User returns the user.User with the given ID.
-	User(context.Context, string, ...discord.RequestOption) (*user.User, error)
+	User(string) request.Request[*user.User]
 }
 
 // CommandInteractionData contains the data of Command Interaction.
@@ -149,7 +149,7 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state st
 			return ch
 		}
 	}
-	ch, err := loadChannelGetter(ctx).Channel(ctx, chanID)
+	ch, err := loadChannelGetter(ctx).Channel(chanID).Do(ctx)
 	if err != nil {
 		return &channel.Channel{ID: chanID}
 	}
@@ -176,7 +176,7 @@ func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string,
 	if err == nil {
 		return r
 	}
-	roles, err := loadRolesGetter(ctx).Roles(ctx, gID)
+	roles, err := loadRolesGetter(ctx).Roles(gID).Do(ctx)
 	if err == nil {
 		for _, r = range roles {
 			if r.ID == roleID {
@@ -196,7 +196,7 @@ func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User 
 	}
 	userID := o.Value.(string)
 
-	u, err := loadUserGetter(ctx).User(ctx, userID)
+	u, err := loadUserGetter(ctx).User(userID).Do(ctx)
 	if err != nil {
 		return &user.User{ID: userID}
 	}
