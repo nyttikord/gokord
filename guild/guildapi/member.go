@@ -8,17 +8,18 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/guild"
+	. "github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/user"
 )
 
-// Bans returns guild.Ban in the given guild.
+// Bans returns guild.Ban in the given guild.Guild.
 //
 // limit is the limit of bans to return (max 1000).
-// If not empty, all returned guild.Ban will be before the ID specified by beforeID.
-// If not empty, all returned guild.Ban will be after the ID specified by afterID.
-func (r Requester) Bans(ctx context.Context, guildID string, limit int, beforeID, afterID string, options ...discord.RequestOption) ([]*guild.Ban, error) {
+// If not empty, all returned Ban will be before the ID specified by beforeID.
+// If not empty, all returned Ban will be after the ID specified by afterID.
+func (r Requester) Bans(guildID string, limit int, beforeID, afterID string) Request[[]*Ban] {
 	uri := discord.EndpointGuildBans(guildID)
 
 	v := url.Values{}
@@ -36,39 +37,27 @@ func (r Requester) Bans(ctx context.Context, guildID string, limit int, beforeID
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var b []*guild.Ban
-	return b, r.Unmarshal(body, &b)
+	return NewSimpleData[[]*Ban](r, http.MethodGet, uri)
 }
 
 // BanCreate bans the given user.User from the given guild.Guild.
 //
 // days is the number of days of previous comments to delete.
 //
-// NOTE: See BanCreate.
-func (r Requester) BanCreate(ctx context.Context, guildID, userID string, days int, options ...discord.RequestOption) error {
-	return r.BanCreateWithReason(ctx, guildID, userID, "", days, options...)
+// NOTE: See BanCreateWithReason.
+func (r Requester) BanCreate(guildID, userID string, days int) Request[*Ban] {
+	return r.BanCreateWithReason(guildID, userID, "", days)
 }
 
 // Ban finds ban by given guild.Guild and user.User id and returns guild.Ban.
-func (r Requester) Ban(ctx context.Context, guildID, userID string, options ...discord.RequestOption) (*guild.Ban, error) {
-	body, err := r.Request(ctx, http.MethodGet, discord.EndpointGuildBan(guildID, userID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var b guild.Ban
-	return &b, r.Unmarshal(body, &b)
+func (r Requester) Ban(guildID, userID string) Request[*Ban] {
+	return NewSimpleData[*Ban](
+		r, http.MethodGet, discord.EndpointGuildBan(guildID, userID),
+	).WithBucketID(discord.EndpointGuildBans(guildID))
 }
 
-// BanCreateWithReason bans the given user.User from the given guild.Guild also providing a reason.
-//
-// NOTE: See BanCreate.
-func (r Requester) BanCreateWithReason(ctx context.Context, guildID, userID, reason string, days int, options ...discord.RequestOption) error {
+// BanCreateWithReason bans the given user.User from the given guild.Guild with the given reason.
+func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int) Request[*Ban] {
 	uri := discord.EndpointGuildBan(guildID, userID)
 
 	queryParams := url.Values{}
@@ -83,27 +72,15 @@ func (r Requester) BanCreateWithReason(ctx context.Context, guildID, userID, rea
 		uri += "?" + queryParams.Encode()
 	}
 
-	_, err := r.RequestWithBucketID(ctx, http.MethodPut, uri, nil, discord.EndpointGuildBan(guildID, ""), options...)
-	return err
-}
-
-// BanDelete unbans the given user.User from the given guild.Guild.
-func (r Requester) BanDelete(ctx context.Context, guildID, userID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodDelete,
-		discord.EndpointGuildBan(guildID, userID),
-		nil,
-		discord.EndpointGuildBan(guildID, ""),
-		options...,
-	)
-	return err
+	return NewSimpleData[*Ban](
+		r, http.MethodPut, uri,
+	).WithBucketID(discord.EndpointGuildBans(guildID))
 }
 
 // Members returns a list of members for a guild.Guild.
 // If afterID is set, every member ID will be after this.
 // limit is the maximum number of members to return (max 1000).
-func (r Requester) Members(ctx context.Context, guildID string, afterID string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
+func (r Requester) Members(guildID string, afterID string, limit int) Request[[]*user.Member] {
 	uri := discord.EndpointGuildMembers(guildID)
 
 	v := url.Values{}
@@ -139,26 +116,21 @@ func (r Requester) Members(ctx context.Context, guildID string, afterID string, 
 
 // MembersSearch returns a list of user.Member whose username or nickname starts with a provided string.
 // limit is the maximum number of members to return (min 1, max 1000).
-func (r Requester) MembersSearch(ctx context.Context, guildID, query string, limit int, options ...discord.RequestOption) ([]*user.Member, error) {
+func (r Requester) MembersSearch(guildID, query string, limit int) Request[[]*user.Member] {
 	uri := discord.EndpointGuildMembersSearch(guildID)
 
 	queryParams := url.Values{}
 	queryParams.Set("query", query)
 	if limit > 1 {
 		queryParams.Set("limit", strconv.Itoa(limit))
+		uri += "?" + queryParams.Encode()
 	}
 
-	body, err := r.Request(ctx, http.MethodGet, uri+"?"+queryParams.Encode(), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var m []*user.Member
-	return m, r.Unmarshal(body, &m)
+	return NewSimpleData[[]*user.Member](r, http.MethodGet, uri)
 }
 
 // Member returns a user.Member of a guild.Guild.
-func (r Requester) Member(ctx context.Context, guildID, userID string, options ...discord.RequestOption) (*user.Member, error) {
+func (r Requester) Member(guildID, userID string) Request[*user.Member] {
 	body, err := r.RequestWithBucketID(
 		ctx,
 		http.MethodGet,
@@ -182,202 +154,151 @@ func (r Requester) Member(ctx context.Context, guildID, userID string, options .
 }
 
 // MemberAdd force joins a user.User to the guild.Guild with the given data.
-func (r Requester) MemberAdd(ctx context.Context, guildID, userID string, data *guild.MemberAddParams, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPut,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+func (r Requester) MemberAdd(guildID, userID string, data *MemberAddParams) EmptyRequest {
+	req := NewSimple(
+		r, http.MethodPut, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
 }
 
 // MemberKick kicks the given user.User from the given guild.Guild.
-func (r Requester) MemberKick(ctx context.Context, guildID, userID string, options ...discord.RequestOption) error {
-	return r.MemberKickWithReason(ctx, guildID, userID, "", options...)
+func (r Requester) MemberKick(guildID, userID string) EmptyRequest {
+	return r.MemberKickWithReason(guildID, userID, "")
 }
 
 // MemberKickWithReason removes the given user.User from the given guild.Guild with the given reason.
-func (r Requester) MemberKickWithReason(ctx context.Context, guildID, userID, reason string, options ...discord.RequestOption) error {
+func (r Requester) MemberKickWithReason(guildID, userID, reason string) EmptyRequest {
 	uri := discord.EndpointGuildMember(guildID, userID)
 	if reason != "" {
 		uri += "?reason=" + url.QueryEscape(reason)
 	}
 
-	_, err := r.RequestWithBucketID(ctx, http.MethodDelete, uri, nil, discord.EndpointGuildMember(guildID, ""), options...)
-	return err
+	req := NewSimple(
+		r, http.MethodDelete, uri,
+	).WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
 }
 
 // MemberEdit edits a user.Member with the given data and returns them.
-func (r Requester) MemberEdit(ctx context.Context, guildID, userID string, data *guild.MemberParams, options ...discord.RequestOption) (*user.Member, error) {
-	body, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var m user.Member
-	return &m, r.Unmarshal(body, &m)
+func (r Requester) MemberEdit(guildID, userID string, data *MemberParams) Request[*user.Member] {
+	return NewSimpleData[*user.Member](
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID))
 }
 
 // MemberMove moves a user.Member from one voice channel.Channel to another/none.
 //
 // NOTE: I am not entirely set on the name of this function, and it may change.
-func (r Requester) MemberMove(ctx context.Context, guildID string, userID string, channelID *string, options ...discord.RequestOption) error {
+func (r Requester) MemberMove(guildID string, userID string, channelID *string) EmptyRequest {
 	data := struct {
 		ChannelID *string `json:"channel_id"`
 	}{channelID}
 
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberNickname updates the nickname of a user.Member in a guild.Guild.
 //
 // NOTE: To reset the nickname, set it to an empty string.
 //
-// NOTE: Use MemberModifyCurrent to modify the current member. If you still use "@me" as a userID, you will get a
-// warning.
-func (r Requester) MemberNickname(ctx context.Context, guildID, userID, nickname string, options ...discord.RequestOption) error {
+// NOTE: Use MemberModifyCurrent to modify the current member.
+func (r Requester) MemberNickname(guildID, userID, nickname string) EmptyRequest {
 	if userID == "@me" {
 		r.Logger().WarnContext(
 			logger.NewContext(context.Background(), 1),
 			"this endpoint is deprecated for the current member, use MemberModifyCurrent instead",
 		)
-		return r.MemberModifyCurrent(ctx, guildID, nickname, "", "", "", options...)
+		return r.MemberModifyCurrent(guildID, nickname, "", "", "")
 	}
 
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		struct {
-			Nick string `json:"nick"`
-		}{nickname},
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+	data := struct {
+		Nick string `json:"nick"`
+	}{nickname}
+
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberModifyCurrent updates the nickname, the avatar, the banner and the bio of the current user.Member.
 //
 // NOTE: Set any parameter to "" to avoid modifying it.
-func (r Requester) MemberModifyCurrent(ctx context.Context, guildID string, nick, avatar, banner, bio string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, "@me"),
-		struct {
-			Nick   string `json:"nick,omitempty"`
-			Avatar string `json:"avatar,omitempty"`
-			Banner string `json:"banner,omitempty"`
-			Bio    string `json:"bio,omitempty"`
-		}{nick, avatar, banner, bio},
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+func (r Requester) MemberModifyCurrent(guildID string, nick, avatar, banner, bio string) EmptyRequest {
+	data := struct {
+		Nick   string `json:"nick,omitempty"`
+		Avatar string `json:"avatar,omitempty"`
+		Banner string `json:"banner,omitempty"`
+		Bio    string `json:"bio,omitempty"`
+	}{nick, avatar, banner, bio}
+
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, "@me"),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberMute (un)mutes a user.Member in a guild.Guild.
-func (r Requester) MemberMute(ctx context.Context, guildID string, userID string, mute bool, options ...discord.RequestOption) error {
+func (r Requester) MemberMute(guildID string, userID string, mute bool) EmptyRequest {
 	data := struct {
 		Mute bool `json:"mute"`
 	}{mute}
 
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberTimeout times out a user.Member in a guild.Guild.
 //
 // NOTE: Set until to nil to remove timeout.
-func (r Requester) MemberTimeout(ctx context.Context, guildID string, userID string, until *time.Time, options ...discord.RequestOption) error {
+func (r Requester) MemberTimeout(guildID string, userID string, until *time.Time) EmptyRequest {
 	data := struct {
 		CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 	}{until}
 
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberDeafen server deafens a user.Member in a guild.Guild.
-func (r Requester) MemberDeafen(ctx context.Context, guildID string, userID string, deaf bool, options ...discord.RequestOption) error {
+func (r Requester) MemberDeafen(guildID string, userID string, deaf bool) EmptyRequest {
 	data := struct {
 		Deaf bool `json:"deaf"`
 	}{deaf}
 
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointGuildMember(guildID, userID),
-		data,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	return err
+	req := NewSimple(
+		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MemberRoleAdd adds the specified guild.Role to a given user.Member.
-func (r Requester) MemberRoleAdd(ctx context.Context, guildID, userID, roleID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodPut,
-		discord.EndpointGuildMemberRole(guildID, userID, roleID),
-		nil,
-		discord.EndpointGuildMemberRole(guildID, "", ""),
-		options...,
-	)
-	return err
+func (r Requester) MemberRoleAdd(guildID, userID, roleID string) EmptyRequest {
+	req := NewSimple(
+		r, http.MethodPut, discord.EndpointGuildMemberRole(guildID, userID, roleID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
 }
 
 // MemberRoleRemove removes the specified guild.Role to a given user.Member.
-func (r Requester) MemberRoleRemove(ctx context.Context, guildID, userID, roleID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodDelete,
-		discord.EndpointGuildMemberRole(guildID, userID, roleID),
-		nil,
-		discord.EndpointGuildMemberRole(guildID, "", ""),
-		options...,
-	)
-	return err
+func (r Requester) MemberRoleRemove(guildID, userID, roleID string) EmptyRequest {
+	req := NewSimple(
+		r, http.MethodDelete, discord.EndpointGuildMemberRole(guildID, userID, roleID),
+	).WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
 }
 
 // PruneCount returns the number of user.Member that would be removed in a prune operation.
 //
 // Requires discord.PermissionKickMembers.
-func (r Requester) PruneCount(ctx context.Context, guildID string, days uint32, options ...discord.RequestOption) (uint32, error) {
+func (r Requester) PruneCount(guildID string, days uint32) (uint32, error) {
 	if days == 0 {
 		return 0, ErrPruneDaysBounds
 	}
@@ -404,7 +325,7 @@ func (r Requester) PruneCount(ctx context.Context, guildID string, days uint32, 
 // Returns the number of pruned members.
 //
 // Requires discord.PermissionKickMembers.
-func (r Requester) Prune(ctx context.Context, guildID string, days uint32, options ...discord.RequestOption) (uint32, error) {
+func (r Requester) Prune(guildID string, days uint32) (uint32, error) {
 	if days <= 0 {
 		return 0, ErrPruneDaysBounds
 	}

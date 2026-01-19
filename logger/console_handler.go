@@ -52,7 +52,7 @@ type Options struct {
 	Level slog.Leveler
 
 	// MaxFileLineLength is the maximum length of the caller part.
-	// Default value is 35.
+	// Default value is 25.
 	MaxFileLineLength int
 	// If Align, everything logged will be aligned dynamically.
 	Align bool
@@ -73,7 +73,7 @@ func New(out io.Writer, opts *Options) *ConsoleHandler {
 		h.opts.Level = slog.LevelInfo
 	}
 	if h.opts.MaxFileLineLength == 0 {
-		h.opts.MaxFileLineLength = 35
+		h.opts.MaxFileLineLength = 25
 	}
 	return h
 }

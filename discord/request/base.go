@@ -27,24 +27,22 @@ type Request[T any] interface {
 	RequestConfig() Config
 }
 
-type EmptyRequestRaw Request[struct{}]
-
 // EmptyRequest is a Request that only returns an error when it is executed.
 type EmptyRequest struct {
-	EmptyRequestRaw
+	Simple
 }
 
 func (r EmptyRequest) Do(ctx context.Context) error {
-	_, err := r.EmptyRequestRaw.Do(ctx)
+	_, err := r.Simple.Do(ctx)
 	return err
 }
 
-func WrapAsEmpty(req EmptyRequestRaw) EmptyRequest {
+func WrapAsEmpty(req Simple) EmptyRequest {
 	return EmptyRequest{req}
 }
 
-func UnwrapEmpty(req EmptyRequest) EmptyRequestRaw {
-	return req.EmptyRequestRaw
+func UnwrapEmpty(req EmptyRequest) Simple {
+	return req.Simple
 }
 
 type Config struct {

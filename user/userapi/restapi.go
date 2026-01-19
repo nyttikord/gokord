@@ -3,42 +3,31 @@ package userapi
 
 import (
 	"bytes"
-	"context"
 	"image"
 	"net/http"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/user"
+	. "github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/user"
 )
 
 // Requester handles everything inside the user package.
 type Requester struct {
-	discord.RESTRequester
+	RESTRequester
 	State *State
 }
 
-// User returns the user.User details of the given userID (can be @me to be the current user.User ID).
-func (s Requester) User(ctx context.Context, userID string, options ...discord.RequestOption) (*user.User, error) {
-	body, err := s.RequestWithBucketID(
-		ctx,
-		http.MethodGet,
-		discord.EndpointUser(userID),
-		nil,
-		discord.EndpointUsers,
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var u user.User
-	return &u, s.Unmarshal(body, &u)
+// User returns the user.User details of the given userID (can be @me to be the current User ID).
+func (r Requester) User(userID string) Request[*User] {
+	return NewSimpleData[*User](
+		r, http.MethodGet, discord.EndpointUser(userID),
+	).WithBucketID(discord.EndpointUsers)
 }
 
 // AvatarDecode returns an image.Image of a user.User Avatar.
-func (s Requester) AvatarDecode(ctx context.Context, u *user.User, options ...discord.RequestOption) (image.Image, error) {
-	body, err := s.RequestWithBucketID(
+func (r Requester) AvatarDecode(u *User) Request[image.Image] {
+	body, err := r.RequestWithBucketID(
 		ctx,
 		http.MethodGet,
 		discord.EndpointUserAvatar(u.ID, u.Avatar),
@@ -59,69 +48,39 @@ func (s Requester) AvatarDecode(ctx context.Context, u *user.User, options ...di
 // NOTE: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
-func (s Requester) Update(ctx context.Context, username, avatar, banner string, options ...discord.RequestOption) (*user.User, error) {
+func (r Requester) Update(username, avatar, banner string) Request[*User] {
 	data := struct {
 		Username string `json:"username,omitempty"`
 		Avatar   string `json:"avatar,omitempty"`
 		Banner   string `json:"banner,omitempty"`
 	}{username, avatar, banner}
 
-	body, err := s.RequestWithBucketID(
-		ctx,
-		http.MethodPatch,
-		discord.EndpointUser("@me"),
-		data,
-		discord.EndpointUsers,
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var u user.User
-	return &u, s.Unmarshal(body, &u)
+	return NewSimpleData[*User](
+		r, http.MethodPatch, discord.EndpointUser("@me"),
+	).WithBucketID(discord.EndpointUsers).WithData(data)
 }
 
 // Connections returns the current user.Connection.
-func (s Requester) Connections(ctx context.Context, options ...discord.RequestOption) ([]*user.Connection, error) {
-	response, err := s.Request(ctx, http.MethodGet, discord.EndpointUserConnections("@me"), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var conn []*user.Connection
-	return conn, s.Unmarshal(response, &conn)
+func (r Requester) Connections() Request[[]*Connection] {
+	return NewSimpleData[[]*Connection](
+		r, http.MethodGet, discord.EndpointUserConnections("@me"),
+	)
 }
 
 // ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User.
-func (s Requester) ChannelCreate(ctx context.Context, userID string, options ...discord.RequestOption) (*channel.Channel, error) {
+func (r Requester) ChannelCreate(userID string) Request[*channel.Channel] {
 	data := struct {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
 
-	body, err := s.RequestWithBucketID(
-		ctx,
-		http.MethodPost,
-		discord.EndpointUserChannels("@me"),
-		data,
-		discord.EndpointUserChannels(""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var c channel.Channel
-	return &c, s.Unmarshal(body, &c)
+	return NewSimpleData[*channel.Channel](
+		r, http.MethodPost, discord.EndpointUserChannels("@me"),
+	).WithBucketID(discord.EndpointUserChannels("")).WithData(data)
 }
 
 // GuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
-func (s Requester) GuildMember(ctx context.Context, guildID string, options ...discord.RequestOption) (*user.Member, error) {
-	body, err := s.Request(ctx, http.MethodGet, discord.EndpointUserGuildMember("@me", guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var m user.Member
-	return &m, s.Unmarshal(body, &m)
+func (r Requester) GuildMember(guildID string) Request[*Member] {
+	return NewSimpleData[*Member](
+		r, http.MethodGet, discord.EndpointUserGuildMember("@me", guildID),
+	).WithBucketID(discord.EndpointUserGuildMember("", guildID))
 }
