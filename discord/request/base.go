@@ -31,8 +31,8 @@ type Request[T any] interface {
 	WithAuditLogReason(string) Request[T]
 	// WithLocale changes accepted locale of the request.
 	WithLocale(discord.Locale) Request[T]
-	// RequestConfig returns the Config used
-	RequestConfig() Config
+	// Config returns the Config used
+	Config() Config
 }
 
 // Empty is a Request that only returns an error when it is executed.
@@ -114,7 +114,7 @@ func (r baseRequest[T]) WithLocale(locale discord.Locale) Request[T] {
 	return r.WithHeader("X-Discord-Locale", string(locale))
 }
 
-func (r baseRequest[T]) RequestConfig() Config {
+func (r baseRequest[T]) Config() Config {
 	return Config(r)
 }
 
