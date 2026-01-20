@@ -20,7 +20,7 @@ type Requester struct {
 
 // SKUs returns all premium.SKU for a given application.Application.
 func (r *Requester) SKUs(appID string) Request[[]*SKU] {
-	return NewSimpleData[[]*SKU](r, http.MethodGet, discord.EndpointApplicationSKUs(appID))
+	return NewData[[]*SKU](r, http.MethodGet, discord.EndpointApplicationSKUs(appID))
 }
 
 // Entitlements returns all premium.Entitlement for a given application.Application, active and expired.
@@ -55,7 +55,7 @@ func (r *Requester) Entitlements(appID string, filterOptions *EntitlementFilterO
 		endpoint += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[[]*Entitlement](r, http.MethodGet, endpoint)
+	return NewData[[]*Entitlement](r, http.MethodGet, endpoint)
 }
 
 // EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
@@ -106,7 +106,7 @@ func (r *Requester) Subscriptions(skuID string, userID string, before, after *ti
 		queryParams.Set("limit", strconv.Itoa(limit))
 	}
 
-	return NewSimpleData[[]*Subscription](r, http.MethodGet, endpoint+"?"+queryParams.Encode())
+	return NewData[[]*Subscription](r, http.MethodGet, endpoint+"?"+queryParams.Encode())
 }
 
 // Subscription returns a premium.Subscription by its premium.SKU and premium.Subscription ID.
@@ -123,5 +123,5 @@ func (r *Requester) Subscription(skuID, subscriptionID, userID string) Request[*
 		endpoint += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[*Subscription](r, http.MethodGet, endpoint)
+	return NewData[*Subscription](r, http.MethodGet, endpoint)
 }

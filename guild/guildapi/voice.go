@@ -8,5 +8,5 @@ import (
 )
 
 func (r *Requester) VoiceRegions() Request[[]*discord.VoiceRegion] {
-	return NewSimpleData[[]*discord.VoiceRegion](r, http.MethodGet, discord.EndpointVoiceRegions)
+	return NewData[[]*discord.VoiceRegion](r, http.MethodGet, discord.EndpointVoiceRegions)
 }

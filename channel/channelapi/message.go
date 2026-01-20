@@ -39,12 +39,12 @@ func (s Requester) Messages(channelID string, limit int, beforeID, afterID, arou
 	if len(v) > 0 {
 		uri += "?" + v.Encode()
 	}
-	return NewSimpleData[[]*channel.Message](s, http.MethodGet, uri)
+	return NewData[[]*channel.Message](s, http.MethodGet, uri)
 }
 
 // Message gets channel.Message from a given channel.Channel.
 func (s Requester) Message(channelID, messageID string) Request[*channel.Message] {
-	return NewSimpleData[*channel.Message](
+	return NewData[*channel.Message](
 		s, http.MethodGet, discord.EndpointChannelMessage(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessage(channelID, ""))
 }
@@ -73,7 +73,7 @@ func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSen
 
 	files := data.Files
 	if len(files) == 0 {
-		return NewSimpleData[*channel.Message](s, http.MethodPost, endpoint).WithData(data)
+		return NewData[*channel.Message](s, http.MethodPost, endpoint).WithData(data)
 	}
 	contentType, body, encodeErr := channel.MultipartBodyWithJSON(data, files)
 	if encodeErr != nil {
@@ -153,7 +153,7 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit) Request[*channel.M
 	endpoint := discord.EndpointChannelMessage(m.Channel, m.ID)
 
 	if len(m.Files) == 0 {
-		return NewSimpleData[*channel.Message](
+		return NewData[*channel.Message](
 			s, http.MethodPatch, endpoint,
 		).WithBucketID(discord.EndpointChannelMessage(m.Channel, "")).WithData(m)
 	}
@@ -253,12 +253,12 @@ func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int
 		uri += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*channel.MessagesPinned](s, http.MethodGet, uri)
+	return NewData[*channel.MessagesPinned](s, http.MethodGet, uri)
 }
 
 // MessageCrosspost crossposts a channel.Message in a news channel.Channel to followers.
 func (s Requester) MessageCrosspost(channelID, messageID string) Request[*channel.Message] {
-	return NewSimpleData[*channel.Message](
+	return NewData[*channel.Message](
 		s, http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, ""))
 }
@@ -333,7 +333,7 @@ func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit 
 		uri += "?" + v.Encode()
 	}
 
-	return NewSimpleData[[]*user.User](
+	return NewData[[]*user.User](
 		s, http.MethodGet, uri,
 	).WithBucketID(discord.EndpointMessageReaction(channelID, "", "", ""))
 }

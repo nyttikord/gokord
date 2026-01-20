@@ -14,7 +14,7 @@ import (
 
 // MessageThreadStartComplex creates a new thread from an existing channel.Message.
 func (s Requester) MessageThreadStartComplex(channelID, messageID string, data *channel.ThreadStart) Request[*channel.Channel] {
-	return NewSimpleData[*channel.Channel](
+	return NewData[*channel.Channel](
 		s, http.MethodPost, discord.EndpointChannelMessageThread(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessageThread(channelID, "")).WithData(data)
 }
@@ -31,7 +31,7 @@ func (s Requester) MessageThreadStart(channelID, messageID string, name string, 
 
 // ThreadStartComplex creates a new thread.
 func (s Requester) ThreadStartComplex(channelID string, data *channel.ThreadStart) Request[*channel.Channel] {
-	return NewSimpleData[*channel.Channel](
+	return NewData[*channel.Channel](
 		s, http.MethodPost, discord.EndpointChannelThreads(channelID),
 	).WithData(data)
 }
@@ -65,7 +65,7 @@ func (s Requester) ForumThreadStartComplex(channelID string, threadData *channel
 	}{ThreadStart: threadData, Message: messageData}
 
 	if len(files) == 0 {
-		return NewSimpleData[*channel.Channel](
+		return NewData[*channel.Channel](
 			s, http.MethodPost, endpoint,
 		).WithData(data)
 	}
@@ -154,7 +154,7 @@ func (s Requester) ThreadMember(threadID, memberID string, withMember bool) Requ
 		uri += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[*channel.ThreadMember](
+	return NewData[*channel.ThreadMember](
 		s, http.MethodGet, uri,
 	).WithBucketID(discord.EndpointThreadMember(threadID, ""))
 }
@@ -182,12 +182,12 @@ func (s Requester) ThreadMembers(threadID string, limit int, withMember bool, af
 		uri += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[[]*channel.ThreadMember](s, http.MethodGet, uri)
+	return NewData[[]*channel.ThreadMember](s, http.MethodGet, uri)
 }
 
 // ThreadsActive returns all active threads in the given channel.Channel.
 func (s Requester) ThreadsActive(channelID string) Request[*channel.ThreadsList] {
-	return NewSimpleData[*channel.ThreadsList](
+	return NewData[*channel.ThreadsList](
 		s, http.MethodGet, discord.EndpointChannelActiveThreads(channelID),
 	)
 }
@@ -211,7 +211,7 @@ func (s Requester) ThreadsArchived(channelID string, before *time.Time, limit in
 		endpoint += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*channel.ThreadsList](
+	return NewData[*channel.ThreadsList](
 		s, http.MethodGet, endpoint,
 	)
 }
@@ -235,7 +235,7 @@ func (s Requester) ThreadsPrivateArchived(channelID string, before *time.Time, l
 		endpoint += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*channel.ThreadsList](
+	return NewData[*channel.ThreadsList](
 		s, http.MethodGet, endpoint,
 	)
 }
@@ -259,7 +259,7 @@ func (s Requester) ThreadsPrivateJoinedArchived(channelID string, before *time.T
 		endpoint += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*channel.ThreadsList](
+	return NewData[*channel.ThreadsList](
 		s, http.MethodGet, endpoint,
 	)
 }

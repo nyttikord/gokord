@@ -54,34 +54,34 @@ func (r Simple) Do(ctx context.Context) ([]byte, error) {
 	return r.do.Do(ctx, r.RequestConfig())
 }
 
-type SimpleData[T any] struct {
+type Data[T any] struct {
 	baseRequest[T]
 	do  Do
 	pre Pre
 }
 
-func NewSimpleData[T any](req REST, method, endpoint string) SimpleData[T] {
-	return SimpleData[T]{
+func NewData[T any](req REST, method, endpoint string) Data[T] {
+	return Data[T]{
 		do: newDo(req, method, endpoint),
 	}
 }
 
-func (r SimpleData[T]) WithBucketID(bucket string) SimpleData[T] {
+func (r Data[T]) WithBucketID(bucket string) Data[T] {
 	r.do.Bucket = bucket
 	return r
 }
 
-func (r SimpleData[T]) WithData(data any) SimpleData[T] {
+func (r Data[T]) WithData(data any) Data[T] {
 	r.do.Data = data
 	return r
 }
 
-func (r SimpleData[T]) WithPre(pre Pre) SimpleData[T] {
+func (r Data[T]) WithPre(pre Pre) Data[T] {
 	r.pre = pre
 	return r
 }
 
-func (r SimpleData[T]) Do(ctx context.Context) (T, error) {
+func (r Data[T]) Do(ctx context.Context) (T, error) {
 	var v T
 	if r.pre != nil {
 		err := r.pre(ctx, &r.do)

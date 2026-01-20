@@ -30,7 +30,7 @@ func (s Requester) PollAnswerVoters(channelID, messageID string, answerID int) r
 
 // PollExpire expires channel.Poll on the given channel.Message.
 func (s Requester) PollExpire(channelID, messageID string) request.Request[*channel.Message] {
-	return request.NewSimpleData[*channel.Message](
+	return request.NewData[*channel.Message](
 		s, http.MethodPost, discord.EndpointPollExpire(channelID, messageID),
 	).WithBucketID(discord.EndpointPollExpire(channelID, ""))
 }

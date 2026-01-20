@@ -20,7 +20,7 @@ type Requester struct {
 
 // User returns the user.User details of the given userID (can be @me to be the current User ID).
 func (r Requester) User(userID string) Request[*User] {
-	return NewSimpleData[*User](
+	return NewData[*User](
 		r, http.MethodGet, discord.EndpointUser(userID),
 	).WithBucketID(discord.EndpointUsers)
 }
@@ -55,14 +55,14 @@ func (r Requester) Update(username, avatar, banner string) Request[*User] {
 		Banner   string `json:"banner,omitempty"`
 	}{username, avatar, banner}
 
-	return NewSimpleData[*User](
+	return NewData[*User](
 		r, http.MethodPatch, discord.EndpointUser("@me"),
 	).WithBucketID(discord.EndpointUsers).WithData(data)
 }
 
 // Connections returns the current user.Connection.
 func (r Requester) Connections() Request[[]*Connection] {
-	return NewSimpleData[[]*Connection](
+	return NewData[[]*Connection](
 		r, http.MethodGet, discord.EndpointUserConnections("@me"),
 	)
 }
@@ -73,14 +73,14 @@ func (r Requester) ChannelCreate(userID string) Request[*channel.Channel] {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
 
-	return NewSimpleData[*channel.Channel](
+	return NewData[*channel.Channel](
 		r, http.MethodPost, discord.EndpointUserChannels("@me"),
 	).WithBucketID(discord.EndpointUserChannels("")).WithData(data)
 }
 
 // GuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
 func (r Requester) GuildMember(guildID string) Request[*Member] {
-	return NewSimpleData[*Member](
+	return NewData[*Member](
 		r, http.MethodGet, discord.EndpointUserGuildMember("@me", guildID),
 	).WithBucketID(discord.EndpointUserGuildMember("", guildID))
 }

@@ -17,7 +17,7 @@ func (r Requester) CommandCreate(appID string, guildID string, cmd *Command) Req
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return NewSimpleData[*Command](r, http.MethodPost, endpoint).WithData(cmd)
+	return NewData[*Command](r, http.MethodPost, endpoint).WithData(cmd)
 }
 
 // CommandEdit edits interaction.Command and returns new command data.
@@ -29,7 +29,7 @@ func (r Requester) CommandEdit(appID, guildID, cmdID string, cmd *Command) Reque
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	return NewSimpleData[*Command](r, http.MethodPatch, endpoint).WithData(cmd)
+	return NewData[*Command](r, http.MethodPatch, endpoint).WithData(cmd)
 }
 
 // CommandBulkOverwrite creates interaction.Command overwriting all existing interaction.Command.
@@ -39,7 +39,7 @@ func (r Requester) CommandBulkOverwrite(appID string, guildID string, cmds []*Co
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return NewSimpleData[[]*Command](r, http.MethodPut, endpoint).WithData(cmds)
+	return NewData[[]*Command](r, http.MethodPut, endpoint).WithData(cmds)
 }
 
 // CommandDelete deletes interaction.Command.
@@ -68,7 +68,7 @@ func (r Requester) Command(appID, guildID, cmdID string) Request[*Command] {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	return NewSimpleData[*Command](r, http.MethodGet, endpoint)
+	return NewData[*Command](r, http.MethodGet, endpoint)
 }
 
 // Commands retrieves all interaction.Command.
@@ -80,14 +80,14 @@ func (r Requester) Commands(appID, guildID string) Request[[]*Command] {
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return NewSimpleData[[]*Command](r, http.MethodGet, endpoint+"?with_localizations=true")
+	return NewData[[]*Command](r, http.MethodGet, endpoint+"?with_localizations=true")
 }
 
 // GuildCommandsPermissions returns permissions for interaction.Command in a guild.Guild.
 func (r Requester) GuildCommandsPermissions(appID, guildID string) Request[[]*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
 
-	return NewSimpleData[[]*GuildCommandPermissions](r, http.MethodGet, endpoint)
+	return NewData[[]*GuildCommandPermissions](r, http.MethodGet, endpoint)
 }
 
 // CommandPermissions returns all permissions of an interaction.Command.
@@ -97,7 +97,7 @@ func (r Requester) GuildCommandsPermissions(appID, guildID string) Request[[]*Gu
 func (r Requester) CommandPermissions(appID, guildID, cmdID string) Request[*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
 
-	return NewSimpleData[*GuildCommandPermissions](r, http.MethodGet, endpoint)
+	return NewData[*GuildCommandPermissions](r, http.MethodGet, endpoint)
 }
 
 // CommandPermissionsEdit edits the permissions of an interaction.Command.

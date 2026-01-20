@@ -10,7 +10,7 @@ import (
 
 // Template returns a guild.Template for the given code.
 func (r Requester) Template(code string) Request[*Template] {
-	return NewSimpleData[*Template](
+	return NewData[*Template](
 		r, http.MethodGet, discord.EndpointGuildTemplate(code),
 	).WithBucketID(discord.EndpointGuildTemplate(""))
 }
@@ -26,21 +26,21 @@ func (r Requester) CreateWithTemplate(templateCode, name, icon string) Request[*
 		Icon string `json:"icon"`
 	}{name, icon}
 
-	return NewSimpleData[*Guild](
+	return NewData[*Guild](
 		r, http.MethodPost, discord.EndpointGuildTemplate(templateCode),
 	).WithBucketID(discord.EndpointGuildTemplate("")).WithData(data)
 }
 
 // Templates returns every guild.Template of the given guild.Guild.
 func (r Requester) Templates(guildID string) Request[[]*Template] {
-	return NewSimpleData[[]*Template](
+	return NewData[[]*Template](
 		r, http.MethodGet, discord.EndpointGuildTemplates(guildID),
 	)
 }
 
 // TemplateCreate creates a guild.Template for the given guild.Guild.
 func (r Requester) TemplateCreate(guildID string, data *TemplateParams) Request[*Template] {
-	return NewSimpleData[*Template](
+	return NewData[*Template](
 		r, http.MethodPost, discord.EndpointGuildTemplates(guildID),
 	).WithData(data)
 }
@@ -57,7 +57,7 @@ func (r Requester) TemplateSync(guildID, code string) Empty {
 
 // TemplateEdit modifies the guild.Template's metadata of the given guild.Guild.
 func (r Requester) TemplateEdit(guildID, code string, data *TemplateParams) Request[*Template] {
-	return NewSimpleData[*Template](
+	return NewData[*Template](
 		r, http.MethodPatch, discord.EndpointGuildTemplateSync(guildID, code),
 	).WithBucketID(discord.EndpointGuildTemplates(guildID)).WithData(data)
 }

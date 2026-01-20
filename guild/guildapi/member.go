@@ -37,7 +37,7 @@ func (r Requester) Bans(guildID string, limit int, beforeID, afterID string) Req
 		uri += "?" + v.Encode()
 	}
 
-	return NewSimpleData[[]*Ban](r, http.MethodGet, uri)
+	return NewData[[]*Ban](r, http.MethodGet, uri)
 }
 
 // BanCreate bans the given user.User from the given guild.Guild.
@@ -51,7 +51,7 @@ func (r Requester) BanCreate(guildID, userID string, days int) Request[*Ban] {
 
 // Ban finds ban by given guild.Guild and user.User id and returns guild.Ban.
 func (r Requester) Ban(guildID, userID string) Request[*Ban] {
-	return NewSimpleData[*Ban](
+	return NewData[*Ban](
 		r, http.MethodGet, discord.EndpointGuildBan(guildID, userID),
 	).WithBucketID(discord.EndpointGuildBans(guildID))
 }
@@ -72,7 +72,7 @@ func (r Requester) BanCreateWithReason(guildID, userID, reason string, days int)
 		uri += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[*Ban](
+	return NewData[*Ban](
 		r, http.MethodPut, uri,
 	).WithBucketID(discord.EndpointGuildBans(guildID))
 }
@@ -126,7 +126,7 @@ func (r Requester) MembersSearch(guildID, query string, limit int) Request[[]*us
 		uri += "?" + queryParams.Encode()
 	}
 
-	return NewSimpleData[[]*user.Member](r, http.MethodGet, uri)
+	return NewData[[]*user.Member](r, http.MethodGet, uri)
 }
 
 // Member returns a user.Member of a guild.Guild.
@@ -181,7 +181,7 @@ func (r Requester) MemberKickWithReason(guildID, userID, reason string) Empty {
 
 // MemberEdit edits a user.Member with the given data and returns them.
 func (r Requester) MemberEdit(guildID, userID string, data *MemberParams) Request[*user.Member] {
-	return NewSimpleData[*user.Member](
+	return NewData[*user.Member](
 		r, http.MethodPatch, discord.EndpointGuildMember(guildID, userID),
 	).WithBucketID(discord.EndpointGuildMembers(guildID))
 }
