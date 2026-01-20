@@ -4,34 +4,34 @@ import (
 	"context"
 )
 
-type do struct {
+type Do struct {
 	req      REST
-	method   string
-	bucket   string
-	endpoint string
-	data     any
+	Method   string
+	Bucket   string
+	Endpoint string
+	Data     any
 }
 
-func newDo(req REST, method, endpoint string) do {
-	return do{
+func newDo(req REST, method, endpoint string) Do {
+	return Do{
 		req:      req,
-		method:   method,
-		endpoint: endpoint,
-		data:     nil,
+		Method:   method,
+		Endpoint: endpoint,
+		Data:     nil,
 	}
 }
 
-func (r do) Do(ctx context.Context, cfg Config) ([]byte, error) {
-	if len(r.bucket) == 0 {
-		return r.req.Request(ctx, r.method, r.endpoint, r.data, cfg)
+func (r Do) Do(ctx context.Context, cfg Config) ([]byte, error) {
+	if len(r.Bucket) == 0 {
+		return r.req.Request(ctx, r.Method, r.Endpoint, r.Data, cfg)
 	}
-	return r.req.RequestWithBucketID(ctx, r.method, r.endpoint, r.data, r.bucket, cfg)
+	return r.req.RequestWithBucketID(ctx, r.Method, r.Endpoint, r.Data, r.Bucket, cfg)
 }
 
 // Simple is a basic request that returns raw bytes.
 type Simple struct {
 	baseRequest[[]byte]
-	do
+	do Do
 }
 
 func NewSimple(req REST, method, endpoint string) Simple {
@@ -41,12 +41,12 @@ func NewSimple(req REST, method, endpoint string) Simple {
 }
 
 func (r Simple) WithBucketID(bucket string) Simple {
-	r.bucket = bucket
+	r.do.Bucket = bucket
 	return r
 }
 
 func (r Simple) WithData(data any) Simple {
-	r.data = data
+	r.do.Data = data
 	return r
 }
 
@@ -56,7 +56,8 @@ func (r Simple) Do(ctx context.Context) ([]byte, error) {
 
 type SimpleData[T any] struct {
 	baseRequest[T]
-	do
+	do  Do
+	pre Pre
 }
 
 func NewSimpleData[T any](req REST, method, endpoint string) SimpleData[T] {
@@ -66,21 +67,32 @@ func NewSimpleData[T any](req REST, method, endpoint string) SimpleData[T] {
 }
 
 func (r SimpleData[T]) WithBucketID(bucket string) SimpleData[T] {
-	r.bucket = bucket
+	r.do.Bucket = bucket
 	return r
 }
 
 func (r SimpleData[T]) WithData(data any) SimpleData[T] {
-	r.data = data
+	r.do.Data = data
+	return r
+}
+
+func (r SimpleData[T]) WithPre(pre Pre) SimpleData[T] {
+	r.pre = pre
 	return r
 }
 
 func (r SimpleData[T]) Do(ctx context.Context) (T, error) {
-	b, err := r.do.Do(ctx, r.RequestConfig())
 	var v T
+	if r.pre != nil {
+		err := r.pre(ctx, &r.do)
+		if err != nil {
+			return v, err
+		}
+	}
+	b, err := r.do.Do(ctx, r.RequestConfig())
 	if err != nil {
 		return v, err
 	}
-	r.req.Unmarshal(b, &v)
+	r.do.req.Unmarshal(b, &v)
 	return v, err
 }

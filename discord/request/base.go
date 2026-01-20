@@ -38,17 +38,27 @@ type Request[T any] interface {
 // Empty is a Request that only returns an error when it is executed.
 type Empty struct {
 	Simple
+	err error
 }
 
 func (r Empty) Do(ctx context.Context) error {
+	if r.err != nil {
+		return r.err
+	}
 	_, err := r.Simple.Do(ctx)
 	return err
 }
 
 func WrapAsEmpty(req Simple) Empty {
-	return Empty{req}
+	return Empty{req, nil}
 }
 
+func WrapErrorAsEmpty(err error) Empty {
+	return Empty{Simple{}, err}
+}
+
+// UnwrapEmpty unwraps an Empty request.
+// The result may be inusable if Empty always returns an error!
 func UnwrapEmpty(req Empty) Simple {
 	return req.Simple
 }
@@ -125,3 +135,6 @@ func (r Error[T]) Do(ctx context.Context) (T, error) {
 	var v T
 	return v, r.err
 }
+
+// Pre is a function called before the request.
+type Pre func(context.Context, *Do) error

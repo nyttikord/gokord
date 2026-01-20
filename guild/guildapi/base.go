@@ -2,6 +2,7 @@
 package guildapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -39,35 +40,33 @@ func (r Requester) GuildPreview(guildID string) Request[*Preview] {
 
 // GuildEdit edits a guild.Guild with the given params.
 func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
-	// Bounds checking for regions
-	if params.Region != "" {
-		isValid := false
-		regions, err := r.VoiceRegions()
-		if err != nil {
-			return NewError[*Guild](err)
-		}
-		for _, r := range regions {
-			if params.Region == r.ID {
-				isValid = true
+	return NewSimpleData[*Guild](r, http.MethodPatch, discord.EndpointGuild(guildID)).
+		WithData(params).
+		WithPre(func(ctx context.Context, do *Do) error {
+			if params.Region == "" {
+				return nil
 			}
-		}
-		if !isValid {
-			var valid []string
+			valid := false
+			regions, err := r.VoiceRegions().Do(ctx)
+			if err != nil {
+				return err
+			}
 			for _, r := range regions {
-				valid = append(valid, r.ID)
+				if params.Region == r.ID {
+					valid = true
+				}
 			}
-			err = errors.Join(ErrInvalidVoiceRegions, fmt.Errorf("%s is not a voice region (%q)", params.Region, valid))
-			return NewError[*Guild](err)
-		}
-	}
-
-	body, err := r.Request(ctx, http.MethodPatch, discord.EndpointGuild(guildID), params, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var g Guild
-	return &g, r.Unmarshal(body, &g)
+			if valid {
+				return nil
+			}
+			var validRegions []string
+			for _, r := range regions {
+				validRegions = append(validRegions, r.ID)
+			}
+			return errors.Join(
+				ErrInvalidVoiceRegions, fmt.Errorf("%s is not a voice region (%q)", params.Region, validRegions),
+			)
+		})
 }
 
 // GuildDelete deletes a guild.Guild.
