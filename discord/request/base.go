@@ -33,7 +33,7 @@ type Request[T any] interface {
 	WithAuditLogReason(string) Request[T]
 	// WithLocale changes accepted locale of the request.
 	WithLocale(discord.Locale) Request[T]
-	// RequestConfig returns the RequestConfig used
+	// RequestConfig returns the Config used
 	RequestConfig() Config
 }
 
