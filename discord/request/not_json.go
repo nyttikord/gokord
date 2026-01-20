@@ -40,7 +40,7 @@ func (r Image) Do(ctx context.Context) (image.Image, error) {
 			return nil, err
 		}
 	}
-	b, err := r.do.Do(ctx, r.RequestConfig())
+	b, err := r.do.Do(ctx, r.Config())
 	if err != nil {
 		return nil, err
 	}
