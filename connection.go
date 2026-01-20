@@ -40,7 +40,7 @@ func (s *Session) Open(ctx context.Context) error {
 
 	var err error
 	if s.gateway == "" {
-		s.gateway, err = s.Gateway()
+		s.gateway, err = s.Gateway().Do(ctx)
 		if err != nil {
 			return err
 		}

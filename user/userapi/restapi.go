@@ -2,7 +2,6 @@
 package userapi
 
 import (
-	"bytes"
 	"image"
 	"net/http"
 
@@ -27,20 +26,9 @@ func (r Requester) User(userID string) Request[*User] {
 
 // AvatarDecode returns an image.Image of a user.User Avatar.
 func (r Requester) AvatarDecode(u *User) Request[image.Image] {
-	body, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodGet,
-		discord.EndpointUserAvatar(u.ID, u.Avatar),
-		nil,
-		discord.EndpointUserAvatar("", ""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	img, _, err := image.Decode(bytes.NewReader(body))
-	return img, err
+	return NewImage(
+		r, http.MethodGet, discord.EndpointUserAvatar(u.ID, u.Avatar),
+	).WithBucketID(discord.EndpointUserAvatar("", ""))
 }
 
 // Update updates current user.User settings.
