@@ -97,21 +97,19 @@ func (r Requester) Members(guildID string, afterID string, limit int) Request[[]
 		uri += "?" + v.Encode()
 	}
 
-	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var m []*user.Member
-	err = r.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-	// The returned object doesn't have the GuildID attribute so we will set it here.
-	for _, mem := range m {
-		mem.GuildID = guildID
-	}
-	return m, nil
+	return NewCustom[[]*user.Member](r, http.MethodGet, uri).
+		WithPost(func(ctx context.Context, b []byte) ([]*user.Member, error) {
+			var m []*user.Member
+			err := r.Unmarshal(b, &m)
+			if err != nil {
+				return nil, err
+			}
+			// The returned object doesn't have the GuildID attribute so we will set it here.
+			for _, mem := range m {
+				mem.GuildID = guildID
+			}
+			return m, nil
+		})
 }
 
 // MembersSearch returns a list of user.Member whose username or nickname starts with a provided string.
@@ -131,26 +129,18 @@ func (r Requester) MembersSearch(guildID, query string, limit int) Request[[]*us
 
 // Member returns a user.Member of a guild.Guild.
 func (r Requester) Member(guildID, userID string) Request[*user.Member] {
-	body, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodGet,
-		discord.EndpointGuildMember(guildID, userID),
-		nil,
-		discord.EndpointGuildMember(guildID, ""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var m user.Member
-	err = r.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-	// The returned object doesn't have the GuildID attribute so we will set it here.
-	m.GuildID = guildID
-	return &m, err
+	return NewCustom[*user.Member](r, http.MethodGet, discord.EndpointGuildMember(guildID, userID)).
+		WithBucketID(discord.EndpointGuildMembers(guildID)).
+		WithPost(func(ctx context.Context, b []byte) (*user.Member, error) {
+			var m user.Member
+			err := r.Unmarshal(b, &m)
+			if err != nil {
+				return nil, err
+			}
+			// The returned object doesn't have the GuildID attribute so we will set it here.
+			m.GuildID = guildID
+			return &m, err
+		})
 }
 
 // MemberAdd force joins a user.User to the guild.Guild with the given data.
@@ -298,55 +288,40 @@ func (r Requester) MemberRoleRemove(guildID, userID, roleID string) Empty {
 // PruneCount returns the number of user.Member that would be removed in a prune operation.
 //
 // Requires discord.PermissionKickMembers.
-func (r Requester) PruneCount(guildID string, days uint32) (uint32, error) {
-	if days == 0 {
-		return 0, ErrPruneDaysBounds
+func (r Requester) PruneCount(guildID string, days uint32) Request[uint32] {
+	if days <= 0 {
+		return NewError[uint32](ErrPruneDaysBounds)
 	}
-
-	p := struct {
-		Pruned uint32 `json:"pruned"`
-	}{}
 
 	uri := discord.EndpointGuildPrune(guildID) + "?days=" + strconv.FormatUint(uint64(days), 10)
-	body, err := r.Request(ctx, http.MethodGet, uri, nil, options...)
-	if err != nil {
-		return 0, err
-	}
-
-	err = r.Unmarshal(body, &p)
-	if err != nil {
-		return 0, err
-	}
-
-	return p.Pruned, err
+	return NewCustom[uint32](r, http.MethodGet, uri).
+		WithPost(func(ctx context.Context, b []byte) (uint32, error) {
+			var p struct {
+				Pruned uint32 `json:"pruned"`
+			}
+			return p.Pruned, r.Unmarshal(b, &p)
+		})
 }
 
 // Prune begins as prune operation.
 // Returns the number of pruned members.
 //
 // Requires discord.PermissionKickMembers.
-func (r Requester) Prune(guildID string, days uint32) (uint32, error) {
+func (r Requester) Prune(guildID string, days uint32) Request[uint32] {
 	if days <= 0 {
-		return 0, ErrPruneDaysBounds
+		return NewError[uint32](ErrPruneDaysBounds)
 	}
 
 	data := struct {
 		days uint32
 	}{days}
 
-	p := struct {
-		Pruned uint32 `json:"pruned"`
-	}{}
-
-	body, err := r.Request(ctx, http.MethodPost, discord.EndpointGuildPrune(guildID), data, options...)
-	if err != nil {
-		return 0, err
-	}
-
-	err = r.Unmarshal(body, &p)
-	if err != nil {
-		return 0, err
-	}
-
-	return p.Pruned, nil
+	return NewCustom[uint32](r, http.MethodGet, discord.EndpointGuildPrune(guildID)).
+		WithData(data).
+		WithPost(func(ctx context.Context, b []byte) (uint32, error) {
+			var p struct {
+				Pruned uint32 `json:"pruned"`
+			}
+			return p.Pruned, r.Unmarshal(b, &p)
+		})
 }

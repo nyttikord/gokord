@@ -138,3 +138,6 @@ func (r Error[T]) Do(ctx context.Context) (T, error) {
 
 // Pre is a function called before the request.
 type Pre func(context.Context, *Do) error
+
+// Post is function called after the request.
+type Post[T any] func(context.Context, []byte) (T, error)
