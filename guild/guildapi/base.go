@@ -13,6 +13,7 @@ import (
 
 var (
 	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
+	ErrInvalidVoiceRegions     = errors.New("invalid voice regions")
 )
 
 // Guild returns the guild.Guild with the given guildID.
@@ -41,7 +42,10 @@ func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
 	// Bounds checking for regions
 	if params.Region != "" {
 		isValid := false
-		regions, _ := r.VoiceRegions()
+		regions, err := r.VoiceRegions()
+		if err != nil {
+			return NewError[*Guild](err)
+		}
 		for _, r := range regions {
 			if params.Region == r.ID {
 				isValid = true
@@ -52,7 +56,8 @@ func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
 			for _, r := range regions {
 				valid = append(valid, r.ID)
 			}
-			return nil, fmt.Errorf("not a valid region (%q)", valid)
+			err = errors.Join(ErrInvalidVoiceRegions, fmt.Errorf("%s is not a voice region (%q)", params.Region, valid))
+			return NewError[*Guild](err)
 		}
 	}
 

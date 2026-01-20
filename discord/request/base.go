@@ -6,8 +6,6 @@
 // Empty is a simple request returning nothing (only an error).
 // You wan wrap any Simple request as an EmptyRequest with WrapAsEmpty.
 // You can unwrap it with UnwrapEmpty.
-//
-// WrapErrorAsRequest wraps an error as a Simple request.
 package request
 
 import (
@@ -108,4 +106,22 @@ func (r baseRequest[T]) WithLocale(locale discord.Locale) Request[T] {
 
 func (r baseRequest[T]) RequestConfig() Config {
 	return Config(r)
+}
+
+// Error is a request that returns the specified error when Do is called.
+type Error[T any] struct {
+	baseRequest[T]
+	err error
+}
+
+func NewError[T any](err error) Error[T] {
+	if err == nil {
+		panic("cannot use nil error in request.Error")
+	}
+	return Error[T]{err: err}
+}
+
+func (r Error[T]) Do(ctx context.Context) (T, error) {
+	var v T
+	return v, r.err
 }

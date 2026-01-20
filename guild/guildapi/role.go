@@ -1,12 +1,16 @@
 package guildapi
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
 	. "github.com/nyttikord/gokord/discord/request"
 	. "github.com/nyttikord/gokord/guild"
+)
+
+var (
+	ErrInvalidColorValue = errors.New("invalid color value: cannot be larger than 0xFFFFFF")
 )
 
 // RoleCreate creates a new guild.Role.
@@ -27,7 +31,7 @@ func (r Requester) Roles(guildID string) Request[[]*Role] {
 func (r Requester) RoleEdit(guildID, roleID string, data *RoleParams) Request[*Role] {
 	// Prevent sending a color int that is too big.
 	if data.Color != nil && *data.Color > 0xFFFFFF {
-		return nil, fmt.Errorf("color value cannot be larger than 0xFFFFFF")
+		return NewError[*Role](ErrInvalidColorValue)
 	}
 
 	return NewSimpleData[*Role](
