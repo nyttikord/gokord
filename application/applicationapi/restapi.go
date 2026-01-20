@@ -1,7 +1,6 @@
 package applicationapi
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/application"
@@ -11,7 +10,7 @@ import (
 )
 
 // Emojis returns all emoji.Emoji for the given application.Application
-func (r Requester) Emojis(ctx context.Context, appID string, options ...discord.RequestOption) (emojis []*emoji.Emoji, err error) {
+func (r Requester) Emojis(appID string) (emojis []*emoji.Emoji, err error) {
 	body, err := r.Request(ctx, http.MethodGet, discord.EndpointApplicationEmojis(appID), nil, options...)
 	if err != nil {
 		return nil, err

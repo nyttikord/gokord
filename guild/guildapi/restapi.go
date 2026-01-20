@@ -1,7 +1,7 @@
 package guildapi
 
 import (
-	"bytes"
+	"context"
 	"errors"
 	"image"
 	"net/http"
@@ -67,56 +67,36 @@ func (r Requester) Invites(guildID string) Request[[]*invite.Invite] {
 
 // Icon returns an image.Image of a guild.Guild icon.
 func (r Requester) Icon(guildID string) Request[image.Image] {
-	g := r.Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
-	if g.Icon == "" {
-		return nil, ErrGuildNoIcon
-	}
-
-	body, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodGet,
-		discord.EndpointGuildIcon(guildID, g.Icon),
-		nil,
-		discord.EndpointGuildIcon(guildID, ""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	img, _, err := image.Decode(bytes.NewReader(body))
-	return img, err
+	return NewImage(r, http.MethodGet, "").
+		WithBucketID(discord.EndpointGuildIcon(guildID, "")).
+		WithPre(func(ctx context.Context, do *Do) error {
+			g, err := r.Guild(guildID).Do(ctx)
+			if err != nil {
+				return err
+			}
+			if g.Icon == "" {
+				return ErrGuildNoIcon
+			}
+			do.Endpoint = discord.EndpointGuildIcon(guildID, g.Icon)
+			return nil
+		})
 }
 
 // Splash returns an image.Image of a guild.Guild splash image.
 func (r Requester) Splash(guildID string) Request[image.Image] {
-	g := r.Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
-	if g.Splash == "" {
-		return nil, ErrGuildNoSplash
-	}
-
-	body, err := r.RequestWithBucketID(
-		ctx,
-		http.MethodGet,
-		discord.EndpointGuildSplash(guildID, g.Splash),
-		nil,
-		discord.EndpointGuildSplash(guildID, ""),
-		options...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	img, _, err := image.Decode(bytes.NewReader(body))
-	return img, err
+	return NewImage(r, http.MethodGet, "").
+		WithBucketID(discord.EndpointGuildSplash(guildID, "")).
+		WithPre(func(ctx context.Context, do *Do) error {
+			g, err := r.Guild(guildID).Do(ctx)
+			if err != nil {
+				return err
+			}
+			if g.Splash == "" {
+				return ErrGuildNoSplash
+			}
+			do.Endpoint = discord.EndpointGuildSplash(guildID, g.Splash)
+			return nil
+		})
 }
 
 // Embed returns the guild.Embed for a guild.Guild.

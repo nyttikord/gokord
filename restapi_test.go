@@ -19,7 +19,7 @@ func TestChannelMessageSend(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := dg.ChannelAPI().MessageSend(ctx, envChannel, "Running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "Running REST API Tests!").Do(ctx)
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -92,7 +92,7 @@ func TestUserChannelCreate(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := dg.UserAPI().ChannelCreate(ctx, envAdmin)
+	_, err := dg.UserAPI().ChannelCreate(envAdmin).Do(ctx)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -107,7 +107,7 @@ func TestUserGuilds(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := dg.GuildAPI().UserGuilds(ctx, 10, "", "", false)
+	_, err := dg.GuildAPI().UserGuilds(10, "", "", false).Do(ctx)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -117,7 +117,7 @@ func TestGateway(t *testing.T) {
 	if dg == nil {
 		t.Skip("Skipping, dg not set.")
 	}
-	_, err := dg.Gateway(context.Background())
+	_, err := dg.Gateway()
 	if err != nil {
 		t.Errorf("Gateway() returned error: %+v", err)
 	}
@@ -127,7 +127,7 @@ func TestGatewayBot(t *testing.T) {
 	if dgBot == nil {
 		t.Skip("Skipping, dgBot not set.")
 	}
-	_, err := dgBot.GatewayBot(context.Background())
+	_, err := dgBot.GatewayBot()
 	if err != nil {
 		t.Errorf("GatewayBot() returned error: %+v", err)
 	}
@@ -138,7 +138,7 @@ func TestVoiceRegions(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().VoiceRegions(context.Background())
+	_, err := dg.GuildAPI().VoiceRegions().Do(context.Background())
 	if err != nil {
 		t.Errorf("VoiceRegions() returned error: %+v", err)
 	}
@@ -152,7 +152,7 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().Roles(context.Background(), envGuild)
+	_, err := dg.GuildAPI().Roles(envGuild).Do(context.Background())
 	if err != nil {
 		t.Errorf("GuildRoles(envGuild) returned error: %+v", err)
 	}
@@ -168,7 +168,7 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	err := dg.GuildAPI().MemberNickname(context.Background(), envGuild, "@me/nick", "B1nzyRocks")
+	err := dg.GuildAPI().MemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(context.Background())
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -184,7 +184,7 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelAPI().MessageSend(context.Background(), envChannel, "All done running REST API Tests!")
+	_, err := dg.ChannelAPI().MessageSend(envChannel, "All done running REST API Tests!").Do(context.Background())
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -200,7 +200,7 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().PruneCount(context.Background(), envGuild, 1)
+	_, err := dg.GuildAPI().PruneCount(envGuild, 1).Do(context.Background())
 	if err != nil {
 		t.Errorf("PruneCount returned error: %+v", err)
 	}

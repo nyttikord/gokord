@@ -9,7 +9,7 @@ import (
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
@@ -20,7 +20,7 @@ import (
 // If provided all messages returned will be before beforeID.
 // If provided all messages returned will be after afterID.
 // If provided all messages returned will be around aroundID.
-func (s Requester) Messages(channelID string, limit int, beforeID, afterID, aroundID string) request.Request[[]*channel.Message] {
+func (s Requester) Messages(channelID string, limit int, beforeID, afterID, aroundID string) Request[[]*channel.Message] {
 	uri := discord.EndpointChannelMessages(channelID)
 
 	v := url.Values{}
@@ -39,25 +39,25 @@ func (s Requester) Messages(channelID string, limit int, beforeID, afterID, arou
 	if len(v) > 0 {
 		uri += "?" + v.Encode()
 	}
-	return request.NewSimpleData[[]*channel.Message](s, http.MethodGet, uri)
+	return NewSimpleData[[]*channel.Message](s, http.MethodGet, uri)
 }
 
 // Message gets channel.Message from a given channel.Channel.
-func (s Requester) Message(channelID, messageID string) request.Request[*channel.Message] {
-	return request.NewSimpleData[*channel.Message](
+func (s Requester) Message(channelID, messageID string) Request[*channel.Message] {
+	return NewSimpleData[*channel.Message](
 		s, http.MethodGet, discord.EndpointChannelMessage(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessage(channelID, ""))
 }
 
 // MessageSend sends a simple channel.Message to the given channel.Channel.
-func (s Requester) MessageSend(channelID string, content string) request.Request[*channel.Message] {
+func (s Requester) MessageSend(channelID string, content string) Request[*channel.Message] {
 	return s.MessageSendComplex(channelID, &channel.MessageSend{
 		Content: content,
 	})
 }
 
 // MessageSendComplex sends a channel.Message to the given channel.Channel.
-func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSend) request.Request[*channel.Message] {
+func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSend) Request[*channel.Message] {
 	for _, embed := range data.Embeds {
 		if embed.Type == "" {
 			embed.Type = types.EmbedRich
@@ -67,23 +67,23 @@ func (s Requester) MessageSendComplex(channelID string, data *channel.MessageSen
 
 	if data.StickerIDs != nil {
 		if len(data.StickerIDs) > 3 {
-			return nil, ErrTooMuchStickers
+			return NewError[*channel.Message](ErrTooMuchStickers)
 		}
 	}
 
 	files := data.Files
 	if len(files) == 0 {
-		return request.NewSimpleData[*channel.Message](s, http.MethodPost, endpoint).WithData(data)
+		return NewSimpleData[*channel.Message](s, http.MethodPost, endpoint).WithData(data)
 	}
 	contentType, body, encodeErr := channel.MultipartBodyWithJSON(data, files)
 	if encodeErr != nil {
-		return nil, encodeErr
+		return NewError[*channel.Message](encodeErr)
 	}
 	response, err := s.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
 }
 
 // MessageSendTTS sends a simple channel.Message to the given channel.Channel with Text to Speech.
-func (s Requester) MessageSendTTS(channelID string, content string) request.Request[*channel.Message] {
+func (s Requester) MessageSendTTS(channelID string, content string) Request[*channel.Message] {
 	return s.MessageSendComplex(channelID, &channel.MessageSend{
 		Content: content,
 		TTS:     true,
@@ -91,12 +91,12 @@ func (s Requester) MessageSendTTS(channelID string, content string) request.Requ
 }
 
 // MessageSendEmbed sends a channel.MessageEmbed to the given channel.Channel.
-func (s Requester) MessageSendEmbed(channelID string, embed *channel.MessageEmbed) request.Request[*channel.Message] {
+func (s Requester) MessageSendEmbed(channelID string, embed *channel.MessageEmbed) Request[*channel.Message] {
 	return s.MessageSendEmbeds(channelID, []*channel.MessageEmbed{embed})
 }
 
 // MessageSendEmbeds sends multiple channel.MessageEmbed to the given channel.Channel.
-func (s Requester) MessageSendEmbeds(channelID string, embeds []*channel.MessageEmbed) request.Request[*channel.Message] {
+func (s Requester) MessageSendEmbeds(channelID string, embeds []*channel.MessageEmbed) Request[*channel.Message] {
 	return s.MessageSendComplex(channelID, &channel.MessageSend{
 		Embeds: embeds,
 	})
@@ -105,9 +105,9 @@ func (s Requester) MessageSendEmbeds(channelID string, embeds []*channel.Message
 // MessageSendReply sends a reply channel.Message to the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendReply(channelID string, content string, reference *channel.MessageReference) request.Request[*channel.Message] {
+func (s Requester) MessageSendReply(channelID string, content string, reference *channel.MessageReference) Request[*channel.Message] {
 	if reference == nil {
-		return nil, ErrReplyNilMessageRef
+		return NewError[*channel.Message](ErrReplyNilMessageRef)
 	}
 	return s.MessageSendComplex(channelID, &channel.MessageSend{
 		Content:   content,
@@ -118,16 +118,16 @@ func (s Requester) MessageSendReply(channelID string, content string, reference 
 // MessageSendEmbedReply sends a reply channel.MessageEmbed to the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendEmbedReply(channelID string, embed *channel.MessageEmbed, reference *channel.MessageReference) request.Request[*channel.Message] {
+func (s Requester) MessageSendEmbedReply(channelID string, embed *channel.MessageEmbed, reference *channel.MessageReference) Request[*channel.Message] {
 	return s.MessageSendEmbedsReply(channelID, []*channel.MessageEmbed{embed}, reference)
 }
 
 // MessageSendEmbedsReply sends a reply with multiple channel.MessageEmbed in the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func (s Requester) MessageSendEmbedsReply(channelID string, embeds []*channel.MessageEmbed, reference *channel.MessageReference) request.Request[*channel.Message] {
+func (s Requester) MessageSendEmbedsReply(channelID string, embeds []*channel.MessageEmbed, reference *channel.MessageReference) Request[*channel.Message] {
 	if reference == nil {
-		return nil, ErrReplyNilMessageRef
+		return NewError[*channel.Message](ErrReplyNilMessageRef)
 	}
 	return s.MessageSendComplex(channelID, &channel.MessageSend{
 		Embeds:    embeds,
@@ -136,12 +136,12 @@ func (s Requester) MessageSendEmbedsReply(channelID string, embeds []*channel.Me
 }
 
 // MessageEdit edits an existing channel.Message, replacing it entirely with the given content.
-func (s Requester) MessageEdit(channelID, messageID, content string) request.Request[*channel.Message] {
+func (s Requester) MessageEdit(channelID, messageID, content string) Request[*channel.Message] {
 	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetContent(content))
 }
 
 // MessageEditComplex edits an existing channel.Message, replacing it entirely with the given channel.MessageEdit.
-func (s Requester) MessageEditComplex(m *channel.MessageEdit) request.Request[*channel.Message] {
+func (s Requester) MessageEditComplex(m *channel.MessageEdit) Request[*channel.Message] {
 	if m.Embeds != nil {
 		for _, embed := range *m.Embeds {
 			if embed.Type == "" {
@@ -153,13 +153,13 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit) request.Request[*c
 	endpoint := discord.EndpointChannelMessage(m.Channel, m.ID)
 
 	if len(m.Files) == 0 {
-		return request.NewSimpleData[*channel.Message](
+		return NewSimpleData[*channel.Message](
 			s, http.MethodPatch, endpoint,
 		).WithBucketID(discord.EndpointChannelMessage(m.Channel, "")).WithData(m)
 	}
 	contentType, body, encodeErr := channel.MultipartBodyWithJSON(m, m.Files)
 	if encodeErr != nil {
-		return nil, encodeErr
+		return NewError[*channel.Message](encodeErr)
 	}
 	response, err = s.RequestRaw(
 		ctx,
@@ -174,21 +174,21 @@ func (s Requester) MessageEditComplex(m *channel.MessageEdit) request.Request[*c
 }
 
 // MessageEditEmbed edits an existing channel.Message, replacing it entirely with the given channel.MessageEmbed.
-func (s Requester) MessageEditEmbed(channelID, messageID string, embed *channel.MessageEmbed) request.Request[*channel.Message] {
+func (s Requester) MessageEditEmbed(channelID, messageID string, embed *channel.MessageEmbed) Request[*channel.Message] {
 	return s.MessageEditEmbeds(channelID, messageID, []*channel.MessageEmbed{embed})
 }
 
 // MessageEditEmbeds edits an existing channel.Message, replacing it entirely with the multiple channel.MessageEmbed.
-func (s Requester) MessageEditEmbeds(channelID, messageID string, embeds []*channel.MessageEmbed) request.Request[*channel.Message] {
+func (s Requester) MessageEditEmbeds(channelID, messageID string, embeds []*channel.MessageEmbed) Request[*channel.Message] {
 	return s.MessageEditComplex(channel.NewMessageEdit(channelID, messageID).SetEmbeds(embeds...))
 }
 
 // MessageDelete deletes a channel.Message from the given channel.Channel.
-func (s Requester) MessageDelete(channelID, messageID string) request.Empty {
-	req := request.NewSimple(
+func (s Requester) MessageDelete(channelID, messageID string) Empty {
+	req := NewSimple(
 		s, http.MethodDelete, discord.EndpointChannelMessage(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessage(channelID, ""))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessagesBulkDelete bulk deletes the channel.Message from the channel.Channel.
@@ -197,9 +197,10 @@ func (s Requester) MessageDelete(channelID, messageID string) request.Empty {
 //
 // If only one messageID is in the slice, it calls ChannelMessageDelete.
 // If the slice is empty, it does nothing.
-func (s Requester) MessagesBulkDelete(channelID string, messages []string) request.Empty {
+func (s Requester) MessagesBulkDelete(channelID string, messages []string) Empty {
 	if len(messages) == 0 {
-		return nil
+		// to do nothing
+		return WrapErrorAsEmpty(nil)
 	}
 
 	if len(messages) == 1 {
@@ -207,38 +208,38 @@ func (s Requester) MessagesBulkDelete(channelID string, messages []string) reque
 	}
 
 	if len(messages) > 100 {
-		return ErrTooMuchMessagesToDelete
+		return WrapErrorAsEmpty(ErrTooMuchMessagesToDelete)
 	}
 
 	data := struct {
 		Messages []string `json:"messages"`
 	}{messages}
 
-	req := request.NewSimple(s, http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID)).WithData(data)
-	return request.WrapAsEmpty(req)
+	req := NewSimple(s, http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // MessagePin pins a channel.Message within the given channel.Channel.
-func (s Requester) MessagePin(channelID, messageID string) request.Empty {
-	req := request.NewSimple(
+func (s Requester) MessagePin(channelID, messageID string) Empty {
+	req := NewSimple(
 		s, http.MethodPut, discord.EndpointChannelMessagePin(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessageUnpin unpins a channel.Message within the given channel.Channel.
-func (s Requester) MessageUnpin(channelID, messageID string) request.Empty {
-	req := request.NewSimple(
+func (s Requester) MessageUnpin(channelID, messageID string) Empty {
+	req := NewSimple(
 		s, http.MethodDelete, discord.EndpointChannelMessagePin(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessagesPinned returns channel.MessagesPinned within the given channel.Channel.
 //
 // limit is the max number of users to return (max 50).
 // If provided all messages returned will be before the given time.
-func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int) request.Request[*channel.MessagesPinned] {
+func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int) Request[*channel.MessagesPinned] {
 	uri := discord.EndpointChannelMessagesPins(channelID)
 
 	v := url.Values{}
@@ -252,12 +253,12 @@ func (s Requester) MessagesPinned(channelID string, before *time.Time, limit int
 		uri += "?" + v.Encode()
 	}
 
-	return request.NewSimpleData[*channel.MessagesPinned](s, http.MethodGet, uri)
+	return NewSimpleData[*channel.MessagesPinned](s, http.MethodGet, uri)
 }
 
 // MessageCrosspost crossposts a channel.Message in a news channel.Channel to followers.
-func (s Requester) MessageCrosspost(channelID, messageID string) request.Request[*channel.Message] {
-	return request.NewSimpleData[*channel.Message](
+func (s Requester) MessageCrosspost(channelID, messageID string) Request[*channel.Message] {
+	return NewSimpleData[*channel.Message](
 		s, http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, ""))
 }
@@ -265,45 +266,45 @@ func (s Requester) MessageCrosspost(channelID, messageID string) request.Request
 // MessageReactionAdd creates an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string) request.Empty {
+func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
-	req := request.NewSimple(
+	req := NewSimple(
 		s, http.MethodPut, discord.EndpointMessageReaction(channelID, messageID, emojiID, "@me"),
 	).WithBucketID(discord.EndpointMessageReaction(channelID, "", "", "@me"))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessageReactionRemove deletes an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID string) request.Empty {
+func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID string) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
-	req := request.NewSimple(
+	req := NewSimple(
 		s, http.MethodDelete, discord.EndpointMessageReaction(channelID, messageID, emojiID, userID),
 	).WithBucketID(discord.EndpointMessageReaction(channelID, "", "", "@me"))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessageReactionsRemoveAll deletes all reactions from a channel.Message.
-func (s Requester) MessageReactionsRemoveAll(channelID, messageID string) request.Empty {
-	req := request.NewSimple(
+func (s Requester) MessageReactionsRemoveAll(channelID, messageID string) Empty {
+	req := NewSimple(
 		s, http.MethodDelete, discord.EndpointMessageReactionsAll(channelID, messageID),
 	).WithBucketID(discord.EndpointMessageReactionsAll(channelID, ""))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessageReactionsRemoveEmoji deletes all reactions of a certain emoji.Emoji from a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID string) request.Empty {
+func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID string) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
-	req := request.NewSimple(
+	req := NewSimple(
 		s, http.MethodDelete, discord.EndpointMessageReactions(channelID, messageID, emojiID),
 	).WithBucketID(discord.EndpointMessageReactions(channelID, "", ""))
-	return request.WrapAsEmpty(req)
+	return WrapAsEmpty(req)
 }
 
 // MessageReactions gets all the user.User reactions for a specific emoji.Emoji.
@@ -312,7 +313,7 @@ func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID str
 // limit is the max number of users to return (max 100).
 // If provided all reactions returned will be before beforeID.
 // If provided all reactions returned will be after afterID.
-func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string) request.Request[[]*user.User] {
+func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string) Request[[]*user.User] {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	uri := discord.EndpointMessageReactions(channelID, messageID, emojiID)
@@ -332,7 +333,7 @@ func (s Requester) MessageReactions(channelID, messageID, emojiID string, limit 
 		uri += "?" + v.Encode()
 	}
 
-	return request.NewSimpleData[[]*user.User](
+	return NewSimpleData[[]*user.User](
 		s, http.MethodGet, uri,
 	).WithBucketID(discord.EndpointMessageReaction(channelID, "", "", ""))
 }

@@ -1,7 +1,6 @@
 package gokord
 
 import (
-	"context"
 	_ "image/jpeg" // For JPEG decoding
 	_ "image/png"  // For PNG decoding
 	"net/http"
@@ -11,7 +10,7 @@ import (
 )
 
 // Gateway returns the websocket Gateway address
-func (s *Session) Gateway(ctx context.Context, options ...discord.RequestOption) (string, error) {
+func (s *Session) Gateway() (string, error) {
 	response, err := s.REST.Request(ctx, http.MethodGet, discord.EndpointGateway, nil, options...)
 	if err != nil {
 		return "", err
@@ -38,7 +37,7 @@ func (s *Session) Gateway(ctx context.Context, options ...discord.RequestOption)
 }
 
 // GatewayBot returns the websocket Gateway address and the recommended number of shards
-func (s *Session) GatewayBot(ctx context.Context, options ...discord.RequestOption) (*GatewayBotResponse, error) {
+func (s *Session) GatewayBot() (*GatewayBotResponse, error) {
 	response, err := s.REST.Request(ctx, http.MethodGet, discord.EndpointGatewayBot, nil, options...)
 	if err != nil {
 		return nil, err

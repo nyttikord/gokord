@@ -29,7 +29,7 @@ func (r Requester) Respond(ctx context.Context, i *Interaction, resp *Response) 
 
 	contentType, body, err := channel.MultipartBodyWithJSON(resp, resp.Data.Files)
 	if err != nil {
-		return err
+		return WrapErrorAsEmpty(err)
 	}
 
 	_, err = r.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
