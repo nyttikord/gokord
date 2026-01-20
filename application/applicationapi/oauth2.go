@@ -12,7 +12,7 @@ import (
 
 // Requester handles everything inside the application package.
 type Requester struct {
-	request.RESTRequester
+	request.REST
 }
 
 // Application returns an application.Application.
@@ -25,7 +25,7 @@ func (r Requester) Application(appID string) request.Request[*application.Applic
 // Applications returns all application.Application for the authenticated user.Application.
 func (r Requester) Applications() request.Request[[]*application.Application] {
 	return request.NewSimpleData[[]*application.Application](
-		r.RESTRequester, http.MethodGet, discord.EndpointOAuth2Applications,
+		r.REST, http.MethodGet, discord.EndpointOAuth2Applications,
 	)
 }
 
@@ -56,7 +56,7 @@ func (r Requester) ApplicationUpdate(appID string, ap *application.Application) 
 }
 
 // ApplicationDelete deletes an existing application.Application.
-func (r Requester) ApplicationDelete(appID string) request.EmptyRequest {
+func (r Requester) ApplicationDelete(appID string) request.Empty {
 	req := request.NewSimple(
 		r, http.MethodDelete, discord.EndpointOAuth2Application(appID),
 	).WithBucketID(discord.EndpointOAuth2Application(""))

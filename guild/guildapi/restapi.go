@@ -22,8 +22,8 @@ var (
 
 // Requester handles everything inside the guild package.
 type Requester struct {
-	RESTRequester
-	WSRequester
+	REST
+	Websocket
 	State *State
 }
 
@@ -125,7 +125,7 @@ func (r Requester) Embed(guildID string) Request[*Embed] {
 }
 
 // EmbedEdit edits the guild.Embed of a guild.Guild.
-func (r Requester) EmbedEdit(guildID string, data *Embed) EmptyRequest {
+func (r Requester) EmbedEdit(guildID string, data *Embed) Empty {
 	req := NewSimple(r, http.MethodPatch, discord.EndpointGuildEmbed(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }

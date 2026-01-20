@@ -8,8 +8,8 @@ import (
 	"github.com/coder/websocket"
 )
 
-// RESTRequester is used to interact with the Discord API.
-type RESTRequester interface {
+// REST is used to interact with the Discord REST API.
+type REST interface {
 	Logger() *slog.Logger
 	// Request is the same as RequestWithBucketID but the bucket id is the same as the urlStr
 	Request(ctx context.Context, method string, urlStr string, data any, option Config) ([]byte, error)
@@ -27,7 +27,8 @@ type RESTRequester interface {
 	Unmarshal(bytes []byte, i any) error
 }
 
-type WSRequester interface {
+// REST is used to interact with the Discord websocket API.
+type Websocket interface {
 	// GatewayWriteStruct writes a struck as a json to Discord gateway.
 	GatewayWriteStruct(context.Context, any) error
 	// GatewayDial dials a new websocket connection.

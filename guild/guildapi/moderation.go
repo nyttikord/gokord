@@ -37,7 +37,7 @@ func (r Requester) AutoModerationRuleEdit(guildID, ruleID string, rule *AutoMode
 }
 
 // AutoModerationRuleDelete deletes a AutoModerationRule.
-func (r Requester) AutoModerationRuleDelete(guildID, ruleID string) EmptyRequest {
+func (r Requester) AutoModerationRuleDelete(guildID, ruleID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildAutoModerationRule(guildID, ruleID),
 	).WithBucketID(discord.EndpointGuildAutoModerationRules(guildID))

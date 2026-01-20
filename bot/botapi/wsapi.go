@@ -11,8 +11,8 @@ import (
 
 // Requester handles everything inside the bot package.
 type Requester struct {
-	request.RESTRequester
-	request.WSRequester
+	request.REST
+	request.Websocket
 	//State *State
 }
 

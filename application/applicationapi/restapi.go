@@ -47,7 +47,7 @@ func (r Requester) EmojiEdit(appID string, emojiID string, data *emoji.Params) r
 }
 
 // EmojiDelete deletes an emoji.Emoji for the given application.Application.
-func (r Requester) EmojiDelete(appID, emojiID string) request.EmptyRequest {
+func (r Requester) EmojiDelete(appID, emojiID string) request.Empty {
 	req := request.NewSimple(
 		r, http.MethodDelete, discord.EndpointApplicationEmoji(appID, emojiID),
 	).WithBucketID(discord.EndpointApplicationEmojis(appID))

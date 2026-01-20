@@ -22,7 +22,7 @@ var (
 
 // Requester handles everything inside the channel package.
 type Requester struct {
-	request.RESTRequester
+	request.REST
 	State *State
 }
 
@@ -44,7 +44,7 @@ func (s Requester) ChannelDelete(channelID string) request.Request[*channel.Chan
 }
 
 // Typing broadcasts to all members that authenticated user.User is typing in the given channel.Channel.
-func (s Requester) Typing(channelID string) request.EmptyRequest {
+func (s Requester) Typing(channelID string) request.Empty {
 	req := request.NewSimple(s, http.MethodPost, discord.EndpointChannelTyping(channelID))
 	return request.WrapAsEmpty(req)
 }
@@ -91,7 +91,7 @@ func (s Requester) InviteCreate(channelID string, i invite.Invite) request.Reque
 //
 // NOTE: This func name may be changed.
 // Using Set instead of Create because you can both create a new override or update an override with this function.
-func (s Requester) PermissionSet(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64) request.EmptyRequest {
+func (s Requester) PermissionSet(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64) request.Empty {
 	data := struct {
 		ID    string                    `json:"id"`
 		Type  types.PermissionOverwrite `json:"type"`
@@ -108,7 +108,7 @@ func (s Requester) PermissionSet(channelID, targetID string, targetType types.Pe
 // PermissionDelete deletes a specific channel.PermissionOverwrite for the given channel.Channel.
 //
 // NOTE: Name of this func may change.
-func (s Requester) PermissionDelete(channelID, targetID string) request.EmptyRequest {
+func (s Requester) PermissionDelete(channelID, targetID string) request.Empty {
 	req := request.NewSimple(s, http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
 		WithBucketID(discord.EndpointChannelPermission(channelID, ""))
 	return request.WrapAsEmpty(req)
@@ -150,7 +150,7 @@ func (s Requester) StageInstanceEdit(channelID string, data *channel.StageInstan
 }
 
 // StageInstanceDelete deletes a Stage instance by ID of the types.ChannelGuildStageVoice.
-func (s Requester) StageInstanceDelete(ctx context.Context, channelID string) request.EmptyRequest {
+func (s Requester) StageInstanceDelete(ctx context.Context, channelID string) request.Empty {
 	req := request.NewSimple(s, http.MethodGet, discord.EndpointStageInstance(channelID))
 	return request.WrapAsEmpty(req)
 }

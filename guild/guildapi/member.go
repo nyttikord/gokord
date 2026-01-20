@@ -154,7 +154,7 @@ func (r Requester) Member(guildID, userID string) Request[*user.Member] {
 }
 
 // MemberAdd force joins a user.User to the guild.Guild with the given data.
-func (r Requester) MemberAdd(guildID, userID string, data *MemberAddParams) EmptyRequest {
+func (r Requester) MemberAdd(guildID, userID string, data *MemberAddParams) Empty {
 	req := NewSimple(
 		r, http.MethodPut, discord.EndpointGuildMember(guildID, userID),
 	).WithBucketID(discord.EndpointGuildMembers(guildID))
@@ -162,12 +162,12 @@ func (r Requester) MemberAdd(guildID, userID string, data *MemberAddParams) Empt
 }
 
 // MemberKick kicks the given user.User from the given guild.Guild.
-func (r Requester) MemberKick(guildID, userID string) EmptyRequest {
+func (r Requester) MemberKick(guildID, userID string) Empty {
 	return r.MemberKickWithReason(guildID, userID, "")
 }
 
 // MemberKickWithReason removes the given user.User from the given guild.Guild with the given reason.
-func (r Requester) MemberKickWithReason(guildID, userID, reason string) EmptyRequest {
+func (r Requester) MemberKickWithReason(guildID, userID, reason string) Empty {
 	uri := discord.EndpointGuildMember(guildID, userID)
 	if reason != "" {
 		uri += "?reason=" + url.QueryEscape(reason)
@@ -189,7 +189,7 @@ func (r Requester) MemberEdit(guildID, userID string, data *MemberParams) Reques
 // MemberMove moves a user.Member from one voice channel.Channel to another/none.
 //
 // NOTE: I am not entirely set on the name of this function, and it may change.
-func (r Requester) MemberMove(guildID string, userID string, channelID *string) EmptyRequest {
+func (r Requester) MemberMove(guildID string, userID string, channelID *string) Empty {
 	data := struct {
 		ChannelID *string `json:"channel_id"`
 	}{channelID}
@@ -205,7 +205,7 @@ func (r Requester) MemberMove(guildID string, userID string, channelID *string) 
 // NOTE: To reset the nickname, set it to an empty string.
 //
 // NOTE: Use MemberModifyCurrent to modify the current member.
-func (r Requester) MemberNickname(guildID, userID, nickname string) EmptyRequest {
+func (r Requester) MemberNickname(guildID, userID, nickname string) Empty {
 	if userID == "@me" {
 		r.Logger().WarnContext(
 			logger.NewContext(context.Background(), 1),
@@ -227,7 +227,7 @@ func (r Requester) MemberNickname(guildID, userID, nickname string) EmptyRequest
 // MemberModifyCurrent updates the nickname, the avatar, the banner and the bio of the current user.Member.
 //
 // NOTE: Set any parameter to "" to avoid modifying it.
-func (r Requester) MemberModifyCurrent(guildID string, nick, avatar, banner, bio string) EmptyRequest {
+func (r Requester) MemberModifyCurrent(guildID string, nick, avatar, banner, bio string) Empty {
 	data := struct {
 		Nick   string `json:"nick,omitempty"`
 		Avatar string `json:"avatar,omitempty"`
@@ -242,7 +242,7 @@ func (r Requester) MemberModifyCurrent(guildID string, nick, avatar, banner, bio
 }
 
 // MemberMute (un)mutes a user.Member in a guild.Guild.
-func (r Requester) MemberMute(guildID string, userID string, mute bool) EmptyRequest {
+func (r Requester) MemberMute(guildID string, userID string, mute bool) Empty {
 	data := struct {
 		Mute bool `json:"mute"`
 	}{mute}
@@ -256,7 +256,7 @@ func (r Requester) MemberMute(guildID string, userID string, mute bool) EmptyReq
 // MemberTimeout times out a user.Member in a guild.Guild.
 //
 // NOTE: Set until to nil to remove timeout.
-func (r Requester) MemberTimeout(guildID string, userID string, until *time.Time) EmptyRequest {
+func (r Requester) MemberTimeout(guildID string, userID string, until *time.Time) Empty {
 	data := struct {
 		CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 	}{until}
@@ -268,7 +268,7 @@ func (r Requester) MemberTimeout(guildID string, userID string, until *time.Time
 }
 
 // MemberDeafen server deafens a user.Member in a guild.Guild.
-func (r Requester) MemberDeafen(guildID string, userID string, deaf bool) EmptyRequest {
+func (r Requester) MemberDeafen(guildID string, userID string, deaf bool) Empty {
 	data := struct {
 		Deaf bool `json:"deaf"`
 	}{deaf}
@@ -280,7 +280,7 @@ func (r Requester) MemberDeafen(guildID string, userID string, deaf bool) EmptyR
 }
 
 // MemberRoleAdd adds the specified guild.Role to a given user.Member.
-func (r Requester) MemberRoleAdd(guildID, userID, roleID string) EmptyRequest {
+func (r Requester) MemberRoleAdd(guildID, userID, roleID string) Empty {
 	req := NewSimple(
 		r, http.MethodPut, discord.EndpointGuildMemberRole(guildID, userID, roleID),
 	).WithBucketID(discord.EndpointGuildMembers(guildID))
@@ -288,7 +288,7 @@ func (r Requester) MemberRoleAdd(guildID, userID, roleID string) EmptyRequest {
 }
 
 // MemberRoleRemove removes the specified guild.Role to a given user.Member.
-func (r Requester) MemberRoleRemove(guildID, userID, roleID string) EmptyRequest {
+func (r Requester) MemberRoleRemove(guildID, userID, roleID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildMemberRole(guildID, userID, roleID),
 	).WithBucketID(discord.EndpointGuildMembers(guildID))

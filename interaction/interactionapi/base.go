@@ -14,12 +14,12 @@ import (
 
 // Requester handles everything inside the interaction package.
 type Requester struct {
-	RESTRequester
+	REST
 	ChannelAPI func() *channelapi.Requester
 }
 
 // Respond creates the response to an interaction.Interaction.
-func (r Requester) Respond(ctx context.Context, i *Interaction, resp *Response) EmptyRequest {
+func (r Requester) Respond(ctx context.Context, i *Interaction, resp *Response) Empty {
 	endpoint := discord.EndpointInteractionResponse(i.ID, i.Token)
 
 	if resp.Data == nil || len(resp.Data.Files) == 0 {
@@ -48,7 +48,7 @@ func (r Requester) ResponseEdit(i *Interaction, newresp *channel.WebhookEdit) Re
 }
 
 // ResponseDelete deletes the response to an interaction.Interaction.
-func (r Requester) ResponseDelete(i *Interaction) EmptyRequest {
+func (r Requester) ResponseDelete(i *Interaction) Empty {
 	req := NewSimple(r, http.MethodDelete, discord.EndpointInteractionResponseActions(i.AppID, i.Token))
 	return WrapAsEmpty(req)
 }
@@ -67,6 +67,6 @@ func (r Requester) FollowupMessageEdit(i *Interaction, messageID string, data *c
 }
 
 // FollowupMessageDelete deletes a followup message of an interaction.Interaction.
-func (r Requester) FollowupMessageDelete(i *Interaction, messageID string) EmptyRequest {
+func (r Requester) FollowupMessageDelete(i *Interaction, messageID string) Empty {
 	return r.ChannelAPI().WebhookMessageDelete(i.AppID, i.Token, messageID)
 }

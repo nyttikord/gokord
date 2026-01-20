@@ -45,7 +45,7 @@ func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior
 }
 
 // IntegrationDelete removes the user.Integration from the guild.Guild.
-func (r Requester) IntegrationDelete(guildID, integrationID string) EmptyRequest {
+func (r Requester) IntegrationDelete(guildID, integrationID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildIntegration(guildID, integrationID),
 	).WithBucketID(discord.EndpointGuildIntegrations(guildID))

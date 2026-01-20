@@ -15,7 +15,7 @@ import (
 
 // Requester handles everything inside the premium package.
 type Requester struct {
-	RESTRequester
+	REST
 }
 
 // SKUs returns all premium.SKU for a given application.Application.
@@ -59,7 +59,7 @@ func (r *Requester) Entitlements(appID string, filterOptions *EntitlementFilterO
 }
 
 // EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
-func (r *Requester) EntitlementConsume(appID, entitlementID string) EmptyRequest {
+func (r *Requester) EntitlementConsume(appID, entitlementID string) Empty {
 	req := NewSimple(
 		r, http.MethodPost, discord.EndpointEntitlementConsume(appID, entitlementID),
 	).WithBucketID(discord.EndpointEntitlementConsume(appID, ""))
@@ -69,7 +69,7 @@ func (r *Requester) EntitlementConsume(appID, entitlementID string) EmptyRequest
 // EntitlementTestCreate creates a test premium.Entitlement to a given premium.SKU for a given guild.Guild or user.User.
 //
 // Discord will act as though that user or guild has premium.Entitlement to your premium offering.
-func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) EmptyRequest {
+func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) Empty {
 	req := NewSimple(r, http.MethodPost, discord.EndpointEntitlements(appID)).WithData(data)
 	return WrapAsEmpty(req)
 }
@@ -77,7 +77,7 @@ func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) E
 // EntitlementTestDelete deletes a currently-active test premium.Entitlement.
 //
 // Discord will act as though that user.User or guild.Guild no longer has Entitlement to your premium offering.
-func (r *Requester) EntitlementTestDelete(appID, entitlementID string) EmptyRequest {
+func (r *Requester) EntitlementTestDelete(appID, entitlementID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointEntitlement(appID, entitlementID),
 	).WithBucketID(discord.EndpointEntitlement(appID, ""))

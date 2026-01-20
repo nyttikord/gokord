@@ -49,7 +49,7 @@ func (r Requester) ScheduledEventEdit(guildID, eventID string, event *ScheduledE
 }
 
 // ScheduledEventDelete deletes a specific guild.ScheduledEvent in a guild.Guild.
-func (r Requester) ScheduledEventDelete(guildID, eventID string) EmptyRequest {
+func (r Requester) ScheduledEventDelete(guildID, eventID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID),
 	).WithBucketID(discord.EndpointGuildScheduledEvent(guildID, eventID))

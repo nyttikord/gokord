@@ -66,13 +66,13 @@ func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
 }
 
 // GuildDelete deletes a guild.Guild.
-func (r Requester) GuildDelete(guildID string) EmptyRequest {
+func (r Requester) GuildDelete(guildID string) Empty {
 	req := NewSimple(r, http.MethodDelete, discord.EndpointGuild(guildID))
 	return WrapAsEmpty(req)
 }
 
 // GuildLeave leaves a guild.Guild.
-func (r Requester) GuildLeave(guildID string) EmptyRequest {
+func (r Requester) GuildLeave(guildID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointUserGuild("@e", guildID),
 	).WithBucketID(discord.EndpointUserGuild("", guildID))
