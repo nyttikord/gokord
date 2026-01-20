@@ -12,6 +12,7 @@ import (
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/premium"
@@ -222,7 +223,7 @@ type ResponseData struct {
 	Components      []component.Component           `json:"components"`
 	Embeds          []*channel.MessageEmbed         `json:"embeds"`
 	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Files           []*channel.File                 `json:"-"`
+	Files           []*request.File                 `json:"-"`
 	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
 	Poll            *channel.Poll                   `json:"poll,omitempty"`
 

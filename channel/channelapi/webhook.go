@@ -100,25 +100,12 @@ func (r Requester) webhookExecute(method, uri, bucket string, wait bool, threadI
 		uri += "?" + v.Encode()
 	}
 
-	var err error
-	var response []byte
 	if len(data.Files) == 0 {
 		return NewData[*Message](
 			r, method, uri,
 		).WithBucketID(bucket).WithData(data)
 	}
-	contentType, body, encodeErr := MultipartBodyWithJSON(data, data.Files)
-	if encodeErr != nil {
-		return NewError[*Message](encodeErr)
-	}
-
-	response, err = r.RequestRaw(ctx, method, uri, contentType, body, bucket, 0, options...)
-	if !wait || err != nil {
-		return nil, err
-	}
-
-	var m Message
-	return &m, r.Unmarshal(response, &m)
+	return NewMultipart[*Message](r, http.MethodPost, uri, data, data.Files).WithBucketID(bucket)
 }
 
 // WebhookExecute executes a channel.Webhook.

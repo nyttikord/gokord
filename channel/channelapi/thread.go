@@ -69,12 +69,7 @@ func (r Requester) ForumThreadStartComplex(channelID string, threadData *ThreadS
 			r, http.MethodPost, endpoint,
 		).WithData(data)
 	}
-	contentType, body, encodeErr := MultipartBodyWithJSON(data, files)
-	if encodeErr != nil {
-		return NewError[*Channel](encodeErr)
-	}
-
-	response, err = r.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
+	return NewMultipart[*Channel](r, http.MethodPost, endpoint, data, files)
 }
 
 // ForumThreadStart starts a new thread (post) in a types.ChannelGuildForum.

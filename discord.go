@@ -80,7 +80,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
-	s.REST = &RESTSession{
+	s.rest = &RESTSession{
 		identify:     &s.Identify,
 		logger:       logger.With("module", "rest"),
 		Options:      &s.Options,
