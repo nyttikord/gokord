@@ -74,7 +74,7 @@ var (
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
-				err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -83,7 +83,7 @@ var (
 							data.Options[0].StringValue(),
 						),
 					},
-				})
+				}).Do(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -121,12 +121,12 @@ var (
 					})
 				}
 
-				err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
 					},
-				})
+				}).Do(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -136,7 +136,7 @@ var (
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.CommandData()
-				err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -145,7 +145,7 @@ var (
 							data.Options[1].StringValue(),
 						),
 					},
-				})
+				}).Do(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -207,12 +207,12 @@ var (
 					}
 				}
 
-				err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices,
 					},
-				})
+				}).Do(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -234,7 +234,7 @@ func main() {
 	}
 	defer s.Close(context.Background())
 
-	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(context.Background(), s.SessionState().User().ID, *GuildID, commands)
+	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.SessionState().User().ID, *GuildID, commands).Do(context.Background())
 
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
@@ -247,7 +247,7 @@ func main() {
 
 	if *RemoveCommands {
 		for _, cmd := range createdCommands {
-			err := s.InteractionAPI().CommandDelete(context.Background(), s.SessionState().User().ID, *GuildID, cmd.ID)
+			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, cmd.ID).Do(context.Background())
 			if err != nil {
 				log.Fatalf("Cannot delete %q command: %v", cmd.Name, err)
 			}

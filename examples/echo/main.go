@@ -42,12 +42,12 @@ func handleEcho(ctx context.Context, s bot.Session, i *event.InteractionCreate, 
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: builder.String(),
 		},
-	})
+	}).Do(ctx)
 
 	if err != nil {
 		log.Panicf("could not respond to interaction: %s", err)
@@ -105,7 +105,7 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := session.InteractionAPI().CommandBulkOverwrite(context.Background(), *App, *Guild, commands)
+	_, err := session.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands).Do(context.Background())
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}

@@ -54,7 +54,7 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 	// Define the ending time (must be after starting time)
 	endingTime := startingTime.Add(30 * time.Minute)
 	// Create the event
-	scheduledEvent, err := s.GuildAPI().ScheduledEventCreate(context.Background(), *GuildID, &guild.ScheduledEventParams{
+	scheduledEvent, err := s.GuildAPI().ScheduledEventCreate(*GuildID, &guild.ScheduledEventParams{
 		Name:               "Amazing Event",
 		Description:        "This event will start in 1 hour and last 30 minutes",
 		ScheduledStartTime: &startingTime,
@@ -62,7 +62,7 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 		EntityType:         types.ScheduledEventEntityVoice,
 		ChannelID:          *VoiceChannelID,
 		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Printf("Error creating scheduled event: %v", err)
 		return nil
@@ -73,13 +73,13 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 }
 
 func transformEventToExternalEvent(s bot.Session, event *guild.ScheduledEvent) {
-	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(context.Background(), *GuildID, event.ID, &guild.ScheduledEventParams{
+	scheduledEvent, err := s.GuildAPI().ScheduledEventEdit(*GuildID, event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
 		EntityType: types.ScheduledEventEntityExternal,
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
 		},
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Printf("Error during transformation of scheduled voice event into external event: %v", err)
 		return
