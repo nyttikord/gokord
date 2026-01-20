@@ -36,7 +36,7 @@ func (r Requester) RoleEdit(guildID, roleID string, data *RoleParams) Request[*R
 }
 
 // RoleReorder reoders guild.Role.
-func (r Requester) RoleReorder(guildID string, roles []*Role) EmptyRequest {
+func (r Requester) RoleReorder(guildID string, roles []*Role) Empty {
 	req := NewSimple(
 		r, http.MethodPatch, discord.EndpointGuildRoles(guildID),
 	).WithData(roles)
@@ -44,7 +44,7 @@ func (r Requester) RoleReorder(guildID string, roles []*Role) EmptyRequest {
 }
 
 // RoleDelete deletes a guild.Role.
-func (r Requester) RoleDelete(guildID, roleID string) EmptyRequest {
+func (r Requester) RoleDelete(guildID, roleID string) Empty {
 	req := NewSimple(
 		r, http.MethodPatch, discord.EndpointGuildRole(guildID, roleID),
 	).WithBucketID(discord.EndpointGuildRoles(guildID))

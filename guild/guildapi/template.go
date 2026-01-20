@@ -48,7 +48,7 @@ func (r Requester) TemplateCreate(guildID string, data *TemplateParams) Request[
 // TemplateSync syncs the guild.Template to the guild.Guild's current state.
 //
 // code is the code of the guild.Template.
-func (r Requester) TemplateSync(guildID, code string) EmptyRequest {
+func (r Requester) TemplateSync(guildID, code string) Empty {
 	req := NewSimple(
 		r, http.MethodPut, discord.EndpointGuildTemplateSync(guildID, code),
 	).WithBucketID(discord.EndpointGuildTemplates(guildID))
@@ -63,7 +63,7 @@ func (r Requester) TemplateEdit(guildID, code string, data *TemplateParams) Requ
 }
 
 // TemplateDelete deletes the guild.Template of the given guild.Guild.
-func (r Requester) TemplateDelete(guildID, code string) EmptyRequest {
+func (r Requester) TemplateDelete(guildID, code string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildTemplateSync(guildID, code),
 	).WithBucketID(discord.EndpointGuildTemplates(guildID))

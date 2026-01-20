@@ -46,7 +46,7 @@ func (r Requester) ChannelCreate(guildID, name string, ctype types.Channel) Requ
 }
 
 // ChannelsReorder updates the order of channel.Channel in a guild.Guild.
-func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel) EmptyRequest {
+func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel) Empty {
 	data := make([]struct {
 		ID       string `json:"id"`
 		Position int    `json:"position"`

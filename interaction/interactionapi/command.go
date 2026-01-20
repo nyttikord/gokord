@@ -45,7 +45,7 @@ func (r Requester) CommandBulkOverwrite(appID string, guildID string, cmds []*Co
 // CommandDelete deletes interaction.Command.
 //
 // Specifies guildID to delete a guild.Guild interaction.Command.
-func (r Requester) CommandDelete(appID, guildID, cmdID string) EmptyRequest {
+func (r Requester) CommandDelete(appID, guildID, cmdID string) Empty {
 	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
@@ -106,7 +106,7 @@ func (r Requester) CommandPermissions(appID, guildID, cmdID string) Request[*Gui
 // (I don't know if this is required.)
 //
 // NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
-func (r Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *CommandPermissionsList) EmptyRequest {
+func (r Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *CommandPermissionsList) Empty {
 	req := NewSimple(
 		r, http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID),
 	).WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)

@@ -184,7 +184,7 @@ func (s Requester) MessageEditEmbeds(channelID, messageID string, embeds []*chan
 }
 
 // MessageDelete deletes a channel.Message from the given channel.Channel.
-func (s Requester) MessageDelete(channelID, messageID string) request.EmptyRequest {
+func (s Requester) MessageDelete(channelID, messageID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointChannelMessage(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessage(channelID, ""))
@@ -197,7 +197,7 @@ func (s Requester) MessageDelete(channelID, messageID string) request.EmptyReque
 //
 // If only one messageID is in the slice, it calls ChannelMessageDelete.
 // If the slice is empty, it does nothing.
-func (s Requester) MessagesBulkDelete(channelID string, messages []string) request.EmptyRequest {
+func (s Requester) MessagesBulkDelete(channelID string, messages []string) request.Empty {
 	if len(messages) == 0 {
 		return nil
 	}
@@ -219,7 +219,7 @@ func (s Requester) MessagesBulkDelete(channelID string, messages []string) reque
 }
 
 // MessagePin pins a channel.Message within the given channel.Channel.
-func (s Requester) MessagePin(channelID, messageID string) request.EmptyRequest {
+func (s Requester) MessagePin(channelID, messageID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodPut, discord.EndpointChannelMessagePin(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
@@ -227,7 +227,7 @@ func (s Requester) MessagePin(channelID, messageID string) request.EmptyRequest 
 }
 
 // MessageUnpin unpins a channel.Message within the given channel.Channel.
-func (s Requester) MessageUnpin(channelID, messageID string) request.EmptyRequest {
+func (s Requester) MessageUnpin(channelID, messageID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointChannelMessagePin(channelID, messageID),
 	).WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
@@ -265,7 +265,7 @@ func (s Requester) MessageCrosspost(channelID, messageID string) request.Request
 // MessageReactionAdd creates an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string) request.EmptyRequest {
+func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string) request.Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	req := request.NewSimple(
@@ -277,7 +277,7 @@ func (s Requester) MessageReactionAdd(channelID, messageID, emojiID string) requ
 // MessageReactionRemove deletes an emoji.Emoji reaction to a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID string) request.EmptyRequest {
+func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID string) request.Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	req := request.NewSimple(
@@ -287,7 +287,7 @@ func (s Requester) MessageReactionRemove(channelID, messageID, emojiID, userID s
 }
 
 // MessageReactionsRemoveAll deletes all reactions from a channel.Message.
-func (s Requester) MessageReactionsRemoveAll(channelID, messageID string) request.EmptyRequest {
+func (s Requester) MessageReactionsRemoveAll(channelID, messageID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointMessageReactionsAll(channelID, messageID),
 	).WithBucketID(discord.EndpointMessageReactionsAll(channelID, ""))
@@ -297,7 +297,7 @@ func (s Requester) MessageReactionsRemoveAll(channelID, messageID string) reques
 // MessageReactionsRemoveEmoji deletes all reactions of a certain emoji.Emoji from a channel.Message.
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format (e.g. "hello:1234567654321").
-func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID string) request.EmptyRequest {
+func (s Requester) MessageReactionsRemoveEmoji(channelID, messageID, emojiID string) request.Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	req := request.NewSimple(

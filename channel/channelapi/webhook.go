@@ -68,7 +68,7 @@ func (s Requester) WebhookEditWithToken(webhookID, token, name, avatar string) r
 }
 
 // WebhookDelete deletes a channel.Webhook.
-func (s Requester) WebhookDelete(webhookID string) request.EmptyRequest {
+func (s Requester) WebhookDelete(webhookID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointWebhook(webhookID),
 	).WithBucketID(discord.EndpointWebhooks)
@@ -76,7 +76,7 @@ func (s Requester) WebhookDelete(webhookID string) request.EmptyRequest {
 }
 
 // WebhookDeleteWithToken deletes a channel.Webhook with an auth token.
-func (s Requester) WebhookDeleteWithToken(webhookID, token string) request.EmptyRequest {
+func (s Requester) WebhookDeleteWithToken(webhookID, token string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointWebhookToken(webhookID, token),
 	).WithBucketID(discord.EndpointWebhooks)
@@ -189,7 +189,7 @@ func (s Requester) WebhookMessageEdit(webhookID, token, messageID string, data *
 }
 
 // WebhookMessageDelete deletes a channel.Webhook channel.Message.
-func (s Requester) WebhookMessageDelete(webhookID, token, messageID string) request.EmptyRequest {
+func (s Requester) WebhookMessageDelete(webhookID, token, messageID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointWebhookMessage(webhookID, token, messageID),
 	).WithBucketID(discord.EndpointWebhooks)

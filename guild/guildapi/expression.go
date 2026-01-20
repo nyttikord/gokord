@@ -37,7 +37,7 @@ func (r Requester) EmojiEdit(guildID, emojiID string, data *emoji.Params) Reques
 }
 
 // EmojiDelete deletes an emoji.Emoji in the given guild.Guild.
-func (r Requester) EmojiDelete(guildID, emojiID string) EmptyRequest {
+func (r Requester) EmojiDelete(guildID, emojiID string) Empty {
 	req := NewSimple(
 		r, http.MethodDelete, discord.EndpointGuildEmoji(guildID, emojiID),
 	).WithBucketID(discord.EndpointGuildEmojis(guildID))

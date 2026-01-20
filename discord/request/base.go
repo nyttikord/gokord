@@ -1,3 +1,13 @@
+// Package request contains utils to create and process requests.
+//
+// Request[T] is a general interface representing any requests returning something.
+// Methods should always use this one instead of a more precise returns type.
+//
+// Empty is a simple request returning nothing (only an error).
+// You wan wrap any Simple request as an EmptyRequest with WrapAsEmpty.
+// You can unwrap it with UnwrapEmpty.
+//
+// WrapErrorAsRequest wraps an error as a Simple request.
 package request
 
 import (
@@ -27,21 +37,21 @@ type Request[T any] interface {
 	RequestConfig() Config
 }
 
-// EmptyRequest is a Request that only returns an error when it is executed.
-type EmptyRequest struct {
+// Empty is a Request that only returns an error when it is executed.
+type Empty struct {
 	Simple
 }
 
-func (r EmptyRequest) Do(ctx context.Context) error {
+func (r Empty) Do(ctx context.Context) error {
 	_, err := r.Simple.Do(ctx)
 	return err
 }
 
-func WrapAsEmpty(req Simple) EmptyRequest {
-	return EmptyRequest{req}
+func WrapAsEmpty(req Simple) Empty {
+	return Empty{req}
 }
 
-func UnwrapEmpty(req EmptyRequest) Simple {
+func UnwrapEmpty(req Empty) Simple {
 	return req.Simple
 }
 

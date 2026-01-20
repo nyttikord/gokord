@@ -7,14 +7,14 @@ import (
 // Simple is a basic request that returns nothing if there is no error
 type Simple struct {
 	baseRequest[[]byte]
-	req      RESTRequester
+	req      REST
 	method   string
 	bucket   string
 	endpoint string
 	data     any
 }
 
-func NewSimple(req RESTRequester, method, endpoint string) Simple {
+func NewSimple(req REST, method, endpoint string) Simple {
 	return Simple{
 		req:      req,
 		method:   method,
@@ -42,14 +42,14 @@ func (r Simple) Do(ctx context.Context) ([]byte, error) {
 
 type SimpleData[T any] struct {
 	baseRequest[T]
-	req      RESTRequester
+	req      REST
 	method   string
 	bucket   string
 	endpoint string
 	data     any
 }
 
-func NewSimpleData[T any](req RESTRequester, method, endpoint string) SimpleData[T] {
+func NewSimpleData[T any](req REST, method, endpoint string) SimpleData[T] {
 	return SimpleData[T]{
 		req:      req,
 		method:   method,

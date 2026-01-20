@@ -14,7 +14,7 @@ import (
 
 // Requester handles everything inside the user package.
 type Requester struct {
-	RESTRequester
+	REST
 	State *State
 }
 

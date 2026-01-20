@@ -12,7 +12,7 @@ import (
 
 // Requester handles everything inside the invite package.
 type Requester struct {
-	RESTRequester
+	REST
 }
 
 // Invite returns the invite.Invite.

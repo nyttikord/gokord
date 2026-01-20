@@ -108,7 +108,7 @@ func (s Requester) ForumThreadStartEmbeds(channelID, name string, archiveDuratio
 }
 
 // ThreadJoin adds current user.User to a thread.
-func (s Requester) ThreadJoin(id string) request.EmptyRequest {
+func (s Requester) ThreadJoin(id string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodPut, discord.EndpointThreadMember(id, "@me"),
 	).WithBucketID(discord.EndpointThreadMember(id, ""))
@@ -116,7 +116,7 @@ func (s Requester) ThreadJoin(id string) request.EmptyRequest {
 }
 
 // ThreadLeave removes current user.User to a thread.
-func (s Requester) ThreadLeave(id string) request.EmptyRequest {
+func (s Requester) ThreadLeave(id string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointThreadMember(id, "@me"),
 	).WithBucketID(discord.EndpointThreadMember(id, ""))
@@ -124,7 +124,7 @@ func (s Requester) ThreadLeave(id string) request.EmptyRequest {
 }
 
 // ThreadMemberAdd adds a user.Member to a thread.
-func (s Requester) ThreadMemberAdd(threadID, memberID string) request.EmptyRequest {
+func (s Requester) ThreadMemberAdd(threadID, memberID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodPut, discord.EndpointThreadMember(threadID, memberID),
 	).WithBucketID(discord.EndpointThreadMember(threadID, ""))
@@ -132,7 +132,7 @@ func (s Requester) ThreadMemberAdd(threadID, memberID string) request.EmptyReque
 }
 
 // ThreadMemberRemove removes a user.Member from a thread.
-func (s Requester) ThreadMemberRemove(threadID, memberID string) request.EmptyRequest {
+func (s Requester) ThreadMemberRemove(threadID, memberID string) request.Empty {
 	req := request.NewSimple(
 		s, http.MethodDelete, discord.EndpointThreadMember(threadID, memberID),
 	).WithBucketID(discord.EndpointThreadMember(threadID, ""))
