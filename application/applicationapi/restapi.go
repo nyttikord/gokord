@@ -26,21 +26,21 @@ func (r Requester) Emojis(appID string) (emojis []*emoji.Emoji, err error) {
 
 // Emoji returns the emoji.Emoji for the given application.Application.
 func (r Requester) Emoji(appID, emojiID string) request.Request[*emoji.Emoji] {
-	return request.NewSimpleData[*emoji.Emoji](
+	return request.NewData[*emoji.Emoji](
 		r, http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID),
 	).WithBucketID(discord.EndpointApplicationEmojis(appID))
 }
 
 // EmojiCreate creates a new emoji.Emoji for the given application.Application.
 func (r Requester) EmojiCreate(appID string, data *emoji.Params) request.Request[*emoji.Emoji] {
-	return request.NewSimpleData[*emoji.Emoji](
+	return request.NewData[*emoji.Emoji](
 		r, http.MethodPost, discord.EndpointApplicationEmojis(appID),
 	).WithData(data)
 }
 
 // EmojiEdit modifies and returns updated emoji.Emoji for the given application.Application.
 func (r Requester) EmojiEdit(appID string, emojiID string, data *emoji.Params) request.Request[*emoji.Emoji] {
-	return request.NewSimpleData[*emoji.Emoji](
+	return request.NewData[*emoji.Emoji](
 		r, http.MethodPatch, discord.EndpointApplicationEmoji(appID, emojiID),
 	).WithData(data).WithBucketID(discord.EndpointApplicationEmojis(appID))
 }
@@ -55,28 +55,28 @@ func (r Requester) EmojiDelete(appID, emojiID string) request.Empty {
 
 // RoleConnectionMetadata returns application.RoleConnectionMetadata.
 func (r Requester) RoleConnectionMetadata(appID string) request.Request[[]*application.RoleConnectionMetadata] {
-	return request.NewSimpleData[[]*application.RoleConnectionMetadata](
+	return request.NewData[[]*application.RoleConnectionMetadata](
 		r, http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID),
 	)
 }
 
 // RoleConnectionMetadataUpdate updates and returns application.RoleConnectionMetadata.
 func (r Requester) RoleConnectionMetadataUpdate(appID string, metadata []*application.RoleConnectionMetadata) request.Request[[]*application.RoleConnectionMetadata] {
-	return request.NewSimpleData[[]*application.RoleConnectionMetadata](
+	return request.NewData[[]*application.RoleConnectionMetadata](
 		r, http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID),
 	).WithData(metadata)
 }
 
 // RoleConnection returns application.RoleConnection to the specified application.Application.
 func (r Requester) RoleConnection(appID string) request.Request[*application.RoleConnection] {
-	return request.NewSimpleData[*application.RoleConnection](
+	return request.NewData[*application.RoleConnection](
 		r, http.MethodGet, discord.EndpointUserApplicationRoleConnection(appID),
 	)
 }
 
 // RoleConnectionUpdate updates and returns application.RoleConnection to the specified application.Application.
 func (r Requester) RoleConnectionUpdate(appID string, rconn *application.RoleConnection) request.Request[*application.RoleConnection] {
-	return request.NewSimpleData[*application.RoleConnection](
+	return request.NewData[*application.RoleConnection](
 		r, http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID),
 	).WithData(rconn)
 }

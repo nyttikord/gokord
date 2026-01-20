@@ -55,14 +55,14 @@ func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bo
 		uri += "?" + v.Encode()
 	}
 
-	return NewSimpleData[[]*UserGuild](
+	return NewData[[]*UserGuild](
 		r, http.MethodGet, uri,
 	).WithBucketID(discord.EndpointUserGuilds(""))
 }
 
 // Invites returns the list of invite.Invite for the given guild.Guild.
 func (r Requester) Invites(guildID string) Request[[]*invite.Invite] {
-	return NewSimpleData[[]*invite.Invite](r, http.MethodGet, discord.EndpointGuildInvites(guildID))
+	return NewData[[]*invite.Invite](r, http.MethodGet, discord.EndpointGuildInvites(guildID))
 }
 
 // Icon returns an image.Image of a guild.Guild icon.
@@ -101,7 +101,7 @@ func (r Requester) Splash(guildID string) Request[image.Image] {
 
 // Embed returns the guild.Embed for a guild.Guild.
 func (r Requester) Embed(guildID string) Request[*Embed] {
-	return NewSimpleData[*Embed](r, http.MethodGet, discord.EndpointGuildEmbed(guildID))
+	return NewData[*Embed](r, http.MethodGet, discord.EndpointGuildEmbed(guildID))
 }
 
 // EmbedEdit edits the guild.Embed of a guild.Guild.
@@ -136,5 +136,5 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 		uri += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*AuditLog](r, http.MethodGet, uri)
+	return NewData[*AuditLog](r, http.MethodGet, uri)
 }

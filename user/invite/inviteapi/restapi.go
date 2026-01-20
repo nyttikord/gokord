@@ -47,21 +47,21 @@ func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCou
 		endpoint += "?" + v.Encode()
 	}
 
-	return NewSimpleData[*Invite](
+	return NewData[*Invite](
 		r, http.MethodGet, endpoint,
 	).WithBucketID(discord.EndpointInvite(""))
 }
 
 // InviteDelete deletes an existing invite.Invite.
 func (r Requester) InviteDelete(inviteID string) Request[*Invite] {
-	return NewSimpleData[*Invite](
+	return NewData[*Invite](
 		r, http.MethodDelete, discord.EndpointInvite(inviteID),
 	).WithBucketID(discord.EndpointInvite(""))
 }
 
 // InviteAccept accepts an invite.Invite.
 func (r Requester) InviteAccept(inviteID string) Request[*Invite] {
-	return NewSimpleData[*Invite](
+	return NewData[*Invite](
 		r, http.MethodPut, discord.EndpointInvite(inviteID),
 	).WithBucketID(discord.EndpointInvite(""))
 }
@@ -90,7 +90,7 @@ func (r Requester) TargetUsers(inviteID string) Request[[]byte] {
 // The Discord's documentation does not yet provide complete information.
 // Check https://discord.com/developers/docs/resources/invite#get-target-users-job-status for more information.
 func (r Requester) TargetUsersJobStatus(inviteID string) Request[*TargetUsersJobStatus] {
-	return NewSimpleData[*TargetUsersJobStatus](
+	return NewData[*TargetUsersJobStatus](
 		r, http.MethodPut, discord.EndpointInviteTargetUsersJobStatus(inviteID),
 	).WithBucketID(discord.EndpointInvite(""))
 }

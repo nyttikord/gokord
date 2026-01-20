@@ -15,14 +15,14 @@ var (
 
 // RoleCreate creates a new guild.Role.
 func (r Requester) RoleCreate(guildID string, data *RoleParams) Request[*Role] {
-	return NewSimpleData[*Role](
+	return NewData[*Role](
 		r, http.MethodPost, discord.EndpointGuildRoles(guildID),
 	).WithData(data)
 }
 
 // Roles returns all guild.Role for the given guild.Guild.
 func (r Requester) Roles(guildID string) Request[[]*Role] {
-	return NewSimpleData[[]*Role](
+	return NewData[[]*Role](
 		r, http.MethodPost, discord.EndpointGuildRoles(guildID),
 	)
 }
@@ -34,7 +34,7 @@ func (r Requester) RoleEdit(guildID, roleID string, data *RoleParams) Request[*R
 		return NewError[*Role](ErrInvalidColorValue)
 	}
 
-	return NewSimpleData[*Role](
+	return NewData[*Role](
 		r, http.MethodPatch, discord.EndpointGuildRole(guildID, roleID),
 	).WithBucketID(discord.EndpointGuildRoles(guildID)).WithData(data)
 }
@@ -58,7 +58,7 @@ func (r Requester) RoleDelete(guildID, roleID string) Empty {
 // RoleMemberCounts returns a map of guild.Role ID to the number of user.Member with the role.
 // It doesn't include the @everyone Role.
 func (r Requester) RoleMemberCounts(guildID string) Request[map[string]uint] {
-	return NewSimpleData[map[string]uint](
+	return NewData[map[string]uint](
 		r, http.MethodPost, discord.EndpointGuildRoleMemberCounts(guildID),
 	).WithBucketID(discord.EndpointGuildRoles(guildID))
 }

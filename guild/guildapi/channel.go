@@ -11,7 +11,7 @@ import (
 
 // Channels returns the list of channel.Channel in the guild.Guild.
 func (r Requester) Channels(guildID string) Request[[]*channel.Channel] {
-	return NewSimpleData[[]*channel.Channel](
+	return NewData[[]*channel.Channel](
 		r, http.MethodGet, discord.EndpointGuildChannels(guildID),
 	)
 }
@@ -32,7 +32,7 @@ type ChannelCreateData struct {
 
 // ChannelCreateComplex creates a new channel.Channel in the given guild.Guild.
 func (r Requester) ChannelCreateComplex(guildID string, data ChannelCreateData) Request[*channel.Channel] {
-	return NewSimpleData[*channel.Channel](
+	return NewData[*channel.Channel](
 		r, http.MethodPost, discord.EndpointGuildChannels(guildID),
 	).WithData(data)
 }
@@ -63,14 +63,14 @@ func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel) 
 
 // ThreadsActive returns all active threads in the given guild.Guild.
 func (r Requester) ThreadsActive(guildID string) Request[*channel.ThreadsList] {
-	return NewSimpleData[*channel.ThreadsList](
+	return NewData[*channel.ThreadsList](
 		r, http.MethodGet, discord.EndpointGuildActiveThreads(guildID),
 	)
 }
 
 // Webhooks returns all channel.Webhook for a given guild.Guild.
 func (r Requester) Webhooks(guildID string) Request[[]*channel.Webhook] {
-	return NewSimpleData[[]*channel.Webhook](
+	return NewData[[]*channel.Webhook](
 		r, http.MethodGet, discord.EndpointGuildWebhooks(guildID),
 	)
 }

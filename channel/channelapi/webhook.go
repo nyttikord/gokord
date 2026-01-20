@@ -16,28 +16,28 @@ func (s Requester) WebhookCreate(channelID, name, avatar string) Request[*channe
 		Avatar string `json:"avatar,omitempty"`
 	}{name, avatar}
 
-	return NewSimpleData[*channel.Webhook](
+	return NewData[*channel.Webhook](
 		s, http.MethodPost, discord.EndpointChannelWebhooks(channelID),
 	).WithData(data)
 }
 
 // Webhooks returns all channel.Webhook for a given channel.Channel.
 func (s Requester) Webhooks(channelID string) Request[[]*channel.Webhook] {
-	return NewSimpleData[[]*channel.Webhook](
+	return NewData[[]*channel.Webhook](
 		s, http.MethodGet, discord.EndpointChannelWebhooks(channelID),
 	)
 }
 
 // Webhook returns the channel.Webhook.
 func (s Requester) Webhook(webhookID string) Request[*channel.Webhook] {
-	return NewSimpleData[*channel.Webhook](
+	return NewData[*channel.Webhook](
 		s, http.MethodGet, discord.EndpointWebhook(webhookID),
 	).WithBucketID(discord.EndpointWebhooks)
 }
 
 // WebhookWithToken returns a channel.Webhook for a given ID with the given token.
 func (s Requester) WebhookWithToken(webhookID, token string) Request[*channel.Webhook] {
-	return NewSimpleData[*channel.Webhook](
+	return NewData[*channel.Webhook](
 		s, http.MethodGet, discord.EndpointWebhookToken(webhookID, token),
 	).WithBucketID(discord.EndpointWebhooks)
 }
@@ -50,7 +50,7 @@ func (s Requester) WebhookEdit(webhookID, name, avatar, channelID string) Reques
 		ChannelID string `json:"channel_id,omitempty"`
 	}{name, avatar, channelID}
 
-	return NewSimpleData[*channel.Webhook](
+	return NewData[*channel.Webhook](
 		s, http.MethodPatch, discord.EndpointWebhook(webhookID),
 	).WithBucketID(discord.EndpointWebhooks).WithData(data)
 }
@@ -62,7 +62,7 @@ func (s Requester) WebhookEditWithToken(webhookID, token, name, avatar string) R
 		Avatar string `json:"avatar,omitempty"`
 	}{name, avatar}
 
-	return NewSimpleData[*channel.Webhook](
+	return NewData[*channel.Webhook](
 		s, http.MethodPatch, discord.EndpointWebhookToken(webhookID, token),
 	).WithBucketID(discord.EndpointWebhooks).WithData(data)
 }
@@ -103,7 +103,7 @@ func (s Requester) webhookExecute(method, uri, bucket string, wait bool, threadI
 	var err error
 	var response []byte
 	if len(data.Files) == 0 {
-		return NewSimpleData[*channel.Message](
+		return NewData[*channel.Message](
 			s, method, uri,
 		).WithBucketID(bucket).WithData(data)
 	}
@@ -155,7 +155,7 @@ func (s Requester) WebhookThreadExecute(webhookID, token string, wait bool, thre
 
 // WebhookMessage gets a channel.Webhook channel.Message.
 func (s Requester) WebhookMessage(webhookID, token, messageID string) Request[*channel.Message] {
-	return NewSimpleData[*channel.Message](
+	return NewData[*channel.Message](
 		s, http.MethodGet, discord.EndpointWebhookMessage(webhookID, token, messageID),
 	).WithBucketID(discord.EndpointWebhooks)
 }

@@ -19,28 +19,28 @@ var (
 
 // Guild returns the guild.Guild with the given guildID.
 func (r Requester) Guild(guildID string) Request[*Guild] {
-	return NewSimpleData[*Guild](
+	return NewData[*Guild](
 		r, http.MethodGet, discord.EndpointGuild(guildID),
 	)
 }
 
 // GuildWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
 func (r Requester) GuildWithCounts(guildID string) Request[*Guild] {
-	return NewSimpleData[*Guild](
+	return NewData[*Guild](
 		r, http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true",
 	)
 }
 
 // GuildPreview returns the Preview for the given public Guild guildID.
 func (r Requester) GuildPreview(guildID string) Request[*Preview] {
-	return NewSimpleData[*Preview](
+	return NewData[*Preview](
 		r, http.MethodGet, discord.EndpointGuildPreview(guildID),
 	)
 }
 
 // GuildEdit edits a guild.Guild with the given params.
 func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
-	return NewSimpleData[*Guild](r, http.MethodPatch, discord.EndpointGuild(guildID)).
+	return NewData[*Guild](r, http.MethodPatch, discord.EndpointGuild(guildID)).
 		WithData(params).
 		WithPre(func(ctx context.Context, do *Do) error {
 			if params.Region == "" {

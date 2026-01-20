@@ -10,28 +10,28 @@ import (
 
 // Emojis returns all emoji.Emoji.
 func (r Requester) Emojis(guildID string) Request[[]*emoji.Emoji] {
-	return NewSimpleData[[]*emoji.Emoji](
+	return NewData[[]*emoji.Emoji](
 		r, http.MethodGet, discord.EndpointGuildEmojis(guildID),
 	)
 }
 
 // Emoji returns the emoji.Emoji in the given guild.Guild.
 func (r Requester) Emoji(guildID, emojiID string) Request[*emoji.Emoji] {
-	return NewSimpleData[*emoji.Emoji](
+	return NewData[*emoji.Emoji](
 		r, http.MethodGet, discord.EndpointGuildEmoji(guildID, emojiID),
 	).WithBucketID(discord.EndpointGuildEmojis(guildID))
 }
 
 // EmojiCreate creates a new emoji.Emoji in the given guild.Guild.
 func (r Requester) EmojiCreate(guildID string, data *emoji.Params) Request[*emoji.Emoji] {
-	return NewSimpleData[*emoji.Emoji](
+	return NewData[*emoji.Emoji](
 		r, http.MethodPost, discord.EndpointGuildEmojis(guildID),
 	).WithData(data)
 }
 
 // EmojiEdit modifies and returns updated emoji.Emoji in the given guild.Guild.
 func (r Requester) EmojiEdit(guildID, emojiID string, data *emoji.Params) Request[*emoji.Emoji] {
-	return NewSimpleData[*emoji.Emoji](
+	return NewData[*emoji.Emoji](
 		r, http.MethodPatch, discord.EndpointGuildEmoji(guildID, emojiID),
 	).WithBucketID(discord.EndpointGuildEmojis(guildID)).WithData(data)
 }

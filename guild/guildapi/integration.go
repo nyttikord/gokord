@@ -10,7 +10,7 @@ import (
 
 // Integrations returns the list of user.Integration for a guild.Guild.
 func (r Requester) Integrations(guildID string) Request[[]*user.Integration] {
-	return NewSimpleData[[]*user.Integration](
+	return NewData[[]*user.Integration](
 		r, http.MethodGet, discord.EndpointGuildIntegrations(guildID),
 	)
 }
@@ -22,7 +22,7 @@ func (r Requester) IntegrationCreate(guildID, integrationType, integrationID str
 		ID   string `json:"id"`
 	}{integrationType, integrationID}
 
-	return NewSimpleData[*user.Integration](
+	return NewData[*user.Integration](
 		r, http.MethodPost, discord.EndpointGuildIntegrations(guildID),
 	).WithData(data)
 }
@@ -39,7 +39,7 @@ func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior
 		EnableEmoticons   bool `json:"enable_emoticons"`
 	}{expireBehavior, expireGracePeriod, enableEmoticons}
 
-	return NewSimpleData[*user.Integration](
+	return NewData[*user.Integration](
 		r, http.MethodPatch, discord.EndpointGuildIntegration(guildID, integrationID),
 	).WithBucketID(discord.EndpointGuildIntegrations(guildID)).WithData(data)
 }
