@@ -2,7 +2,6 @@
 package interactionapi
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/nyttikord/gokord/channel"
@@ -19,7 +18,7 @@ type Requester struct {
 }
 
 // Respond creates the response to an interaction.Interaction.
-func (r Requester) Respond(ctx context.Context, i *Interaction, resp *Response) request.Empty {
+func (r Requester) Respond(i *Interaction, resp *Response) request.Empty {
 	endpoint := discord.EndpointInteractionResponse(i.ID, i.Token)
 
 	if resp.Data == nil || len(resp.Data.Files) == 0 {

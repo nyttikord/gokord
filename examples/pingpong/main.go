@@ -21,7 +21,6 @@ var (
 )
 
 func init() {
-
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
@@ -63,11 +62,11 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	}
 	// If the message is "ping" reply with "Pong!"
 	if m.Content == "ping" {
-		s.ChannelAPI().MessageSend(ctx, m.ChannelID, "Pong!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Pong!").Do(ctx)
 	}
 
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
-		s.ChannelAPI().MessageSend(ctx, m.ChannelID, "Ping!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Ping!").Do(ctx)
 	}
 }

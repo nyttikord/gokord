@@ -150,7 +150,7 @@ func (r Requester) StageInstanceEdit(channelID string, data *StageInstanceParams
 }
 
 // StageInstanceDelete deletes a channel.Stage instance by ID of the types.ChannelGuildStageVoice.
-func (r Requester) StageInstanceDelete(ctx context.Context, channelID string) Empty {
+func (r Requester) StageInstanceDelete(channelID string) Empty {
 	req := NewSimple(r, http.MethodGet, discord.EndpointStageInstance(channelID))
 	return WrapAsEmpty(req)
 }

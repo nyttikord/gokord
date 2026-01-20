@@ -42,7 +42,7 @@ func init() {
 var (
 	componentsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
 		"fd_no": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Huh. I see, maybe some of these resources might help you?",
@@ -78,13 +78,13 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
 		"fd_yes": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Great! If you wanna know more or just have questions, feel free to visit Discord Devs and Discord Gophers server. " +
@@ -113,7 +113,7 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -140,16 +140,16 @@ var (
 					},
 				}
 			}
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, response)
+			err := s.InteractionAPI().Respond(i.Interaction, response).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.InteractionAPI().FollowupMessageCreate(ctx, i.Interaction, true, &channel.WebhookParams{
+			_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Anyways, now when you know how to use single select menus, let's see how multi select menus work. " +
 					"Try calling `/selects multi` command.",
 				Flags: channel.MessageFlagsEphemeral,
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -159,27 +159,27 @@ var (
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
 
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
 					Flags:   channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 			time.Sleep(time.Second) // Doing that so user won't see instant response.
-			_, err = s.InteractionAPI().FollowupMessageCreate(ctx, i.Interaction, true, &channel.WebhookParams{
+			_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "But wait, there is more! You can also auto populate the select menu. Try executing `/selects auto-populated`.",
 				Flags:   channel.MessageFlagsEphemeral,
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
 		"channel_select": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "This is it. You've reached your destination. Your choice was <#" + i.MessageComponentData().Values[0] + ">\n" +
@@ -217,7 +217,7 @@ var (
 
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -225,7 +225,7 @@ var (
 	}
 	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
 		"buttons": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, &interaction.Response{
+			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Are you comfortable with buttons and other message components?",
@@ -276,7 +276,7 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -423,7 +423,7 @@ var (
 					},
 				}
 			}
-			err := s.InteractionAPI().Respond(ctx, i.Interaction, response)
+			err := s.InteractionAPI().Respond(i.Interaction, response).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -448,15 +448,15 @@ func main() {
 			}
 		}
 	})
-	_, err := s.InteractionAPI().CommandCreate(context.Background(), *AppID, *GuildID, &interaction.Command{
+	_, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &interaction.Command{
 		Name:        "buttons",
 		Description: "Test the buttons if you got courage",
-	})
+	}).Do(context.Background())
 
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
 	}
-	_, err = s.InteractionAPI().CommandCreate(context.Background(), *AppID, *GuildID, &interaction.Command{
+	_, err = s.InteractionAPI().CommandCreate(*AppID, *GuildID, &interaction.Command{
 		Name: "selects",
 		Options: []*interaction.CommandOption{
 			{
@@ -476,7 +476,7 @@ func main() {
 			},
 		},
 		Description: "Lo and behold: dropdowns are coming",
-	})
+	}).Do(context.Background())
 
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
