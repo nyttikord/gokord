@@ -95,13 +95,17 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 
 	// Initialize Identify with defaults values.
 	// These can be modified prior to calling Open().
-	s.Identify.Compress = true
-	s.Identify.LargeThreshold = 250
-	s.Identify.Properties.OS = runtime.GOOS
-	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
-	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
-	s.Identify.Token = token
-	s.Identify.Shard = &[2]int{0, 1}
+	s.Identify = Identify{
+		Compress:       true,
+		LargeThreshold: 250,
+		Properties: IdentifyProperties{
+			OS:      runtime.GOOS,
+			Browser: "gokord v" + VERSION,
+		},
+		Intents: discord.IntentsAllWithoutPrivileged,
+		Token:   token,
+		Shard:   [2]int{0, 1},
+	}
 
 	return s
 }
