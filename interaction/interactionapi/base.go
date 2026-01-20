@@ -26,15 +26,8 @@ func (r Requester) Respond(ctx context.Context, i *Interaction, resp *Response) 
 		req := request.NewSimple(r, http.MethodPost, endpoint).WithData(resp)
 		return request.WrapAsEmpty(req)
 	}
-
-	contentType, body, err := channel.MultipartBodyWithJSON(resp, resp.Data.Files)
-	if err != nil {
-		return request.WrapErrorAsEmpty(err)
-	}
-
-	_, err = r.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
-	return err
-
+	req := request.NewMultipart[[]byte](r, http.MethodPost, endpoint, resp, resp.Data.Files)
+	return request.WrapMultipartAsEmpty(req)
 }
 
 // Response gets the response to an interaction.Interaction.

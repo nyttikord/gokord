@@ -59,8 +59,8 @@ type Session struct {
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
 
-	// REST contains the Session interacting with the REST API.
-	REST *RESTSession
+	// rest contains the Session interacting with the rest API.
+	rest *RESTSession
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
@@ -152,7 +152,7 @@ func (s *Session) OpenAndBlock(ctx context.Context) error {
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
 		s.logger.Debug("creating new user state")
-		s.userAPI = &userapi.Requester{REST: s.REST, State: userapi.NewState(s.sessionState, s.UserStorage)}
+		s.userAPI = &userapi.Requester{REST: s.rest, State: userapi.NewState(s.sessionState, s.UserStorage)}
 	}
 	return s.userAPI
 }
@@ -162,7 +162,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
 		s.logger.Debug("creating new guild state")
 		s.guildAPI = &guildapi.Requester{
-			REST:      s.REST,
+			REST:      s.rest,
 			Websocket: s,
 			State:     guildapi.NewState(s.sessionState, s.GuildStorage),
 		}
@@ -174,29 +174,29 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
 		s.logger.Debug("creating new channel state")
-		s.channelAPI = &channelapi.Requester{REST: s.REST, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
+		s.channelAPI = &channelapi.Requester{REST: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{REST: s.REST}
+	return &inviteapi.Requester{REST: s.rest}
 }
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{REST: s.REST, ChannelAPI: s.ChannelAPI}
+	return &interactionapi.Requester{REST: s.rest, ChannelAPI: s.ChannelAPI}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{REST: s.REST}
+	return &applicationapi.Requester{REST: s.rest}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{REST: s.REST, Websocket: s}
+	return &botapi.Requester{REST: s.rest, Websocket: s}
 }
 
 // EventManager returns the event.Manager used by the Session.

@@ -2,6 +2,7 @@ package channel
 
 import (
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
@@ -27,7 +28,7 @@ type WebhookParams struct {
 	Username        string                  `json:"username,omitempty"`
 	AvatarURL       string                  `json:"avatar_url,omitempty"`
 	TTS             bool                    `json:"tts,omitempty"`
-	Files           []*File                 `json:"-"`
+	Files           []*request.File         `json:"-"`
 	Components      []component.Message     `json:"components"`
 	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
 	Attachments     []*MessageAttachment    `json:"attachments,omitempty"`
@@ -46,7 +47,7 @@ type WebhookEdit struct {
 	Content         *string                 `json:"content,omitempty"`
 	Components      *[]component.Message    `json:"components,omitempty"`
 	Embeds          *[]*MessageEmbed        `json:"embeds,omitempty"`
-	Files           []*File                 `json:"-"`
+	Files           []*request.File         `json:"-"`
 	Attachments     *[]*MessageAttachment   `json:"attachments,omitempty"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Flags           MessageFlags            `json:"flags,omitempty"`

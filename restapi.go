@@ -11,7 +11,7 @@ import (
 
 // Gateway returns the websocket Gateway address.
 func (s *Session) Gateway() Request[string] {
-	return NewCustom[string](s.REST, http.MethodGet, discord.EndpointGateway).
+	return NewCustom[string](s.rest, http.MethodGet, discord.EndpointGateway).
 		WithPost(func(ctx context.Context, b []byte) (string, error) {
 			var data struct {
 				URL string `json:"url"`
@@ -34,7 +34,7 @@ func (s *Session) Gateway() Request[string] {
 
 // GatewayBot returns the websocket Gateway address and the recommended number of shards.
 func (s *Session) GatewayBot() Request[*GatewayBotResponse] {
-	return NewCustom[*GatewayBotResponse](s.REST, http.MethodGet, discord.EndpointGatewayBot).
+	return NewCustom[*GatewayBotResponse](s.rest, http.MethodGet, discord.EndpointGatewayBot).
 		WithPost(func(ctx context.Context, b []byte) (*GatewayBotResponse, error) {
 			var data GatewayBotResponse
 			err := unmarshal(b, &data)

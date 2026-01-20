@@ -75,11 +75,7 @@ func (r Requester) MessageSendComplex(channelID string, data *MessageSend) Reque
 	if len(files) == 0 {
 		return NewData[*Message](r, http.MethodPost, endpoint).WithData(data)
 	}
-	contentType, body, encodeErr := MultipartBodyWithJSON(data, files)
-	if encodeErr != nil {
-		return NewError[*Message](encodeErr)
-	}
-	response, err := r.RequestRaw(ctx, http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
+	return NewMultipart[*Message](r, http.MethodPost, endpoint, data, data.Files)
 }
 
 // MessageSendTTS sends a simple channel.Message to the given channel.Channel with Text to Speech.
@@ -157,20 +153,9 @@ func (r Requester) MessageEditComplex(m *MessageEdit) Request[*Message] {
 			r, http.MethodPatch, endpoint,
 		).WithBucketID(discord.EndpointChannelMessage(m.Channel, "")).WithData(m)
 	}
-	contentType, body, encodeErr := MultipartBodyWithJSON(m, m.Files)
-	if encodeErr != nil {
-		return NewError[*Message](encodeErr)
-	}
-	response, err = r.RequestRaw(
-		ctx,
-		http.MethodPatch,
-		endpoint,
-		contentType,
-		body,
-		discord.EndpointChannelMessage(m.Channel, ""),
-		0,
-		options...,
-	)
+	return NewMultipart[*Message](
+		r, http.MethodPatch, endpoint, m, m.Files,
+	).WithBucketID(discord.EndpointChannelMessage(m.Channel, ""))
 }
 
 // MessageEditEmbed edits an existing channel.Message, replacing it entirely with the given channel.MessageEmbed.

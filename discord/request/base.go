@@ -5,7 +5,6 @@
 //
 // Empty is a simple request returning nothing (only an error).
 // You wan wrap any Simple request as an EmptyRequest with WrapAsEmpty.
-// You can unwrap it with UnwrapEmpty.
 package request
 
 import (
@@ -35,32 +34,78 @@ type Request[T any] interface {
 	Config() Config
 }
 
-// Empty is a Request that only returns an error when it is executed.
-type Empty struct {
-	Simple
-	err error
+// Empty represents an HTTP request that only returns an error when it is executed.
+// It is immutable: when you call a method, it returns a new Request with this option.
+type Empty interface {
+	// Do executes the request.
+	Do(context.Context) error
+	// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
+	WithRetryOnRateLimit(bool) Empty
+	// WithRestRetries changes maximum amount of retries if request fails.
+	WithRestRetries(uint) Empty
+	// WithHeader sets a header in the request.
+	WithHeader(string, string) Empty
+	// WithAuditLogReason changes audit log reason associated with the request.
+	WithAuditLogReason(string) Empty
+	// WithLocale changes accepted locale of the request.
+	WithLocale(discord.Locale) Empty
+	// Config returns the Config used
+	Config() Config
 }
 
-func (r Empty) Do(ctx context.Context) error {
+type simpleEmpty struct {
+	simple Simple
+	err    error
+	cfg    Config
+}
+
+func (r simpleEmpty) Do(ctx context.Context) error {
 	if r.err != nil {
 		return r.err
 	}
-	_, err := r.Simple.Do(ctx)
+	_, err := r.simple.Do(ctx)
 	return err
 }
 
+func (r simpleEmpty) WithRetryOnRateLimit(b bool) Empty {
+	r.cfg.Header = r.cfg.Header.Clone()
+
+	r.cfg.ShouldRetryOnRateLimit = &b
+	return r
+}
+
+func (r simpleEmpty) WithRestRetries(m uint) Empty {
+	r.cfg.Header = r.cfg.Header.Clone()
+
+	r.cfg.MaxRestRetries = &m
+	return r
+}
+
+func (r simpleEmpty) WithHeader(key, value string) Empty {
+	r.cfg.Header = r.cfg.Header.Clone()
+
+	r.cfg.Header.Set(key, value)
+	return r
+}
+
+func (r simpleEmpty) WithAuditLogReason(reason string) Empty {
+	return r.WithHeader("X-Audit-Log-Reason", reason)
+}
+
+func (r simpleEmpty) WithLocale(locale discord.Locale) Empty {
+	return r.WithHeader("X-Discord-Locale", string(locale))
+}
+
+func (r simpleEmpty) Config() Config {
+	return r.cfg
+}
+
 func WrapAsEmpty(req Simple) Empty {
-	return Empty{req, nil}
+	return simpleEmpty{simple: req}
 }
 
 func WrapErrorAsEmpty(err error) Empty {
-	return Empty{Simple{}, err}
-}
-
-// UnwrapEmpty unwraps an Empty request.
-// The result may be inusable if Empty always returns an error!
-func UnwrapEmpty(req Empty) Simple {
-	return req.Simple
+	return simpleEmpty{err: err}
 }
 
 type Config struct {
