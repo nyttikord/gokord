@@ -14,8 +14,7 @@ import (
 
 func (s *Session) setupListen(ctx context.Context) {
 	if s.wsRead != nil {
-		s.logger.Info("listen already running")
-		return
+		panic("listen already running")
 	}
 	ctx2, cancel := context.WithCancel(ctx)
 	s.cancelWSRead = cancel
