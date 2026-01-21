@@ -19,9 +19,10 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// Deadline is the time allowed to respond to an Interaction.
 const (
-	Deadline         = 3 * time.Second
+	// Deadline is the time allowed to acknowledge an Interaction (like by sending a response or a deferred).
+	Deadline = 3 * time.Second
+	// DeadlineDeferred is the time allowed to use an Interaction token.
 	DeadlineDeferred = 15 * time.Minute
 )
 
