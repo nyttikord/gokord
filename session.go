@@ -20,6 +20,7 @@ import (
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
+	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
@@ -73,6 +74,8 @@ type Session struct {
 
 	// Event handlers
 	eventManager *event.Manager
+	// Interaction handlers
+	interactionManager *interactionhandler.Manager
 	// The websocket connection.
 	ws *websocket.Conn
 	// Wait for listen goroutines to stop
@@ -202,6 +205,11 @@ func (s *Session) BotAPI() *botapi.Requester {
 // EventManager returns the event.Manager used by the Session.
 func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
+}
+
+// InteractionManager returns the *interactionhandler.Manager used by the Session.
+func (s *Session) InteractionManager() *interactionhandler.Manager {
+	return s.interactionManager
 }
 
 // SessionState returns the state.Bot of the Session.

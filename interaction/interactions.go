@@ -20,7 +20,10 @@ import (
 )
 
 // Deadline is the time allowed to respond to an Interaction.
-const Deadline = time.Second * 3
+const (
+	Deadline         = 3 * time.Second
+	DeadlineDeferred = 15 * time.Minute
+)
 
 // Interaction represents data of an interaction.
 type Interaction struct {
