@@ -10,4 +10,5 @@ const (
 	ContextCommandHandlers          ContextKey = 2
 	ContextMessageComponentHandlers ContextKey = 3
 	ContextModalSubmitHandlers      ContextKey = 4
+	ContextInteractionResponse      ContextKey = 5
 )

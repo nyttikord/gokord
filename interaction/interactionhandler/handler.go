@@ -1,9 +1,17 @@
 // Package interactionhandler contains utilities helping handling interactions.
 // It provides a higher API than the traditional interaction and interactionapi packages.
+//
+// You can register custom interaction handlers via the Manager (available with gokord.Session InteractionManager()
+// method).
+// An handler is linked with one interaction type and its unique identifier (like its custom id or its name).
+// The context received is automatically cancelled after interaction.Deadline if nothing is sent.
+// When you send something, this time is delayed to interaction.DeadlineDeferred.
+// The context is always cancelled when your function returns.
 package interactionhandler
 
 import (
 	"context"
+	"time"
 
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
@@ -57,6 +65,20 @@ func Handle(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 	logger = logger.With("interaction_app", i.AppID)
 	logger = logger.With("interaction_guild", i.GuildID)
 	ctx = bot.SetLogger(ctx, logger)
+	// using a buffered channel to avoid goroutines lock
+	// this shouldn't happened because when context is cancelled, nothing must be sent through this channel
+	responsec := make(chan struct{}, 1)
+	ctx = context.WithValue(ctx, discord.ContextInteractionResponse, responsec)
+
+	go func() {
+		select {
+		case <-time.After(Deadline):
+			logger.Warn("context deadline reached")
+			cancel()
+		case <-ctx.Done():
+		case <-responsec:
+		}
+	}()
 
 	switch i.Type {
 	case types.InteractionApplicationCommand:
