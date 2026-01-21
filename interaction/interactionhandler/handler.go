@@ -20,40 +20,32 @@ import (
 	. "github.com/nyttikord/gokord/interaction"
 )
 
-// CommandHandler is for handling types.InteractionApplicationCommand.
-type CommandHandler func(context.Context, bot.Session, *Interaction, *CommandInteractionData)
-type commandHandlers map[string]CommandHandler
+// Handler is for handling any interaction.Interaction types.
+type Handler[T any] func(context.Context, bot.Session, T)
+type handlers[T any] map[string]Handler[T]
 
-func getCommandHandlers(ctx context.Context) commandHandlers {
+func getCommandHandlers(ctx context.Context) handlers[*ApplicationCommand] {
 	raw := ctx.Value(discord.ContextCommandHandlers)
 	if raw == nil {
 		return nil
 	}
-	return raw.(commandHandlers)
+	return raw.(handlers[*ApplicationCommand])
 }
 
-// MessageComponentHandler is for handling types.InteractionMessageComponent.
-type MessageComponentHandler func(context.Context, bot.Session, *Interaction, *MessageComponentData)
-type messageComponentHandlers map[string]MessageComponentHandler
-
-func getMessageComponentHandlers(ctx context.Context) messageComponentHandlers {
+func getMessageComponentHandlers(ctx context.Context) handlers[*MessageComponent] {
 	raw := ctx.Value(discord.ContextMessageComponentHandlers)
 	if raw == nil {
 		return nil
 	}
-	return raw.(messageComponentHandlers)
+	return raw.(handlers[*MessageComponent])
 }
 
-// MessageComponentHandler is for handling types.InteractionModalSubmit.
-type ModalSubmitHandler func(context.Context, bot.Session, *Interaction, *ModalSubmitData)
-type modalSubmitHandlers map[string]ModalSubmitHandler
-
-func getModalSubmitHandlers(ctx context.Context) modalSubmitHandlers {
+func getModalSubmitHandlers(ctx context.Context) handlers[*ModalSubmit] {
 	raw := ctx.Value(discord.ContextModalSubmitHandlers)
 	if raw == nil {
 		return nil
 	}
-	return raw.(modalSubmitHandlers)
+	return raw.(handlers[*ModalSubmit])
 }
 
 // Handle handles event.InteractionCreate and redirects them.
@@ -94,31 +86,31 @@ func Handle(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 }
 
 func handleCommand(ctx context.Context, s bot.Session, i *Interaction) {
-	data := i.CommandData()
+	cmd := i.Command()
 	handlers := getCommandHandlers(ctx)
-	h, ok := handlers[data.Name]
+	h, ok := handlers[cmd.Data.Name]
 	if !ok {
 		bot.Logger(ctx).Debug("command not found in handlers")
 	}
-	h(ctx, s, i, data)
+	h(ctx, s, cmd)
 }
 
 func handleMessageComponent(ctx context.Context, s bot.Session, i *Interaction) {
-	data := i.MessageComponentData()
+	msg := i.MessageComponent()
 	handlers := getMessageComponentHandlers(ctx)
-	h, ok := handlers[data.CustomID]
+	h, ok := handlers[msg.Data.CustomID]
 	if !ok {
 		bot.Logger(ctx).Debug("message component not found in handlers")
 	}
-	h(ctx, s, i, data)
+	h(ctx, s, msg)
 }
 
 func handleModalSubmit(ctx context.Context, s bot.Session, i *Interaction) {
-	data := i.ModalSubmitData()
+	modal := i.ModalSubmit()
 	handlers := getModalSubmitHandlers(ctx)
-	h, ok := handlers[data.CustomID]
+	h, ok := handlers[modal.Data.CustomID]
 	if !ok {
 		bot.Logger(ctx).Debug("modal submit not found in handlers")
 	}
-	h(ctx, s, i, data)
+	h(ctx, s, modal)
 }

@@ -4,27 +4,28 @@ import (
 	"context"
 
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/interaction"
 )
 
 // Manager manages CommandHandler, MessageComponentHandler, and ModalSubmitHandler.
 type Manager struct {
-	commandHandlers          commandHandlers
-	messageComponentHandlers messageComponentHandlers
-	modalSubmitHandlers      modalSubmitHandlers
+	commandHandlers          handlers[*ApplicationCommand]
+	messageComponentHandlers handlers[*MessageComponent]
+	modalSubmitHandlers      handlers[*ModalSubmit]
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		commandHandlers:          make(commandHandlers),
-		messageComponentHandlers: make(messageComponentHandlers),
-		modalSubmitHandlers:      make(modalSubmitHandlers),
+		commandHandlers:          make(handlers[*ApplicationCommand]),
+		messageComponentHandlers: make(handlers[*MessageComponent]),
+		modalSubmitHandlers:      make(handlers[*ModalSubmit]),
 	}
 }
 
 // HandleCommand with given name.
 // Returns a function that cancel the handle.
-func (m *Manager) HandleCommand(name string, h CommandHandler) func() {
-	m.commandHandlers[name] = h
+func (m *Manager) HandleCommand(name string, h Handler[*ApplicationCommand]) func() {
+	m.commandHandlers[name] = Handler[*ApplicationCommand](h)
 	return func() {
 		delete(m.commandHandlers, name)
 	}
@@ -32,7 +33,7 @@ func (m *Manager) HandleCommand(name string, h CommandHandler) func() {
 
 // HandleMessageComponent with given customID.
 // Returns a function that cancel the handle.
-func (m *Manager) HandleMessageComponent(customID string, h MessageComponentHandler) func() {
+func (m *Manager) HandleMessageComponent(customID string, h Handler[*MessageComponent]) func() {
 	m.messageComponentHandlers[customID] = h
 	return func() {
 		delete(m.messageComponentHandlers, customID)
@@ -41,7 +42,7 @@ func (m *Manager) HandleMessageComponent(customID string, h MessageComponentHand
 
 // HandleModalSubmit with given customID.
 // Returns a function that cancel the handle.
-func (m *Manager) HandleModalSubmit(customID string, h ModalSubmitHandler) func() {
+func (m *Manager) HandleModalSubmit(customID string, h Handler[*ModalSubmit]) func() {
 	m.modalSubmitHandlers[customID] = h
 	return func() {
 		delete(m.modalSubmitHandlers, customID)
