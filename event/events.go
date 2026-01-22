@@ -2,7 +2,6 @@ package event
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
@@ -351,20 +350,6 @@ type TypingStart struct {
 // UserUpdate is the data for a UserUpdate event.
 type UserUpdate struct {
 	*user.User
-}
-
-// VoiceChannelStartTimeUpdate is an attempt to support VOICE_CHANNEL_START_TIME_UPDATE which is undocumented.
-type VoiceChannelStartTimeUpdate struct {
-	VoiceStartTime time.Time `json:"voice_start_time"`
-	ChannelID      string    `json:"id"`
-	GuildID        string    `json:"guild_id"`
-}
-
-// VoiceChannelStatusUpdate is an attempt to support VOICE_CHANNEL_STATUS_UPDATE which is undocumented.
-type VoiceChannelStatusUpdate struct {
-	Status    any    `json:"status"`
-	ChannelID string `json:"id"`
-	GuildID   string `json:"guild_id"`
 }
 
 type VoiceServerUpdate struct {

@@ -20,7 +20,7 @@ import (
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
-const VERSION = "0.33.0"
+const VERSION = "0.33.1"
 
 // New creates a new Discord session with provided token.
 // If the token is for a bot, it must be prefixed with "Bot "
