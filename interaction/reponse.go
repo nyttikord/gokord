@@ -7,6 +7,10 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 )
 
+func NewDeferredResponse() *Response {
+	return &Response{Type: types.InteractionResponseDeferredChannelMessageWithSource}
+}
+
 // MessageResponse is a text response to an interaction.
 // It helps creating a Response or a channel.WebhookEdit.
 // See ModalResponse to create modal.
@@ -46,11 +50,6 @@ func (r *MessageResponse) IsEphemeral() *MessageResponse {
 
 func (r *MessageResponse) IsComponentsV2() *MessageResponse {
 	r.res.Data.Flags |= channel.MessageFlagsIsComponentsV2
-	return r
-}
-
-func (r *MessageResponse) IsDeferred() *MessageResponse {
-	r.res.Type = types.InteractionResponseDeferredChannelMessageWithSource
 	return r
 }
 
