@@ -90,25 +90,33 @@ func (s *Session) reconnect(ctx context.Context, forceClose bool) error {
 		res := <-s.wsRead
 		var err error
 		e, err = res.getEvent()
-		if err != nil {
-			return errors.Join(err, ErrHandlingMissedEvents)
-		}
-		switch e.Operation {
-		case discord.GatewayOpCodeHello:
-			err = s.handleHello(e)
-		case discord.GatewayOpCodeInvalidSession:
-			return ErrInvalidSession
-		default:
-			s.mu.Unlock() // required
-			var res *eventHandlingResult
-			res, err = s.onGatewayEvent(ctx, e)
-			s.mu.Lock()
-			if res != nil {
-				s.logger.Warn("requesting restart, ignoring", "event", e)
+		if err == nil {
+			switch e.Operation {
+			case discord.GatewayOpCodeHello:
+				err = s.handleHello(e)
+			case discord.GatewayOpCodeInvalidSession:
+				return ErrInvalidSession
+			default:
+				s.mu.Unlock() // required
+				var res *eventHandlingResult
+				res, err = s.onGatewayEvent(ctx, e)
+				s.mu.Lock()
+				if res != nil {
+					s.logger.Warn("requesting restart, ignoring", "event", e.Type)
+				}
 			}
 		}
 		if err != nil {
-			return errors.Join(err, ErrHandlingMissedEvents)
+			if e.Operation != discord.GatewayOpCodeDispatch {
+				s.logger.Error("handling missed events, exiting", "event_op", e.Operation, "event_content", e.RawData)
+				return errors.Join(err, ErrHandlingMissedEvents)
+			}
+			// we do not return errors related to missed dispatch events, because they are not critical in this state
+			s.logger.Error(
+				"handling missed events",
+				"error", err,
+				"event_type", e.Type, "event_content", e.RawData,
+			)
 		}
 	}
 	s.logger.Info("successfully reconnected to gateway")

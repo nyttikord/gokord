@@ -5,6 +5,7 @@ package logger
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -226,6 +227,9 @@ func (h *ConsoleHandler) appendAttr(buf []byte, a slog.Attr) []byte {
 		return fmt.Appendf(buf, "%s", escapeSpace(val.String()))
 	}
 	if val, ok := a.Value.Any().([]byte); ok {
+		return fmt.Appendf(buf, "%s", escapeSpace(string(val)))
+	}
+	if val, ok := a.Value.Any().(json.RawMessage); ok {
 		return fmt.Appendf(buf, "%s", escapeSpace(string(val)))
 	}
 	if val, ok := a.Value.Any().(error); ok {
