@@ -140,10 +140,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 		// TEMP
 		s.logger.Warn(
 			"unknown opcode",
-			"op", e.Operation,
-			"seq", e.Sequence,
-			"type", e.Type,
-			"raw", string(e.RawData),
+			"op", e.Operation, "seq", e.Sequence, "type", e.Type, "content", e.RawData,
 		)
 		return nil, nil
 	}
@@ -167,10 +164,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 	} else {
 		s.logger.Warn(
 			"unknown event",
-			"op", e.Operation,
-			"seq", e.Sequence,
-			"type", e.Type,
-			"raw", string(e.RawData),
+			"op", e.Operation, "seq", e.Sequence, "type", e.Type, "content", e.RawData,
 		)
 		typ = event.EventType
 		d = e
