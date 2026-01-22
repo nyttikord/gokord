@@ -7,21 +7,21 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 )
 
-// SimpleResponse is a text response to an interaction.
+// MessageResponse is a text response to an interaction.
 // It helps creating a Response or a channel.WebhookEdit.
 // See ModalResponse to create modal.
 // See NewSimpleResponse to create one.
-type SimpleResponse struct {
+type MessageResponse struct {
 	components []component.Message
 	res        Response
 }
 
-// NewSimpleResponse creates a new SimpleResponse.
-func NewSimpleResponse() *SimpleResponse {
-	return &SimpleResponse{res: Response{Data: new(ResponseData)}}
+// NewMessageResponse creates a new SimpleResponse.
+func NewMessageResponse() *MessageResponse {
+	return &MessageResponse{res: Response{Data: new(ResponseData)}}
 }
 
-func (r *SimpleResponse) Response() *Response {
+func (r *MessageResponse) Response() *Response {
 	r.res.Data.Components = make([]component.Component, len(r.components))
 	for i, v := range r.components {
 		r.res.Data.Components[i] = v
@@ -29,7 +29,7 @@ func (r *SimpleResponse) Response() *Response {
 	return &r.res
 }
 
-func (r *SimpleResponse) WebhookEdit() *channel.WebhookEdit {
+func (r *MessageResponse) WebhookEdit() *channel.WebhookEdit {
 	data := r.res.Data
 	var e channel.WebhookEdit
 	e.Content = &data.Content
@@ -39,37 +39,37 @@ func (r *SimpleResponse) WebhookEdit() *channel.WebhookEdit {
 	return &e
 }
 
-func (r *SimpleResponse) IsEphemeral() *SimpleResponse {
+func (r *MessageResponse) IsEphemeral() *MessageResponse {
 	r.res.Data.Flags |= channel.MessageFlagsEphemeral
 	return r
 }
 
-func (r *SimpleResponse) IsComponentsV2() *SimpleResponse {
+func (r *MessageResponse) IsComponentsV2() *MessageResponse {
 	r.res.Data.Flags |= channel.MessageFlagsIsComponentsV2
 	return r
 }
 
-func (r *SimpleResponse) IsDeferred() *SimpleResponse {
+func (r *MessageResponse) IsDeferred() *MessageResponse {
 	r.res.Type = types.InteractionResponseDeferredChannelMessageWithSource
 	return r
 }
 
-func (r *SimpleResponse) Message(s string) *SimpleResponse {
+func (r *MessageResponse) Message(s string) *MessageResponse {
 	r.res.Data.Content = s
 	return r
 }
 
-func (r *SimpleResponse) AddEmbed(e *channel.MessageEmbed) *SimpleResponse {
+func (r *MessageResponse) AddEmbed(e *channel.MessageEmbed) *MessageResponse {
 	r.res.Data.Embeds = append(r.res.Data.Embeds, e)
 	return r
 }
 
-func (r *SimpleResponse) AddComponent(c component.Message) *SimpleResponse {
+func (r *MessageResponse) AddComponent(c component.Message) *MessageResponse {
 	r.components = append(r.components, c)
 	return r
 }
 
-func (r *SimpleResponse) AddFile(f *request.File) *SimpleResponse {
+func (r *MessageResponse) AddFile(f *request.File) *MessageResponse {
 	r.res.Data.Files = append(r.res.Data.Files, f)
 	return r
 }

@@ -230,3 +230,8 @@ func (s *Session) LastHeartbeatSent() time.Time {
 	last := s.lastHeartbeatSent.Load()
 	return time.Unix(last/1000, (last%1000)*int64(time.Millisecond))
 }
+
+// Logger returns the logger used by the Session.
+func (s *Session) Logger() *slog.Logger {
+	return s.logger
+}
