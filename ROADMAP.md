@@ -25,7 +25,6 @@ This release can be used in production, yay :D
 Introduce contexts everywhere.
 
 New higher-level interaction package using contexts:
-- easier to declare
 - easier to handle
 - easier to respond (like the one in [`anhgelus/gokord`](https://github.com/anhgelus/gokord))
 - everything is managed via contexts to catch timeout errors and to provide a cleaner syntax
@@ -38,13 +37,11 @@ Use AVL as default state storage to reduce memory usage.
 
 ## `0.35.0`
 
-New higher-level slash commands package using contexts (like the one in 
-[`anhgelus/gokord`](https://github.com/anhgelus/gokord)):
-- easier to declare
-- easier to handle
-- automatic deploy
+New higher-level slash commands package using contexts to simplify their declaration.
+Same for components.
 
 Provides a new easier way to create a bot.
+*Note: is it really worth it?*
 
 ## `1.0.0`
 
