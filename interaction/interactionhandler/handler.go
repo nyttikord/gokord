@@ -91,6 +91,7 @@ func handleCommand(ctx context.Context, s bot.Session, i *Interaction) {
 	h, ok := handlers[cmd.Data.Name]
 	if !ok {
 		bot.Logger(ctx).Debug("command not found in handlers")
+		return
 	}
 	h(ctx, s, cmd)
 }
@@ -101,6 +102,7 @@ func handleMessageComponent(ctx context.Context, s bot.Session, i *Interaction) 
 	h, ok := handlers[msg.Data.CustomID]
 	if !ok {
 		bot.Logger(ctx).Debug("message component not found in handlers")
+		return
 	}
 	h(ctx, s, msg)
 }
@@ -111,6 +113,7 @@ func handleModalSubmit(ctx context.Context, s bot.Session, i *Interaction) {
 	h, ok := handlers[modal.Data.CustomID]
 	if !ok {
 		bot.Logger(ctx).Debug("modal submit not found in handlers")
+		return
 	}
 	h(ctx, s, modal)
 }
