@@ -110,7 +110,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 	}
 
 	// setup interactionhandler package
-	s.eventManager.AddHandler(interactionhandler.Handle)
+	s.eventManager.AddHandler(s.interactionManager.Handle)
 
 	return s
 }
