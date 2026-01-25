@@ -49,7 +49,8 @@ func getModalSubmitHandlers(ctx context.Context) handlers[*ModalSubmit] {
 }
 
 // Handle handles event.InteractionCreate and redirects them.
-func Handle(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+func (m *Manager) Handle(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+	ctx = m.setContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, DeadlineDeferred)
 	defer cancel()
 	logger := bot.Logger(ctx)
@@ -90,7 +91,7 @@ func handleCommand(ctx context.Context, s bot.Session, i *Interaction) {
 	handlers := getCommandHandlers(ctx)
 	h, ok := handlers[cmd.Data.Name]
 	if !ok {
-		bot.Logger(ctx).Debug("command not found in handlers")
+		bot.Logger(ctx).Debug("command not found in handlers", "name", cmd.Data.Name)
 		return
 	}
 	h(ctx, s, cmd)
@@ -101,7 +102,7 @@ func handleMessageComponent(ctx context.Context, s bot.Session, i *Interaction) 
 	handlers := getMessageComponentHandlers(ctx)
 	h, ok := handlers[msg.Data.CustomID]
 	if !ok {
-		bot.Logger(ctx).Debug("message component not found in handlers")
+		bot.Logger(ctx).Debug("message component not found in handlers", "custom_id", msg.Data.CustomID)
 		return
 	}
 	h(ctx, s, msg)
@@ -112,7 +113,7 @@ func handleModalSubmit(ctx context.Context, s bot.Session, i *Interaction) {
 	handlers := getModalSubmitHandlers(ctx)
 	h, ok := handlers[modal.Data.CustomID]
 	if !ok {
-		bot.Logger(ctx).Debug("modal submit not found in handlers")
+		bot.Logger(ctx).Debug("modal submit not found in handlers", "custom_id", modal.Data.CustomID)
 		return
 	}
 	h(ctx, s, modal)

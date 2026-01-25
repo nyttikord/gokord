@@ -25,7 +25,7 @@ func NewManager() *Manager {
 // HandleCommand with given name.
 // Returns a function that cancel the handle.
 func (m *Manager) HandleCommand(name string, h Handler[*ApplicationCommand]) func() {
-	m.commandHandlers[name] = Handler[*ApplicationCommand](h)
+	m.commandHandlers[name] = h
 	return func() {
 		delete(m.commandHandlers, name)
 	}
@@ -50,7 +50,7 @@ func (m *Manager) HandleModalSubmit(customID string, h Handler[*ModalSubmit]) fu
 }
 
 // Context returns the context associated with the manager.
-func (m *Manager) Context(ctx context.Context) context.Context {
+func (m *Manager) setContext(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, discord.ContextCommandHandlers, m.commandHandlers)
 	ctx = context.WithValue(ctx, discord.ContextMessageComponentHandlers, m.messageComponentHandlers)
 	ctx = context.WithValue(ctx, discord.ContextModalSubmitHandlers, m.modalSubmitHandlers)
