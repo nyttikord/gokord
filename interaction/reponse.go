@@ -30,6 +30,9 @@ func (r *MessageResponse) Response() *Response {
 	for i, v := range r.components {
 		r.res.Data.Components[i] = v
 	}
+	if r.res.Type == 0 {
+		r.res.Type = types.InteractionResponseChannelMessageWithSource
+	}
 	return &r.res
 }
 
