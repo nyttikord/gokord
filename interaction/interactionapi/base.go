@@ -46,11 +46,8 @@ func (r Requester) ResponseDelete(i *Interaction) request.Empty {
 }
 
 // FollowupMessageCreate creates the followup message for an interaction.Interaction.
-//
-// wait if the function waits for server confirmation of message send and ensures that the return struct is populated
-// (it is nil otherwise).
-func (r Requester) FollowupMessageCreate(i *Interaction, wait bool, data *channel.WebhookParams) request.Request[*channel.Message] {
-	return WrapRequestAsResponse(r.ChannelAPI().WebhookExecute(i.AppID, i.Token, wait, data))
+func (r Requester) FollowupMessageCreate(i *Interaction, data *channel.WebhookParams) request.Request[*channel.Message] {
+	return WrapRequestAsResponse(r.ChannelAPI().WebhookExecute(i.AppID, i.Token, true, data))
 }
 
 // FollowupMessageEdit edits a followup message of an interaction.Interaction.
