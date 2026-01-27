@@ -73,26 +73,24 @@ var (
 		},
 	}
 	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"rickroll-em": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"rickroll-em": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Operation rickroll has begun",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 
-			ch, err := s.UserAPI().ChannelCreate(
-				i.CommandData().TargetID,
-			)
+			ch, err := s.UserAPI().ChannelCreate(i.CommandData().TargetID).Do(ctx)
 			if err != nil {
 				_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
 					Flags:   channel.MessageFlagsEphemeral,
-				})
+				}).Do(ctx)
 				if err != nil {
 					panic(err)
 				}
@@ -100,12 +98,12 @@ var (
 			_, err = s.ChannelAPI().MessageSend(
 				ch.ID,
 				fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
-			)
+			).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"google-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"google-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -114,12 +112,12 @@ var (
 						"https://google.com/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"stackoverflow-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"stackoverflow-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -128,12 +126,12 @@ var (
 						"https://stackoverflow.com/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"godoc-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"godoc-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -142,12 +140,12 @@ var (
 						"https://pkg.go.dev/search?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"discordjs-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"discordjs-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -156,12 +154,12 @@ var (
 						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"discordpy-it": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"discordpy-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -170,7 +168,7 @@ var (
 						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -192,7 +190,7 @@ func main() {
 	cmdIDs := make(map[string]string, len(commands))
 
 	for _, cmd := range commands {
-		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd)
+		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd).Do(context.Background())
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -217,7 +215,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id)
+		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id).Do(context.Background())
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

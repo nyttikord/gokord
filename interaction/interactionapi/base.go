@@ -7,70 +7,58 @@ import (
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/interaction"
+	"github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/interaction"
 )
 
 // Requester handles everything inside the interaction package.
 type Requester struct {
-	discord.RESTRequester
+	request.REST
 	ChannelAPI func() *channelapi.Requester
 }
 
 // Respond creates the response to an interaction.Interaction.
-func (s Requester) Respond(interaction *interaction.Interaction, resp *interaction.Response, options ...discord.RequestOption) error {
-	endpoint := discord.EndpointInteractionResponse(interaction.ID, interaction.Token)
+func (r Requester) Respond(i *Interaction, resp *Response) request.Empty {
+	endpoint := discord.EndpointInteractionResponse(i.ID, i.Token)
 
-	if resp.Data != nil && len(resp.Data.Files) > 0 {
-		contentType, body, err := channel.MultipartBodyWithJSON(resp, resp.Data.Files)
-		if err != nil {
-			return err
-		}
-
-		_, err = s.RequestRaw(http.MethodPost, endpoint, contentType, body, endpoint, 0, options...)
-		return err
+	if resp.Data == nil || len(resp.Data.Files) == 0 {
+		req := request.NewSimple(r, http.MethodPost, endpoint).WithData(resp)
+		return request.WrapAsEmpty(req)
 	}
-
-	_, err := s.Request(http.MethodPost, endpoint, *resp, options...)
-	return err
+	req := request.NewMultipart[[]byte](r, http.MethodPost, endpoint, resp, resp.Data.Files)
+	return request.WrapMultipartAsEmpty(req)
 }
 
 // Response gets the response to an interaction.Interaction.
-func (s Requester) Response(interaction *interaction.Interaction, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.ChannelAPI().WebhookMessage(interaction.AppID, interaction.Token, "@original", options...)
+func (r Requester) Response(i *Interaction) request.Request[*channel.Message] {
+	return r.ChannelAPI().WebhookMessage(i.AppID, i.Token, "@original")
 }
 
 // ResponseEdit edits the response to an interaction.Interaction.
-func (s Requester) ResponseEdit(interaction *interaction.Interaction, newresp *channel.WebhookEdit, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.
-		ChannelAPI().
-		WebhookMessageEdit(interaction.AppID, interaction.Token, "@original", newresp, options...)
+func (r Requester) ResponseEdit(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
+	return r.ChannelAPI().WebhookMessageEdit(i.AppID, i.Token, "@original", newresp)
 }
 
 // ResponseDelete deletes the response to an interaction.Interaction.
-func (s Requester) ResponseDelete(interaction *interaction.Interaction, options ...discord.RequestOption) error {
-	_, err := s.Request(
-		http.MethodDelete,
-		discord.EndpointInteractionResponseActions(interaction.AppID, interaction.Token),
-		nil,
-		options...,
-	)
-	return err
+func (r Requester) ResponseDelete(i *Interaction) request.Empty {
+	req := request.NewSimple(r, http.MethodDelete, discord.EndpointInteractionResponseActions(i.AppID, i.Token))
+	return request.WrapAsEmpty(req)
 }
 
 // FollowupMessageCreate creates the followup message for an interaction.Interaction.
 //
 // wait if the function waits for server confirmation of message send and ensures that the return struct is populated
 // (it is nil otherwise).
-func (s Requester) FollowupMessageCreate(interaction *interaction.Interaction, wait bool, data *channel.WebhookParams, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.ChannelAPI().WebhookExecute(interaction.AppID, interaction.Token, wait, data, options...)
+func (r Requester) FollowupMessageCreate(i *Interaction, wait bool, data *channel.WebhookParams) request.Request[*channel.Message] {
+	return r.ChannelAPI().WebhookExecute(i.AppID, i.Token, wait, data)
 }
 
 // FollowupMessageEdit edits a followup message of an interaction.Interaction.
-func (s Requester) FollowupMessageEdit(interaction *interaction.Interaction, messageID string, data *channel.WebhookEdit, options ...discord.RequestOption) (*channel.Message, error) {
-	return s.ChannelAPI().WebhookMessageEdit(interaction.AppID, interaction.Token, messageID, data, options...)
+func (r Requester) FollowupMessageEdit(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
+	return r.ChannelAPI().WebhookMessageEdit(i.AppID, i.Token, messageID, data)
 }
 
 // FollowupMessageDelete deletes a followup message of an interaction.Interaction.
-func (s Requester) FollowupMessageDelete(interaction *interaction.Interaction, messageID string, options ...discord.RequestOption) error {
-	return s.ChannelAPI().WebhookMessageDelete(interaction.AppID, interaction.Token, messageID, options...)
+func (r Requester) FollowupMessageDelete(i *Interaction, messageID string) request.Empty {
+	return r.ChannelAPI().WebhookMessageDelete(i.AppID, i.Token, messageID)
 }

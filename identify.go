@@ -13,7 +13,7 @@ type Identify struct {
 	Properties     IdentifyProperties  `json:"properties"`
 	Compress       bool                `json:"compress"`
 	LargeThreshold int                 `json:"large_threshold"`
-	Shard          *[2]int             `json:"shard,omitempty"`
+	Shard          [2]int              `json:"shard,omitempty"`
 	Presence       GatewayStatusUpdate `json:"presence"`
 	Intents        discord.Intent      `json:"intents"`
 }

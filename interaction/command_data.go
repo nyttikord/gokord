@@ -1,30 +1,32 @@
 package interaction
 
 import (
+	"context"
+
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 )
 
-// ChannelGetter represents a type fetching channel.Channel.
-type ChannelGetter interface {
+// channelGetter represents a type fetching channel.Channel.
+type channelGetter interface {
 	// Channel returns the channel.Channel with the given ID.
-	Channel(string, ...discord.RequestOption) (*channel.Channel, error)
+	Channel(string) request.Request[*channel.Channel]
 }
 
-// RolesGetter represents a type fetching []*guild.Role.
-type RolesGetter interface {
+// rolesGetter represents a type fetching []*guild.Role.
+type rolesGetter interface {
 	// Roles returns the []*guild.Role in the given guild.Guild.
-	Roles(string, ...discord.RequestOption) ([]*guild.Role, error)
+	Roles(string) request.Request[[]*guild.Role]
 }
 
-// UserGetter represents a type fetching user.User.
-type UserGetter interface {
+// userGetter represents a type fetching user.User.
+type userGetter interface {
 	// User returns the user.User with the given ID.
-	User(string, ...discord.RequestOption) (*user.User, error)
+	User(string) request.Request[*user.User]
 }
 
 // CommandInteractionData contains the data of Command Interaction.
@@ -135,15 +137,11 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 // s is a ChannelGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // channel.Channel's data.
 // state is the ChannelAPI state.
-func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state state.Channel) *channel.Channel {
+func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state state.Channel) *channel.Channel {
 	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
 	chanID := o.Value.(string)
-
-	if s == nil {
-		return &channel.Channel{ID: chanID}
-	}
 
 	if state != nil {
 		ch, err := state.Channel(chanID)
@@ -151,7 +149,7 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state state.
 			return ch
 		}
 	}
-	ch, err := s.Channel(chanID)
+	ch, err := loadChannelGetter(ctx).Channel(chanID).Do(ctx)
 	if err != nil {
 		return &channel.Channel{ID: chanID}
 	}
@@ -164,13 +162,13 @@ func (o CommandInteractionDataOption) ChannelValue(s ChannelGetter, state state.
 // s is a RolesGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // guild.Role's data.
 // state is the GuildAPI state.
-func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state state.Guild) *guild.Role {
+func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string, state state.Guild) *guild.Role {
 	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}
 	roleID := o.Value.(string)
 
-	if s == nil || gID == "" {
+	if gID == "" {
 		return &guild.Role{ID: roleID}
 	}
 
@@ -178,7 +176,7 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 	if err == nil {
 		return r
 	}
-	roles, err := s.Roles(gID)
+	roles, err := loadRolesGetter(ctx).Roles(gID).Do(ctx)
 	if err == nil {
 		for _, r = range roles {
 			if r.ID == roleID {
@@ -192,20 +190,15 @@ func (o CommandInteractionDataOption) RoleValue(gID string, s RolesGetter, state
 // UserValue is a utility function for casting CommandOption value to user.User.
 //
 // s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.User's data.
-func (o CommandInteractionDataOption) UserValue(s UserGetter) *user.User {
+func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User {
 	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
 	userID := o.Value.(string)
 
-	if s == nil {
-		return &user.User{ID: userID}
-	}
-
-	u, err := s.User(userID)
+	u, err := loadUserGetter(ctx).User(userID).Do(ctx)
 	if err != nil {
 		return &user.User{ID: userID}
 	}
-
 	return u
 }

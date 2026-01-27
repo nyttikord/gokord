@@ -21,8 +21,8 @@ func TestSession(t *testing.T) {
 	if envBotToken == "" {
 		t.Skip("Skipping session test, DG_TOKEN not set")
 	}
-	dgBot.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
-		s.Logger().Info("bot ready")
+	dgBot.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
+		bot.Logger(ctx).Info("bot ready")
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()

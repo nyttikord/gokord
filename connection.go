@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -31,13 +32,15 @@ func (s *Session) Open(ctx context.Context) error {
 		return ErrWSAlreadyOpen
 	}
 
+	ctx = bot.CreateContext(ctx, s.logger, s)
+
 	// init new sequence
 	s.sequence = &atomic.Int64{}
 	s.sequence.Store(0)
 
 	var err error
 	if s.gateway == "" {
-		s.gateway, err = s.Gateway()
+		s.gateway, err = s.Gateway().Do(ctx)
 		if err != nil {
 			return err
 		}
@@ -54,6 +57,7 @@ func (s *Session) Open(ctx context.Context) error {
 	}
 
 	s.finishConnection(ctx)
+	s.logger.Info("connected to Discord")
 
 	return nil
 }
@@ -161,7 +165,6 @@ func (s *Session) connect(ctx context.Context) error {
 
 // TODO: rename this method
 func (s *Session) finishConnection(ctx context.Context) {
-	s.logger.Info("connected to Discord")
 	s.logger.Debug("emitting connect event")
 	s.eventManager.EmitEvent(ctx, s, event.ConnectType, &event.Connect{})
 
@@ -172,7 +175,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 	s.waitListen.Add(func(free func()) {
 		last, err := s.heartbeats(ctx2)
 		free()
-		s.Logger().Debug("heartbeats ended")
+		s.logger.Debug("heartbeats ended")
 		select {
 		case <-ctx2.Done():
 			return
@@ -183,7 +186,7 @@ func (s *Session) finishConnection(ctx context.Context) {
 		}
 	})
 	s.waitListen.Add(func(free func()) {
-		s.Logger().Debug("dispatching events started")
+		s.logger.Debug("dispatching events started")
 		var err error
 		var res *eventHandlingResult
 		for err == nil && res == nil {

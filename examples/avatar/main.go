@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"flag"
 	"fmt"
@@ -41,7 +42,6 @@ func main() {
 
 	// If we're using a URL link for the Avatar
 	if AvatarURL != "" {
-
 		resp, err := http.Get(AvatarURL)
 		if err != nil {
 			fmt.Println("Error retrieving the file, ", err)
@@ -76,7 +76,7 @@ func main() {
 	// Now lets format our base64 image into the proper format Discord wants
 	// and then call UserUpdate to set it as our user's Avatar.
 	avatar := fmt.Sprintf("data:%s;base64,%s", contentType, base64img)
-	_, err := dg.UserAPI().Update("", avatar, "")
+	_, err := dg.UserAPI().Update("", avatar, "").Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
 	}

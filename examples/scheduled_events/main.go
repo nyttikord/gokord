@@ -62,7 +62,7 @@ func createAmazingEvent(s bot.Session) *guild.ScheduledEvent {
 		EntityType:         types.ScheduledEventEntityVoice,
 		ChannelID:          *VoiceChannelID,
 		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Printf("Error creating scheduled event: %v", err)
 		return nil
@@ -79,7 +79,7 @@ func transformEventToExternalEvent(s bot.Session, event *guild.ScheduledEvent) {
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
 		},
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Printf("Error during transformation of scheduled voice event into external event: %v", err)
 		return
