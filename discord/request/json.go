@@ -21,7 +21,7 @@ func newDo(req REST, method, endpoint string) Do {
 	}
 }
 
-func (r Do) Do(ctx context.Context, cfg Config) ([]byte, error) {
+func (r Do) do(ctx context.Context, cfg Config) ([]byte, error) {
 	if len(r.Bucket) == 0 {
 		return r.req.Request(ctx, r.Method, r.Endpoint, r.Data, cfg)
 	}
@@ -51,7 +51,7 @@ func (r Simple) WithData(data any) Simple {
 }
 
 func (r Simple) Do(ctx context.Context) ([]byte, error) {
-	return r.do.Do(ctx, r.Config())
+	return r.do.do(ctx, r.Config())
 }
 
 type Data[T any] struct {
@@ -89,7 +89,7 @@ func (r Data[T]) Do(ctx context.Context) (T, error) {
 			return v, err
 		}
 	}
-	b, err := r.do.Do(ctx, r.Config())
+	b, err := r.do.do(ctx, r.Config())
 	if err != nil {
 		return v, err
 	}

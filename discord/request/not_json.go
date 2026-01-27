@@ -50,7 +50,7 @@ func (r Custom[T]) Do(ctx context.Context) (T, error) {
 			return v, err
 		}
 	}
-	b, err := r.do.Do(ctx, r.Config())
+	b, err := r.do.do(ctx, r.Config())
 	if err != nil {
 		return v, err
 	}
@@ -95,7 +95,7 @@ func (r Image) Do(ctx context.Context) (image.Image, error) {
 			return nil, err
 		}
 	}
-	b, err := r.do.Do(ctx, r.Config())
+	b, err := r.do.do(ctx, r.Config())
 	if err != nil {
 		return nil, err
 	}

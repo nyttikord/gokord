@@ -9,7 +9,6 @@ package request
 
 import (
 	"context"
-	"maps"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
@@ -125,27 +124,21 @@ func (r baseRequest[T]) Do(ctx context.Context) (T, error) {
 }
 
 func (r baseRequest[T]) WithRetryOnRateLimit(b bool) Request[T] {
-	dst := make(http.Header, len(r.Header))
-	maps.Copy(dst, r.Header)
-	r.Header = dst
+	r.Header = r.Header.Clone()
 
 	r.ShouldRetryOnRateLimit = &b
 	return r
 }
 
 func (r baseRequest[T]) WithRestRetries(m uint) Request[T] {
-	dst := make(http.Header, len(r.Header))
-	maps.Copy(dst, r.Header)
-	r.Header = dst
+	r.Header = r.Header.Clone()
 
 	r.MaxRestRetries = &m
 	return r
 }
 
 func (r baseRequest[T]) WithHeader(key, value string) Request[T] {
-	dst := make(http.Header, len(r.Header))
-	maps.Copy(dst, r.Header)
-	r.Header = dst
+	r.Header = r.Header.Clone()
 
 	r.Header.Set(key, value)
 	return r
