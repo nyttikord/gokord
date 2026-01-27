@@ -66,7 +66,7 @@ type Options struct {
 
 // New creates a new ConsoleHandler.
 func New(out io.Writer, opts *Options) *ConsoleHandler {
-	h := &ConsoleHandler{out: out, mu: &sync.Mutex{}, maxFileLineLength: new(int)}
+	h := &ConsoleHandler{out: out, mu: new(sync.Mutex), maxFileLineLength: new(int)}
 	if opts != nil {
 		h.opts = *opts
 	}
