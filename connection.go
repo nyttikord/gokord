@@ -86,7 +86,9 @@ type heartbeatOp struct {
 func (s *Session) handleHello(e *discord.Event) error {
 	s.logger.Debug("Op 10 (Hello) received")
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
-	var h helloOp
+	var h struct {
+		HeartbeatInterval time.Duration `json:"heartbeat_interval"`
+	}
 	if err := json.Unmarshal(e.RawData, &h); err != nil {
 		return errors.Join(err, fmt.Errorf("cannot unmarshal HelloOp"))
 	}
@@ -205,14 +207,10 @@ func (s *Session) finishConnection(ctx context.Context) {
 			}
 			return
 		}
-		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway)
+		s.logger.Warn("reading from websocket", "error", err, "gateway", s.gateway, "latency", s.HeartbeatLatency())
 		s.logger.Info("reconnecting")
 		s.forceReconnect(ctx, true)
 	})
-}
-
-type helloOp struct {
-	HeartbeatInterval time.Duration `json:"heartbeat_interval"`
 }
 
 // FailedHeartbeatAcks is the Number of heartbeat intervals to wait until forcing a connection restart.
