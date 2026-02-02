@@ -34,6 +34,30 @@ To make a draft PR, you can change the type of PR by clicking to a triangle next
 
 Once you're done, you can mark it as “Ready for review”, and we'll get right on it.
 
+# Use of AI
+
+The maintainers of gokord do not use LLMs.
+We are against this technology for many reasons, but we can't stop you from using these tools.
+
+**When you are interacting with us, do not use an LLM.**
+If you are, we will instantly close your issue/your PR.
+
+**If you have used an LLM to help you, you must inform us.**
+We will not reject your work for this reason.
+If you hide this, we will instantly close your issue/your PR.
+
+We will not accept poorly written code with useless comments.
+We will not accept code that does not follow our code style.
+We will not accept PR that does not follow our contributing guide.
+You have to modify the LLM's output.
+You have to test the code that you want to be merged.
+If you don't understand something created by an LLM, avoid creating a PR/an issue, thanks you.
+
+**Remember that gokord is made for humans and by humans.**
+If your contribution does not follow this vision, avoid contributing.
+Every PR is reviewed by at least one human, every issue is triaged by at least one human, every line of code was written
+for humans.
+
 # Code style
 
 To standardize and make things less messy we have a certain code style, that is persistent throughout the codebase.
