@@ -1,38 +1,28 @@
 # Getting started
 
-To start off you can check out existing Pull Requests and Issues to get a gasp of what problems we're currently solving and what features you can implement.
+Before opening a pull request (PR) or an issue, check the existing ones to avoid creating a duplicate.
 
-## Issues
-
-Our issues are mostly used for bugs, however we welcome refactoring and conceptual issues.
-
-Any other conversation would belong and would be moved into “Discussions”.
-
-## Discussions
-
-We use discussions for ideas, polls, announcements and help questions.
-
-Don't hesitate to ask, we always would try to help.
+If you find a bug or if you have a suggestion to improve the library, you may open an issue.
 
 ## Pull Requests
 
-If you want to help us by improving existing or adding new features, you create what's called a Pull Request (aka PR). It allows us to review your code, suggest changes and merge it.
+Fork the repo, create a branch, commits and then open a PR.
+We encourage you to open an issue first (if yours does not resolve one).
+When you are writing the description of your PR, don't forget to
+[link it](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
 
-Please, [test your code](#testing-your-code) before submitting a PR!
+Please, [test your code](#testing-your-code)!
 
-Here are some tips on how to make a good first PR:
-- When creating a PR, please consider a distinctive name and description for it, so the maintainers can understand what your PR changes / adds / removes.
-- It's always a good idea to link documentation when implementing a new feature / endpoint
-- If you're resolving an issue, don't forget to [link it](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) in the description.
-- Enable the checkbox to allow maintainers to edit your PR and make commits in the PR branch when necessary.
-- We may ask for changes, usually through suggestions or pull request comments. You can apply suggestions right in the UI. Any other change needs to be done manually.
-- Don't forget to mark PR comments resolved when you're done applying the changes.
-- Be patient and don't close and reopen your PR when no one responds, sometimes it might be held for a while. There might be a lot of reasons: release preparation, the feature is not significant, maintainers are busy, etc.
+When you have finished your PR, one of our maintainers will review your work.
+If everything is fine, it will be merged (yay :D).
+If your work is mostly good, the reviewer will ask you to fix issues.
+If your PR has conceptual issues, it will be closed and the reviewer will explain you why.
 
-When your changes are still incomplete (i.e. in Work In Progress state), you can still create a PR, but consider making it a draft. 
-To make a draft PR, you can change the type of PR by clicking to a triangle next to the “Create Pull Request” button.
+**Read our the rest of this document to avoid losing your (and our) times.**
 
-Once you're done, you can mark it as “Ready for review”, and we'll get right on it.
+We encourage you to watch
+[this conference at FOSDEM 2026](https://fosdem.org/2026/schedule/event/L7ERNP-prs-maintainers-will-love/) to understand
+how to write good PR.
 
 # Use of AI
 
@@ -58,9 +48,50 @@ If your contribution does not follow this vision, avoid contributing.
 Every PR is reviewed by at least one human, every issue is triaged by at least one human, every line of code was written
 for humans.
 
-# Code style
+# Style
 
-To standardize and make things less messy we have a certain code style, that is persistent throughout the codebase.
+To standardize and make things less messy, we have a certain code style that is persistent throughout the codebase.
+
+## Commits
+
+A commit is an atomic modification.
+It cannot be divided into smaller ones.
+It must update tests and it must work without additional commits.
+
+We follow this simple schema for their name:
+```
+kind(scope): description
+```
+`kind` is the kind of modification:
+- `feat` for an addition
+- `refactor` for a refactor
+- `fix` for fixing an issue
+- `style` for the code style
+- `docs` for the documentations
+- `build` for building tools
+- `ci` for CI/CD
+
+`scope` indicates the part touched of your modification.
+We commonly use `ws` for websocket, `guild` for `guild` and `guild/guildapi` packages...
+
+`description` is a *short* description of your modification.
+If you want to explain more things, include them in other lines (not the first one).
+
+If your history is messy, you must modify it and force push the updated version.
+In futur versions of git, you will be able to use the new `git-history(1)` to edit this easily.
+
+```
+fix(ws): not panicing if bad setup during connection
+```
+is fixing an issue related to websocket.
+Before this commit, the bot was not panicing if there is a bad setup during the connection.
+After this commit, this issue is fixed.
+
+```
+feat(logger): option to trim version in caller
+```
+is adding something to the logger.
+Now, the developer can use an option to trim versions.
 
 ## Organization
 
@@ -70,10 +101,9 @@ For example, `Role` is in the `guild` package because we must call `/guild/roles
 
 If the package has specific REST method, it has a subpackage called `endpointapi` (e.g., `guildapi` or `channelapi`)
 containing every these REST method.
-In this package, the `Requester` struct implements `discord.Requester` and it is used to send the requests to the Discord
-API.
+In this package, the `Requester` struct implements `discord.Requester` and it is used to send the requests to the
+Discord API.
 This `Requester` is obtainable with the method `gokord.Session.EndpointAPI()` (e.g., `GuildAPI()` or `ChannelAPI()`).
-
 ```go
 var s *gokord.Session // this is a valid gokord session
 var g *guild.Guild
@@ -108,13 +138,15 @@ Here's an example:
 When making a complex REST endpoint, sometimes you might need to implement a `Param` structure.
 This structure contains parameters for certain endpoint/set of endpoints.
 
-If an endpoint/set of endpoints have mostly same parameters, it's a good idea to use a single `Param` structure for them.
+If an endpoint/set of endpoints have mostly same parameters, it's a good idea to use a single `Param` structure for
+them.
 Here's an example: 
 > Endpoint: `GuildMemberEdit`
 >
 > `Param` structure: `GuildMemberParams` 
 
-If an endpoint/set of endpoints have differentiating parameters, `Param` structure can be named after the endpoint's verb.
+If an endpoint/set of endpoints have differentiating parameters, `Param` structure can be named after the endpoint's
+verb.
 Here's an example:
 > Endpoint: `ChannelMessageSendComplex`
 >
@@ -126,7 +158,8 @@ Here's an example:
 
 ### Events
 
-When naming an event, we follow gateway's internal naming (which often matches with the official event name in the docs).
+When naming an event, we follow gateway's internal naming (which often matches with the official event name in the
+docs).
 Here's an example:
 > Event name: Interaction Create (`INTERACTION_CREATE`)
 >
@@ -147,4 +180,3 @@ If everything looks fine, we encourage you to create a simple bot in another dir
 go work init . # init a new go.work file for this module
 go work use path/to/gokord # override the gokord in the go.mod by the one present in this folder
 ```
-
