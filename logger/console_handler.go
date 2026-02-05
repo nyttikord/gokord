@@ -140,9 +140,14 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 	sp := " "
 	if h.opts.Align {
-		for range maxLength - len(r.Level.String()) {
-			sp += " "
+		var sb strings.Builder
+		size := maxLength - len(r.Level.String())
+		sb.Grow(size)
+		for range size {
+			// always returns a nil error
+			sb.WriteString(" ")
 		}
+		sp = sb.String()
 	}
 	buf = fmt.Appendf(buf, "[%s%s%s]%s", color(r.Level), r.Level, AnsiReset, sp)
 	if r.PC != 0 {
