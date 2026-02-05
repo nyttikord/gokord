@@ -2,6 +2,7 @@ package channel
 
 import (
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 )
 
@@ -11,7 +12,7 @@ type MessageSend struct {
 	Embeds          []*MessageEmbed         `json:"embeds"`
 	TTS             bool                    `json:"tts"`
 	Components      []component.Message     `json:"components"`
-	Files           []*File                 `json:"-"`
+	Files           []*request.File         `json:"-"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Reference       *MessageReference       `json:"message_reference,omitempty"`
 	StickerIDs      []string                `json:"sticker_ids"`
@@ -28,7 +29,7 @@ type MessageEdit struct {
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Flags           MessageFlags            `json:"flags,omitempty"`
 	// Files to append to the message
-	Files []*File `json:"-"`
+	Files []*request.File `json:"-"`
 	// Overwrite existing attachments
 	Attachments *[]*MessageAttachment `json:"attachments,omitempty"`
 

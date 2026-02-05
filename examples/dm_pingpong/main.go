@@ -57,7 +57,7 @@ func main() {
 //
 // It is called whenever a message is created but only when it's sent through a
 // server as we did not request IntentsDirectMessages.
-func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
+func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.SessionState().User().ID {
@@ -69,7 +69,7 @@ func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
 	}
 
 	// We create the private channel with the user who sent the message.
-	channel, err := s.UserAPI().ChannelCreate(m.Author.ID)
+	channel, err := s.UserAPI().ChannelCreate(m.Author.ID).Do(ctx)
 	if err != nil {
 		// If an error occurred, we failed to create the channel.
 		//
@@ -82,11 +82,11 @@ func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
 		s.ChannelAPI().MessageSend(
 			m.ChannelID,
 			"Something went wrong while sending the DM!",
-		)
+		).Do(ctx)
 		return
 	}
 	// Then we send the message through the channel we created.
-	_, err = s.ChannelAPI().MessageSend(channel.ID, "Pong!")
+	_, err = s.ChannelAPI().MessageSend(channel.ID, "Pong!").Do(ctx)
 	if err != nil {
 		// If an error occurred, we failed to send the message.
 		//
@@ -98,6 +98,6 @@ func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
 			m.ChannelID,
 			"Failed to send you a DM. "+
 				"Did you disable DM in your privacy settings?",
-		)
+		).Do(ctx)
 	}
 }

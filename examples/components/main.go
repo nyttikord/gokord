@@ -41,7 +41,7 @@ func init() {
 
 var (
 	componentsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"fd_no": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"fd_no": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -78,12 +78,12 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"fd_yes": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"fd_yes": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -113,12 +113,12 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"select": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"select": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			var response *interaction.Response
 
 			data := i.MessageComponentData()
@@ -140,7 +140,7 @@ var (
 					},
 				}
 			}
-			err := s.InteractionAPI().Respond(i.Interaction, response)
+			err := s.InteractionAPI().Respond(i.Interaction, response).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -149,12 +149,12 @@ var (
 				Content: "Anyways, now when you know how to use single select menus, let's see how multi select menus work. " +
 					"Try calling `/selects multi` command.",
 				Flags: channel.MessageFlagsEphemeral,
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"stackoverflow_tags": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"stackoverflow_tags": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			data := i.MessageComponentData()
 
 			const stackoverflowFormat = `https://stackoverflow.com/questions/tagged/%s`
@@ -165,7 +165,7 @@ var (
 					Content: "Here is your stackoverflow URL: " + fmt.Sprintf(stackoverflowFormat, strings.Join(data.Values, "+")),
 					Flags:   channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -173,12 +173,12 @@ var (
 			_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "But wait, there is more! You can also auto populate the select menu. Try executing `/selects auto-populated`.",
 				Flags:   channel.MessageFlagsEphemeral,
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"channel_select": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"channel_select": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -217,14 +217,14 @@ var (
 
 					Flags: channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
 	}
 	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"buttons": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"buttons": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
@@ -276,12 +276,12 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"selects": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"selects": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			var response *interaction.Response
 			switch i.CommandData().Options[0].Name {
 			case "single":
@@ -423,7 +423,7 @@ var (
 					},
 				}
 			}
-			err := s.InteractionAPI().Respond(i.Interaction, response)
+			err := s.InteractionAPI().Respond(i.Interaction, response).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -451,7 +451,7 @@ func main() {
 	_, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &interaction.Command{
 		Name:        "buttons",
 		Description: "Test the buttons if you got courage",
-	})
+	}).Do(context.Background())
 
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
@@ -476,7 +476,7 @@ func main() {
 			},
 		},
 		Description: "Lo and behold: dropdowns are coming",
-	})
+	}).Do(context.Background())
 
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)

@@ -1,4 +1,4 @@
-package discord
+package request
 
 import (
 	"fmt"
@@ -83,7 +83,7 @@ func TestRatelimitGlobal(t *testing.T) {
 
 func BenchmarkRatelimitSingleEndpoint(b *testing.B) {
 	rl := NewRateLimiter()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		sendBenchReq("/guilds/99/channels", rl)
 	}
 }

@@ -40,8 +40,15 @@ func main() {
 	}
 	dg := gokord.NewWithLogLevel("Bot "+token, slog.LevelDebug)
 	dg.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
-		s.Logger().Info("bot ready")
+		bot.Logger(ctx).Info("bot ready")
 		s.BotAPI().UpdateGameStatus(ctx, 0, "testing!")
+		for _, g := range r.Guilds {
+			m, err := s.GuildAPI().Member(g.ID, r.User.ID).Do(ctx)
+			if err != nil {
+				panic(err)
+			}
+			bot.Logger(ctx).Info("Who am I?", "guild", g.ID, "nick", m.DisplayName())
+		}
 	})
 	err := dg.OpenAndBlock(ctx)
 	if err != nil && !errors.Is(err, ctx.Err()) {

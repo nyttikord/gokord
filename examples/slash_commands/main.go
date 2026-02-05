@@ -9,6 +9,7 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
@@ -39,7 +40,6 @@ func init() {
 
 var (
 	integerOptionMinValue          = 1.0
-	dmPermission                   = false
 	defaultMemberPermissions int64 = discord.PermissionManageGuild
 
 	commands = []*interaction.Command{
@@ -226,20 +226,20 @@ var (
 	}
 
 	commandHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"basic-command": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"basic-command": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command",
 				},
-			})
+			}).Do(ctx)
 		},
-		"basic-command-with-files": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"basic-command-with-files": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseChannelMessageWithSource,
 				Data: &interaction.ResponseData{
 					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
-					Files: []*channel.File{
+					Files: []*request.File{
 						{
 							ContentType: "text/plain",
 							Name:        "test.txt",
@@ -247,9 +247,9 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 		},
-		"localized-command": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"localized-command": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			responses := map[discord.Locale]string{
 				discord.LocaleChineseCN: "你好！ 这是一个本地化的命令",
 			}
@@ -262,12 +262,12 @@ var (
 				Data: &interaction.ResponseData{
 					Content: response,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
 		},
-		"options": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"options": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			// Access options in the order provided by the user.
 			options := i.CommandData().Options
 
@@ -279,7 +279,7 @@ var (
 
 			// This example stores the provided arguments in an []interface{}
 			// which will be used to format the bot's response
-			margs := make([]interface{}, 0, len(options))
+			margs := make([]any, 0, len(options))
 			msgformat := "You learned how to use command options! " +
 				"Take a look at the value(s) you entered:\n"
 
@@ -308,17 +308,17 @@ var (
 			}
 
 			if opt, ok := optionMap["channel-option"]; ok {
-				margs = append(margs, opt.ChannelValue(s.ChannelAPI(), s.ChannelAPI().State).ID)
+				margs = append(margs, opt.ChannelValue(ctx, s.ChannelAPI().State).ID)
 				msgformat += "> channel-option: <#%s>\n"
 			}
 
 			if opt, ok := optionMap["user-option"]; ok {
-				margs = append(margs, opt.UserValue(s.UserAPI()).ID)
+				margs = append(margs, opt.UserValue(ctx).ID)
 				msgformat += "> user-option: <@%s>\n"
 			}
 
 			if opt, ok := optionMap["role-option"]; ok {
-				margs = append(margs, opt.RoleValue("", s.GuildAPI(), s.GuildAPI().State).ID)
+				margs = append(margs, opt.RoleValue(ctx, "", s.GuildAPI().State).ID)
 				msgformat += "> role-option: <@&%s>\n"
 			}
 
@@ -331,10 +331,10 @@ var (
 						margs...,
 					),
 				},
-			})
+			}).Do(ctx)
 		},
-		"permission-overview": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
-			perms, err := s.InteractionAPI().CommandPermissions(s.SessionState().User().ID, i.GuildID, i.CommandData().ID)
+		"permission-overview": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+			perms, err := s.InteractionAPI().CommandPermissions(s.SessionState().User().ID, i.GuildID, i.CommandData().ID).Do(ctx)
 
 			var restError *gokord.RESTError
 			if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discord.ErrCodeUnknownApplicationCommandPermissions {
@@ -343,7 +343,7 @@ var (
 					Data: &interaction.ResponseData{
 						Content: ":x: No permission overwrites",
 					},
-				})
+				}).Do(ctx)
 				return
 			} else if err != nil {
 				panic(err)
@@ -409,9 +409,9 @@ var (
 					},
 					AllowedMentions: &channel.MessageAllowedMentions{},
 				},
-			})
+			}).Do(ctx)
 		},
-		"subcommands": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"subcommands": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			options := i.CommandData().Options
 			content := ""
 
@@ -436,9 +436,9 @@ var (
 				Data: &interaction.ResponseData{
 					Content: content,
 				},
-			})
+			}).Do(ctx)
 		},
-		"responses": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"responses": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			// Responses to a command are very important.
 			// First of all, because you need to react to the interaction
 			// by sending the response in 3 seconds after receiving, otherwise
@@ -458,11 +458,11 @@ var (
 			default:
 				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 					Type: types.InteractionResponse(i.CommandData().Options[0].IntValue()),
-				})
+				}).Do(ctx)
 				if err != nil {
 					s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
-					})
+					}).Do(ctx)
 				}
 				return
 			}
@@ -472,11 +472,11 @@ var (
 				Data: &interaction.ResponseData{
 					Content: content,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
-				})
+				}).Do(ctx)
 				return
 			}
 			time.AfterFunc(time.Second*5, func() {
@@ -485,18 +485,18 @@ var (
 					"message will be deleted."
 				_, err = s.InteractionAPI().ResponseEdit(i.Interaction, &channel.WebhookEdit{
 					Content: &content,
-				})
+				}).Do(ctx)
 				if err != nil {
 					s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 						Content: "Something went wrong",
-					})
+					}).Do(ctx)
 					return
 				}
 				time.Sleep(time.Second * 10)
-				s.InteractionAPI().ResponseDelete(i.Interaction)
+				s.InteractionAPI().ResponseDelete(i.Interaction).Do(ctx)
 			})
 		},
-		"followups": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"followups": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			// Followup messages are basically regular messages (you can create as many of them as you wish)
 			// but work as they are created by webhooks and their functionality
 			// is for handling additional messages after sending a response.
@@ -510,14 +510,14 @@ var (
 					Flags:   channel.MessageFlagsEphemeral,
 					Content: "Surprise!",
 				},
-			})
+			}).Do(ctx)
 			msg, err := s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "Followup message has been created, after 5 seconds it will be edited",
-			})
+			}).Do(ctx)
 			if err != nil {
 				s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 					Content: "Something went wrong",
-				})
+				}).Do(ctx)
 				return
 			}
 			time.Sleep(time.Second * 5)
@@ -525,17 +525,17 @@ var (
 			content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
 			s.InteractionAPI().FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
 				Content: &content,
-			})
+			}).Do(ctx)
 
 			time.Sleep(time.Second * 10)
 
-			s.InteractionAPI().FollowupMessageDelete(i.Interaction, msg.ID)
+			s.InteractionAPI().FollowupMessageDelete(i.Interaction, msg.ID).Do(ctx)
 
 			s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
 				Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 					"take a unicorn :unicorn: as reward!\n" +
 					"Also, as bonus... look at the original interaction response :D",
-			})
+			}).Do(ctx)
 		},
 	}
 )
@@ -560,7 +560,7 @@ func main() {
 	log.Println("Adding commands...")
 	registeredCommands := make([]*interaction.Command, len(commands))
 	for i, v := range commands {
-		cmd, err := s.InteractionAPI().CommandCreate(s.SessionState().User().ID, *GuildID, v)
+		cmd, err := s.InteractionAPI().CommandCreate(s.SessionState().User().ID, *GuildID, v).Do(context.Background())
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -586,7 +586,7 @@ func main() {
 		// }
 
 		for _, v := range registeredCommands {
-			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, v.ID)
+			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, v.ID).Do(context.Background())
 			if err != nil {
 				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 			}

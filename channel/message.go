@@ -1,7 +1,6 @@
 package channel
 
 import (
-	"io"
 	"regexp"
 	"strings"
 	"time"
@@ -180,13 +179,6 @@ const (
 	// MessageFlagsIsComponentsV2 this message uses the new components system. Disables the ability of sending `content` & `embeds`
 	MessageFlagsIsComponentsV2 MessageFlags = 1 << 15
 )
-
-// File stores info about files you e.g. send in messages.
-type File struct {
-	Name        string
-	ContentType string
-	Reader      io.Reader
-}
 
 // A MessageAttachment stores data for message attachments.
 type MessageAttachment struct {

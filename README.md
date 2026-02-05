@@ -16,9 +16,11 @@ to add the official Gokord test bot **dgo** to your server. This provides
 indispensable help to this project.
 -->
 
-gokord is a hard fork of [DiscordGo](https://github.com/bwmarrin/discordgo) because:
+gokord is based on [DiscordGo](https://github.com/bwmarrin/discordgo)
+We have decided to fork it, because:
 - maintainers are inactives;
-- [maintainers do not want to upgrade to newer versions to fix 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528).
+- [maintainers do not want to upgrade to newer versions to fix 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528);
+- we wanted to refactor how things are handled to create a modern library.
 
 Check the [ROADMAP](/ROADMAP.md) for more information.
 
@@ -73,6 +75,9 @@ key-value database like Valkey or Redis.
 
 You can use our powerful logger based on `log/slog`!
 
+Sadly, we have dropped the support of the voice package, because it is going to stop working soon.
+Feel free to open a PR if you want to help use here.
+
 #### What you will see
 
 We are currently simplifying how data is shared between goroutines using `context` package to build a more seamless
@@ -90,7 +95,8 @@ We have decided to split these to increase the readability and the ease of maint
 We also have:
 - changed the websocket API to use a well-maintained one;
 - refactored how data are handled internally to avoid data races and to be faster;
-- modified how the code is written to fit with what we think that are the best practices.
+- modified how the code is written to fit with what we think that are the best practices;
+- reduced the number of lines by refactoring heavily the code base.
 
 ## Migrating to gokord from DiscordGo
 
