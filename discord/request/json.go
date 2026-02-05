@@ -93,6 +93,6 @@ func (r Data[T]) Do(ctx context.Context) (T, error) {
 	if err != nil {
 		return v, err
 	}
-	r.do.req.Unmarshal(b, &v)
+	err = r.do.req.Unmarshal(b, &v)
 	return v, err
 }

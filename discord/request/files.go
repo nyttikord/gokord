@@ -97,13 +97,13 @@ func (r Multipart[T]) Do(ctx context.Context) (T, error) {
 //
 // data is the object to encode for payload_json in the multipart request.
 // files is the files to include in the request.
-func multipartBodyWithJSON(data any, files []*File) (requestContentType string, requestBody []byte, err error) {
+func multipartBodyWithJSON(data any, files []*File) (string, []byte, error) {
 	body := &bytes.Buffer{}
 	bodywriter := multipart.NewWriter(body)
 
 	payload, err := json.Marshal(data)
 	if err != nil {
-		return
+		return "", nil, err
 	}
 
 	var p io.Writer
@@ -114,11 +114,11 @@ func multipartBodyWithJSON(data any, files []*File) (requestContentType string, 
 
 	p, err = bodywriter.CreatePart(h)
 	if err != nil {
-		return
+		return "", nil, err
 	}
 
 	if _, err = p.Write(payload); err != nil {
-		return
+		return "", nil, err
 	}
 
 	for i, file := range files {
@@ -135,17 +135,17 @@ func multipartBodyWithJSON(data any, files []*File) (requestContentType string, 
 
 		p, err = bodywriter.CreatePart(h)
 		if err != nil {
-			return
+			return "", nil, err
 		}
 
 		if _, err = io.Copy(p, file.Reader); err != nil {
-			return
+			return "", nil, err
 		}
 	}
 
 	err = bodywriter.Close()
 	if err != nil {
-		return
+		return "", nil, err
 	}
 
 	return bodywriter.FormDataContentType(), body.Bytes(), nil
