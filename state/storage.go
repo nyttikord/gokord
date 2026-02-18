@@ -125,6 +125,7 @@ type avlStorageWrap[T any] struct {
 	data T
 }
 
+// NewAVLStorage creates a new AVLStorage.
 func NewAVLStorage[T any]() *AVLStorage[T] {
 	tree := avl.NewClone(func(a, b avlStorageWrap[T]) int {
 		return strings.Compare(string(a.key), string(b.key))

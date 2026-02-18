@@ -1,7 +1,7 @@
 github.com/coder/websocket v1.8.14 h1:9L0p0iKiNOibykf283eHkKUHHrpG7f65OE3BhhO7v9g=
 github.com/coder/websocket v1.8.14/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
-github.com/nyttikord/avl v0.1.1 h1:TG68JrsQOj5gmpCd2f7pVWEeXr9tRw4HvwwqG3eF8A4=
-github.com/nyttikord/avl v0.1.1/go.mod h1:sY7H/Il0EQYdaZ2iv/nt9Tde3P+0g6Mku7+92atYo1o=
+github.com/nyttikord/avl v0.1.2 h1:xXQ3fFhElK7T79Jq9/FVEr54Goec8jJvyBj2TnxLks4=
+github.com/nyttikord/avl v0.1.2/go.mod h1:sY7H/Il0EQYdaZ2iv/nt9Tde3P+0g6Mku7+92atYo1o=
 golang.org/x/crypto v0.47.0 h1:V6e3FRj+n4dbpw86FJ8Fv7XVOql7TEwpHapKoMJ/GO8=
 golang.org/x/crypto v0.47.0/go.mod h1:ff3Y9VzzKbwSSEzWqJsJVBnWmRwRSHt/6Op5n9bQc4A=
 golang.org/x/sys v0.40.0 h1:DBZZqJ2Rkml6QMQsZywtnjnnGvHza6BTfYFWY9kjEWQ=
