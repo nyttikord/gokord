@@ -30,7 +30,11 @@ New higher-level interaction package using contexts:
 - easier to respond (like the one in [`anhgelus/gokord`](https://github.com/anhgelus/gokord))
 - everything is managed via contexts to catch timeout errors and to provide a cleaner syntax
 
+Rewrite HTTP API to create dynamic requests and to leave OOP.
+
 Create a higher-level component creator to limit errors and to provide a cleaner syntax.
+
+Use AVL as default state storage to reduce memory usage.
 
 ## `0.35.0`
 
