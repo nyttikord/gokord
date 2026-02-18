@@ -14,7 +14,7 @@ import (
 type State struct {
 	state.State
 	mu              sync.RWMutex
-	storage         state.Storage
+	storage         state.Storage[channel.Channel]
 	privateChannels []*channel.Channel
 }
 
@@ -27,7 +27,7 @@ var (
 	ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
 )
 
-func NewState(state state.State, storage state.Storage) *State {
+func NewState(state state.State, storage state.Storage[channel.Channel]) *State {
 	return &State{
 		State:           state,
 		storage:         storage,
@@ -139,11 +139,10 @@ func (s *State) Channel(channelID string) (*channel.Channel, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	cRaw, err := s.storage.Get(state.KeyChannelRaw(channelID))
+	c, err := s.storage.Get(state.KeyChannelRaw(channelID))
 	if err != nil {
 		return nil, err
 	}
-	c := cRaw.(channel.Channel)
 	return &c, nil
 }
 

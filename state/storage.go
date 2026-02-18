@@ -3,7 +3,9 @@ package state
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
+	"github.com/nyttikord/avl"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user"
@@ -28,14 +30,14 @@ var (
 // When a data is saved in the Storage, it cannot be modified without calling Write.
 // The content of the Storage must be immutable.
 // Thus, do not store pointers!
-type Storage interface {
+type Storage[T any] interface {
 	// Get returns the data attached with the key in the Storage.
 	// It should never return a pointer to a struct.
 	//
 	// Returns nil if the data was not found and throw the error.
-	Get(key Key) (any, error)
+	Get(key Key) (T, error)
 	// Write the data in the Storage at the key location.
-	Write(key Key, data any) error
+	Write(key Key, data T) error
 	// Delete a value associated with the key.
 	//
 	// Does not return an error if the value was not present.
@@ -72,8 +74,10 @@ func KeyChannelRaw(channelID string) Key {
 	return KeyChannelPrefix + Key(channelID)
 }
 
-// MapStorage is the standard implementation of Storage used if no implementation is given.
+// MapStorage is a standard implementation of Storage used.
 // It uses a Go map to store data.
+//
+// See AVLStorage for the default implementation used.
 type MapStorage[T any] map[Key]T
 
 // deepCopy is an ugly code performing a deep copy.
@@ -89,7 +93,7 @@ func deepCopy[T any](t T) (T, error) {
 	return copied, err
 }
 
-func (m MapStorage[T]) Get(key Key) (any, error) {
+func (m MapStorage[T]) Get(key Key) (T, error) {
 	v, ok := m[key]
 	if !ok {
 		return v, ErrStateNotFound
@@ -97,17 +101,64 @@ func (m MapStorage[T]) Get(key Key) (any, error) {
 	return deepCopy(v)
 }
 
-func (m MapStorage[T]) Write(key Key, data any) error {
-	v, ok := data.(T)
-	if !ok {
-		return ErrInvalidDataType
-	}
+func (m MapStorage[T]) Write(key Key, data T) error {
 	var err error
-	m[key], err = deepCopy(v)
+	m[key], err = deepCopy(data)
 	return err
 }
 
 func (m MapStorage[T]) Delete(key Key) error {
 	delete(m, key)
+	return nil
+}
+
+// AVLStorage is a standard implementation of Storage used if no implementation is given.
+// It uses an AVL (self-balancing binary search tree) to store data.
+//
+// See MapStorage for another standard implementation of Storage.
+type AVLStorage[T any] struct {
+	tree *avl.AVL[avlStorageWrap[T]]
+}
+
+type avlStorageWrap[T any] struct {
+	key  Key
+	data T
+}
+
+func NewAVLStorage[T any]() *AVLStorage[T] {
+	tree := avl.NewClone(func(a, b avlStorageWrap[T]) int {
+		return strings.Compare(string(a.key), string(b.key))
+	}, func(v avlStorageWrap[T]) avlStorageWrap[T] {
+		c, err := deepCopy(v)
+		if err != nil {
+			panic(err)
+		}
+		return c
+	})
+	return &AVLStorage[T]{tree: tree}
+}
+
+func (a *AVLStorage[T]) Get(key Key) (v T, err error) {
+	tv := a.tree.Get(func(v avlStorageWrap[T]) int {
+		return strings.Compare(string(v.key), string(key))
+	})
+	if tv == nil {
+		err = ErrStateNotFound
+	} else {
+		v = (*tv).data
+	}
+	return
+}
+
+func (a *AVLStorage[T]) Write(key Key, data T) error {
+	a.tree.Insert(avlStorageWrap[T]{
+		key:  key,
+		data: data,
+	})
+	return nil
+}
+
+func (a *AVLStorage[T]) Delete(key Key) error {
+	a.tree.Delete(avlStorageWrap[T]{key: key})
 	return nil
 }

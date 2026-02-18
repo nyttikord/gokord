@@ -12,11 +12,11 @@ import (
 type State struct {
 	state.State
 	mu      sync.RWMutex
-	storage state.Storage
+	storage state.Storage[guild.Guild]
 	guilds  []string
 }
 
-func NewState(state state.State, storage state.Storage) *State {
+func NewState(state state.State, storage state.Storage[guild.Guild]) *State {
 	return &State{
 		State:   state,
 		storage: storage,
@@ -101,11 +101,10 @@ func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	gRaw, err := s.storage.Get(state.KeyGuildRaw(guildID))
+	g, err := s.storage.Get(state.KeyGuildRaw(guildID))
 	if err != nil {
 		return nil, err
 	}
-	g := gRaw.(guild.Guild)
 
 	return &g, nil
 }

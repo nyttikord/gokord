@@ -14,13 +14,13 @@ import (
 type State struct {
 	state.State
 	mu        sync.RWMutex
-	storage   state.Storage
+	storage   state.Storage[user.Member]
 	memberMap map[string]map[string]*user.Member
 }
 
 var ErrGuildNotCached = errors.New("member's guild not cached")
 
-func NewState(state state.State, storage state.Storage) *State {
+func NewState(state state.State, storage state.Storage[user.Member]) *State {
 	return &State{
 		State:     state,
 		storage:   storage,
@@ -92,11 +92,10 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	mRaw, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
+	m, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
 	if err != nil {
 		return nil, err
 	}
-	m := mRaw.(user.Member)
 	return &m, nil
 }
 
