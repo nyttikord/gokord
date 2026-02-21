@@ -14,13 +14,13 @@ import (
 type State struct {
 	state.State
 	mu        sync.RWMutex
-	storage   state.Storage
+	storage   state.Storage[user.Member]
 	memberMap map[string]map[string]*user.Member
 }
 
 var ErrGuildNotCached = errors.New("member's guild not cached")
 
-func NewState(state state.State, storage state.Storage) *State {
+func NewState(state state.State, storage state.Storage[user.Member]) *State {
 	return &State{
 		State:     state,
 		storage:   storage,
@@ -32,7 +32,7 @@ func NewState(state state.State, storage state.Storage) *State {
 func (s *State) MemberAdd(member *user.Member) error {
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -69,7 +69,7 @@ func (s *State) MemberRemove(member *user.Member) error {
 	}
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -92,11 +92,10 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	mRaw, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
+	m, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
 	if err != nil {
 		return nil, err
 	}
-	m := mRaw.(user.Member)
 	return &m, nil
 }
 
@@ -104,7 +103,7 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -177,7 +176,7 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // UserColor returns the color of a user.User in a channel.Channel.

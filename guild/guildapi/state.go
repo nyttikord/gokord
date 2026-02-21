@@ -12,11 +12,11 @@ import (
 type State struct {
 	state.State
 	mu      sync.RWMutex
-	storage state.Storage
+	storage state.Storage[guild.Guild]
 	guilds  []string
 }
 
-func NewState(state state.State, storage state.Storage) *State {
+func NewState(state state.State, storage state.Storage[guild.Guild]) *State {
 	return &State{
 		State:   state,
 		storage: storage,
@@ -101,11 +101,10 @@ func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	gRaw, err := s.storage.Get(state.KeyGuildRaw(guildID))
+	g, err := s.storage.Get(state.KeyGuildRaw(guildID))
 	if err != nil {
 		return nil, err
 	}
-	g := gRaw.(guild.Guild)
 
 	return &g, nil
 }
@@ -156,7 +155,7 @@ func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // Emoji returns an emoji.Emoji in the guild.Guild.
@@ -172,7 +171,7 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // EmojiAdd adds an emoji.Emoji to the current State.

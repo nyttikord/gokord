@@ -14,12 +14,15 @@ import (
 	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/bot/botapi"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
+	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -99,9 +102,9 @@ type Session struct {
 	guildAPI   *guildapi.Requester
 	voiceAPI   *voice.Requester
 
-	UserStorage    state.Storage // UserStorage is the state.Storage used for the UserAPI
-	ChannelStorage state.Storage // ChannelStorage is the state.Storage used for the ChannelAPI
-	GuildStorage   state.Storage // GuildStorage is the state.Storage used for the GuildAPI
+	UserStorage    state.Storage[user.Member]     // UserStorage is the state.Storage used for the UserAPI
+	ChannelStorage state.Storage[channel.Channel] // ChannelStorage is the state.Storage used for the ChannelAPI
+	GuildStorage   state.Storage[guild.Guild]     // GuildStorage is the state.Storage used for the GuildAPI
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
