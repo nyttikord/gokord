@@ -1,8 +1,11 @@
 package gokord
 
 import (
+	"errors"
+
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/event"
+	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 )
@@ -72,32 +75,38 @@ func NewState(s *Session) state.State {
 	}
 }
 
-func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) error {
-	g, err := s.GuildState().Guild(update.GuildID)
+func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) (err error) {
+	var g *guild.Guild
+	g, err = s.GuildState().Guild(update.GuildID)
 	if err != nil {
-		return err
+		return
 	}
+
+	defer func() {
+		if err == nil {
+			err = s.GuildState().GuildAdd(g)
+		}
+	}()
 
 	// Handle Leaving Application
 	if update.ChannelID == "" {
 		for i, st := range g.VoiceStates {
 			if st.UserID == update.UserID {
 				g.VoiceStates = append(g.VoiceStates[:i], g.VoiceStates[i+1:]...)
-				return nil
+				return
 			}
 		}
 	} else {
 		for i, st := range g.VoiceStates {
 			if st.UserID == update.UserID {
 				g.VoiceStates[i] = update.VoiceState
-				return nil
+				return
 			}
 		}
 
 		g.VoiceStates = append(g.VoiceStates, update.VoiceState)
 	}
-
-	return s.GuildState().GuildAdd(g)
+	return
 }
 
 // VoiceState gets a VoiceState by guild and user ID.
@@ -146,7 +155,7 @@ func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 }
 
 // onInterface handles all events related to State.
-func (s *sessionState) onInterface(se *Session, i interface{}) error {
+func (s *sessionState) onInterface(se *Session, i any) error {
 	r, ok := i.(*event.Ready)
 	if ok {
 		return s.onReady(se, r)
@@ -362,8 +371,9 @@ func (s *sessionState) onInterface(se *Session, i interface{}) error {
 		if s.params.TrackVoice {
 			old, err := s.VoiceState(t.GuildID, t.UserID)
 			if err == nil {
-				oldCopy := *old
-				t.BeforeUpdate = &oldCopy
+				t.BeforeUpdate = old
+			} else if !errors.Is(err, state.ErrNotFound) {
+				s.session.logger.Error("fetching before state", "error", err)
 			}
 			return s.voiceStateUpdate(t)
 		}
