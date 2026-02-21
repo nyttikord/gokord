@@ -155,7 +155,7 @@ func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // Emoji returns an emoji.Emoji in the guild.Guild.
@@ -171,7 +171,7 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // EmojiAdd adds an emoji.Emoji to the current State.

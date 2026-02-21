@@ -96,7 +96,7 @@ func deepCopy[T any](t T) (T, error) {
 func (m MapStorage[T]) Get(key Key) (T, error) {
 	v, ok := m[key]
 	if !ok {
-		return v, ErrStateNotFound
+		return v, ErrNotFound
 	}
 	return deepCopy(v)
 }
@@ -117,49 +117,39 @@ func (m MapStorage[T]) Delete(key Key) error {
 //
 // See MapStorage for another standard implementation of Storage.
 type AVLStorage[T any] struct {
-	tree *avl.AVL[avlStorageWrap[T]]
-}
-
-type avlStorageWrap[T any] struct {
-	key  Key
-	data T
+	tree *avl.KeyAVL[Key, T]
 }
 
 // NewAVLStorage creates a new AVLStorage.
 func NewAVLStorage[T any]() *AVLStorage[T] {
-	tree := avl.NewClone(func(a, b avlStorageWrap[T]) int {
-		return strings.Compare(string(a.key), string(b.key))
-	}, func(v avlStorageWrap[T]) avlStorageWrap[T] {
-		c, err := deepCopy(v)
+	tree := avl.NewKeyImmutable(func(k1, k2 Key) int {
+		return strings.Compare(string(k1), string(k2))
+	}, func(v T) T {
+		cp, err := deepCopy(v)
 		if err != nil {
 			panic(err)
 		}
-		return c
+		return cp
 	})
 	return &AVLStorage[T]{tree: tree}
 }
 
 func (a *AVLStorage[T]) Get(key Key) (v T, err error) {
-	tv := a.tree.Get(func(v avlStorageWrap[T]) int {
-		return strings.Compare(string(v.key), string(key))
-	})
+	tv := a.tree.Get(key)
 	if tv == nil {
-		err = ErrStateNotFound
+		err = ErrNotFound
 	} else {
-		v = (*tv).data
+		v = *tv
 	}
 	return
 }
 
 func (a *AVLStorage[T]) Write(key Key, data T) error {
-	a.tree.Insert(avlStorageWrap[T]{
-		key:  key,
-		data: data,
-	})
+	a.tree.Insert(key, data)
 	return nil
 }
 
 func (a *AVLStorage[T]) Delete(key Key) error {
-	a.tree.Delete(avlStorageWrap[T]{key: key})
+	a.tree.Delete(key)
 	return nil
 }

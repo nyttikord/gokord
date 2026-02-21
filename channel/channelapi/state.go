@@ -47,7 +47,7 @@ func (s *State) ChannelAdd(chann *channel.Channel) error {
 	g, err := s.GuildState().Guild(chann.GuildID)
 
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -111,7 +111,7 @@ func (s *State) ChannelRemove(chann *channel.Channel) error {
 
 	g, err := s.GuildState().Guild(chann.GuildID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -157,7 +157,7 @@ func (s *State) PrivateChannels() []*channel.Channel {
 func (s *State) MessageAdd(message *channel.Message) error {
 	c, err := s.Channel(message.ChannelID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
 		}
 		return err
@@ -210,7 +210,7 @@ func (s *State) MessageRemove(message *channel.Message) error {
 func (s *State) MessageRemoveByID(channelID, messageID string) error {
 	c, err := s.Channel(channelID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
 		}
 		return err
@@ -225,7 +225,7 @@ func (s *State) MessageRemoveByID(channelID, messageID string) error {
 func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 	c, err := s.Channel(channelID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return nil, errors.Join(err, ErrChannelNotCached)
 		}
 		return nil, err
@@ -237,7 +237,7 @@ func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // ThreadListSync syncs guild threads with provided ones.
@@ -245,7 +245,7 @@ func (s *State) Message(channelID, messageID string) (*channel.Message, error) {
 func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*channel.Channel, members []*channel.ThreadMember) error {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrGuildNotCached)
 		}
 		return err
@@ -308,7 +308,7 @@ func (s *State) ThreadListSync(guildID string, channelIDs []string, threads []*c
 func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
 	thread, err := s.Channel(id)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
 		}
 		return err
@@ -342,7 +342,7 @@ func (s *State) ThreadMembersUpdate(id string, guildID string, count int, addedM
 func (s *State) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 	thread, err := s.Channel(tm.ID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
 		}
 		return err
@@ -356,7 +356,7 @@ func (s *State) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 func (s *State) UserChannelPermissions(userID, channelID string) (int64, error) {
 	c, err := s.Channel(channelID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return 0, errors.Join(err, ErrChannelNotCached)
 		}
 		return 0, err
@@ -370,7 +370,7 @@ func (s *State) UserChannelPermissions(userID, channelID string) (int64, error) 
 
 	member, err := s.MemberState().Member(g.ID, userID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return 0, errors.Join(err, ErrMemberNotCached)
 		}
 		return 0, err
@@ -388,7 +388,7 @@ func (s *State) MessagePermissions(message *channel.Message) (int64, error) {
 
 	c, err := s.Channel(message.ChannelID)
 	if err != nil {
-		if errors.Is(err, state.ErrStateNotFound) {
+		if errors.Is(err, state.ErrNotFound) {
 			return 0, errors.Join(err, ErrChannelNotCached)
 		}
 		return 0, err

@@ -4,8 +4,8 @@ import (
 	"errors"
 )
 
-// ErrStateNotFound is returned when the state cache requested is not found
-var ErrStateNotFound = errors.New("state cache not found")
+// ErrNotFound is returned when the state cache requested is not found
+var ErrNotFound = errors.New("request not found in cache")
 
 // State represents the cache to prevent using too much requests.
 type State interface {

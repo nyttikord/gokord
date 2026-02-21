@@ -113,7 +113,7 @@ func (s *sessionState) VoiceState(guildID, userID string) (*user.VoiceState, err
 		}
 	}
 
-	return nil, state.ErrStateNotFound
+	return nil, state.ErrNotFound
 }
 
 // OnReady takes a Ready event and updates all internal state.
