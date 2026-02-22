@@ -169,7 +169,9 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 		typ = event.EventType
 		d = e
 	}
-	ctx = bot.SetLogger(ctx, bot.Logger(ctx).With("event", e.Type))
+	if e.Type != event.InteractionCreateType {
+		ctx = bot.SetLogger(ctx, bot.Logger(ctx).With("event", e.Type))
+	}
 	s.eventManager.EmitEvent(ctx, s, typ, d)
 	return nil, nil
 }

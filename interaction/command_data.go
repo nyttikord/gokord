@@ -202,3 +202,14 @@ func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User 
 	}
 	return u
 }
+
+type CommandOptionMap map[string]*CommandInteractionDataOption
+
+func (d *ApplicationCommand) OptionMap() CommandOptionMap {
+	options := d.Data.Options
+	optionMap := make(CommandOptionMap, len(options))
+	for _, opt := range options {
+		optionMap[opt.Name] = opt
+	}
+	return optionMap
+}

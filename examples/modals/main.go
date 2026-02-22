@@ -46,83 +46,82 @@ var (
 			Description: "Take a survey about modals",
 		},
 	}
-	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"modals-survey": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseModal,
-				Data: &interaction.ResponseData{
-					CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
-					Title:    "Modals survey",
-					Components: []component.Component{
-						&component.Label{
-							Label: "What is your opinion on them?",
-							Component: &component.TextInput{
-								CustomID:    "opinion",
-								Style:       component.TextInputShort,
-								Placeholder: "Don't be shy, share your opinion with us",
-								Required:    true,
-								MaxLength:   300,
-								MinLength:   10,
-							},
-						},
-						&component.Label{
-							Label: "What would you suggest to improve them?",
-							Component: &component.TextInput{
-								CustomID: "suggestions",
+)
 
-								Style:     component.TextInputParagraph,
-								Required:  false,
-								MaxLength: 2000,
-							},
-						},
+func handleModalsSurvey(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseModal,
+		Data: &interaction.ResponseData{
+			CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
+			Title:    "Modals survey",
+			Components: []component.Component{
+				&component.Label{
+					Label: "What is your opinion on them?",
+					Component: &component.TextInput{
+						CustomID:    "opinion",
+						Style:       component.TextInputShort,
+						Placeholder: "Don't be shy, share your opinion with us",
+						Required:    true,
+						MaxLength:   300,
+						MinLength:   10,
 					},
 				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
+				&component.Label{
+					Label: "What would you suggest to improve them?",
+					Component: &component.TextInput{
+						CustomID: "suggestions",
+
+						Style:     component.TextInputParagraph,
+						Required:  false,
+						MaxLength: 2000,
+					},
+				},
+			},
 		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
 	}
-)
+}
 
 func main() {
 	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		log.Println("Bot is up!")
 	})
 
+	s.InteractionManager().HandleCommand("modals-survey", handleModalsSurvey)
+	// cannot use this one because the ID is dynamic
+	//s.InteractionManager().HandleModalSubmit()
+
 	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-		switch i.Type {
-		case types.InteractionApplicationCommand:
-			if h, ok := commandsHandlers[i.CommandData().Name]; ok {
-				h(ctx, s, i)
-			}
-		case types.InteractionModalSubmit:
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: "Thank you for taking your time to fill this survey",
-					Flags:   channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-			data := i.ModalSubmitData()
+		if i.Type != types.InteractionModalSubmit {
+			return
+		}
+		err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+			Type: types.InteractionResponseChannelMessageWithSource,
+			Data: &interaction.ResponseData{
+				Content: "Thank you for taking your time to fill this survey",
+				Flags:   channel.MessageFlagsEphemeral,
+			},
+		}).Do(ctx)
+		if err != nil {
+			panic(err)
+		}
+		data := i.ModalSubmit().Data
 
-			if !strings.HasPrefix(data.CustomID, "modals_survey") {
-				return
-			}
+		if !strings.HasPrefix(data.CustomID, "modals_survey") {
+			return
+		}
 
-			userid := strings.Split(data.CustomID, "_")[2]
-			_, err = s.ChannelAPI().MessageSend(*ResultsChannel, fmt.Sprintf(
-				"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
-				userid,
-				data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
-				data.Components[1].(*component.Label).Component.(*component.TextInput).Value,
-			)).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
+		userid := strings.Split(data.CustomID, "_")[2]
+		_, err = s.ChannelAPI().MessageSend(*ResultsChannel, fmt.Sprintf(
+			"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
+			userid,
+			data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
+			data.Components[1].(*component.Label).Component.(*component.TextInput).Value,
+		)).Do(ctx)
+		if err != nil {
+			panic(err)
 		}
 	})
 
