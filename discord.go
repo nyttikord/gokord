@@ -11,12 +11,12 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/voice"
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
@@ -64,11 +64,10 @@ func NewWithLoggerOptions(token string, opt *logger.Options) *Session {
 func NewWithLogger(token string, logger *slog.Logger) *Session {
 	s := &Session{
 		Options: bot.Options{
-			StateEnabled:                       true,
-			ShouldReconnectOnError:             true,
-			ShouldReconnectVoiceOnSessionError: true,
-			ShouldRetryOnRateLimit:             true,
-			MaxRestRetries:                     3,
+			StateEnabled:           true,
+			ShouldReconnectOnError: true,
+			ShouldRetryOnRateLimit: true,
+			MaxRestRetries:         3,
 		},
 		logger:         logger,
 		mu:             &mutex{logger: logger.With("module", "mutex")},
@@ -78,37 +77,35 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		GuildStorage:   state.NewAVLStorage[guild.Guild](),
 	}
 	s.sessionState = NewState(s).(*sessionState)
-	s.eventManager = event.NewManager(s, s.onInterface)
+	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
-	s.REST = &RESTSession{
+	s.rest = &RESTSession{
 		identify:     &s.Identify,
 		logger:       logger.With("module", "rest"),
 		Options:      &s.Options,
 		eventManager: s.eventManager,
 		Client:       &http.Client{Timeout: 20 * time.Second},
 		UserAgent:    "DiscordBot (https://github.com/nyttikord/gokord, v" + VERSION + ")",
-		RateLimiter:  discord.NewRateLimiter(),
+		RateLimiter:  request.NewRateLimiter(),
 		emitRateLimitEvent: func(ctx context.Context, rl *event.RateLimit) {
 			s.eventManager.EmitEvent(ctx, s, event.RateLimitType, rl)
 		},
 	}
 
-	s.voiceAPI = &voice.Requester{
-		RESTRequester: s.REST,
-		WSRequester:   s,
-		Connections:   make(map[string]*voice.Connection),
-	}
-
 	// Initialize Identify with defaults values.
 	// These can be modified prior to calling Open().
-	s.Identify.Compress = true
-	s.Identify.LargeThreshold = 250
-	s.Identify.Properties.OS = runtime.GOOS
-	s.Identify.Properties.Browser = "DiscordGo v" + VERSION
-	s.Identify.Intents = discord.IntentsAllWithoutPrivileged
-	s.Identify.Token = token
-	s.Identify.Shard = &[2]int{0, 1}
+	s.Identify = Identify{
+		Compress:       true,
+		LargeThreshold: 250,
+		Properties: IdentifyProperties{
+			OS:      runtime.GOOS,
+			Browser: "gokord v" + VERSION,
+		},
+		Intents: discord.IntentsAllWithoutPrivileged,
+		Token:   token,
+		Shard:   [2]int{0, 1},
+	}
 
 	return s
 }

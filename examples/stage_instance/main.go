@@ -42,7 +42,7 @@ func main() {
 		Topic:                 "Amazing topic",
 		PrivacyLevel:          channel.StageInstancePrivacyLevelGuildOnly,
 		SendStartNotification: true,
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot create stage instance: %v", err)
 	}
@@ -51,14 +51,14 @@ func main() {
 	// Edit the stage instance with a new Topic
 	si, err = s.ChannelAPI().StageInstanceEdit(*StageChannelID, &channel.StageInstanceParams{
 		Topic: "New amazing topic",
-	})
+	}).Do(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot edit stage instance: %v", err)
 	}
 	log.Printf("Stage Instance %s has been successfully edited", si.Topic)
 
 	time.Sleep(5 * time.Second)
-	if err = s.ChannelAPI().StageInstanceDelete(*StageChannelID); err != nil {
+	if err = s.ChannelAPI().StageInstanceDelete(*StageChannelID).Do(context.Background()); err != nil {
 		log.Fatalf("Cannot delete stage instance: %v", err)
 	}
 	log.Printf("Stage Instance %s has been successfully deleted", si.Topic)

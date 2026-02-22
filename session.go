@@ -26,7 +26,6 @@ import (
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
-	"github.com/nyttikord/gokord/voice"
 )
 
 type mutex struct {
@@ -60,8 +59,8 @@ type Session struct {
 	// https://discord.com/developers/docs/topics/gateway#identify
 	Identify Identify
 
-	// REST contains the Session interacting with the REST API.
-	REST *RESTSession
+	// rest contains the Session interacting with the rest API.
+	rest *RESTSession
 
 	// Managed state object, updated internally with events when StateEnabled is true.
 	sessionState *sessionState
@@ -100,7 +99,6 @@ type Session struct {
 	userAPI    *userapi.Requester
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
-	voiceAPI   *voice.Requester
 
 	UserStorage    state.Storage[user.Member]     // UserStorage is the state.Storage used for the UserAPI
 	ChannelStorage state.Storage[channel.Channel] // ChannelStorage is the state.Storage used for the ChannelAPI
@@ -150,15 +148,11 @@ func (s *Session) OpenAndBlock(ctx context.Context) error {
 	}
 }
 
-func (s *Session) Logger() *slog.Logger {
-	return s.logger
-}
-
 // UserAPI returns an userapi.Requester to interact with the user package.
 func (s *Session) UserAPI() *userapi.Requester {
 	if s.userAPI == nil {
-		s.Logger().Debug("creating new user state")
-		s.userAPI = &userapi.Requester{RESTRequester: s.REST, State: userapi.NewState(s.sessionState, s.UserStorage)}
+		s.logger.Debug("creating new user state")
+		s.userAPI = &userapi.Requester{REST: s.rest, State: userapi.NewState(s.sessionState, s.UserStorage)}
 	}
 	return s.userAPI
 }
@@ -166,12 +160,11 @@ func (s *Session) UserAPI() *userapi.Requester {
 // GuildAPI returns a guildapi.Requester to interact with the guild package.
 func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
-		s.Logger().Debug("creating new guild state")
+		s.logger.Debug("creating new guild state")
 		s.guildAPI = &guildapi.Requester{
-			RESTRequester: s.REST,
-			WSRequester:   s,
-			VoiceAPI:      s.VoiceAPI,
-			State:         guildapi.NewState(s.sessionState, s.GuildStorage),
+			REST:      s.rest,
+			Websocket: s,
+			State:     guildapi.NewState(s.sessionState, s.GuildStorage),
 		}
 	}
 	return s.guildAPI
@@ -180,35 +173,30 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 // ChannelAPI returns a channelapi.Requester to interact with the channel package.
 func (s *Session) ChannelAPI() *channelapi.Requester {
 	if s.channelAPI == nil {
-		s.Logger().Debug("creating new channel state")
-		s.channelAPI = &channelapi.Requester{RESTRequester: s.REST, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
+		s.logger.Debug("creating new channel state")
+		s.channelAPI = &channelapi.Requester{REST: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
 }
 
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{RESTRequester: s.REST}
+	return &inviteapi.Requester{REST: s.rest}
 }
 
 // InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{RESTRequester: s.REST, ChannelAPI: s.ChannelAPI}
+	return &interactionapi.Requester{REST: s.rest, ChannelAPI: s.ChannelAPI}
 }
 
 // ApplicationAPI returns an applicationapi.Requester to interact with the application package.
 func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{RESTRequester: s.REST}
+	return &applicationapi.Requester{REST: s.rest}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{RESTRequester: s.REST, WSRequester: s}
-}
-
-// VoiceAPI returns a voice.Requester to interact with the voice package.
-func (s *Session) VoiceAPI() *voice.Requester {
-	return s.voiceAPI
+	return &botapi.Requester{REST: s.rest, Websocket: s}
 }
 
 // EventManager returns the event.Manager used by the Session.

@@ -1,4 +1,4 @@
-package discord
+package request
 
 import (
 	"encoding/json"
@@ -47,7 +47,7 @@ type customRateLimit struct {
 // RateLimiter holds rate limit buckets.
 type RateLimiter struct {
 	sync.Mutex
-	global           *int64
+	global           *atomic.Int64
 	buckets          map[string]*Bucket
 	globalRateLimit  time.Duration
 	customRateLimits []*customRateLimit
@@ -57,7 +57,7 @@ type RateLimiter struct {
 func NewRateLimiter() *RateLimiter {
 	return &RateLimiter{
 		buckets: make(map[string]*Bucket),
-		global:  new(int64),
+		global:  new(atomic.Int64),
 		customRateLimits: []*customRateLimit{
 			{
 				suffix:   "//reactions//",
@@ -99,11 +99,11 @@ func (r *RateLimiter) GetBucket(key string) *Bucket {
 func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 	// If we ran out of calls and the reset time is still ahead of us then we need to take it easy and relax a little.
 	if b.Remaining < minRemaining && b.reset.After(time.Now()) {
-		return b.reset.Sub(time.Now())
+		return time.Until(b.reset)
 	}
 
 	// Check for global rate limits
-	sleepTo := time.Unix(0, atomic.LoadInt64(r.global))
+	sleepTo := time.Unix(0, r.global.Load())
 	if now := time.Now(); now.Before(sleepTo) {
 		return sleepTo.Sub(now)
 	}
@@ -135,11 +135,11 @@ type Bucket struct {
 	Remaining int
 	limit     int
 	reset     time.Time
-	global    *int64
+	global    *atomic.Int64
 
 	lastReset       time.Time
 	customRateLimit *customRateLimit
-	Userdata        interface{}
+	Userdata        any
 }
 
 // Release unlocks the bucket and reads the headers to update the buckets rate limit info and locks up the whole thing in
@@ -149,7 +149,7 @@ func (b *Bucket) Release(headers http.Header) error {
 
 	// Check if the bucket uses a custom rate limiter
 	if rl := b.customRateLimit; rl != nil {
-		if time.Now().Sub(b.lastReset) >= rl.reset {
+		if time.Since(b.lastReset) >= rl.reset {
 			b.Remaining = rl.requests - 1
 			b.lastReset = time.Now()
 		}
@@ -184,7 +184,7 @@ func (b *Bucket) Release(headers http.Header) error {
 
 		// Lock either this single bucket or all buckets
 		if global != "" {
-			atomic.StoreInt64(b.global, resetAt.UnixNano())
+			b.global.Store(resetAt.UnixNano())
 		} else {
 			b.reset = resetAt
 		}

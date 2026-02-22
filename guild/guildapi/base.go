@@ -2,102 +2,83 @@
 package guildapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/guild"
+	. "github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/guild"
 )
 
 var (
 	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
+	ErrInvalidVoiceRegions     = errors.New("invalid voice regions")
 )
 
 // Guild returns the guild.Guild with the given guildID.
-func (r Requester) Guild(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var g guild.Guild
-	return &g, r.Unmarshal(body, &g)
+func (r Requester) Guild(guildID string) Request[*Guild] {
+	return NewData[*Guild](
+		r, http.MethodGet, discord.EndpointGuild(guildID),
+	)
 }
 
 // GuildWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
-func (r Requester) GuildWithCounts(guildID string, options ...discord.RequestOption) (*guild.Guild, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true", nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var g guild.Guild
-	return &g, r.Unmarshal(body, &g)
+func (r Requester) GuildWithCounts(guildID string) Request[*Guild] {
+	return NewData[*Guild](
+		r, http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true",
+	)
 }
 
-// GuildPreview returns the guild.Preview for the given public guild.Guild guildID.
-func (r Requester) GuildPreview(guildID string, options ...discord.RequestOption) (*guild.Preview, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildPreview(guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var gp guild.Preview
-	return &gp, r.Unmarshal(body, &gp)
+// GuildPreview returns the Preview for the given public Guild guildID.
+func (r Requester) GuildPreview(guildID string) Request[*Preview] {
+	return NewData[*Preview](
+		r, http.MethodGet, discord.EndpointGuildPreview(guildID),
+	)
 }
 
 // GuildEdit edits a guild.Guild with the given params.
-func (r Requester) GuildEdit(guildID string, params *guild.Params, options ...discord.RequestOption) (*guild.Guild, error) {
-	// Bounds checking for VerificationLevel, interval: [0, 4]
-	if params.VerificationLevel != nil {
-		val := *params.VerificationLevel
-		if val < 0 || val > 4 {
-			return nil, ErrVerificationLevelBounds
-		}
-	}
-
-	// Bounds checking for regions
-	if params.Region != "" {
-		isValid := false
-		regions, _ := r.VoiceAPI().VoiceRegions(options...)
-		for _, r := range regions {
-			if params.Region == r.ID {
-				isValid = true
+func (r Requester) GuildEdit(guildID string, params *Params) Request[*Guild] {
+	return NewData[*Guild](r, http.MethodPatch, discord.EndpointGuild(guildID)).
+		WithData(params).
+		WithPre(func(ctx context.Context, do *Do) error {
+			if params.Region == "" {
+				return nil
 			}
-		}
-		if !isValid {
-			var valid []string
+			valid := false
+			regions, err := r.VoiceRegions().Do(ctx)
+			if err != nil {
+				return err
+			}
 			for _, r := range regions {
-				valid = append(valid, r.ID)
+				if params.Region == r.ID {
+					valid = true
+				}
 			}
-			return nil, fmt.Errorf("not a valid region (%q)", valid)
-		}
-	}
-
-	body, err := r.Request(http.MethodPatch, discord.EndpointGuild(guildID), params, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var g guild.Guild
-	return &g, r.Unmarshal(body, &g)
+			if valid {
+				return nil
+			}
+			var validRegions []string
+			for _, r := range regions {
+				validRegions = append(validRegions, r.ID)
+			}
+			return errors.Join(
+				ErrInvalidVoiceRegions, fmt.Errorf("%s is not a voice region (%q)", params.Region, validRegions),
+			)
+		})
 }
 
 // GuildDelete deletes a guild.Guild.
-func (r Requester) GuildDelete(guildID string, options ...discord.RequestOption) error {
-	_, err := r.Request(http.MethodDelete, discord.EndpointGuild(guildID), nil, options...)
-	return err
+func (r Requester) GuildDelete(guildID string) Empty {
+	req := NewSimple(r, http.MethodDelete, discord.EndpointGuild(guildID))
+	return WrapAsEmpty(req)
 }
 
 // GuildLeave leaves a guild.Guild.
-func (r Requester) GuildLeave(guildID string, options ...discord.RequestOption) error {
-	_, err := r.RequestWithBucketID(
-		http.MethodDelete,
-		discord.EndpointUserGuild("@me", guildID),
-		nil,
-		discord.EndpointUserGuild("", guildID),
-		options...,
-	)
-	return err
+func (r Requester) GuildLeave(guildID string) Empty {
+	req := NewSimple(
+		r, http.MethodDelete, discord.EndpointUserGuild("@e", guildID),
+	).WithBucketID(discord.EndpointUserGuild("", guildID))
+	return WrapAsEmpty(req)
 }

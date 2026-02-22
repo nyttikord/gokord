@@ -4,27 +4,20 @@ import (
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/guild"
+	. "github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/guild"
 )
 
 // Onboarding returns guild.Onboarding configuration of a guild.Guild.
-func (r Requester) Onboarding(guildID string, options ...discord.RequestOption) (*guild.Onboarding, error) {
-	body, err := r.Request(http.MethodGet, discord.EndpointGuildOnboarding(guildID), nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var ob guild.Onboarding
-	return &ob, r.Unmarshal(body, &ob)
+func (r Requester) Onboarding(guildID string) Request[*Onboarding] {
+	return NewData[*Onboarding](
+		r, http.MethodGet, discord.EndpointGuildOnboarding(guildID),
+	)
 }
 
 // OnboardingEdit edits guild.Onboarding configuration of a guild.Guild.
-func (r Requester) OnboardingEdit(guildID string, o *guild.Onboarding, options ...discord.RequestOption) (*guild.Onboarding, error) {
-	body, err := r.Request("PUT", discord.EndpointGuildOnboarding(guildID), o, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var ob guild.Onboarding
-	return &ob, r.Unmarshal(body, &ob)
+func (r Requester) OnboardingEdit(guildID string, o *Onboarding) Request[*Onboarding] {
+	return NewData[*Onboarding](
+		r, http.MethodPut, discord.EndpointGuildOnboarding(guildID),
+	).WithData(o)
 }

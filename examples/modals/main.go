@@ -47,7 +47,7 @@ var (
 		},
 	}
 	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"modals-survey": func(_ context.Context, s bot.Session, i *event.InteractionCreate) {
+		"modals-survey": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
 			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
 				Type: types.InteractionResponseModal,
 				Data: &interaction.ResponseData{
@@ -77,7 +77,7 @@ var (
 						},
 					},
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -103,7 +103,7 @@ func main() {
 					Content: "Thank you for taking your time to fill this survey",
 					Flags:   channel.MessageFlagsEphemeral,
 				},
-			})
+			}).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -119,7 +119,7 @@ func main() {
 				userid,
 				data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
 				data.Components[1].(*component.Label).Component.(*component.TextInput).Value,
-			))
+			)).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
@@ -129,7 +129,7 @@ func main() {
 	cmdIDs := make(map[string]string, len(commands))
 
 	for _, cmd := range commands {
-		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd)
+		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd).Do(context.Background())
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -153,7 +153,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id)
+		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id).Do(context.Background())
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

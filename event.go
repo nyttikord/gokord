@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
@@ -42,10 +43,6 @@ func (s *Session) onInterface(ctx context.Context, i any) {
 		setGuildIds(t.Guild)
 	case *event.GuildUpdate:
 		setGuildIds(t.Guild)
-	case *event.VoiceServerUpdate:
-		go s.voiceAPI.UpdateServer(ctx, t.Token, t.GuildID, t.Endpoint)
-	case *event.VoiceStateUpdate:
-		go s.voiceAPI.UpdateState(t.VoiceState, s.sessionState)
 	}
 	err := s.sessionState.onInterface(s, i)
 	if err != nil {
@@ -172,6 +169,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 		typ = event.EventType
 		d = e
 	}
+	ctx = bot.SetLogger(ctx, bot.Logger(ctx).With("event", e.Type))
 	s.eventManager.EmitEvent(ctx, s, typ, d)
 	return nil, nil
 }

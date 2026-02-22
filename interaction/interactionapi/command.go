@@ -4,65 +4,48 @@ import (
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/interaction"
+	"github.com/nyttikord/gokord/discord/request"
+	. "github.com/nyttikord/gokord/interaction"
 )
 
 // CommandCreate creates an interaction.Command and returns it.
 //
-// Specifies guildID if you want to create guild.Guild interaction.Command instead of a global one.
-func (s Requester) CommandCreate(appID string, guildID string, cmd *interaction.Command, options ...discord.RequestOption) (*interaction.Command, error) {
+// Specifies guildID if you want to create guild.Guild Command instead of a global one.
+func (r Requester) CommandCreate(appID string, guildID string, cmd *Command) request.Request[*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommands(appID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	body, err := s.Request(http.MethodPost, endpoint, *cmd, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var c interaction.Command
-	return &c, s.Unmarshal(body, &c)
+	return request.NewData[*Command](r, http.MethodPost, endpoint).WithData(cmd)
 }
 
 // CommandEdit edits interaction.Command and returns new command data.
 //
-// Specifies guildID to edit a guild.Guild interaction.Command.
-func (s Requester) CommandEdit(appID, guildID, cmdID string, cmd *interaction.Command, options ...discord.RequestOption) (*interaction.Command, error) {
+// Specifies guildID to edit a guild.Guild Command.
+func (r Requester) CommandEdit(appID, guildID, cmdID string, cmd *Command) request.Request[*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	body, err := s.Request(http.MethodPatch, endpoint, *cmd, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var c interaction.Command
-	return &c, s.Unmarshal(body, &c)
+	return request.NewData[*Command](r, http.MethodPatch, endpoint).WithData(cmd)
 }
 
-// CommandBulkOverwrite creates interaction.Command overwriting existing interaction.Command.
-func (s Requester) CommandBulkOverwrite(appID string, guildID string, commands []*interaction.Command, options ...discord.RequestOption) (createdCommands []*interaction.Command, err error) {
+// CommandBulkOverwrite creates interaction.Command overwriting all existing interaction.Command.
+func (r Requester) CommandBulkOverwrite(appID string, guildID string, cmds []*Command) request.Request[[]*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommands(appID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	body, err := s.Request(http.MethodPut, endpoint, commands, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var c []*interaction.Command
-	return c, s.Unmarshal(body, &c)
+	return request.NewData[[]*Command](r, http.MethodPut, endpoint).WithData(cmds)
 }
 
 // CommandDelete deletes interaction.Command.
 //
 // Specifies guildID to delete a guild.Guild interaction.Command.
-func (s Requester) CommandDelete(appID, guildID, cmdID string, options ...discord.RequestOption) error {
+func (r Requester) CommandDelete(appID, guildID, cmdID string) request.Empty {
 	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
@@ -72,85 +55,60 @@ func (s Requester) CommandDelete(appID, guildID, cmdID string, options ...discor
 		bucket = discord.EndpointApplicationGuildCommand(appID, guildID, "")
 	}
 
-	_, err := s.RequestWithBucketID(http.MethodDelete, endpoint, nil, bucket, options...)
-	return err
+	req := request.NewSimple(r, http.MethodDelete, endpoint).WithBucketID(bucket)
+	return request.WrapAsEmpty(req)
 }
 
 // Command retrieves an interaction.Command.
 //
-// Specifies guildID to retrieve a guild.Guild interaction.Command.
-func (s Requester) Command(appID, guildID, cmdID string, options ...discord.RequestOption) (cmd *interaction.Command, err error) {
+// Specifies guildID to retrieve a guild.Guild Command.
+func (r Requester) Command(appID, guildID, cmdID string) request.Request[*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	body, err := s.Request(http.MethodGet, endpoint, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var c interaction.Command
-	return &c, s.Unmarshal(body, &c)
+	return request.NewData[*Command](r, http.MethodGet, endpoint)
 }
 
 // Commands retrieves all interaction.Command.
 //
 // Specifies guildID to retrieve all guild.Guild interaction.Command from the specified guild.Guild.
-func (s Requester) Commands(appID, guildID string, options ...discord.RequestOption) ([]*interaction.Command, error) {
+func (r Requester) Commands(appID, guildID string) request.Request[[]*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommands(appID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	body, err := s.Request(http.MethodGet, endpoint+"?with_localizations=true", nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var c []*interaction.Command
-	return c, s.Unmarshal(body, &c)
+	return request.NewData[[]*Command](r, http.MethodGet, endpoint+"?with_localizations=true")
 }
 
 // GuildCommandsPermissions returns permissions for interaction.Command in a guild.Guild.
-func (s Requester) GuildCommandsPermissions(appID, guildID string, options ...discord.RequestOption) ([]*interaction.GuildCommandPermissions, error) {
+func (r Requester) GuildCommandsPermissions(appID, guildID string) request.Request[[]*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
 
-	body, err := s.Request(http.MethodGet, endpoint, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var p []*interaction.GuildCommandPermissions
-	return p, s.Unmarshal(body, &p)
+	return request.NewData[[]*GuildCommandPermissions](r, http.MethodGet, endpoint)
 }
 
 // CommandPermissions returns all permissions of an interaction.Command.
 //
-// guildID is the guild.Guild containing the interaction.Command. (I don't know if this is required.)
-func (s Requester) CommandPermissions(appID, guildID, cmdID string, options ...discord.RequestOption) (*interaction.GuildCommandPermissions, error) {
+// guildID is the guild.Guild containing the interaction.Command.
+// (I don't know if this is required.)
+func (r Requester) CommandPermissions(appID, guildID, cmdID string) request.Request[*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
 
-	body, err := s.Request(http.MethodGet, endpoint, nil, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	var p *interaction.GuildCommandPermissions
-	return p, s.Unmarshal(body, &p)
+	return request.NewData[*GuildCommandPermissions](r, http.MethodGet, endpoint)
 }
 
 // CommandPermissionsEdit edits the permissions of an interaction.Command.
 //
-// guildID is the guild.Guild containing the interaction.Command. (I don't know if this is required.)
+// guildID is the guild.Guild containing the interaction.Command.
+// (I don't know if this is required.)
 //
 // NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
-func (s Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *interaction.CommandPermissionsList, options ...discord.RequestOption) error {
-	_, err := s.Request(
-		http.MethodPut,
-		discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID),
-		permissions,
-		options...,
-	)
-	return err
+func (r Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *CommandPermissionsList) request.Empty {
+	req := request.NewSimple(
+		r, http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID),
+	).WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)
+	return request.WrapAsEmpty(req)
 }

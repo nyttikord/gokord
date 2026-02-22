@@ -21,7 +21,6 @@ var (
 )
 
 func init() {
-
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
@@ -55,7 +54,7 @@ func main() {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
+func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.SessionState().User().ID {
@@ -63,11 +62,11 @@ func messageCreate(_ context.Context, s bot.Session, m *event.MessageCreate) {
 	}
 	// If the message is "ping" reply with "Pong!"
 	if m.Content == "ping" {
-		s.ChannelAPI().MessageSend(m.ChannelID, "Pong!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Pong!").Do(ctx)
 	}
 
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
-		s.ChannelAPI().MessageSend(m.ChannelID, "Ping!")
+		s.ChannelAPI().MessageSend(m.ChannelID, "Ping!").Do(ctx)
 	}
 }

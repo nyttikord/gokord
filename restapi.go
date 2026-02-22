@@ -1,59 +1,52 @@
 package gokord
 
 import (
-	_ "image/jpeg" // For JPEG decoding
-	_ "image/png"  // For PNG decoding
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 )
 
-// Gateway returns the websocket Gateway address
-func (s *Session) Gateway(options ...discord.RequestOption) (string, error) {
-	response, err := s.REST.Request(http.MethodGet, discord.EndpointGateway, nil, options...)
-	if err != nil {
-		return "", err
-	}
+// Gateway returns the websocket Gateway address.
+func (s *Session) Gateway() Request[string] {
+	return NewCustom[string](s.rest, http.MethodGet, discord.EndpointGateway).
+		WithPost(func(ctx context.Context, b []byte) (string, error) {
+			var data struct {
+				URL string `json:"url"`
+			}
+			err := unmarshal(b, &data)
+			if err != nil {
+				return "", err
+			}
 
-	temp := struct {
-		URL string `json:"url"`
-	}{}
+			gateway := data.URL
 
-	err = unmarshal(response, &temp)
-	if err != nil {
-		return "", err
-	}
-
-	gateway := temp.URL
-
-	// Ensure the gateway always has a trailing slash.
-	// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
-	if !strings.HasSuffix(gateway, "/") {
-		gateway += "/"
-	}
-
-	return gateway, nil
+			// Ensure the gateway always has a trailing slash.
+			// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
+			if !strings.HasSuffix(gateway, "/") {
+				gateway += "/"
+			}
+			return gateway, nil
+		})
 }
 
-// GatewayBot returns the websocket Gateway address and the recommended number of shards
-func (s *Session) GatewayBot(options ...discord.RequestOption) (*GatewayBotResponse, error) {
-	response, err := s.REST.Request(http.MethodGet, discord.EndpointGatewayBot, nil, options...)
-	if err != nil {
-		return nil, err
-	}
+// GatewayBot returns the websocket Gateway address and the recommended number of shards.
+func (s *Session) GatewayBot() Request[*GatewayBotResponse] {
+	return NewCustom[*GatewayBotResponse](s.rest, http.MethodGet, discord.EndpointGatewayBot).
+		WithPost(func(ctx context.Context, b []byte) (*GatewayBotResponse, error) {
+			var data GatewayBotResponse
+			err := unmarshal(b, &data)
+			if err != nil {
+				return nil, err
+			}
 
-	var resp GatewayBotResponse
-	err = unmarshal(response, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	// Ensure the gateway always has a trailing slash.
-	// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
-	if !strings.HasSuffix(resp.URL, "/") {
-		resp.URL += "/"
-	}
-
-	return &resp, nil
+			// Ensure the gateway always has a trailing slash.
+			// MacOS will fail to connect if we add query params without a trailing slash on the base domain.
+			if !strings.HasSuffix(data.URL, "/") {
+				data.URL += "/"
+			}
+			return &data, nil
+		})
 }
