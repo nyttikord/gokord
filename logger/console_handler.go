@@ -149,7 +149,7 @@ func (h *ConsoleHandler) Handle(ctx context.Context, r slog.Record) error {
 		}
 		sp = sb.String()
 	}
-	buf = fmt.Appendf(buf, "[%s%s%s]%s", color(r.Level), r.Level, AnsiReset, sp)
+	buf = fmt.Appendf(buf, "[%s%s%s]%s ", color(r.Level), r.Level, AnsiReset, sp)
 	if r.PC != 0 {
 		caller, ok := FromContext(ctx)
 		var file string

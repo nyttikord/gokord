@@ -70,8 +70,8 @@ We have:
 - updated the documentation;
 - added missing features.
 
-With gokord, you can also choose where you state is stored: you can stay with maps, or you can go with in-memory
-key-value database like Valkey or Redis.
+With gokord, you can also choose where you state is stored: you can stay with our new AVL implementations, or you can
+use maps, or you can go with in-memory key-value database like Valkey or Redis.
 
 You can use our powerful logger based on `log/slog`!
 
