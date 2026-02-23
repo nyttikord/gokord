@@ -179,9 +179,6 @@ func (s *State) MessageAdd(message *channel.Message) error {
 		if message.Attachments == nil {
 			message.Attachments = m.Attachments
 		}
-		if message.Timestamp.IsZero() {
-			message.Timestamp = m.Timestamp
-		}
 		if message.Author == nil {
 			message.Author = m.Author
 		}

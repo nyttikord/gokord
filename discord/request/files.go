@@ -86,7 +86,7 @@ func (r Multipart[T]) Do(ctx context.Context) (T, error) {
 	if r.post != nil {
 		return r.post(ctx, b)
 	}
-	err = r.do.req.Unmarshal(b, v)
+	err = r.do.req.Unmarshal(b, &v)
 	if err != nil {
 		return v, err
 	}

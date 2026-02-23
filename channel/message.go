@@ -25,14 +25,7 @@ type Message struct {
 	// The content of the message.
 	Content string `json:"content"`
 
-	// The time at which the Message was sent.
-	// CAUTION: this field may be removed in a
-	// future API version; it is safer to calculate
-	// the creation time via the ID.
-	Timestamp time.Time `json:"timestamp"`
-
-	// The time at which the last edit of the Message
-	// occurred, if it has been edited.
+	// The time at which the last edit of the Message occurred, if it has been edited.
 	EditedTimestamp *time.Time `json:"edited_timestamp"`
 
 	// The roles mentioned in the Message.
@@ -176,24 +169,27 @@ const (
 	MessageFlagsSuppressNotifications MessageFlags = 1 << 12
 	// MessageFlagsIsVoiceMessage this message is a voice message.
 	MessageFlagsIsVoiceMessage MessageFlags = 1 << 13
-	// MessageFlagsIsComponentsV2 this message uses the new components system. Disables the ability of sending `content` & `embeds`
+	// MessageFlagsIsComponentsV2 this message uses the new components system.
+	// Disables the ability of sending `content` & `embeds`
 	MessageFlagsIsComponentsV2 MessageFlags = 1 << 15
 )
 
 // A MessageAttachment stores data for message attachments.
 type MessageAttachment struct {
 	ID           string                 `json:"id"`
+	Filename     string                 `json:"filename,omitempty"`
+	Title        string                 `json:"title"`
+	Description  string                 `json:"description"`
+	ContentType  string                 `json:"content_type"`
+	Size         int                    `json:"size"`
 	URL          string                 `json:"url"`
 	ProxyURL     string                 `json:"proxy_url"`
-	Filename     string                 `json:"filename"`
-	ContentType  string                 `json:"content_type"`
-	Width        int                    `json:"width"`
-	Height       int                    `json:"height"`
-	Size         int                    `json:"size"`
-	Ephemeral    bool                   `json:"ephemeral"`
-	DurationSecs float64                `json:"duration_secs"`
-	Waveform     string                 `json:"waveform"`
-	Flags        MessageAttachmentFlags `json:"flags"`
+	Width        int                    `json:"width,omitempty"`
+	Height       int                    `json:"height,omitempty"`
+	Ephemeral    bool                   `json:"ephemeral,omitempty"`
+	DurationSecs float64                `json:"duration_secs,omitempty"`
+	Waveform     string                 `json:"waveform,omitempty"`
+	Flags        MessageAttachmentFlags `json:"flags,omitempty"`
 }
 
 // MessageAttachmentFlags is the flags of a message attachment.

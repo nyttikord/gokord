@@ -20,7 +20,6 @@ import (
 
 // All error constants
 var (
-	ErrJSONUnmarshal = errors.New("json unmarshal")
 	ErrStatusOffline = errors.New("you can't set your Status to offline")
 	ErrUnauthorized  = errors.New("HTTP request was unauthorized. This could be because the provided token was not a bot token. Please add \"Bot \" to the start of your token. https://discord.com/developers/docs/reference#authentication-example-bot-token-authorization-header")
 )
@@ -78,9 +77,8 @@ func (e RateLimitError) Error() string {
 func unmarshal(data []byte, v any) error {
 	err := json.Unmarshal(data, v)
 	if err != nil {
-		return errors.Join(ErrJSONUnmarshal, err)
+		return err
 	}
-
 	return nil
 }
 
