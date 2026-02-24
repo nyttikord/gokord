@@ -90,14 +90,17 @@ func main() {
 	})
 
 	s.InteractionManager().HandleCommand("modals-survey", handleModalsSurvey)
-	// cannot use this one because the ID is dynamic
-	//s.InteractionManager().HandleModalSubmit()
-
-	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+	s.InteractionManager().HandleRaw(func(ctx context.Context, s bot.Session, i *interaction.Interaction) {
 		if i.Type != types.InteractionModalSubmit {
 			return
 		}
-		err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		data := i.ModalSubmit().Data
+
+		if !strings.HasPrefix(data.CustomID, "modals_survey") {
+			return
+		}
+
+		err := s.InteractionAPI().Respond(i, &interaction.Response{
 			Type: types.InteractionResponseChannelMessageWithSource,
 			Data: &interaction.ResponseData{
 				Content: "Thank you for taking your time to fill this survey",
@@ -106,11 +109,6 @@ func main() {
 		}).Do(ctx)
 		if err != nil {
 			panic(err)
-		}
-		data := i.ModalSubmit().Data
-
-		if !strings.HasPrefix(data.CustomID, "modals_survey") {
-			return
 		}
 
 		userid := strings.Split(data.CustomID, "_")[2]

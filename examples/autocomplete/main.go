@@ -69,12 +69,12 @@ var (
 		},
 	}
 
-	commandHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"single-autocomplete": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+	commandHandlers = map[string]func(ctx context.Context, s bot.Session, i *interaction.Interaction){
+		"single-autocomplete": func(ctx context.Context, s bot.Session, i *interaction.Interaction) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.Command().Data
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -121,7 +121,7 @@ var (
 					})
 				}
 
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
@@ -132,11 +132,11 @@ var (
 				}
 			}
 		},
-		"multi-autocomplete": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+		"multi-autocomplete": func(ctx context.Context, s bot.Session, i *interaction.Interaction) {
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.Command().Data
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -207,7 +207,7 @@ var (
 					}
 				}
 
-				err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+				err := s.InteractionAPI().Respond(i, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices,
@@ -223,7 +223,7 @@ var (
 
 func main() {
 	s.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) { log.Println("Bot is up!") })
-	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
+	s.InteractionManager().HandleRaw(func(ctx context.Context, s bot.Session, i *interaction.Interaction) {
 		if h, ok := commandHandlers[i.Command().Data.Name]; ok {
 			h(ctx, s, i)
 		}
