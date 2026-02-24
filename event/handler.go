@@ -82,6 +82,13 @@ func (e *Manager) addEventHandler(eventHandler Handler) func() {
 		e.handlers = map[string][]*eventHandlerInstance{}
 	}
 
+	if eventHandler.Type() == InteractionCreateType {
+		e.logger.WarnContext(
+			logger.NewContext(context.Background(), 2),
+			"listening to the raw interaction create event, use the interaction manager instead",
+		)
+	}
+
 	ehi := &eventHandlerInstance{eventHandler}
 	e.handlers[eventHandler.Type()] = append(e.handlers[eventHandler.Type()], ehi)
 
@@ -90,8 +97,6 @@ func (e *Manager) addEventHandler(eventHandler Handler) func() {
 	}
 }
 
-// addEventHandler adds an event handler that will be fired the next time
-// the Discord WSAPI matching Handler.Type fires.
 func (e *Manager) addEventHandlerOnce(eventHandler Handler) func() {
 	e.Lock()
 	defer e.Unlock()
@@ -110,24 +115,11 @@ func (e *Manager) addEventHandlerOnce(eventHandler Handler) func() {
 
 // AddHandler allows you to add an event handler that will be fired anytime the Discord WSAPI event that matches the
 // function fires.
-// The first parameter is a Session, and the second parameter is a pointer to a struct corresponding to the event for
-// which you want to listen.
-//
-// eg:
-//
-//	Session.AddHandler(func(s event.Session, m *discordgo.MessageCreate) {
-//	})
-//
-// or:
-//
-//	Session.AddHandler(func(s event.Session, m *discordgo.PresenceUpdate) {
-//	})
 //
 // List of events can be found at this page, with corresponding names in the library for each event:
 // https://discord.com/developers/docs/topics/gateway#event-names
 // There are also synthetic events fired by the library internally which are available for handling, like Connect,
 // Disconnect, and RateLimit.
-// events.go contains all the Discord WSAPI and synthetic events that can be handled.
 //
 // The return value of this method is a function, that when called will remove the event handler.
 func (e *Manager) AddHandler(handler any) func() {

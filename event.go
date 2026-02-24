@@ -43,6 +43,8 @@ func (s *Session) onInterface(ctx context.Context, i any) {
 		setGuildIds(t.Guild)
 	case *event.GuildUpdate:
 		setGuildIds(t.Guild)
+	case *event.InteractionCreate:
+		s.interactionManager.Handle(ctx, s, i.(*event.InteractionCreate))
 	}
 	err := s.sessionState.onInterface(s, i)
 	if err != nil {

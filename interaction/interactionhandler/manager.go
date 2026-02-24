@@ -20,7 +20,7 @@ type Manager struct {
 
 func NewManager(logger *slog.Logger) *Manager {
 	return &Manager{
-		logger:                   logger.With("module", "interaction"),
+		logger:                   logger,
 		commandHandlers:          make(handlers[*ApplicationCommand]),
 		messageComponentHandlers: make(handlers[*MessageComponent]),
 		modalSubmitHandlers:      make(handlers[*ModalSubmit]),

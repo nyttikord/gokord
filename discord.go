@@ -79,7 +79,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))
-	s.interactionManager = interactionhandler.NewManager()
+	s.interactionManager = interactionhandler.NewManager(logger.With("module", "interaction"))
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
 	s.rest = &RESTSession{
@@ -108,9 +108,6 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		Token:   token,
 		Shard:   [2]int{0, 1},
 	}
-
-	// setup interactionhandler package
-	s.eventManager.AddHandler(s.interactionManager.Handle)
 
 	return s
 }
