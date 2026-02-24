@@ -147,30 +147,31 @@ func (m *Message) GetCustomEmojis() []*emoji.Emoji {
 type MessageFlags int
 
 const (
-	// MessageFlagsCrossPosted This message has been published to subscribed channels (via Channel Following).
+	// MessageFlagsCrossPosted has been published to subscribed channels (via Channel Following).
 	MessageFlagsCrossPosted MessageFlags = 1 << 0
-	// MessageFlagsIsCrossPosted this message originated from a message in another channel (via Channel Following).
+	// MessageFlagsIsCrossPosted is originated from a message in another channel (via Channel Following).
 	MessageFlagsIsCrossPosted MessageFlags = 1 << 1
-	// MessageFlagsSuppressEmbeds do not include any embeds when serializing this message.
+	// MessageFlagsSuppressEmbeds does not include any embeds when serializing this message.
 	MessageFlagsSuppressEmbeds MessageFlags = 1 << 2
-	// MessageFlagsSourceMessageDeleted the source message for this crosspost has been deleted (via Channel Following).
+	// MessageFlagsSourceMessageDeleted (via Channel Following).
 	MessageFlagsSourceMessageDeleted MessageFlags = 1 << 3
-	// MessageFlagsUrgent this message came from the urgent message system.
+	// MessageFlagsUrgent came from the urgent message system (official).
 	MessageFlagsUrgent MessageFlags = 1 << 4
-	// MessageFlagsHasThread this message has an associated thread, with the same id as the message.
+	// MessageFlagsHasThread with the same id as the message.
 	MessageFlagsHasThread MessageFlags = 1 << 5
-	// MessageFlagsEphemeral this message is only visible to the user who invoked the Interaction.
+	// MessageFlagsEphemeral is only visible to the user who invoked the Interaction.
 	MessageFlagsEphemeral MessageFlags = 1 << 6
-	// MessageFlagsLoading this message is an Interaction Response and the bot is "thinking".
+	// MessageFlagsLoading is an Interaction Response and the bot is "thinking".
 	MessageFlagsLoading MessageFlags = 1 << 7
-	// MessageFlagsFailedToMentionSomeRolesInThread this message failed to mention some roles and add their members to the thread.
+	// MessageFlagsFailedToMentionSomeRolesInThread and add their members to the thread.
 	MessageFlagsFailedToMentionSomeRolesInThread MessageFlags = 1 << 8
-	// MessageFlagsSuppressNotifications this message will not trigger push and desktop notifications.
+	// MessageFlagsSuppressNotifications will not trigger push and desktop notifications.
 	MessageFlagsSuppressNotifications MessageFlags = 1 << 12
-	// MessageFlagsIsVoiceMessage this message is a voice message.
-	MessageFlagsIsVoiceMessage MessageFlags = 1 << 13
+	MessageFlagsIsVoiceMessage        MessageFlags = 1 << 13
+	// MessageFlagsHasSnapshot (via Message Forwarding)
+	MessageFlagsHasSnapshot = 1 << 14
 	// MessageFlagsIsComponentsV2 this message uses the new components system.
-	// Disables the ability of sending `content` & `embeds`
+	// Disables the ability of sending `content` and `embeds`
 	MessageFlagsIsComponentsV2 MessageFlags = 1 << 15
 )
 
