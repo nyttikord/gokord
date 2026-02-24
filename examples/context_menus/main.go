@@ -37,11 +37,7 @@ func init() {
 
 func searchLink(message, format, sep string) string {
 	return fmt.Sprintf(format, strings.Join(
-		strings.Split(
-			message,
-			" ",
-		),
-		sep,
+		strings.Split(message, " "), sep,
 	))
 }
 
@@ -72,108 +68,6 @@ var (
 			Type: types.CommandMessage,
 		},
 	}
-	commandsHandlers = map[string]func(ctx context.Context, s bot.Session, i *event.InteractionCreate){
-		"rickroll-em": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: "Operation rickroll has begun",
-					Flags:   channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-
-			ch, err := s.UserAPI().ChannelCreate(i.CommandData().TargetID).Do(ctx)
-			if err != nil {
-				_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
-					Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
-					Flags:   channel.MessageFlagsEphemeral,
-				}).Do(ctx)
-				if err != nil {
-					panic(err)
-				}
-			}
-			_, err = s.ChannelAPI().MessageSend(
-				ch.ID,
-				fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
-			).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-		"google-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: searchLink(
-						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
-						"https://google.com/search?q=%s", "+"),
-					Flags: channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-		"stackoverflow-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: searchLink(
-						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
-						"https://stackoverflow.com/search?q=%s", "+"),
-					Flags: channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-		"godoc-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: searchLink(
-						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
-						"https://pkg.go.dev/search?q=%s", "+"),
-					Flags: channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-		"discordjs-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: searchLink(
-						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
-						"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
-					Flags: channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-		"discordpy-it": func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-			err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
-				Type: types.InteractionResponseChannelMessageWithSource,
-				Data: &interaction.ResponseData{
-					Content: searchLink(
-						i.CommandData().Resolved.Messages[i.CommandData().TargetID].Content,
-						"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
-					Flags: channel.MessageFlagsEphemeral,
-				},
-			}).Do(ctx)
-			if err != nil {
-				panic(err)
-			}
-		},
-	}
 )
 
 func main() {
@@ -181,11 +75,12 @@ func main() {
 		log.Println("Bot is up!")
 	})
 
-	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-		if h, ok := commandsHandlers[i.CommandData().Name]; ok {
-			h(ctx, s, i)
-		}
-	})
+	s.InteractionManager().HandleCommand("rickroll-em", rickrollEm)
+	s.InteractionManager().HandleCommand("google-it", googleIt)
+	s.InteractionManager().HandleCommand("stackoverflow-it", stackoverflowIt)
+	s.InteractionManager().HandleCommand("godoc-it", godocIt)
+	s.InteractionManager().HandleCommand("discordjs-it", djsIt)
+	s.InteractionManager().HandleCommand("discordpy-it", dpyIt)
 
 	cmdIDs := make(map[string]string, len(commands))
 
@@ -221,4 +116,105 @@ func main() {
 		}
 	}
 
+}
+func rickrollEm(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: "Operation rickroll has begun",
+			Flags:   channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	ch, err := s.UserAPI().ChannelCreate(i.Data.TargetID).Do(ctx)
+	if err != nil {
+		_, err = s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+			Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),
+			Flags:   channel.MessageFlagsEphemeral,
+		}).Do(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	_, err = s.ChannelAPI().MessageSend(
+		ch.ID,
+		fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
+	).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func googleIt(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: searchLink(
+				i.Data.Resolved.Messages[i.Data.TargetID].Content,
+				"https://google.com/search?q=%s", "+"),
+			Flags: channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+func stackoverflowIt(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: searchLink(
+				i.Data.Resolved.Messages[i.Data.TargetID].Content,
+				"https://stackoverflow.com/search?q=%s", "+"),
+			Flags: channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+func godocIt(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: searchLink(
+				i.Data.Resolved.Messages[i.Data.TargetID].Content,
+				"https://pkg.go.dev/search?q=%s", "+"),
+			Flags: channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+func djsIt(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: searchLink(
+				i.Data.Resolved.Messages[i.Data.TargetID].Content,
+				"https://discord.js.org/#/docs/main/stable/search?query=%s", "+"),
+			Flags: channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
+func dpyIt(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		Type: types.InteractionResponseChannelMessageWithSource,
+		Data: &interaction.ResponseData{
+			Content: searchLink(
+				i.Data.Resolved.Messages[i.Data.TargetID].Content,
+				"https://discordpy.readthedocs.io/en/stable/search.html?q=%s", "+"),
+			Flags: channel.MessageFlagsEphemeral,
+		},
+	}).Do(ctx)
+	if err != nil {
+		panic(err)
+	}
 }

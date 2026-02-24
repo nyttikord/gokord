@@ -14,13 +14,14 @@ import (
 	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
+	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 )
 
 // VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
-const VERSION = "0.33.1"
+const VERSION = "0.34.0"
 
 // New creates a new Discord session with provided token.
 // If the token is for a bot, it must be prefixed with "Bot "
@@ -78,6 +79,7 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))
+	s.interactionManager = interactionhandler.NewManager(logger.With("module", "interaction"))
 	s.lastHeartbeatAck.Store(time.Now().UnixMilli())
 
 	s.rest = &RESTSession{

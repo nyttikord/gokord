@@ -20,6 +20,7 @@ import (
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionapi"
+	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
@@ -73,6 +74,8 @@ type Session struct {
 
 	// Event handlers
 	eventManager *event.Manager
+	// Interaction handlers
+	interactionManager *interactionhandler.Manager
 	// The websocket connection.
 	ws *websocket.Conn
 	// Wait for listen goroutines to stop
@@ -204,6 +207,11 @@ func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
 }
 
+// InteractionManager returns the *interactionhandler.Manager used by the Session.
+func (s *Session) InteractionManager() *interactionhandler.Manager {
+	return s.interactionManager
+}
+
 // SessionState returns the state.Bot of the Session.
 func (s *Session) SessionState() state.Bot {
 	return s.sessionState
@@ -224,4 +232,9 @@ func (s *Session) LastHeartbeatAck() time.Time {
 func (s *Session) LastHeartbeatSent() time.Time {
 	last := s.lastHeartbeatSent.Load()
 	return time.Unix(last/1000, (last%1000)*int64(time.Millisecond))
+}
+
+// Logger returns the logger used by the Session.
+func (s *Session) Logger() *slog.Logger {
+	return s.logger
 }

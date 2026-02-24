@@ -10,17 +10,18 @@ import (
 	"time"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/component"
 	"github.com/nyttikord/gokord/discord"
-	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
-	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/premium"
 	"github.com/nyttikord/gokord/user"
 )
 
-// Deadline is the time allowed to respond to an Interaction.
-const Deadline = time.Second * 3
+const (
+	// Deadline is the time allowed to acknowledge an Interaction (like by sending a response or a deferred).
+	Deadline = 3 * time.Second
+	// DeadlineDeferred is the time allowed to use an Interaction token.
+	DeadlineDeferred = 15 * time.Minute
+)
 
 // Interaction represents data of an interaction.
 type Interaction struct {
@@ -71,7 +72,7 @@ type Interaction struct {
 	Token   string `json:"token"`
 	Version int    `json:"version"`
 
-	// Any entitlements for the invoking user.User, representing access to premium SKUs.
+	// Any entitlements for the invoking user.User, representing access to premium.SKU.
 	//
 	// NOTE: this field is only filled in monetized apps.
 	Entitlements []*premium.Entitlement `json:"entitlements"`
@@ -115,128 +116,6 @@ func (i *Interaction) UnmarshalJSON(raw []byte) error {
 		i.Data = &v
 	}
 	return nil
-}
-
-// MessageComponentData is helper function to assert the inner Data to MessageComponentData.
-// Make sure to check that the Type of the interaction is types.InteractionMessageComponent before calling.
-func (i *Interaction) MessageComponentData() *MessageComponentData {
-	if i.Type != types.InteractionMessageComponent {
-		panic("MessageComponentData called on interaction of type " + i.Type.String())
-	}
-	return i.Data.(*MessageComponentData)
-}
-
-// CommandData is helper function to assert the inner Data to CommandInteractionData.
-// Make sure to check that the Type of the interaction is types.InteractionApplicationCommand before calling.
-func (i *Interaction) CommandData() *CommandInteractionData {
-	if i.Type != types.InteractionApplicationCommand && i.Type != types.InteractionApplicationCommandAutocomplete {
-		panic("CommandData called on interaction of type " + i.Type.String())
-	}
-	return i.Data.(*CommandInteractionData)
-}
-
-// ModalSubmitData is helper function to assert the inner Data to ModalSubmitData.
-// Make sure to check that the Type of the interaction is types.InteractionModalSubmit before calling.
-func (i *Interaction) ModalSubmitData() *ModalSubmitData {
-	if i.Type != types.InteractionModalSubmit {
-		panic("ModalSubmitData called on interaction of type " + i.Type.String())
-	}
-	return i.Data.(*ModalSubmitData)
-}
-
-// GetUser returns the user.User of the Interaction.
-func (i *Interaction) GetUser() *user.User {
-	if i.Member == nil {
-		return i.User
-	}
-	return i.Member.User
-}
-
-// Data is a common interface for all types of interaction data.
-type Data interface {
-	Type() types.Interaction
-}
-
-// MessageComponentData contains the data of component.Message Interaction.
-type MessageComponentData struct {
-	CustomID      string                       `json:"custom_id"`
-	ComponentType types.Component              `json:"component_type"`
-	Resolved      MessageComponentDataResolved `json:"resolved"`
-
-	// Note: Only filled when ComponentType is types.SelectMenu.
-	// Otherwise, is nil.
-	Values []string `json:"values"`
-}
-
-// MessageComponentDataResolved contains the resolved data of selected option.
-type MessageComponentDataResolved struct {
-	Users    map[string]*user.User       `json:"users"`
-	Members  map[string]*user.Member     `json:"members"`
-	Roles    map[string]*guild.Role      `json:"roles"`
-	Channels map[string]*channel.Channel `json:"channels"`
-}
-
-// Type returns the type of interaction data.
-func (*MessageComponentData) Type() types.Interaction {
-	return types.InteractionMessageComponent
-}
-
-// ModalSubmitData contains the data of modal submit Interaction.
-type ModalSubmitData struct {
-	CustomID   string            `json:"custom_id"`
-	Components []component.Modal `json:"-"`
-}
-
-// Type returns the type of interaction data.
-func (*ModalSubmitData) Type() types.Interaction {
-	return types.InteractionModalSubmit
-}
-
-func (d *ModalSubmitData) UnmarshalJSON(data []byte) error {
-	type t ModalSubmitData
-	var v struct {
-		t
-		RawComponents []component.Unmarshaler `json:"components"`
-	}
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
-	}
-	*d = ModalSubmitData(v.t)
-	d.Components = make([]component.Modal, len(v.RawComponents))
-	for i, r := range v.RawComponents {
-		d.Components[i] = r.Component.(component.Modal)
-	}
-	return nil
-}
-
-// Response represents a response for an Interaction event.
-type Response struct {
-	Type types.InteractionResponse `json:"type,omitempty"`
-	Data *ResponseData             `json:"data,omitempty"`
-}
-
-// ResponseData is response data for an Interaction.
-type ResponseData struct {
-	TTS             bool                            `json:"tts"`
-	Content         string                          `json:"content"`
-	Components      []component.Component           `json:"components"`
-	Embeds          []*channel.MessageEmbed         `json:"embeds"`
-	AllowedMentions *channel.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
-	Files           []*request.File                 `json:"-"`
-	Attachments     *[]*channel.MessageAttachment   `json:"attachments,omitempty"`
-	Poll            *channel.Poll                   `json:"poll,omitempty"`
-
-	// NOTE: only channel.MessageFlagsSuppressEmbeds and channel.MessageFlagsEphemeral can be set.
-	Flags channel.MessageFlags `json:"flags,omitempty"`
-
-	// NOTE: autocomplete Interaction only.
-	Choices []*CommandOptionChoice `json:"choices,omitempty"`
-
-	// NOTE: modal Interaction only.
-	CustomID string `json:"custom_id,omitempty"`
-	// NOTE: modal Interaction only.
-	Title string `json:"title,omitempty"`
 }
 
 // VerifyInteraction implements channel.Message verification of the Discord interactions API signing algorithm, as

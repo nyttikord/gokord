@@ -12,32 +12,15 @@ import (
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/interaction"
-	"github.com/nyttikord/gokord/user"
 
 	"github.com/nyttikord/gokord"
 )
 
-type optionMap = map[string]*interaction.CommandInteractionDataOption
-
-func parseOptions(options []*interaction.CommandInteractionDataOption) (om optionMap) {
-	om = make(optionMap)
-	for _, opt := range options {
-		om[opt.Name] = opt
-	}
-	return
-}
-
-func interactionAuthor(i *interaction.Interaction) *user.User {
-	if i.Member != nil {
-		return i.Member.User
-	}
-	return i.User
-}
-
-func handleEcho(ctx context.Context, s bot.Session, i *event.InteractionCreate, opts optionMap) {
+func handleEcho(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
+	opts := i.OptionMap()
 	builder := new(strings.Builder)
 	if v, ok := opts["author"]; ok && v.BoolValue() {
-		author := interactionAuthor(i.Interaction)
+		author := i.GetUser()
 		builder.WriteString("**" + author.String() + "** says: ")
 	}
 	builder.WriteString(opts["message"].StringValue())
@@ -86,31 +69,19 @@ func main() {
 		log.Fatal("application id is not set")
 	}
 
-	session := gokord.New("Bot " + *Token)
+	dg := gokord.New("Bot " + *Token)
+	dg.InteractionManager().HandleCommand("echo", handleEcho)
 
-	session.EventManager().AddHandler(func(ctx context.Context, s bot.Session, i *event.InteractionCreate) {
-		if i.Type != types.InteractionApplicationCommand {
-			return
-		}
-
-		data := i.CommandData()
-		if data.Name != "echo" {
-			return
-		}
-
-		handleEcho(ctx, s, i, parseOptions(data.Options))
-	})
-
-	session.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
+	dg.EventManager().AddHandler(func(_ context.Context, s bot.Session, r *event.Ready) {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := session.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands).Do(context.Background())
+	_, err := dg.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands).Do(context.Background())
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}
 
-	err = session.Open(context.Background())
+	err = dg.Open(context.Background())
 	if err != nil {
 		log.Fatalf("could not open session: %s", err)
 	}
@@ -119,7 +90,7 @@ func main() {
 	signal.Notify(sigch, os.Interrupt)
 	<-sigch
 
-	err = session.Close(context.Background())
+	err = dg.Close(context.Background())
 	if err != nil {
 		log.Printf("could not close session gracefully: %s", err)
 	}

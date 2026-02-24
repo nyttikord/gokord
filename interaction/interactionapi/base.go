@@ -26,12 +26,12 @@ func (r Requester) Respond(i *Interaction, resp *Response) request.Empty {
 		return request.WrapAsEmpty(req)
 	}
 	req := request.NewMultipart[[]byte](r, http.MethodPost, endpoint, resp, resp.Data.Files)
-	return request.WrapMultipartAsEmpty(req)
+	return WrapEmptyRequestAsResponse(request.WrapMultipartAsEmpty(req))
 }
 
 // Response gets the response to an interaction.Interaction.
 func (r Requester) Response(i *Interaction) request.Request[*channel.Message] {
-	return r.ChannelAPI().WebhookMessage(i.AppID, i.Token, "@original")
+	return WrapRequestAsResponse(r.ChannelAPI().WebhookMessage(i.AppID, i.Token, "@original"))
 }
 
 // ResponseEdit edits the response to an interaction.Interaction.
@@ -50,7 +50,7 @@ func (r Requester) ResponseDelete(i *Interaction) request.Empty {
 // wait if the function waits for server confirmation of message send and ensures that the return struct is populated
 // (it is nil otherwise).
 func (r Requester) FollowupMessageCreate(i *Interaction, wait bool, data *channel.WebhookParams) request.Request[*channel.Message] {
-	return r.ChannelAPI().WebhookExecute(i.AppID, i.Token, wait, data)
+	return WrapRequestAsResponse(r.ChannelAPI().WebhookExecute(i.AppID, i.Token, wait, data))
 }
 
 // FollowupMessageEdit edits a followup message of an interaction.Interaction.

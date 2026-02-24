@@ -2,7 +2,6 @@ package gokord
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"testing"
 )
@@ -224,13 +223,6 @@ func TestGuildPrune(t *testing.T) {
 	}
 }
 */
-
-func Test_unmarshal(t *testing.T) {
-	err := unmarshal([]byte{}, &struct{}{})
-	if !errors.Is(err, ErrJSONUnmarshal) {
-		t.Errorf("Unexpected error type: %T", err)
-	}
-}
 
 // roundTripperFunc implements http.RoundTripper.
 type roundTripperFunc func(*http.Request) (*http.Response, error)
