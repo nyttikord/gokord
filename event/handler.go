@@ -56,10 +56,7 @@ var registeredInterfaceProviders = map[string]InterfaceProvider{}
 // registerInterfaceProvider registers a provider so that Gokord can access it's New() method.
 func registerInterfaceProvider(eh InterfaceProvider) {
 	if _, ok := registeredInterfaceProviders[eh.Type()]; ok {
-		return
-		// XXX:
-		// if we should error here, we need to do something with it.
-		// fmt.Errorf("event %s already registered", eh.Type())
+		panic("event " + eh.Type() + " already registered")
 	}
 	registeredInterfaceProviders[eh.Type()] = eh
 }

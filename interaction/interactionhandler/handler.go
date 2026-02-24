@@ -82,7 +82,9 @@ func (m *Manager) Handle(ctx context.Context, s bot.Session, i *event.Interactio
 		handleModalSubmit(ctx, s, i.Interaction)
 	default:
 		logger.Debug("interaction not supported by general handler")
-		return
+	}
+	for _, h := range m.rawHandlers {
+		h(ctx, s, i.Interaction)
 	}
 }
 
