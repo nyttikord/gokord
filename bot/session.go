@@ -4,7 +4,6 @@
 package bot
 
 import (
-	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
@@ -31,8 +30,6 @@ type Session interface {
 	InviteAPI() *inviteapi.Requester
 	// InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
 	InteractionAPI() *interactionapi.Requester
-	// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
-	ApplicationAPI() *applicationapi.Requester
 	// BotAPI returns a botapi.Requester to interact with the bot package.
 	BotAPI() *botapi.Requester
 

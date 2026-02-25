@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
@@ -192,11 +192,6 @@ func (s *Session) InteractionAPI() *interactionapi.Requester {
 	return &interactionapi.Requester{REST: s.rest, ChannelAPI: s.ChannelAPI}
 }
 
-// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
-func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{REST: s.rest}
-}
-
 // BotAPI returns a botapi.Requester to interact with the bot package.
 func (s *Session) BotAPI() *botapi.Requester {
 	return &botapi.Requester{REST: s.rest, Websocket: s}
@@ -237,4 +232,8 @@ func (s *Session) LastHeartbeatSent() time.Time {
 // Logger returns the logger used by the Session.
 func (s *Session) Logger() *slog.Logger {
 	return s.logger
+}
+
+func (s *Session) NewRESTContext(ctx context.Context) context.Context {
+	return request.NewContext(ctx, s.rest)
 }

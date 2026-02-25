@@ -5,18 +5,23 @@
 package application
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
 )
 
-// InstallParams represents application's installation parameters for default in-app oauth2 authorization link.
+// InstallParams represents [Application]'s installation parameters for default in-app oauth2 authorization link.
 type InstallParams struct {
 	Scopes      []string `json:"scopes"`
 	Permissions int64    `json:"permissions,string"`
 }
 
-// IntegrationTypeConfig represents application's configuration for a particular integration type.
+// IntegrationTypeConfig represents [Application]'s configuration for a particular integration type.
 type IntegrationTypeConfig struct {
 	OAuth2InstallParams *InstallParams `json:"oauth2_install_params,omitempty"`
 }
@@ -44,7 +49,7 @@ type Application struct {
 	IntegrationTypesConfig map[types.IntegrationInstall]*IntegrationTypeConfig `json:"integration_types,omitempty"`
 }
 
-// RoleConnectionMetadata stores application role connection metadata.
+// RoleConnectionMetadata stores [Application] role connection metadata.
 type RoleConnectionMetadata struct {
 	Type                     types.RoleConnectionMetadata `json:"type"`
 	Key                      string                       `json:"key"`
@@ -54,16 +59,131 @@ type RoleConnectionMetadata struct {
 	DescriptionLocalizations map[discord.Locale]string    `json:"description_localizations"`
 }
 
-// RoleConnection represents the role connection that an application has attached to a user.
+// RoleConnection represents the role connection that an [Application] has attached to a user.
 type RoleConnection struct {
 	PlatformName     string            `json:"platform_name"`
 	PlatformUsername string            `json:"platform_username"`
 	Metadata         map[string]string `json:"metadata"`
 }
 
-// Asset struct stores values for an asset of an Application
+// Asset struct stores values for an asset of an [Application].
 type Asset struct {
 	Type int    `json:"type"`
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// Get returns an [Application].
+func Get(appID string) Request[*Application] {
+	return NewData[*Application](http.MethodGet, discord.EndpointOAuth2Application(appID)).
+		WithBucketID(discord.EndpointOAuth2Application(""))
+}
+
+// List returns all [Application]s for the authenticated user.
+func List() Request[[]*Application] {
+	return NewData[[]*Application](http.MethodGet, discord.EndpointOAuth2Applications)
+}
+
+// Create a new [Application].
+//
+// uris are the redirect URIs (not required).
+func Create(ap *Application) Request[*Application] {
+	data := struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}{ap.Name, ap.Description}
+
+	return NewData[*Application](http.MethodPost, discord.EndpointOAuth2Applications).
+		WithData(data)
+}
+
+// Update an existing [Application].
+func Update(appID string, ap *Application) Request[*Application] {
+	data := struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}{ap.Name, ap.Description}
+
+	return NewData[*Application](http.MethodPut, discord.EndpointOAuth2Application(appID)).
+		WithData(data).WithBucketID(discord.EndpointOAuth2Application(""))
+}
+
+// Delete an existing [Application].
+func Delete(appID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointOAuth2Application(appID)).
+		WithBucketID(discord.EndpointOAuth2Application(""))
+	return WrapAsEmpty(req)
+}
+
+// ListAssets returns all [Asset]s.
+func ListAssets(appID string) Request[[]*Asset] {
+	return NewData[[]*Asset](http.MethodGet, discord.EndpointOAuth2Application(appID)).
+		WithBucketID(discord.EndpointOAuth2Application(""))
+}
+
+// CreateBot creates an [Application] Bot Account.
+//
+// NOTE: func name may change, if I can think up something better.
+func CreateBot(appID string) Request[*user.User] {
+	return NewData[*user.User](http.MethodPost, discord.EndpointOAuth2ApplicationsBot(appID)).
+		WithBucketID(discord.EndpointOAuth2ApplicationsBot(""))
+}
+
+// ListEmojis returns all [emoji.Emoji] for the given [Application].
+func ListEmojis(appID string) Request[[]*emoji.Emoji] {
+	return NewCustom[[]*emoji.Emoji](http.MethodGet, discord.EndpointApplicationEmojis(appID)).
+		WithPost(func(ctx context.Context, b []byte) ([]*emoji.Emoji, error) {
+			var data struct {
+				Items []*emoji.Emoji `json:"items"`
+			}
+			return data.Items, Unmarshal(ctx, b, &data)
+		})
+}
+
+// GetEmoji for the given [Application].
+func Emoji(appID, emojiID string) Request[*emoji.Emoji] {
+	return NewData[*emoji.Emoji](http.MethodGet, discord.EndpointApplicationEmoji(appID, emojiID)).
+		WithBucketID(discord.EndpointApplicationEmojis(appID))
+}
+
+// CreateEmoji for the given [Application].
+func CreateEmoji(appID string, data *emoji.Params) Request[*emoji.Emoji] {
+	return NewData[*emoji.Emoji](http.MethodPost, discord.EndpointApplicationEmojis(appID)).
+		WithData(data)
+}
+
+// EditEmoji for the given [Application].
+func EditEmoji(appID string, emojiID string, data *emoji.Params) Request[*emoji.Emoji] {
+	return NewData[*emoji.Emoji](http.MethodPatch, discord.EndpointApplicationEmoji(appID, emojiID)).
+		WithData(data).WithBucketID(discord.EndpointApplicationEmojis(appID))
+}
+
+// DeleteEmoji for the given [Application].
+func DeleteEmoji(appID, emojiID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointApplicationEmoji(appID, emojiID)).
+		WithBucketID(discord.EndpointApplicationEmojis(appID))
+	return WrapAsEmpty(req)
+}
+
+// GetRoleConnectionMetadata for the given [Application].
+func GetRoleConnectionMetadata(appID string) Request[[]*RoleConnectionMetadata] {
+	return NewData[[]*RoleConnectionMetadata](http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID))
+}
+
+// UpdateRoleConnectionMetadata for the given [Application].
+func UpdateRoleConnectionMetadata(appID string, metadata []*RoleConnectionMetadata) Request[[]*RoleConnectionMetadata] {
+	return NewData[[]*RoleConnectionMetadata](http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID)).
+		WithData(metadata)
+}
+
+// GetRoleConnection for the given [Application].
+func GetRoleConnection(appID string) Request[*RoleConnection] {
+	return NewData[*RoleConnection](http.MethodGet, discord.EndpointUserApplicationRoleConnection(appID))
+
+}
+
+// UpdateRoleConnection for the specified [Application].
+func UpdateRoleConnection(appID string, rconn *RoleConnection) Request[*RoleConnection] {
+	return NewData[*RoleConnection](http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID)).
+		WithData(rconn)
 }
