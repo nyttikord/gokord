@@ -47,30 +47,26 @@ func (r Requester) InviteComplex(inviteID, guildScheduledEventID string, withCou
 		endpoint += "?" + v.Encode()
 	}
 
-	return NewData[*Invite](
-		r, http.MethodGet, endpoint,
-	).WithBucketID(discord.EndpointInvite(""))
+	return NewData[*Invite](http.MethodGet, endpoint).
+		WithBucketID(discord.EndpointInvite(""))
 }
 
 // InviteDelete deletes an existing invite.Invite.
 func (r Requester) InviteDelete(inviteID string) Request[*Invite] {
-	return NewData[*Invite](
-		r, http.MethodDelete, discord.EndpointInvite(inviteID),
-	).WithBucketID(discord.EndpointInvite(""))
+	return NewData[*Invite](http.MethodDelete, discord.EndpointInvite(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
 }
 
 // InviteAccept accepts an invite.Invite.
 func (r Requester) InviteAccept(inviteID string) Request[*Invite] {
-	return NewData[*Invite](
-		r, http.MethodPut, discord.EndpointInvite(inviteID),
-	).WithBucketID(discord.EndpointInvite(""))
+	return NewData[*Invite](http.MethodPut, discord.EndpointInvite(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
 }
 
 // TargetUsers returns a CSV with a single column Users containing the user.User IDs targetted by the invite.Invite.
 func (r Requester) TargetUsers(inviteID string) Request[[]byte] {
-	return NewSimple(
-		r, http.MethodPut, discord.EndpointInviteTargetUsers(inviteID),
-	).WithBucketID(discord.EndpointInvite(""))
+	return NewSimple(http.MethodPut, discord.EndpointInviteTargetUsers(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
 }
 
 // TargetUsersUpdate updates the user.User allowed to see and accept this
@@ -90,7 +86,6 @@ func (r Requester) TargetUsers(inviteID string) Request[[]byte] {
 // The Discord's documentation does not yet provide complete information.
 // Check https://discord.com/developers/docs/resources/invite#get-target-users-job-status for more information.
 func (r Requester) TargetUsersJobStatus(inviteID string) Request[*TargetUsersJobStatus] {
-	return NewData[*TargetUsersJobStatus](
-		r, http.MethodPut, discord.EndpointInviteTargetUsersJobStatus(inviteID),
-	).WithBucketID(discord.EndpointInvite(""))
+	return NewData[*TargetUsersJobStatus](http.MethodPut, discord.EndpointInviteTargetUsersJobStatus(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
 }

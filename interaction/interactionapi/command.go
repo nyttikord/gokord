@@ -17,7 +17,7 @@ func (r Requester) CommandCreate(appID string, guildID string, cmd *Command) req
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return request.NewData[*Command](r, http.MethodPost, endpoint).WithData(cmd)
+	return request.NewData[*Command](http.MethodPost, endpoint).WithData(cmd)
 }
 
 // CommandEdit edits interaction.Command and returns new command data.
@@ -29,7 +29,7 @@ func (r Requester) CommandEdit(appID, guildID, cmdID string, cmd *Command) reque
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	return request.NewData[*Command](r, http.MethodPatch, endpoint).WithData(cmd)
+	return request.NewData[*Command](http.MethodPatch, endpoint).WithData(cmd)
 }
 
 // CommandBulkOverwrite creates interaction.Command overwriting all existing interaction.Command.
@@ -39,7 +39,7 @@ func (r Requester) CommandBulkOverwrite(appID string, guildID string, cmds []*Co
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return request.NewData[[]*Command](r, http.MethodPut, endpoint).WithData(cmds)
+	return request.NewData[[]*Command](http.MethodPut, endpoint).WithData(cmds)
 }
 
 // CommandDelete deletes interaction.Command.
@@ -55,7 +55,7 @@ func (r Requester) CommandDelete(appID, guildID, cmdID string) request.Empty {
 		bucket = discord.EndpointApplicationGuildCommand(appID, guildID, "")
 	}
 
-	req := request.NewSimple(r, http.MethodDelete, endpoint).WithBucketID(bucket)
+	req := request.NewSimple(http.MethodDelete, endpoint).WithBucketID(bucket)
 	return request.WrapAsEmpty(req)
 }
 
@@ -68,7 +68,7 @@ func (r Requester) Command(appID, guildID, cmdID string) request.Request[*Comman
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
 	}
 
-	return request.NewData[*Command](r, http.MethodGet, endpoint)
+	return request.NewData[*Command](http.MethodGet, endpoint)
 }
 
 // Commands retrieves all interaction.Command.
@@ -80,14 +80,14 @@ func (r Requester) Commands(appID, guildID string) request.Request[[]*Command] {
 		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
 	}
 
-	return request.NewData[[]*Command](r, http.MethodGet, endpoint+"?with_localizations=true")
+	return request.NewData[[]*Command](http.MethodGet, endpoint+"?with_localizations=true")
 }
 
 // GuildCommandsPermissions returns permissions for interaction.Command in a guild.Guild.
 func (r Requester) GuildCommandsPermissions(appID, guildID string) request.Request[[]*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
 
-	return request.NewData[[]*GuildCommandPermissions](r, http.MethodGet, endpoint)
+	return request.NewData[[]*GuildCommandPermissions](http.MethodGet, endpoint)
 }
 
 // CommandPermissions returns all permissions of an interaction.Command.
@@ -97,7 +97,7 @@ func (r Requester) GuildCommandsPermissions(appID, guildID string) request.Reque
 func (r Requester) CommandPermissions(appID, guildID, cmdID string) request.Request[*GuildCommandPermissions] {
 	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
 
-	return request.NewData[*GuildCommandPermissions](r, http.MethodGet, endpoint)
+	return request.NewData[*GuildCommandPermissions](http.MethodGet, endpoint)
 }
 
 // CommandPermissionsEdit edits the permissions of an interaction.Command.
@@ -107,8 +107,7 @@ func (r Requester) CommandPermissions(appID, guildID, cmdID string) request.Requ
 //
 // NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
 func (r Requester) CommandPermissionsEdit(appID, guildID, cmdID string, permissions *CommandPermissionsList) request.Empty {
-	req := request.NewSimple(
-		r, http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID),
-	).WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)
+	req := request.NewSimple(http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)).
+		WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)
 	return request.WrapAsEmpty(req)
 }

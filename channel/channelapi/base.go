@@ -28,30 +28,29 @@ type Requester struct {
 
 // Channel returns the channel.Channel with the given ID.
 func (r Requester) Channel(channelID string) Request[*Channel] {
-	return NewData[*Channel](r, http.MethodGet, discord.EndpointChannel(channelID))
+	return NewData[*Channel](http.MethodGet, discord.EndpointChannel(channelID))
 }
 
 // ChannelEdit edits the given channel.Channel and returns the updated channel.Channel data.
 func (r Requester) ChannelEdit(channelID string, data *Edit) Request[*Channel] {
-	return NewData[*Channel](
-		r, http.MethodPatch, discord.EndpointChannel(channelID),
-	).WithData(data)
+	return NewData[*Channel](http.MethodPatch, discord.EndpointChannel(channelID)).
+		WithData(data)
 }
 
 // ChannelDelete deletes the given channel.Channel.
 func (r Requester) ChannelDelete(channelID string) Request[*Channel] {
-	return NewData[*Channel](r, http.MethodDelete, discord.EndpointChannel(channelID))
+	return NewData[*Channel](http.MethodDelete, discord.EndpointChannel(channelID))
 }
 
 // Typing broadcasts to all members that authenticated user.User is typing in the given channel.Channel.
 func (r Requester) Typing(channelID string) Empty {
-	req := NewSimple(r, http.MethodPost, discord.EndpointChannelTyping(channelID))
+	req := NewSimple(http.MethodPost, discord.EndpointChannelTyping(channelID))
 	return WrapAsEmpty(req)
 }
 
 // Invites returns all invite.Invite for the given channel.Channel.
 func (r Requester) Invites(channelID string) Request[[]*invite.Invite] {
-	return NewData[[]*invite.Invite](r, http.MethodDelete, discord.EndpointChannelInvites(channelID))
+	return NewData[[]*invite.Invite](http.MethodDelete, discord.EndpointChannelInvites(channelID))
 }
 
 // InviteCreate creates a new invite.Invite for the given channel.Channel.
@@ -82,9 +81,8 @@ func (r Requester) InviteCreate(channelID string, i invite.Invite) Request[*invi
 		r.Logger().WarnContext(logger.NewContext(context.Background(), 1), "InviteCreate does not support yet TargetUsersFile")
 	}
 
-	return NewData[*invite.Invite](
-		r, http.MethodPost, discord.EndpointChannelInvites(channelID),
-	).WithData(data)
+	return NewData[*invite.Invite](http.MethodPost, discord.EndpointChannelInvites(channelID)).
+		WithData(data)
 }
 
 // PermissionSet creates a channel.PermissionOverwrite for the given channel.Channel.
@@ -99,7 +97,7 @@ func (r Requester) PermissionSet(channelID, targetID string, targetType types.Pe
 		Deny  int64                     `json:"deny,string"`
 	}{targetID, targetType, allow, deny}
 
-	req := NewSimple(r, http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
+	req := NewSimple(http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
 		WithData(data).
 		WithBucketID(discord.EndpointChannelPermission(channelID, ""))
 	return WrapAsEmpty(req)
@@ -109,7 +107,7 @@ func (r Requester) PermissionSet(channelID, targetID string, targetType types.Pe
 //
 // NOTE: Name of this func may change.
 func (r Requester) PermissionDelete(channelID, targetID string) Empty {
-	req := NewSimple(r, http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
+	req := NewSimple(http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
 		WithBucketID(discord.EndpointChannelPermission(channelID, ""))
 	return WrapAsEmpty(req)
 }
@@ -123,34 +121,29 @@ func (r Requester) NewsFollow(channelID, targetID string) Request[*Follow] {
 		WebhookChannelID string `json:"webhook_channel_id"`
 	}{targetID}
 
-	return NewData[*Follow](
-		r, http.MethodPost, discord.EndpointChannelFollow(channelID),
-	).WithData(data)
+	return NewData[*Follow](http.MethodPost, discord.EndpointChannelFollow(channelID)).
+		WithData(data)
 }
 
 // StageInstanceCreate creates and returns a new channel.Stage instance associated to a types.ChannelGuildStageVoice.
 func (r Requester) StageInstanceCreate(data *StageInstanceParams) Request[*StageInstance] {
-	return NewData[*StageInstance](
-		r, http.MethodPost, discord.EndpointStageInstances,
-	).WithData(data)
+	return NewData[*StageInstance](http.MethodPost, discord.EndpointStageInstances).
+		WithData(data)
 }
 
 // StageInstance will retrieve a channel.Stage instance by the ID of the types.ChannelGuildStageVoice.
 func (r Requester) StageInstance(channelID string) Request[*StageInstance] {
-	return NewData[*StageInstance](
-		r, http.MethodGet, discord.EndpointStageInstance(channelID),
-	)
+	return NewData[*StageInstance](http.MethodGet, discord.EndpointStageInstance(channelID))
 }
 
 // StageInstanceEdit edits a channel.Stage instance by ID the types.ChannelGuildStageVoice.
 func (r Requester) StageInstanceEdit(channelID string, data *StageInstanceParams) Request[*StageInstance] {
-	return NewData[*StageInstance](
-		r, http.MethodPatch, discord.EndpointStageInstance(channelID),
-	).WithData(data)
+	return NewData[*StageInstance](http.MethodPatch, discord.EndpointStageInstance(channelID)).
+		WithData(data)
 }
 
 // StageInstanceDelete deletes a channel.Stage instance by ID of the types.ChannelGuildStageVoice.
 func (r Requester) StageInstanceDelete(channelID string) Empty {
-	req := NewSimple(r, http.MethodGet, discord.EndpointStageInstance(channelID))
+	req := NewSimple(http.MethodGet, discord.EndpointStageInstance(channelID))
 	return WrapAsEmpty(req)
 }

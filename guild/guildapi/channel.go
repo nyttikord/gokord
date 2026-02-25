@@ -11,9 +11,7 @@ import (
 
 // Channels returns the list of channel.Channel in the guild.Guild.
 func (r Requester) Channels(guildID string) Request[[]*channel.Channel] {
-	return NewData[[]*channel.Channel](
-		r, http.MethodGet, discord.EndpointGuildChannels(guildID),
-	)
+	return NewData[[]*channel.Channel](http.MethodGet, discord.EndpointGuildChannels(guildID))
 }
 
 // ChannelCreateData is provided to Requester.ChannelCreateComplex
@@ -32,9 +30,8 @@ type ChannelCreateData struct {
 
 // ChannelCreateComplex creates a new channel.Channel in the given guild.Guild.
 func (r Requester) ChannelCreateComplex(guildID string, data ChannelCreateData) Request[*channel.Channel] {
-	return NewData[*channel.Channel](
-		r, http.MethodPost, discord.EndpointGuildChannels(guildID),
-	).WithData(data)
+	return NewData[*channel.Channel](http.MethodPost, discord.EndpointGuildChannels(guildID)).
+		WithData(data)
 }
 
 // ChannelCreate creates a new channel.Channel in the given guild.Guild.
@@ -57,20 +54,16 @@ func (r Requester) ChannelsReorder(guildID string, channels []*channel.Channel) 
 		data[i].Position = c.Position
 	}
 
-	req := NewSimple(r, http.MethodPatch, discord.EndpointGuildChannels(guildID)).WithData(data)
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildChannels(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }
 
 // ThreadsActive returns all active threads in the given guild.Guild.
 func (r Requester) ThreadsActive(guildID string) Request[*channel.ThreadsList] {
-	return NewData[*channel.ThreadsList](
-		r, http.MethodGet, discord.EndpointGuildActiveThreads(guildID),
-	)
+	return NewData[*channel.ThreadsList](http.MethodGet, discord.EndpointGuildActiveThreads(guildID))
 }
 
 // Webhooks returns all channel.Webhook for a given guild.Guild.
 func (r Requester) Webhooks(guildID string) Request[[]*channel.Webhook] {
-	return NewData[[]*channel.Webhook](
-		r, http.MethodGet, discord.EndpointGuildWebhooks(guildID),
-	)
+	return NewData[[]*channel.Webhook](http.MethodGet, discord.EndpointGuildWebhooks(guildID))
 }

@@ -19,16 +19,14 @@ type Requester struct {
 
 // User returns the user.User details of the given userID (can be @me to be the current User ID).
 func (r Requester) User(userID string) Request[*User] {
-	return NewData[*User](
-		r, http.MethodGet, discord.EndpointUser(userID),
-	).WithBucketID(discord.EndpointUsers)
+	return NewData[*User](http.MethodGet, discord.EndpointUser(userID)).
+		WithBucketID(discord.EndpointUsers)
 }
 
 // AvatarDecode returns an image.Image of a user.User Avatar.
 func (r Requester) AvatarDecode(u *User) Request[image.Image] {
-	return NewImage(
-		r, http.MethodGet, discord.EndpointUserAvatar(u.ID, u.Avatar),
-	).WithBucketID(discord.EndpointUserAvatar("", ""))
+	return NewImage(http.MethodGet, discord.EndpointUserAvatar(u.ID, u.Avatar)).
+		WithBucketID(discord.EndpointUserAvatar("", ""))
 }
 
 // Update updates current user.User settings.
@@ -43,16 +41,13 @@ func (r Requester) Update(username, avatar, banner string) Request[*User] {
 		Banner   string `json:"banner,omitempty"`
 	}{username, avatar, banner}
 
-	return NewData[*User](
-		r, http.MethodPatch, discord.EndpointUser("@me"),
-	).WithBucketID(discord.EndpointUsers).WithData(data)
+	return NewData[*User](http.MethodPatch, discord.EndpointUser("@me")).
+		WithBucketID(discord.EndpointUsers).WithData(data)
 }
 
 // Connections returns the current user.Connection.
 func (r Requester) Connections() Request[[]*Connection] {
-	return NewData[[]*Connection](
-		r, http.MethodGet, discord.EndpointUserConnections("@me"),
-	)
+	return NewData[[]*Connection](http.MethodGet, discord.EndpointUserConnections("@me"))
 }
 
 // ChannelCreate creates a new private channel.Channel (types.ChannelDM) with another user.User.
@@ -61,14 +56,12 @@ func (r Requester) ChannelCreate(userID string) Request[*channel.Channel] {
 		RecipientID string `json:"recipient_id"`
 	}{userID}
 
-	return NewData[*channel.Channel](
-		r, http.MethodPost, discord.EndpointUserChannels("@me"),
-	).WithBucketID(discord.EndpointUserChannels("")).WithData(data)
+	return NewData[*channel.Channel](http.MethodPost, discord.EndpointUserChannels("@me")).
+		WithBucketID(discord.EndpointUserChannels("")).WithData(data)
 }
 
 // GuildMember returns a user.Member for the current user.User in the given guild.Guild ID.
 func (r Requester) GuildMember(guildID string) Request[*Member] {
-	return NewData[*Member](
-		r, http.MethodGet, discord.EndpointUserGuildMember("@me", guildID),
-	).WithBucketID(discord.EndpointUserGuildMember("", guildID))
+	return NewData[*Member](http.MethodGet, discord.EndpointUserGuildMember("@me", guildID)).
+		WithBucketID(discord.EndpointUserGuildMember("", guildID))
 }

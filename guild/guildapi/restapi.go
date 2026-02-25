@@ -55,19 +55,18 @@ func (r Requester) UserGuilds(limit int, beforeID, afterID string, withCounts bo
 		uri += "?" + v.Encode()
 	}
 
-	return NewData[[]*UserGuild](
-		r, http.MethodGet, uri,
-	).WithBucketID(discord.EndpointUserGuilds(""))
+	return NewData[[]*UserGuild](http.MethodGet, uri).
+		WithBucketID(discord.EndpointUserGuilds(""))
 }
 
 // Invites returns the list of invite.Invite for the given guild.Guild.
 func (r Requester) Invites(guildID string) Request[[]*invite.Invite] {
-	return NewData[[]*invite.Invite](r, http.MethodGet, discord.EndpointGuildInvites(guildID))
+	return NewData[[]*invite.Invite](http.MethodGet, discord.EndpointGuildInvites(guildID))
 }
 
 // Icon returns an image.Image of a guild.Guild icon.
 func (r Requester) Icon(guildID string) Request[image.Image] {
-	return NewImage(r, http.MethodGet, "").
+	return NewImage(http.MethodGet, "").
 		WithBucketID(discord.EndpointGuildIcon(guildID, "")).
 		WithPre(func(ctx context.Context, do *Do) error {
 			g, err := r.Guild(guildID).Do(ctx)
@@ -84,7 +83,7 @@ func (r Requester) Icon(guildID string) Request[image.Image] {
 
 // Splash returns an image.Image of a guild.Guild splash image.
 func (r Requester) Splash(guildID string) Request[image.Image] {
-	return NewImage(r, http.MethodGet, "").
+	return NewImage(http.MethodGet, "").
 		WithBucketID(discord.EndpointGuildSplash(guildID, "")).
 		WithPre(func(ctx context.Context, do *Do) error {
 			g, err := r.Guild(guildID).Do(ctx)
@@ -101,12 +100,12 @@ func (r Requester) Splash(guildID string) Request[image.Image] {
 
 // Embed returns the guild.Embed for a guild.Guild.
 func (r Requester) Embed(guildID string) Request[*Embed] {
-	return NewData[*Embed](r, http.MethodGet, discord.EndpointGuildEmbed(guildID))
+	return NewData[*Embed](http.MethodGet, discord.EndpointGuildEmbed(guildID))
 }
 
 // EmbedEdit edits the guild.Embed of a guild.Guild.
 func (r Requester) EmbedEdit(guildID string, data *Embed) Empty {
-	req := NewSimple(r, http.MethodPatch, discord.EndpointGuildEmbed(guildID)).WithData(data)
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildEmbed(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }
 
@@ -136,5 +135,5 @@ func (r Requester) AuditLog(guildID, userID, beforeID string, actionType, limit 
 		uri += "?" + v.Encode()
 	}
 
-	return NewData[*AuditLog](r, http.MethodGet, uri)
+	return NewData[*AuditLog](http.MethodGet, uri)
 }

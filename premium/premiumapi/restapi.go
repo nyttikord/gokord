@@ -20,7 +20,7 @@ type Requester struct {
 
 // SKUs returns all premium.SKU for a given application.Application.
 func (r *Requester) SKUs(appID string) Request[[]*SKU] {
-	return NewData[[]*SKU](r, http.MethodGet, discord.EndpointApplicationSKUs(appID))
+	return NewData[[]*SKU](http.MethodGet, discord.EndpointApplicationSKUs(appID))
 }
 
 // Entitlements returns all premium.Entitlement for a given application.Application, active and expired.
@@ -55,14 +55,13 @@ func (r *Requester) Entitlements(appID string, filterOptions *EntitlementFilterO
 		endpoint += "?" + queryParams.Encode()
 	}
 
-	return NewData[[]*Entitlement](r, http.MethodGet, endpoint)
+	return NewData[[]*Entitlement](http.MethodGet, endpoint)
 }
 
 // EntitlementConsume marks a given One-Time Purchase for the user.User as consumed.
 func (r *Requester) EntitlementConsume(appID, entitlementID string) Empty {
-	req := NewSimple(
-		r, http.MethodPost, discord.EndpointEntitlementConsume(appID, entitlementID),
-	).WithBucketID(discord.EndpointEntitlementConsume(appID, ""))
+	req := NewSimple(http.MethodPost, discord.EndpointEntitlementConsume(appID, entitlementID)).
+		WithBucketID(discord.EndpointEntitlementConsume(appID, ""))
 	return WrapAsEmpty(req)
 }
 
@@ -70,7 +69,7 @@ func (r *Requester) EntitlementConsume(appID, entitlementID string) Empty {
 //
 // Discord will act as though that user or guild has premium.Entitlement to your premium offering.
 func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) Empty {
-	req := NewSimple(r, http.MethodPost, discord.EndpointEntitlements(appID)).WithData(data)
+	req := NewSimple(http.MethodPost, discord.EndpointEntitlements(appID)).WithData(data)
 	return WrapAsEmpty(req)
 }
 
@@ -78,9 +77,8 @@ func (r *Requester) EntitlementTestCreate(appID string, data *EntitlementTest) E
 //
 // Discord will act as though that user.User or guild.Guild no longer has Entitlement to your premium offering.
 func (r *Requester) EntitlementTestDelete(appID, entitlementID string) Empty {
-	req := NewSimple(
-		r, http.MethodDelete, discord.EndpointEntitlement(appID, entitlementID),
-	).WithBucketID(discord.EndpointEntitlement(appID, ""))
+	req := NewSimple(http.MethodDelete, discord.EndpointEntitlement(appID, entitlementID)).
+		WithBucketID(discord.EndpointEntitlement(appID, ""))
 	return WrapAsEmpty(req)
 }
 
@@ -106,7 +104,7 @@ func (r *Requester) Subscriptions(skuID string, userID string, before, after *ti
 		queryParams.Set("limit", strconv.Itoa(limit))
 	}
 
-	return NewData[[]*Subscription](r, http.MethodGet, endpoint+"?"+queryParams.Encode())
+	return NewData[[]*Subscription](http.MethodGet, endpoint+"?"+queryParams.Encode())
 }
 
 // Subscription returns a premium.Subscription by its premium.SKU and premium.Subscription ID.
@@ -123,5 +121,5 @@ func (r *Requester) Subscription(skuID, subscriptionID, userID string) Request[*
 		endpoint += "?" + queryParams.Encode()
 	}
 
-	return NewData[*Subscription](r, http.MethodGet, endpoint)
+	return NewData[*Subscription](http.MethodGet, endpoint)
 }

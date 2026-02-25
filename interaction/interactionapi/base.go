@@ -22,10 +22,10 @@ func (r Requester) Respond(i *Interaction, resp *Response) request.Empty {
 	endpoint := discord.EndpointInteractionResponse(i.ID, i.Token)
 
 	if resp.Data == nil || len(resp.Data.Files) == 0 {
-		req := request.NewSimple(r, http.MethodPost, endpoint).WithData(resp)
+		req := request.NewSimple(http.MethodPost, endpoint).WithData(resp)
 		return request.WrapAsEmpty(req)
 	}
-	req := request.NewMultipart[[]byte](r, http.MethodPost, endpoint, resp, resp.Data.Files)
+	req := request.NewMultipart[[]byte](http.MethodPost, endpoint, resp, resp.Data.Files)
 	return WrapEmptyRequestAsResponse(request.WrapMultipartAsEmpty(req))
 }
 
@@ -41,7 +41,7 @@ func (r Requester) ResponseEdit(i *Interaction, newresp *channel.WebhookEdit) re
 
 // ResponseDelete deletes the response to an interaction.Interaction.
 func (r Requester) ResponseDelete(i *Interaction) request.Empty {
-	req := request.NewSimple(r, http.MethodDelete, discord.EndpointInteractionResponseActions(i.AppID, i.Token))
+	req := request.NewSimple(http.MethodDelete, discord.EndpointInteractionResponseActions(i.AppID, i.Token))
 	return request.WrapAsEmpty(req)
 }
 

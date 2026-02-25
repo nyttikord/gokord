@@ -19,7 +19,7 @@ func (r Requester) ScheduledEvents(guildID string, userCount bool) Request[[]*Sc
 		uri += "?with_user_count=true"
 	}
 
-	return NewData[[]*ScheduledEvent](r, http.MethodGet, uri)
+	return NewData[[]*ScheduledEvent](http.MethodGet, uri)
 }
 
 // ScheduledEvent returns a specific guild.ScheduledEvent in a guild.Guild.
@@ -31,28 +31,25 @@ func (r Requester) ScheduledEvent(guildID, eventID string, userCount bool) Reque
 		uri += "?with_user_count=true"
 	}
 
-	return NewData[*ScheduledEvent](r, http.MethodGet, uri)
+	return NewData[*ScheduledEvent](http.MethodGet, uri)
 }
 
 // ScheduledEventCreate creates a guild.ScheduledEvent for a guild.Guild and returns it.
 func (r Requester) ScheduledEventCreate(guildID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
-	return NewData[*ScheduledEvent](
-		r, http.MethodPost, discord.EndpointGuildScheduledEvents(guildID),
-	).WithData(event)
+	return NewData[*ScheduledEvent](http.MethodPost, discord.EndpointGuildScheduledEvents(guildID)).
+		WithData(event)
 }
 
 // ScheduledEventEdit updates a guild.ScheduledEvent for a guild.Guild and returns it.
 func (r Requester) ScheduledEventEdit(guildID, eventID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
-	return NewData[*ScheduledEvent](
-		r, http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID),
-	).WithBucketID(discord.EndpointGuildScheduledEvent(guildID, "")).WithData(event)
+	return NewData[*ScheduledEvent](http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID)).
+		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, "")).WithData(event)
 }
 
 // ScheduledEventDelete deletes a specific guild.ScheduledEvent in a guild.Guild.
 func (r Requester) ScheduledEventDelete(guildID, eventID string) Empty {
-	req := NewSimple(
-		r, http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID),
-	).WithBucketID(discord.EndpointGuildScheduledEvent(guildID, eventID))
+	req := NewSimple(http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID)).
+		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, eventID))
 	return WrapAsEmpty(req)
 }
 
@@ -83,7 +80,6 @@ func (r Requester) ScheduledEventUsers(guildID, eventID string, limit int, withM
 		uri += "?" + queryParams.Encode()
 	}
 
-	return NewData[[]*ScheduledEventUser](
-		r, http.MethodPost, uri,
-	).WithBucketID(discord.EndpointGuildScheduledEventUsers(guildID, ""))
+	return NewData[[]*ScheduledEventUser](http.MethodPost, uri).
+		WithBucketID(discord.EndpointGuildScheduledEventUsers(guildID, ""))
 }
