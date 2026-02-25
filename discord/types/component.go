@@ -21,6 +21,9 @@ const (
 	ComponentContainer             Component = 17
 	ComponentLabel                 Component = 18
 	ComponentFileUpload            Component = 19
+	ComponentRadioGroup            Component = 21
+	ComponentCheckboxGroup         Component = 22
+	ComponentCheckbox              Component = 23
 )
 
 // SelectMenuDefaultValue represents the type of entity selected by default in autopopulated component.SelectMenuDefaultValue.

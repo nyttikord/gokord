@@ -24,13 +24,7 @@ type ActionsRow struct {
 }
 
 func (r *ActionsRow) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		ActionsRow
-		Type types.Component `json:"type"`
-	}{
-		ActionsRow: *r,
-		Type:       r.Type(),
-	})
+	return marshalJSON(r)
 }
 
 func (r *ActionsRow) UnmarshalJSON(data []byte) error {
@@ -97,13 +91,7 @@ func (b *Button) MarshalJSON() ([]byte, error) {
 	if b.Style == 0 {
 		b.Style = ButtonStylePrimary
 	}
-	return json.Marshal(struct {
-		Button
-		Type types.Component `json:"type"`
-	}{
-		Button: *b,
-		Type:   b.Type(),
-	})
+	return marshalJSON(b)
 }
 
 func (*Button) Type() types.Component {
@@ -129,13 +117,7 @@ func (*Section) Type() types.Component {
 }
 
 func (s *Section) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Section
-		Type types.Component `json:"type"`
-	}{
-		Section: *s,
-		Type:    s.Type(),
-	})
+	return marshalJSON(s)
 }
 
 func (s *Section) UnmarshalJSON(data []byte) error {
@@ -174,13 +156,7 @@ func (*Thumbnail) Type() types.Component {
 }
 
 func (t *Thumbnail) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Thumbnail
-		Type types.Component `json:"type"`
-	}{
-		Thumbnail: *t,
-		Type:      t.Type(),
-	})
+	return marshalJSON(t)
 }
 
 func (*Thumbnail) message() {}
@@ -200,13 +176,7 @@ func (*MediaGallery) Type() types.Component {
 }
 
 func (m *MediaGallery) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		MediaGallery
-		Type types.Component `json:"type"`
-	}{
-		MediaGallery: *m,
-		Type:         m.Type(),
-	})
+	return marshalJSON(m)
 }
 
 func (*MediaGallery) message() {}
@@ -232,13 +202,7 @@ func (*File) Type() types.Component {
 }
 
 func (f *File) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		File
-		Type types.Component `json:"type"`
-	}{
-		File: *f,
-		Type: f.Type(),
-	})
+	return marshalJSON(f)
 }
 
 func (*File) message() {}
@@ -265,13 +229,7 @@ func (*Separator) Type() types.Component {
 }
 
 func (s *Separator) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Separator
-		Type types.Component `json:"type"`
-	}{
-		Separator: *s,
-		Type:      s.Type(),
-	})
+	return marshalJSON(s)
 }
 
 func (*Separator) message() {}
@@ -292,13 +250,7 @@ func (*Container) Type() types.Component {
 }
 
 func (c *Container) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Container
-		Type types.Component `json:"type"`
-	}{
-		Container: *c,
-		Type:      c.Type(),
-	})
+	return marshalJSON(c)
 }
 
 func (c *Container) UnmarshalJSON(data []byte) error {

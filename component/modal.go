@@ -76,13 +76,7 @@ func (s *SelectMenu) Type() types.Component {
 }
 
 func (s *SelectMenu) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		SelectMenu
-		Type types.Component `json:"type"`
-	}{
-		SelectMenu: *s,
-		Type:       s.Type(),
-	})
+	return marshalJSON(s)
 }
 
 func (s *SelectMenu) message() {}
@@ -111,13 +105,7 @@ func (*TextInput) Type() types.Component {
 }
 
 func (t *TextInput) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		TextInput
-		Type types.Component `json:"type"`
-	}{
-		TextInput: *t,
-		Type:      t.Type(),
-	})
+	return marshalJSON(t)
 }
 
 func (*TextInput) modal() {}
@@ -141,13 +129,7 @@ func (*TextDisplay) Type() types.Component {
 }
 
 func (t *TextDisplay) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		TextDisplay
-		Type types.Component `json:"type"`
-	}{
-		TextDisplay: *t,
-		Type:        t.Type(),
-	})
+	return marshalJSON(t)
 }
 
 func (*TextDisplay) message() {}
@@ -172,13 +154,7 @@ func (*Label) Type() types.Component {
 }
 
 func (l *Label) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Label
-		Type types.Component `json:"type"`
-	}{
-		Label: *l,
-		Type:  l.Type(),
-	})
+	return marshalJSON(l)
 }
 
 func (l *Label) UnmarshalJSON(data []byte) error {
@@ -220,13 +196,7 @@ func (s *FileUpload) Type() types.Component {
 }
 
 func (s *FileUpload) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		FileUpload
-		Type types.Component `json:"type"`
-	}{
-		FileUpload: *s,
-		Type:       s.Type(),
-	})
+	return marshalJSON(s)
 }
 
 func (s *FileUpload) modal() {}

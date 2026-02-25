@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/internal/structs"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 //
 // NOTE to gokord contributors: when you are implementing a new component, don't forget to create a custom UnmarshalJSON
 // if you are using an interface as a value type.
+// Your MarshalJSON must use [marshalJSON] and can implement [structs.MarshalerMap] if it requires a custom logic.
 type Component interface {
 	json.Marshaler
 	Type() types.Component
@@ -25,6 +27,14 @@ type Component interface {
 // Unmarshaler is used to convert raw json bytes into a valid Component.
 type Unmarshaler struct {
 	Component
+}
+
+func marshalJSON[T Component](c T) ([]byte, error) {
+	mp := structs.MarshalToMap(c)
+	mp["type"] = c.Type()
+	b, _ := json.MarshalIndent(mp, "", "  ")
+	println(string(b))
+	return json.Marshal(mp)
 }
 
 // UnmarshalJSON converts json bytes into a valid Component.
@@ -63,6 +73,11 @@ func (un *Unmarshaler) UnmarshalJSON(data []byte) error {
 		un.Component = &Container{}
 	case types.ComponentLabel:
 		un.Component = &Label{}
+	case types.ComponentFileUpload:
+		un.Component = &FileUpload{}
+	case types.ComponentCheckbox:
+	case types.ComponentCheckboxGroup:
+	case types.ComponentRadioGroup:
 	default:
 		return fmt.Errorf("unknown component type: %d", v.Type)
 	}
