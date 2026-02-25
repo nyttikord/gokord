@@ -15,7 +15,7 @@ func SetLogger(ctx context.Context, logger *slog.Logger) context.Context {
 	return context.WithValue(ctx, discord.ContextLogger, logger)
 }
 
-func CreateContext(ctx context.Context, logger *slog.Logger, s Session) context.Context {
+func NewContext(ctx context.Context, logger *slog.Logger, s Session) context.Context {
 	ctx = SetLogger(ctx, logger)
 	ctx = context.WithValue(ctx, discord.ContextSession, s)
 	return ctx

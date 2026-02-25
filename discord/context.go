@@ -11,4 +11,6 @@ const (
 	ContextMessageComponentHandlers ContextKey = 3
 	ContextModalSubmitHandlers      ContextKey = 4
 	ContextInteractionResponse      ContextKey = 5
+	// request package
+	ContextREST ContextKey = 6
 )

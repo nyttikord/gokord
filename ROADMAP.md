@@ -40,8 +40,7 @@ Use AVL as default state storage to reduce memory usage.
 New higher-level slash commands package using contexts to simplify their declaration.
 Same for components.
 
-Provides a new easier way to create a bot.
-*Note: is it really worth it?*
+Rewrite how rate-limits are handled.
 
 ## `1.0.0`
 
