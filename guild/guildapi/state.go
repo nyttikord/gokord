@@ -4,6 +4,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/nyttikord/avl"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
@@ -13,14 +14,14 @@ type State struct {
 	state.State
 	mu      sync.RWMutex
 	storage state.Storage[guild.Guild]
-	guilds  []string
+	guilds  *avl.SimpleAVL[string]
 }
 
 func NewState(state state.State, storage state.Storage[guild.Guild]) *State {
 	return &State{
 		State:   state,
 		storage: storage,
-		guilds:  make([]string, 0),
+		guilds:  avl.NewString(),
 	}
 }
 
@@ -74,7 +75,9 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 	if err != nil {
 		return err
 	}
-	s.guilds = append(s.guilds, g.ID)
+	if len(g.ID) > 0 {
+		s.guilds.Insert(g.ID)
+	}
 	return nil
 }
 
@@ -87,7 +90,7 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 	if err != nil {
 		return err
 	}
-	s.guilds = slices.DeleteFunc(s.guilds, func(s string) bool { return s == guild.ID })
+	s.guilds.Delete(guild.ID)
 	return nil
 }
 
@@ -109,8 +112,9 @@ func (s *State) Guild(guildID string) (*guild.Guild, error) {
 	return &g, nil
 }
 
+// Guilds returns the sorted list of guilds ID.
 func (s *State) Guilds() []string {
-	return s.guilds
+	return s.guilds.Sort()
 }
 
 // RoleAdd adds a guild.Role to the current State, or updates it if it already exists.

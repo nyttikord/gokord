@@ -1,4 +1,4 @@
 github.com/coder/websocket v1.8.14 h1:9L0p0iKiNOibykf283eHkKUHHrpG7f65OE3BhhO7v9g=
 github.com/coder/websocket v1.8.14/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
-github.com/nyttikord/avl v0.2.0 h1:FF9dbX60udQoOwW2rG9bn7poKZmfz46KtBKD0SapxIA=
-github.com/nyttikord/avl v0.2.0/go.mod h1:sY7H/Il0EQYdaZ2iv/nt9Tde3P+0g6Mku7+92atYo1o=
+github.com/nyttikord/avl v0.2.1 h1:2m70ZQMUi0bqGMuDs4+2lAby/6z7reBojxuCr3WkP0c=
+github.com/nyttikord/avl v0.2.1/go.mod h1:sY7H/Il0EQYdaZ2iv/nt9Tde3P+0g6Mku7+92atYo1o=
