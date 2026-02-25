@@ -86,7 +86,7 @@ type ModalResponse struct {
 
 // NewModalResponse creates a new ModalResponse.
 func NewModalResponse() *ModalResponse {
-	return &ModalResponse{res: Response{Data: new(ResponseData)}}
+	return &ModalResponse{res: Response{Data: new(ResponseData), Type: types.InteractionResponseModal}}
 }
 
 func (r *ModalResponse) Response() *Response {

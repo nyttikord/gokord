@@ -32,8 +32,6 @@ type Unmarshaler struct {
 func marshalJSON[T Component](c T) ([]byte, error) {
 	mp := structs.MarshalToMap(c)
 	mp["type"] = c.Type()
-	b, _ := json.MarshalIndent(mp, "", "  ")
-	println(string(b))
 	return json.Marshal(mp)
 }
 
