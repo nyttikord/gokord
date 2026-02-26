@@ -112,7 +112,7 @@ func main() {
 		}
 
 		userid := strings.Split(data.CustomID, "_")[2]
-		_, err = s.ChannelAPI().MessageSend(*ResultsChannel, fmt.Sprintf(
+		_, err = channel.SendMessage(*ResultsChannel, fmt.Sprintf(
 			"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 			userid,
 			data.Components[0].(*component.Label).Component.(*component.TextInput).Value,

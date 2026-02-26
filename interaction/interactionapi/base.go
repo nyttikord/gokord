@@ -31,12 +31,12 @@ func (r Requester) Respond(i *Interaction, resp *Response) request.Empty {
 
 // Response gets the response to an interaction.Interaction.
 func (r Requester) Response(i *Interaction) request.Request[*channel.Message] {
-	return WrapRequestAsResponse(r.ChannelAPI().WebhookMessage(i.AppID, i.Token, "@original"))
+	return WrapRequestAsResponse(channel.GetWebhookMessage(i.AppID, i.Token, "@original"))
 }
 
 // ResponseEdit edits the response to an interaction.Interaction.
 func (r Requester) ResponseEdit(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
-	return r.ChannelAPI().WebhookMessageEdit(i.AppID, i.Token, "@original", newresp)
+	return channel.EditWebhookMessage(i.AppID, i.Token, "@original", newresp)
 }
 
 // ResponseDelete deletes the response to an interaction.Interaction.
@@ -50,15 +50,15 @@ func (r Requester) ResponseDelete(i *Interaction) request.Empty {
 // wait if the function waits for server confirmation of message send and ensures that the return struct is populated
 // (it is nil otherwise).
 func (r Requester) FollowupMessageCreate(i *Interaction, wait bool, data *channel.WebhookParams) request.Request[*channel.Message] {
-	return WrapRequestAsResponse(r.ChannelAPI().WebhookExecute(i.AppID, i.Token, wait, data))
+	return WrapRequestAsResponse(channel.ExecuteWebhook(i.AppID, i.Token, wait, data))
 }
 
 // FollowupMessageEdit edits a followup message of an interaction.Interaction.
 func (r Requester) FollowupMessageEdit(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
-	return r.ChannelAPI().WebhookMessageEdit(i.AppID, i.Token, messageID, data)
+	return channel.EditWebhookMessage(i.AppID, i.Token, messageID, data)
 }
 
 // FollowupMessageDelete deletes a followup message of an interaction.Interaction.
 func (r Requester) FollowupMessageDelete(i *Interaction, messageID string) request.Empty {
-	return r.ChannelAPI().WebhookMessageDelete(i.AppID, i.Token, messageID)
+	return channel.DeleteWebhookMessage(i.AppID, i.Token, messageID)
 }

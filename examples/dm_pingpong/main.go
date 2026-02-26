@@ -10,6 +10,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -68,8 +69,8 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		return
 	}
 
-	// We create the private channel with the user who sent the message.
-	channel, err := s.UserAPI().ChannelCreate(m.Author.ID).Do(ctx)
+	// We create the private ch with the user who sent the message.
+	ch, err := s.UserAPI().ChannelCreate(m.Author.ID).Do(ctx)
 	if err != nil {
 		// If an error occurred, we failed to create the channel.
 		//
@@ -79,14 +80,14 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		//    label us as abusing the endpoint, blocking us from opening
 		//    new ones.
 		fmt.Println("error creating channel:", err)
-		s.ChannelAPI().MessageSend(
+		channel.SendMessage(
 			m.ChannelID,
 			"Something went wrong while sending the DM!",
 		).Do(ctx)
 		return
 	}
 	// Then we send the message through the channel we created.
-	_, err = s.ChannelAPI().MessageSend(channel.ID, "Pong!").Do(ctx)
+	_, err = channel.SendMessage(ch.ID, "Pong!").Do(ctx)
 	if err != nil {
 		// If an error occurred, we failed to send the message.
 		//
@@ -94,7 +95,7 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		// user (highly unlikely as we just received a message) or
 		// the user disabled DM in their settings (more likely).
 		fmt.Println("error sending DM message:", err)
-		s.ChannelAPI().MessageSend(
+		channel.SendMessage(
 			m.ChannelID,
 			"Failed to send you a DM. "+
 				"Did you disable DM in your privacy settings?",

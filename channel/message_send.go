@@ -1,8 +1,11 @@
 package channel
 
 import (
+	"net/http"
+
 	"github.com/nyttikord/gokord/component"
-	"github.com/nyttikord/gokord/discord/request"
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 )
 
@@ -12,7 +15,7 @@ type MessageSend struct {
 	Embeds          []*MessageEmbed         `json:"embeds"`
 	TTS             bool                    `json:"tts"`
 	Components      []component.Message     `json:"components"`
-	Files           []*request.File         `json:"-"`
+	Files           []*File                 `json:"-"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Reference       *MessageReference       `json:"message_reference,omitempty"`
 	StickerIDs      []string                `json:"sticker_ids"`
@@ -29,7 +32,7 @@ type MessageEdit struct {
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Flags           MessageFlags            `json:"flags,omitempty"`
 	// Files to append to the message
-	Files []*request.File `json:"-"`
+	Files []*File `json:"-"`
 	// Overwrite existing attachments
 	Attachments *[]*MessageAttachment `json:"attachments,omitempty"`
 
@@ -82,4 +85,58 @@ type MessageAllowedMentions struct {
 
 	// For replies, whether to mention the author of the message being replied to
 	RepliedUser bool `json:"replied_user"`
+}
+
+// SendMessage to the given [Channel].
+func SendMessage(channelID string, content string) Request[*Message] {
+	return SendMessageComplex(channelID, &MessageSend{Content: content})
+}
+
+// SendMessageComplex to the given [Channel].
+func SendMessageComplex(channelID string, data *MessageSend) Request[*Message] {
+	for _, embed := range data.Embeds {
+		if embed.Type == "" {
+			embed.Type = types.EmbedRich
+		}
+	}
+	endpoint := discord.EndpointChannelMessages(channelID)
+
+	if data.StickerIDs != nil {
+		if len(data.StickerIDs) > 3 {
+			return NewError[*Message](ErrTooMuchStickers)
+		}
+	}
+
+	files := data.Files
+	if len(files) == 0 {
+		return NewData[*Message](http.MethodPost, endpoint).WithData(data)
+	}
+	return NewMultipart[*Message](http.MethodPost, endpoint, data, data.Files)
+}
+
+// SendMessageTTS to the given [Channel] with Text to Speech.
+func SendMessageTTS(channelID string, content string) Request[*Message] {
+	return SendMessageComplex(channelID, &MessageSend{
+		Content: content,
+		TTS:     true,
+	})
+}
+
+// SendMessageReply sends a reply to a [Message] in the given [Channel].
+//
+// reference is the [MessageReference] to send containing the [Message] to reply to.
+func SendMessageReply(channelID string, content string, reference *MessageReference) Request[*Message] {
+	if reference == nil {
+		return NewError[*Message](ErrReplyNilMessageRef)
+	}
+	return SendMessageComplex(channelID, &MessageSend{
+		Content:   content,
+		Reference: reference,
+	})
+}
+
+// CrosspostMessage in a news [Channel] to followers.
+func CrosspostMessage(channelID, messageID string) Request[*Message] {
+	return NewData[*Message](http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID)).
+		WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, ""))
 }

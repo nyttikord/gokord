@@ -1,11 +1,17 @@
 package channel
 
 import (
+	"errors"
+	"net/http"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/user"
@@ -54,7 +60,7 @@ type Message struct {
 	Mentions []*user.User `json:"mentions"`
 
 	// A list of reactions to the Message.
-	Reactions []*MessageReactions `json:"reactions"`
+	Reactions []*Reactions `json:"reactions"`
 
 	// Whether the Message is pinned or not.
 	Pinned bool `json:"pinned"`
@@ -199,13 +205,6 @@ type MessageAttachmentFlags int
 const (
 	MessageAttachmentFlagsIsRemix MessageAttachmentFlags = 1 << 2
 )
-
-// MessageReactions holds a reactions object for a message.
-type MessageReactions struct {
-	Count int          `json:"count"`
-	Me    bool         `json:"me"`
-	Emoji *emoji.Emoji `json:"emoji"`
-}
 
 // MessageActivity is sent with Rich Presence-related chat embeds
 type MessageActivity struct {
@@ -368,4 +367,103 @@ type MessagePinned struct {
 type MessagesPinned struct {
 	Items   []*MessagePinned `json:"items"`
 	HasMore bool             `json:"has_more"`
+}
+
+var (
+	ErrTooMuchStickers         = errors.New("too much stickers: cannot send more than 3 stickers")
+	ErrTooMuchMessagesToDelete = errors.New("too much messages to delete: cannot delete more than 100 messages")
+)
+
+// ListMessages returns an array of [Message] the given [Channel].
+//
+// limit is the number messages that can be returned (max 100).
+// If provided all messages returned will be before beforeID.
+// If provided all messages returned will be after afterID.
+// If provided all messages returned will be around aroundID.
+func ListMessages(channelID string, limit int, beforeID, afterID, aroundID string) Request[[]*Message] {
+	uri := discord.EndpointChannelMessages(channelID)
+
+	v := url.Values{}
+	if limit > 0 {
+		v.Set("limit", strconv.Itoa(limit))
+	}
+	if afterID != "" {
+		v.Set("after", afterID)
+	}
+	if beforeID != "" {
+		v.Set("before", beforeID)
+	}
+	if aroundID != "" {
+		v.Set("around", aroundID)
+	}
+	if len(v) > 0 {
+		uri += "?" + v.Encode()
+	}
+	return NewData[[]*Message](http.MethodGet, uri)
+}
+
+// GetMessage from a given [Channel].
+func GetMessage(channelID, messageID string) Request[*Message] {
+	return NewData[*Message](http.MethodGet, discord.EndpointChannelMessage(channelID, messageID)).
+		WithBucketID(discord.EndpointChannelMessage(channelID, ""))
+}
+
+// EditMessage, replacing it entirely with the given content.
+func EditMessage(channelID, messageID, content string) Request[*Message] {
+	return EditMessageComplex(NewMessageEdit(channelID, messageID).SetContent(content))
+}
+
+// EditMessageComplex, replacing it entirely with the given [MessageEdit].
+func EditMessageComplex(m *MessageEdit) Request[*Message] {
+	if m.Embeds != nil {
+		for _, embed := range *m.Embeds {
+			if embed.Type == "" {
+				embed.Type = types.EmbedRich
+			}
+		}
+	}
+
+	endpoint := discord.EndpointChannelMessage(m.Channel, m.ID)
+
+	if len(m.Files) == 0 {
+		return NewData[*Message](http.MethodPatch, endpoint).
+			WithBucketID(discord.EndpointChannelMessage(m.Channel, "")).WithData(m)
+	}
+	return NewMultipart[*Message](http.MethodPatch, endpoint, m, m.Files).
+		WithBucketID(discord.EndpointChannelMessage(m.Channel, ""))
+}
+
+// DeleteMessage from the given [Channel].
+func DeleteMessage(channelID, messageID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointChannelMessage(channelID, messageID)).
+		WithBucketID(discord.EndpointChannelMessage(channelID, ""))
+	return WrapAsEmpty(req)
+}
+
+// DeleteMessages from the [Channel].
+//
+// messages contains the list of message's ID to delete (max 100).
+//
+// If only one messageID is in the slice, it calls DeleteMessage.
+// If the slice is empty, it does nothing.
+func DeleteMessages(channelID string, messages []string) Empty {
+	if len(messages) == 0 {
+		// to do nothing
+		return WrapErrorAsEmpty(nil)
+	}
+
+	if len(messages) == 1 {
+		return DeleteMessage(channelID, messages[0])
+	}
+
+	if len(messages) > 100 {
+		return WrapErrorAsEmpty(ErrTooMuchMessagesToDelete)
+	}
+
+	data := struct {
+		Messages []string `json:"messages"`
+	}{messages}
+
+	req := NewSimple(http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID)).WithData(data)
+	return WrapAsEmpty(req)
 }

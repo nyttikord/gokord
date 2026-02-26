@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"testing"
+
+	"github.com/nyttikord/gokord/channel"
 )
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
@@ -16,9 +18,9 @@ func TestChannelMessageSend(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := context.Background()
+	ctx := dg.NewRESTContext(context.Background())
 
-	_, err := dg.ChannelAPI().MessageSend(envChannel, "Running REST API Tests!").Do(ctx)
+	_, err := channel.SendMessage(envChannel, "Running REST API Tests!").Do(ctx)
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -183,7 +185,7 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.ChannelAPI().MessageSend(envChannel, "All done running REST API Tests!").Do(context.Background())
+	_, err := channel.SendMessage(envChannel, "All done running REST API Tests!").Do(dg.NewRESTContext(context.Background()))
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}

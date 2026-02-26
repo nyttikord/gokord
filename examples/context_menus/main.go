@@ -139,7 +139,7 @@ func rickrollEm(ctx context.Context, s bot.Session, i *interaction.ApplicationCo
 			panic(err)
 		}
 	}
-	_, err = s.ChannelAPI().MessageSend(
+	_, err = channel.SendMessage(
 		ch.ID,
 		fmt.Sprintf("%s sent you this: https://youtu.be/dQw4w9WgXcQ", i.Member.Mention()),
 	).Do(ctx)
