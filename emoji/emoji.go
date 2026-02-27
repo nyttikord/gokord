@@ -2,8 +2,11 @@
 package emoji
 
 import (
+	"net/http"
 	"regexp"
 
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -68,4 +71,34 @@ type Component struct {
 	Name     string `json:"name,omitempty"`
 	ID       string `json:"id,omitempty"`
 	Animated bool   `json:"animated,omitempty"`
+}
+
+// List returns all [Emoji] in the given [guild.Guild].
+func List(guildID string) Request[[]*Emoji] {
+	return NewData[[]*Emoji](http.MethodGet, discord.EndpointGuildEmojis(guildID))
+}
+
+// Get returns the [Emoji] in the given [guild.Guild].
+func Get(guildID, emojiID string) Request[*Emoji] {
+	return NewData[*Emoji](http.MethodGet, discord.EndpointGuildEmoji(guildID, emojiID)).
+		WithBucketID(discord.EndpointGuildEmojis(guildID))
+}
+
+// Create a new [Emoji] in the given [guild.Guild].
+func Create(guildID string, data *Params) Request[*Emoji] {
+	return NewData[*Emoji](http.MethodPost, discord.EndpointGuildEmojis(guildID)).
+		WithData(data)
+}
+
+// Update and returns the updated [Emoji] in the given [guild.Guild].
+func Update(guildID, emojiID string, data *Params) Request[*Emoji] {
+	return NewData[*Emoji](http.MethodPatch, discord.EndpointGuildEmoji(guildID, emojiID)).
+		WithBucketID(discord.EndpointGuildEmojis(guildID)).WithData(data)
+}
+
+// Delete an [Emoji] in the given [guild.Guild].
+func Delete(guildID, emojiID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointGuildEmoji(guildID, emojiID)).
+		WithBucketID(discord.EndpointGuildEmojis(guildID))
+	return WrapAsEmpty(req)
 }

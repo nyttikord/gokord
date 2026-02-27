@@ -1,4 +1,4 @@
-package guildapi
+package guild
 
 import (
 	"net/http"
@@ -8,13 +8,13 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// Integrations returns the list of user.Integration for a guild.Guild.
-func (r Requester) Integrations(guildID string) Request[[]*user.Integration] {
+// ListIntegrations returns the list of user.Integration for a guild.Guild.
+func ListIntegrations(guildID string) Request[[]*user.Integration] {
 	return NewData[[]*user.Integration](http.MethodGet, discord.EndpointGuildIntegrations(guildID))
 }
 
-// IntegrationCreate creates a guild.Guild user.Integration.
-func (r Requester) IntegrationCreate(guildID, integrationType, integrationID string) Request[*user.Integration] {
+// CreateIntegration in the given [Guild].
+func CreateIntegration(guildID, integrationType, integrationID string) Request[*user.Integration] {
 	data := struct {
 		Type string `json:"type"`
 		ID   string `json:"id"`
@@ -24,12 +24,12 @@ func (r Requester) IntegrationCreate(guildID, integrationType, integrationID str
 		WithData(data)
 }
 
-// IntegrationEdit edits a guild.Guild user.Integration.
+// UpdateIntegration in the given [Guild].
 //
 // expireBehavior is the behavior when a user.Integration subscription lapses.
 // expireGracePeriod is the period (in seconds) where the user.Integration will ignore lapsed subscriptions.
 // enableEmoticons is true if emoticons should be synced for this user.Integration (twitch only currently).
-func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool) Request[*user.Integration] {
+func UpdateIntegration(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool) Request[*user.Integration] {
 	data := struct {
 		ExpireBehavior    int  `json:"expire_behavior"`
 		ExpireGracePeriod int  `json:"expire_grace_period"`
@@ -40,8 +40,8 @@ func (r Requester) IntegrationEdit(guildID, integrationID string, expireBehavior
 		WithBucketID(discord.EndpointGuildIntegrations(guildID)).WithData(data)
 }
 
-// IntegrationDelete removes the user.Integration from the guild.Guild.
-func (r Requester) IntegrationDelete(guildID, integrationID string) Empty {
+// DeleteIntegration from the guild.Guild.
+func DeleteIntegration(guildID, integrationID string) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuildIntegration(guildID, integrationID)).
 		WithBucketID(discord.EndpointGuildIntegrations(guildID))
 	return WrapAsEmpty(req)

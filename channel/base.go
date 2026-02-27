@@ -1,4 +1,4 @@
-// Package channel contains every data structures linked with channels like... [Channel] or [Message].
+// Package channel contains every data structures linked with channels like [Channel] or [Message].
 package channel
 
 import (
@@ -46,7 +46,7 @@ type PermissionOverwrite struct {
 	Allow int64                     `json:"allow,string"`
 }
 
-// Channel holds all data related to an individual Discord channel.
+// Channel holds all data related to an individual Discord
 type Channel struct {
 	ID string `json:"id"` // The ID of the [Channel].
 	// The ID of the guild.Guild to which the [Channel] belongs, if it is in a [guild.Guild].
@@ -131,7 +131,7 @@ func (c *Channel) IsThread() bool {
 		c.Type == types.ChannelGuildNewsThread
 }
 
-// EditData holds [Channel] field data for a [Edit].
+// EditData holds [Channel] field data for a [Update].
 type EditData struct {
 	Name                          string                 `json:"name,omitempty"`
 	Topic                         string                 `json:"topic,omitempty"`
@@ -197,8 +197,8 @@ func Get(channelID string) Request[*Channel] {
 	return NewData[*Channel](http.MethodGet, discord.EndpointChannel(channelID))
 }
 
-// Edit the given [Channel].
-func Edit(channelID string, data *EditData) Request[*Channel] {
+// Update the given [Channel].
+func Update(channelID string, data *EditData) Request[*Channel] {
 	return NewData[*Channel](http.MethodPatch, discord.EndpointChannel(channelID)).
 		WithData(data)
 }
@@ -206,6 +206,55 @@ func Edit(channelID string, data *EditData) Request[*Channel] {
 // Delete the given [Channel].
 func Delete(channelID string) Request[*Channel] {
 	return NewData[*Channel](http.MethodDelete, discord.EndpointChannel(channelID))
+}
+
+// List returns the list of [Channel] in the [guild.Guild].
+func List(guildID string) Request[[]*Channel] {
+	return NewData[[]*Channel](http.MethodGet, discord.EndpointGuildChannels(guildID))
+}
+
+// CreateData is provided to [CreateComplex].
+type CreateData struct {
+	Name                 string                 `json:"name"`
+	Type                 types.Channel          `json:"type"`
+	Topic                string                 `json:"topic,omitempty"`
+	Bitrate              int                    `json:"bitrate,omitempty"`
+	UserLimit            int                    `json:"user_limit,omitempty"`
+	RateLimitPerUser     int                    `json:"rate_limit_per_user,omitempty"`
+	Position             int                    `json:"position,omitempty"`
+	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites,omitempty"`
+	ParentID             string                 `json:"parent_id,omitempty"`
+	NSFW                 bool                   `json:"nsfw,omitempty"`
+}
+
+// CreateComplex creates a new [Channel] in the given [guild.Guild].
+func CreateComplex(guildID string, data CreateData) Request[*Channel] {
+	return NewData[*Channel](http.MethodPost, discord.EndpointGuildChannels(guildID)).
+		WithData(data)
+}
+
+// ChannelCreate creates a new [Channel] in the given [guild.Guild].
+func ChannelCreate(guildID, name string, ctype types.Channel) Request[*Channel] {
+	return CreateComplex(guildID, CreateData{
+		Name: name,
+		Type: ctype,
+	})
+}
+
+// Reorder updates the order of [Channel] in a [guild.Guild].
+func Reorder(guildID string, channels []*Channel) Empty {
+	data := make([]struct {
+		ID       string `json:"id"`
+		Position int    `json:"position"`
+	}, len(channels))
+
+	for i, c := range channels {
+		data[i].ID = c.ID
+		data[i].Position = c.Position
+	}
+
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildChannels(guildID)).WithData(data)
+	return WrapAsEmpty(req)
 }
 
 // Typing broadcasts to all members that authenticated [user.User] is typing in the given [Channel].

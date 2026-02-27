@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/guild"
 )
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
@@ -106,9 +107,9 @@ func TestUserGuilds(t *testing.T) {
 		t.Skip("Cannot TestUserGuilds, dg not set.")
 	}
 
-	ctx := context.Background()
+	ctx := dg.NewRESTContext(context.Background())
 
-	_, err := dg.GuildAPI().UserGuilds(10, "", "", false).Do(ctx)
+	_, err := guild.ListUserGuilds(10, "", "", false).Do(ctx)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -139,7 +140,7 @@ func TestVoiceRegions(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().VoiceRegions().Do(context.Background())
+	_, err := guild.ListVoiceRegions().Do(context.Background())
 	if err != nil {
 		t.Errorf("VoiceRegions() returned error: %+v", err)
 	}
@@ -153,7 +154,9 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().Roles(envGuild).Do(context.Background())
+	ctx := dg.NewRESTContext(context.Background())
+
+	_, err := guild.ListRoles(envGuild).Do(ctx)
 	if err != nil {
 		t.Errorf("GuildRoles(envGuild) returned error: %+v", err)
 	}
@@ -169,7 +172,9 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	err := dg.GuildAPI().MemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(context.Background())
+	ctx := dg.NewRESTContext(context.Background())
+
+	err := guild.UpdateMemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(ctx)
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -185,7 +190,9 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := channel.SendMessage(envChannel, "All done running REST API Tests!").Do(dg.NewRESTContext(context.Background()))
+	ctx := dg.NewRESTContext(context.Background())
+
+	_, err := channel.SendMessage(envChannel, "All done running REST API Tests!").Do(ctx)
 	if err != nil {
 		t.Errorf("ChannelMessageSend returned error: %+v", err)
 	}
@@ -201,7 +208,9 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	_, err := dg.GuildAPI().PruneCount(envGuild, 1).Do(context.Background())
+	ctx := dg.NewRESTContext(context.Background())
+
+	_, err := guild.PruneCount(envGuild, 1).Do(ctx)
 	if err != nil {
 		t.Errorf("PruneCount returned error: %+v", err)
 	}

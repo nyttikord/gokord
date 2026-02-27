@@ -28,12 +28,14 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	session := gokord.New("Bot " + *BotToken)
-	session.Identify.Intents |= discord.IntentAutoModerationExecution
-	session.Identify.Intents |= discord.IntentMessageContent
+	dg := gokord.New("Bot " + *BotToken)
+	dg.Identify.Intents |= discord.IntentAutoModerationExecution
+	dg.Identify.Intents |= discord.IntentMessageContent
+
+	ctx := dg.NewRESTContext(context.Background())
 
 	enabled := true
-	rule, err := session.GuildAPI().AutoModerationRuleCreate(*GuildID, &guild.AutoModerationRule{
+	rule, err := guild.CreateAutoModerationRule(*GuildID, &guild.AutoModerationRule{
 		Name:        "Auto Moderation example",
 		EventType:   guild.AutoModerationRuleEventMessageSend,
 		TriggerType: guild.AutoModerationRuleTriggerKeywordPreset,
@@ -46,16 +48,16 @@ func main() {
 		Actions: []guild.AutoModerationAction{
 			{Type: types.AutoModerationActionBlockMessage},
 		},
-	}).Do(context.Background())
+	}).Do(ctx)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Successfully created the rule")
-	defer session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(context.Background())
+	defer guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 
-	session.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
-		_, err = session.GuildAPI().AutoModerationRuleEdit(*GuildID, rule.ID, &guild.AutoModerationRule{
+	dg.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
+		_, err = guild.UpdateAutoModerationRule(*GuildID, rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
 			},
@@ -67,7 +69,7 @@ func main() {
 			},
 		}).Do(ctx)
 		if err != nil {
-			session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(ctx)
+			guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 			panic(err)
 		}
 
@@ -79,7 +81,7 @@ func main() {
 
 		var counter int
 		var counterMutex sync.Mutex
-		session.EventManager().AddHandler(func(s bot.Session, e *event.AutoModerationActionExecution) {
+		dg.EventManager().AddHandler(func(s bot.Session, e *event.AutoModerationActionExecution) {
 			action := "unknown"
 			switch e.Action.Type {
 			case types.AutoModerationActionBlockMessage:
@@ -105,18 +107,18 @@ func main() {
 					"you can visit the official Discord docs: https://discord.dev/resources/auto-moderation or ask in our server: https://discord.gg/6dzbuDpSWY",
 				).Do(ctx)
 
-				session.Close(ctx)
-				session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(ctx)
+				dg.Close(ctx)
+				guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 				os.Exit(0)
 			}
 		})
 	})
 
-	err = session.Open(context.Background())
+	err = dg.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer session.Close(context.Background())
+	defer dg.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

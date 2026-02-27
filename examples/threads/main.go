@@ -55,7 +55,7 @@ func main() {
 			if time.Since(games[m.ChannelID]) >= timeout {
 				archived := true
 				locked := true
-				_, err := channel.Edit(m.ChannelID, &channel.EditData{
+				_, err := channel.Update(m.ChannelID, &channel.EditData{
 					Archived: &archived,
 					Locked:   &locked,
 				}).Do(ctx)
