@@ -7,7 +7,6 @@ import (
 	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
-	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
@@ -28,8 +27,6 @@ type Session interface {
 	GuildAPI() *guildapi.Requester
 	// InviteAPI returns an inviteapi.Requester to interact with the invite package.
 	InviteAPI() *inviteapi.Requester
-	// InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
-	InteractionAPI() *interactionapi.Requester
 	// BotAPI returns a botapi.Requester to interact with the bot package.
 	BotAPI() *botapi.Requester
 

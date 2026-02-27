@@ -1,8 +1,11 @@
 package interaction
 
 import (
+	"net/http"
+
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 )
@@ -106,4 +109,50 @@ func (r *ModalResponse) CustomID(s string) *ModalResponse {
 func (r *ModalResponse) AddComponent(c component.Modal) *ModalResponse {
 	r.res.Data.Components = append(r.res.Data.Components, c)
 	return r
+}
+
+// Respond creates the response to an [Interaction].
+func Respond(i *Interaction, resp *Response) request.Empty {
+	endpoint := discord.EndpointInteractionResponse(i.ID, i.Token)
+
+	if resp.Data == nil || len(resp.Data.Files) == 0 {
+		req := request.NewSimple(http.MethodPost, endpoint).WithData(resp)
+		return request.WrapAsEmpty(req)
+	}
+	req := request.NewMultipart[[]byte](http.MethodPost, endpoint, resp, resp.Data.Files)
+	return WrapEmptyRequestAsResponse(request.WrapMultipartAsEmpty(req))
+}
+
+// GetResponse to an [Interaction].
+func GetResponse(i *Interaction) request.Request[*channel.Message] {
+	return WrapRequestAsResponse(channel.GetWebhookMessage(i.AppID, i.Token, "@original"))
+}
+
+// UpdateResponse to an [Interaction].
+func UpdateResponse(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
+	return channel.EditWebhookMessage(i.AppID, i.Token, "@original", newresp)
+}
+
+// DeleteResponse to an [Interaction].
+func DeleteResponse(i *Interaction) request.Empty {
+	req := request.NewSimple(http.MethodDelete, discord.EndpointInteractionResponseActions(i.AppID, i.Token))
+	return request.WrapAsEmpty(req)
+}
+
+// CreateFollowupMessage for an [Interaction].
+//
+// wait if the function waits for server confirmation of message send and ensures that the return struct is populated
+// (it is nil otherwise).
+func CreateFollowupMessage(i *Interaction, wait bool, data *channel.WebhookParams) request.Request[*channel.Message] {
+	return WrapRequestAsResponse(channel.ExecuteWebhook(i.AppID, i.Token, wait, data))
+}
+
+// UpdateFollowupMessage of an [Interaction].
+func UpdateFollowupMessage(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
+	return channel.EditWebhookMessage(i.AppID, i.Token, messageID, data)
+}
+
+// DeleteFollowupMessage of an [Interaction].
+func DeleteFollowupMessage(i *Interaction, messageID string) request.Empty {
+	return channel.DeleteWebhookMessage(i.AppID, i.Token, messageID)
 }

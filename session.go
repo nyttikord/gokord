@@ -19,7 +19,6 @@ import (
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
-	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
@@ -185,11 +184,6 @@ func (s *Session) ChannelAPI() *channelapi.Requester {
 // InviteAPI returns an inviteapi.Requester to interact with the invite package.
 func (s *Session) InviteAPI() *inviteapi.Requester {
 	return &inviteapi.Requester{REST: s.rest}
-}
-
-// InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
-func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{REST: s.rest, ChannelAPI: s.ChannelAPI}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
