@@ -224,7 +224,7 @@ func TestScheduledEvents(t *testing.T) {
 		t.Fatal("err on GuildScheduledEvent endpoint. Mismatched Scheduled Event")
 	}
 
-	eventUpdated, err := guild.UpdateScheduledEvent(envGuild, e.ID, &guild.ScheduledEventParams{Name: "Test Event Updated"}).Do(ctx)
+	eventUpdated, err := guild.EditScheduledEvent(envGuild, e.ID, &guild.ScheduledEventParams{Name: "Test Event Updated"}).Do(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +272,7 @@ func TestComplexScheduledEvents(t *testing.T) {
 	}
 	defer guild.DeleteScheduledEvent(envGuild, event.ID).Do(ctx)
 
-	_, err = guild.UpdateScheduledEvent(envGuild, event.ID, &guild.ScheduledEventParams{
+	_, err = guild.EditScheduledEvent(envGuild, event.ID, &guild.ScheduledEventParams{
 		EntityType: types.ScheduledEventEntityExternal,
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{
 			Location: "https://discord.com",
@@ -283,7 +283,7 @@ func TestComplexScheduledEvents(t *testing.T) {
 		t.Fatal("err on GuildScheduledEventEdit. Change of entity type to external failed")
 	}
 
-	_, err = guild.UpdateScheduledEvent(envGuild, event.ID, &guild.ScheduledEventParams{
+	_, err = guild.EditScheduledEvent(envGuild, event.ID, &guild.ScheduledEventParams{
 		ChannelID:      envVoiceChannel,
 		EntityType:     types.ScheduledEventEntityVoice,
 		EntityMetadata: nil,

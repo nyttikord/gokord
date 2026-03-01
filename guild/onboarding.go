@@ -85,8 +85,8 @@ func GetOnboarding(guildID string) Request[*Onboarding] {
 	return NewData[*Onboarding](http.MethodGet, discord.EndpointGuildOnboarding(guildID))
 }
 
-// UpdateOnboarding configuration of a [Guild].
-func UpdateOnboarding(guildID string, o *Onboarding) Request[*Onboarding] {
+// EditOnboarding configuration of a [Guild].
+func EditOnboarding(guildID string, o *Onboarding) Request[*Onboarding] {
 	return NewData[*Onboarding](http.MethodPut, discord.EndpointGuildOnboarding(guildID)).
 		WithData(o)
 }

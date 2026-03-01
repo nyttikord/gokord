@@ -128,8 +128,8 @@ func GetResponse(i *Interaction) request.Request[*channel.Message] {
 	return WrapRequestAsResponse(channel.GetWebhookMessage(i.AppID, i.Token, "@original"))
 }
 
-// UpdateResponse to an [Interaction].
-func UpdateResponse(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
+// EditResponse to an [Interaction].
+func EditResponse(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
 	return channel.EditWebhookMessage(i.AppID, i.Token, "@original", newresp)
 }
 
@@ -147,8 +147,8 @@ func CreateFollowupMessage(i *Interaction, wait bool, data *channel.WebhookParam
 	return WrapRequestAsResponse(channel.ExecuteWebhook(i.AppID, i.Token, wait, data))
 }
 
-// UpdateFollowupMessage of an [Interaction].
-func UpdateFollowupMessage(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
+// EditFollowupMessage of an [Interaction].
+func EditFollowupMessage(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
 	return channel.EditWebhookMessage(i.AppID, i.Token, messageID, data)
 }
 

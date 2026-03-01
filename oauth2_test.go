@@ -35,7 +35,7 @@ func ExampleApplication() {
 
 	// Update an existing Application with new values
 	ap.Description = "Whooooa"
-	ap, err = application.Update(ap.ID, ap).Do(ctx)
+	ap, err = application.Edit(ap.ID, ap).Do(ctx)
 	log.Printf("ApplicationUpdate: err: %+v, app: %+v\n", err, ap)
 
 	// create a new bot account for this application

@@ -131,7 +131,7 @@ func (c *Channel) IsThread() bool {
 		c.Type == types.ChannelGuildNewsThread
 }
 
-// EditData holds [Channel] field data for a [Update].
+// EditData holds [Channel] field data for a [Edit].
 type EditData struct {
 	Name                          string                 `json:"name,omitempty"`
 	Topic                         string                 `json:"topic,omitempty"`
@@ -197,8 +197,8 @@ func Get(channelID string) Request[*Channel] {
 	return NewData[*Channel](http.MethodGet, discord.EndpointChannel(channelID))
 }
 
-// Update the given [Channel].
-func Update(channelID string, data *EditData) Request[*Channel] {
+// Edit the given [Channel].
+func Edit(channelID string, data *EditData) Request[*Channel] {
 	return NewData[*Channel](http.MethodPatch, discord.EndpointChannel(channelID)).
 		WithData(data)
 }
@@ -233,8 +233,8 @@ func CreateComplex(guildID string, data CreateData) Request[*Channel] {
 		WithData(data)
 }
 
-// ChannelCreate creates a new [Channel] in the given [guild.Guild].
-func ChannelCreate(guildID, name string, ctype types.Channel) Request[*Channel] {
+// Create a new [Channel] in the given [guild.Guild].
+func Create(guildID, name string, ctype types.Channel) Request[*Channel] {
 	return CreateComplex(guildID, CreateData{
 		Name: name,
 		Type: ctype,

@@ -211,12 +211,12 @@ func AvatarDecode(u *User) Request[image.Image] {
 		WithBucketID(discord.EndpointUserAvatar("", ""))
 }
 
-// Update current [User] settings.
+// Edit current [User] settings.
 //
 // NOTE: Avatar must be either the hash/id of existing Avatar or
 // data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
 // If left blank, avatar will be set to null/blank.
-func Update(username, avatar, banner string) Request[*User] {
+func Edit(username, avatar, banner string) Request[*User] {
 	data := struct {
 		Username string `json:"username,omitempty"`
 		Avatar   string `json:"avatar,omitempty"`

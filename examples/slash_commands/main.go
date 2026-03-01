@@ -547,7 +547,7 @@ func responses(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 		content := content + "\n\nWell, now you know how to create and edit responses. " +
 			"But you still don't know how to delete them... so... wait 10 seconds and this " +
 			"message will be deleted."
-		_, err = interaction.UpdateResponse(i.Interaction, &channel.WebhookEdit{
+		_, err = interaction.EditResponse(i.Interaction, &channel.WebhookEdit{
 			Content: &content,
 		}).Do(ctx)
 		if err != nil {
@@ -588,7 +588,7 @@ func followups(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 	time.Sleep(time.Second * 5)
 
 	content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-	interaction.UpdateFollowupMessage(i.Interaction, msg.ID, &channel.WebhookEdit{
+	interaction.EditFollowupMessage(i.Interaction, msg.ID, &channel.WebhookEdit{
 		Content: &content,
 	}).Do(ctx)
 

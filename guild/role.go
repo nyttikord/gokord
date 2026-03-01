@@ -153,8 +153,8 @@ func ListRoles(guildID string) Request[[]*Role] {
 	return NewData[[]*Role](http.MethodPost, discord.EndpointGuildRoles(guildID))
 }
 
-// UpdateRole and returns updated data.
-func UpdateRole(guildID, roleID string, data *RoleParams) Request[*Role] {
+// EditRole and returns updated data.
+func EditRole(guildID, roleID string, data *RoleParams) Request[*Role] {
 	// Prevent sending a color int that is too big.
 	if data.Color != nil && *data.Color > 0xFFFFFF {
 		return NewError[*Role](ErrInvalidColorValue)

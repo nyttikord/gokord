@@ -75,7 +75,7 @@ func createAmazingEvent(ctx context.Context) *guild.ScheduledEvent {
 }
 
 func transformEventToExternalEvent(ctx context.Context, event *guild.ScheduledEvent) {
-	scheduledEvent, err := guild.UpdateScheduledEvent(*GuildID, event.ID, &guild.ScheduledEventParams{
+	scheduledEvent, err := guild.EditScheduledEvent(*GuildID, event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
 		EntityType: types.ScheduledEventEntityExternal,
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{

@@ -141,8 +141,8 @@ func SyncTemplate(guildID, code string) Empty {
 	return WrapAsEmpty(req)
 }
 
-// UpdateTemplate metadata of the given [Guild].
-func UpdateTemplate(guildID, code string, data *TemplateParams) Request[*Template] {
+// EditTemplate metadata of the given [Guild].
+func EditTemplate(guildID, code string, data *TemplateParams) Request[*Template] {
 	return NewData[*Template](http.MethodPatch, discord.EndpointGuildTemplateSync(guildID, code)).
 		WithBucketID(discord.EndpointGuildTemplates(guildID)).WithData(data)
 }

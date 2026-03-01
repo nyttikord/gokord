@@ -165,8 +165,8 @@ func CreateScheduledEvent(guildID string, event *ScheduledEventParams) Request[*
 		WithData(event)
 }
 
-// UpdateScheduledEvent for a [Guild] and returns it.
-func UpdateScheduledEvent(guildID, eventID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
+// EditScheduledEvent for a [Guild] and returns it.
+func EditScheduledEvent(guildID, eventID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
 	return NewData[*ScheduledEvent](http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID)).
 		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, "")).WithData(event)
 }

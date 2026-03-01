@@ -174,7 +174,7 @@ func TestGuildMemberNickname(t *testing.T) {
 
 	ctx := dg.NewRESTContext(context.Background())
 
-	err := guild.UpdateMemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(ctx)
+	err := guild.EditMemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(ctx)
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}

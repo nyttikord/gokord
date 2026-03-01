@@ -90,8 +90,8 @@ func Create(guildID string, data *Params) Request[*Emoji] {
 		WithData(data)
 }
 
-// Update and returns the updated [Emoji] in the given [guild.Guild].
-func Update(guildID, emojiID string, data *Params) Request[*Emoji] {
+// Edit and returns the updated [Emoji] in the given [guild.Guild].
+func Edit(guildID, emojiID string, data *Params) Request[*Emoji] {
 	return NewData[*Emoji](http.MethodPatch, discord.EndpointGuildEmoji(guildID, emojiID)).
 		WithBucketID(discord.EndpointGuildEmojis(guildID)).WithData(data)
 }

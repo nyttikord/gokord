@@ -388,8 +388,8 @@ func GetEmbed(guildID string) Request[*Embed] {
 	return NewData[*Embed](http.MethodGet, discord.EndpointGuildEmbed(guildID))
 }
 
-// UpdateEmbed of a [Guild].
-func UpdateEmbed(guildID string, data *Embed) Empty {
+// EditEmbed of a [Guild].
+func EditEmbed(guildID string, data *Embed) Empty {
 	req := NewSimple(http.MethodPatch, discord.EndpointGuildEmbed(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }

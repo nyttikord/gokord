@@ -441,8 +441,8 @@ func CreateAutoModerationRule(guildID string, rule *AutoModerationRule) Request[
 		WithData(rule)
 }
 
-// UpdateAutoModerationRule and returns the updated [AutoModerationRule].
-func UpdateAutoModerationRule(guildID, ruleID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
+// EditAutoModerationRule and returns the updated [AutoModerationRule].
+func EditAutoModerationRule(guildID, ruleID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
 	return NewData[*AutoModerationRule](http.MethodPatch, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
 		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID)).WithData(rule)
 }

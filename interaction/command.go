@@ -120,10 +120,10 @@ func CreateCommand(appID string, guildID string, cmd *Command) request.Request[*
 	return request.NewData[*Command](http.MethodPost, endpoint).WithData(cmd)
 }
 
-// UpdateCommand and returns new [Command] data.
+// EditCommand and returns new [Command] data.
 //
 // Specifies guildID to edit a [guild.Guild] [Command].
-func UpdateCommand(appID, guildID, cmdID string, cmd *Command) request.Request[*Command] {
+func EditCommand(appID, guildID, cmdID string, cmd *Command) request.Request[*Command] {
 	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
 	if guildID != "" {
 		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
@@ -200,13 +200,13 @@ func GetCommandPermissions(appID, guildID, cmdID string) request.Request[*GuildC
 	return request.NewData[*GuildCommandPermissions](http.MethodGet, endpoint)
 }
 
-// UpdateCommandPermissions edits the permissions of an [Command].
+// EditCommandPermissions edits the permissions of an [Command].
 //
 // guildID is the [guild.Guild] containing the [Command].
 // (I don't know if this is required.)
 //
 // NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
-func UpdateCommandPermissions(appID, guildID, cmdID string, permissions *CommandPermissionsList) request.Empty {
+func EditCommandPermissions(appID, guildID, cmdID string, permissions *CommandPermissionsList) request.Empty {
 	req := request.NewSimple(http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)).
 		WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)
 	return request.WrapAsEmpty(req)

@@ -57,7 +57,7 @@ func main() {
 	defer guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 
 	dg.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
-		_, err = guild.UpdateAutoModerationRule(*GuildID, rule.ID, &guild.AutoModerationRule{
+		_, err = guild.EditAutoModerationRule(*GuildID, rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
 			},

@@ -24,12 +24,12 @@ func CreateIntegration(guildID, integrationType, integrationID string) Request[*
 		WithData(data)
 }
 
-// UpdateIntegration in the given [Guild].
+// EditIntegration in the given [Guild].
 //
 // expireBehavior is the behavior when a user.Integration subscription lapses.
 // expireGracePeriod is the period (in seconds) where the user.Integration will ignore lapsed subscriptions.
 // enableEmoticons is true if emoticons should be synced for this user.Integration (twitch only currently).
-func UpdateIntegration(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool) Request[*user.Integration] {
+func EditIntegration(guildID, integrationID string, expireBehavior, expireGracePeriod int, enableEmoticons bool) Request[*user.Integration] {
 	data := struct {
 		ExpireBehavior    int  `json:"expire_behavior"`
 		ExpireGracePeriod int  `json:"expire_grace_period"`

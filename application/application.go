@@ -97,8 +97,8 @@ func Create(ap *Application) Request[*Application] {
 		WithData(data)
 }
 
-// Update an existing [Application].
-func Update(appID string, ap *Application) Request[*Application] {
+// Edit an existing [Application].
+func Edit(appID string, ap *Application) Request[*Application] {
 	data := struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -170,8 +170,8 @@ func GetRoleConnectionMetadata(appID string) Request[[]*RoleConnectionMetadata] 
 	return NewData[[]*RoleConnectionMetadata](http.MethodGet, discord.EndpointApplicationRoleConnectionMetadata(appID))
 }
 
-// UpdateRoleConnectionMetadata for the given [Application].
-func UpdateRoleConnectionMetadata(appID string, metadata []*RoleConnectionMetadata) Request[[]*RoleConnectionMetadata] {
+// EditRoleConnectionMetadata for the given [Application].
+func EditRoleConnectionMetadata(appID string, metadata []*RoleConnectionMetadata) Request[[]*RoleConnectionMetadata] {
 	return NewData[[]*RoleConnectionMetadata](http.MethodPut, discord.EndpointApplicationRoleConnectionMetadata(appID)).
 		WithData(metadata)
 }
@@ -182,8 +182,8 @@ func GetRoleConnection(appID string) Request[*RoleConnection] {
 
 }
 
-// UpdateRoleConnection for the specified [Application].
-func UpdateRoleConnection(appID string, rconn *RoleConnection) Request[*RoleConnection] {
+// EditRoleConnection for the specified [Application].
+func EditRoleConnection(appID string, rconn *RoleConnection) Request[*RoleConnection] {
 	return NewData[*RoleConnection](http.MethodPut, discord.EndpointUserApplicationRoleConnection(appID)).
 		WithData(rconn)
 }

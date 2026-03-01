@@ -238,8 +238,8 @@ func KickWithReason(guildID, userID, reason string) Empty {
 	return WrapAsEmpty(req)
 }
 
-// UpdateMember with the given data and returns them.
-func UpdateMember(guildID, userID string, data *MemberParams) Request[*user.Member] {
+// EditMember with the given data and returns them.
+func EditMember(guildID, userID string, data *MemberParams) Request[*user.Member] {
 	return NewData[*user.Member](http.MethodPatch, discord.EndpointGuildMember(guildID, userID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID))
 }
@@ -255,18 +255,18 @@ func MoveMember(guildID string, userID string, channelID *string) Empty {
 	return WrapAsEmpty(req)
 }
 
-// UpdateMemberNickname updates the nickname of a [user.Member] in a [Guild].
+// EditMemberNickname updates the nickname of a [user.Member] in a [Guild].
 //
 // NOTE: To reset the nickname, set it to an empty string.
 //
-// NOTE: Use [UpdateCurrentMember] to modify the current member.
-func UpdateMemberNickname(guildID, userID, nickname string) Empty {
+// NOTE: Use [EditCurrentMember] to modify the current member.
+func EditMemberNickname(guildID, userID, nickname string) Empty {
 	if userID == "@me" {
 		/*r.Logger().WarnContext(
 			logger.NewContext(context.Background(), 1),
 			"this endpoint is deprecated for the current member, use MemberModifyCurrent instead",
 		)*/
-		return UpdateCurrentMember(guildID, nickname, "", "", "")
+		return EditCurrentMember(guildID, nickname, "", "", "")
 	}
 
 	data := struct {
@@ -278,10 +278,10 @@ func UpdateMemberNickname(guildID, userID, nickname string) Empty {
 	return WrapAsEmpty(req)
 }
 
-// UpdateCurrentMember updates the nickname, the avatar, the banner and the bio of the current user.Member.
+// EditCurrentMember updates the nickname, the avatar, the banner and the bio of the current user.Member.
 //
 // NOTE: Set any parameter to "" to avoid modifying it.
-func UpdateCurrentMember(guildID string, nick, avatar, banner, bio string) Empty {
+func EditCurrentMember(guildID string, nick, avatar, banner, bio string) Empty {
 	data := struct {
 		Nick   string `json:"nick,omitempty"`
 		Avatar string `json:"avatar,omitempty"`

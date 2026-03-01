@@ -118,9 +118,7 @@ Here's an example:
 
 > Endpoint name: Edit Channel Message
 >
-> Function name: `channel.UpdateMessage`
-
-We use `Update` instead of `Edit`.
+> Function name: `channel.EditMessage`
 
 #### Parameter structures
 
@@ -130,18 +128,18 @@ This structure contains parameters for certain endpoint/set of endpoints.
 If an endpoint/set of endpoints have mostly same parameters, it's a good idea to use a single `Param` structure for
 them.
 Here's an example: 
-> Endpoint: `UpdateGuildMember`
+> Function: `guild.EditMember`
 >
 > `Param` structure: `GuildMemberParams` 
 
 If an endpoint/set of endpoints have differentiating parameters, `Param` structure can be named after the endpoint's
 verb.
 Here's an example:
-> Endpoint: `SendChannelMessageComplex`
+> Endpoint: `channel.SendMessageComplex`
 >
 > `Param` structure: `MessageSend`
 
-> Endpoint: `ChannelMessageEditComplex`
+> Endpoint: `channel.MessageEditComplex`
 >
 > `Param` structure: `MessageEdit` 
 

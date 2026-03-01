@@ -85,8 +85,8 @@ func GetWebhookWithToken(webhookID, token string) Request[*Webhook] {
 		WithBucketID(discord.EndpointWebhooks)
 }
 
-// UpdateWebhook with the given data.
-func UpdateWebhook(webhookID, name, avatar, channelID string) Request[*Webhook] {
+// EditWebhook with the given data.
+func EditWebhook(webhookID, name, avatar, channelID string) Request[*Webhook] {
 	data := struct {
 		Name      string `json:"name,omitempty"`
 		Avatar    string `json:"avatar,omitempty"`
@@ -97,8 +97,8 @@ func UpdateWebhook(webhookID, name, avatar, channelID string) Request[*Webhook] 
 		WithBucketID(discord.EndpointWebhooks).WithData(data)
 }
 
-// UpdateWebhookWithToken with an auth token.
-func UpdateWebhookWithToken(webhookID, token, name, avatar string) Request[*Webhook] {
+// EditWebhookWithToken with an auth token.
+func EditWebhookWithToken(webhookID, token, name, avatar string) Request[*Webhook] {
 	data := struct {
 		Name   string `json:"name,omitempty"`
 		Avatar string `json:"avatar,omitempty"`
