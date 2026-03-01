@@ -179,7 +179,7 @@ func TestScheduledEvents(t *testing.T) {
 		t.Skip("Skipping, dgBot not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	beginAt := time.Now().Add(1 * time.Hour)
 	endAt := time.Now().Add(2 * time.Hour)
@@ -254,7 +254,7 @@ func TestComplexScheduledEvents(t *testing.T) {
 		t.Skip("Skipping, dgBot not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	beginAt := time.Now().Add(1 * time.Hour)
 	endAt := time.Now().Add(2 * time.Hour)

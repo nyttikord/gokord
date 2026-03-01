@@ -234,7 +234,7 @@ func main() {
 	}
 	defer s.Close(context.Background())
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	createdCommands, err := interaction.OverwriteCommands(s.SessionState().User().ID, *GuildID, commands).Do(ctx)
 

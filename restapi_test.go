@@ -19,7 +19,7 @@ func TestChannelMessageSend(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := channel.SendMessage(envChannel, "Running REST API Tests!").Do(ctx)
 	if err != nil {
@@ -107,7 +107,7 @@ func TestUserGuilds(t *testing.T) {
 		t.Skip("Cannot TestUserGuilds, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := guild.ListUserGuilds(10, "", "", false).Do(ctx)
 	if err != nil {
@@ -154,7 +154,7 @@ func TestGuildRoles(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := guild.ListRoles(envGuild).Do(ctx)
 	if err != nil {
@@ -172,7 +172,7 @@ func TestGuildMemberNickname(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	err := guild.EditMemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(ctx)
 	if err != nil {
@@ -190,7 +190,7 @@ func TestChannelMessageSend2(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := channel.SendMessage(envChannel, "All done running REST API Tests!").Do(ctx)
 	if err != nil {
@@ -208,7 +208,7 @@ func TestGuildPruneCount(t *testing.T) {
 		t.Skip("Skipping, dg not set.")
 	}
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := guild.PruneCount(envGuild, 1).Do(ctx)
 	if err != nil {

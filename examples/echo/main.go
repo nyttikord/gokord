@@ -76,7 +76,7 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	ctx := dg.NewRESTContext(context.Background())
+	ctx := dg.NewContext(context.Background())
 
 	_, err := interaction.OverwriteCommands(*App, *Guild, commands).Do(ctx)
 	if err != nil {

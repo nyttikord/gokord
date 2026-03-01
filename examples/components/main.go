@@ -43,7 +43,7 @@ func main() {
 		bot.Logger(ctx).Info("Bot is up!")
 	})
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	_, err := interaction.CreateCommand(*AppID, *GuildID, &interaction.Command{
 		Name:        "buttons",

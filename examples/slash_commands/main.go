@@ -243,7 +243,7 @@ func main() {
 		panic(err)
 	}
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	log.Println("Adding commands...")
 	registeredCommands := make([]*interaction.Command, len(commands))

@@ -125,7 +125,7 @@ func main() {
 
 	cmdIDs := make(map[string]string, len(commands))
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	for _, cmd := range commands {
 		rcmd, err := interaction.CreateCommand(*AppID, *GuildID, &cmd).Do(ctx)

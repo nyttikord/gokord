@@ -36,7 +36,7 @@ func main() {
 	}
 	defer s.Close(context.Background())
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	// Create a new Stage instance on the previous channel
 	si, err := channel.CreateStageInstance(&channel.StageInstanceParams{

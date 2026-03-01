@@ -14,7 +14,6 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
-	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
@@ -222,6 +221,7 @@ func (s *Session) Logger() *slog.Logger {
 	return s.logger
 }
 
-func (s *Session) NewRESTContext(ctx context.Context) context.Context {
-	return request.NewContext(ctx, s.rest)
+// NewContext returns a new context usable everywhere.
+func (s *Session) NewContext(ctx context.Context) context.Context {
+	return bot.NewContext(ctx, s.logger, s, s.rest)
 }

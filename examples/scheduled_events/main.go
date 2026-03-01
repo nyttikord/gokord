@@ -37,7 +37,7 @@ func main() {
 	}
 	defer s.Close(context.Background())
 
-	ctx := s.NewRESTContext(context.Background())
+	ctx := s.NewContext(context.Background())
 
 	event := createAmazingEvent(ctx)
 	transformEventToExternalEvent(ctx, event)
