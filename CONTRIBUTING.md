@@ -1,4 +1,4 @@
-# Getting started
+# Contributing to gokord
 
 Before opening a pull request (PR) or an issue, check the existing ones to avoid creating a duplicate.
 
@@ -24,7 +24,7 @@ We encourage you to watch
 [this conference at FOSDEM 2026](https://fosdem.org/2026/schedule/event/L7ERNP-prs-maintainers-will-love/) to understand
 how to write good PR.
 
-# Use of AI
+## Use of AI
 
 The maintainers of gokord do not use LLMs.
 We are against this technology for many reasons, but we can't stop you from using these tools.
@@ -48,11 +48,11 @@ If your contribution does not follow this vision, avoid contributing.
 Every PR is reviewed by at least one human, every issue is triaged by at least one human, every line of code was written
 for humans.
 
-# Style
+## Style
 
 To standardize and make things less messy, we have a certain code style that is persistent throughout the codebase.
 
-## Commits
+### Commits
 
 A commit is an atomic modification.
 It cannot be divided into smaller ones.
@@ -93,47 +93,36 @@ feat(logger): option to trim version in caller
 is adding something to the logger.
 Now, the developer can use an option to trim versions.
 
-## Organization
+### Organization
 
 Structures and functions under the same endpoint (e.g., `/guild` or `/channel`) are in the same package named with the
 endpoint's name.
 For example, `Role` is in the `guild` package because we must call `/guild/roles` to get a role.
 
-If the package has specific REST method, it has a subpackage called `endpointapi` (e.g., `guildapi` or `channelapi`)
-containing every these REST method.
-In this package, the `Requester` struct implements `discord.Requester` and it is used to send the requests to the
-Discord API.
-This `Requester` is obtainable with the method `gokord.Session.EndpointAPI()` (e.g., `GuildAPI()` or `ChannelAPI()`).
-```go
-var s *gokord.Session // this is a valid gokord session
-var g *guild.Guild
-var err error
-g, err = s.GuildAPI().Guild("0123456789") // this request the guild with the ID "0123456789"
-if err != nil {
-	// an error occurred
-}
-```
+REST methods are directly implemented in the package.
 
 Constant used by Discord are located in the package `discord`. Its subpackage `types` contains types used in multiple
-places.
+packages.
 
-## Naming
+### Naming
 
-### REST methods
+#### REST methods
 
-When naming a REST method, while it might seem counterintuitive, we specify the entity before the action verb (for GET
-endpoints we don't specify one however).
+When naming a REST function, we specify the entity after the action verb.
+We avoid repeating the package name in the function.
 Here's an example:
 
 > Endpoint name: Get Channel Message
 >
-> Method name: `ChannelMessage`
+> Function name: `channel.GetMessage`
 
 > Endpoint name: Edit Channel Message
 >
-> Method name: `ChannelMessageEdit`
+> Function name: `channel.UpdateMessage`
 
-### Parameter structures
+We use `Update` instead of `Edit`.
+
+#### Parameter structures
 
 When making a complex REST endpoint, sometimes you might need to implement a `Param` structure.
 This structure contains parameters for certain endpoint/set of endpoints.
@@ -141,14 +130,14 @@ This structure contains parameters for certain endpoint/set of endpoints.
 If an endpoint/set of endpoints have mostly same parameters, it's a good idea to use a single `Param` structure for
 them.
 Here's an example: 
-> Endpoint: `GuildMemberEdit`
+> Endpoint: `UpdateGuildMember`
 >
 > `Param` structure: `GuildMemberParams` 
 
 If an endpoint/set of endpoints have differentiating parameters, `Param` structure can be named after the endpoint's
 verb.
 Here's an example:
-> Endpoint: `ChannelMessageSendComplex`
+> Endpoint: `SendChannelMessageComplex`
 >
 > `Param` structure: `MessageSend`
 
@@ -156,7 +145,7 @@ Here's an example:
 >
 > `Param` structure: `MessageEdit` 
 
-### Events
+#### Events
 
 When naming an event, we follow gateway's internal naming (which often matches with the official event name in the
 docs).
@@ -165,7 +154,7 @@ Here's an example:
 >
 > Structure name: `InteractionCreate`
 
-# Testing your code
+## Testing your code
 
 Before submitting a PR, you must test your changes.
 
