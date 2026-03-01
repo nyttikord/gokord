@@ -70,7 +70,7 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	}
 
 	// We create the private ch with the user who sent the message.
-	ch, err := s.UserAPI().ChannelCreate(m.Author.ID).Do(ctx)
+	ch, err := channel.CreatePrivate(m.Author.ID).Do(ctx)
 	if err != nil {
 		// If an error occurred, we failed to create the channel.
 		//

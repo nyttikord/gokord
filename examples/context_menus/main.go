@@ -131,7 +131,7 @@ func rickrollEm(ctx context.Context, s bot.Session, i *interaction.ApplicationCo
 		panic(err)
 	}
 
-	ch, err := s.UserAPI().ChannelCreate(i.Data.TargetID).Do(ctx)
+	ch, err := channel.CreatePrivate(i.Data.TargetID).Do(ctx)
 	if err != nil {
 		_, err = interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 			Content: fmt.Sprintf("Mission failed. Cannot send a message to this user: %q", err.Error()),

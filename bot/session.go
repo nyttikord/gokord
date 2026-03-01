@@ -8,7 +8,6 @@ import (
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/state"
-	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/userapi"
 )
 
@@ -25,8 +24,6 @@ type Session interface {
 	UserAPI() *userapi.Requester
 	// GuildAPI returns a guildapi.Requester to interact with the guild package.
 	GuildAPI() *guildapi.Requester
-	// InviteAPI returns an inviteapi.Requester to interact with the invite package.
-	InviteAPI() *inviteapi.Requester
 	// BotAPI returns a botapi.Requester to interact with the bot package.
 	BotAPI() *botapi.Requester
 

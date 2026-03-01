@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/nyttikord/gokord"
+	"github.com/nyttikord/gokord/user"
 )
 
 // Variables used for command line parameters
@@ -76,7 +77,7 @@ func main() {
 	// Now lets format our base64 image into the proper format Discord wants
 	// and then call UserUpdate to set it as our user's Avatar.
 	avatar := fmt.Sprintf("data:%s;base64,%s", contentType, base64img)
-	_, err := dg.UserAPI().Update("", avatar, "").Do(context.Background())
+	_, err := user.Update("", avatar, "").Do(dg.NewRESTContext(context.Background()))
 	if err != nil {
 		fmt.Println(err)
 	}

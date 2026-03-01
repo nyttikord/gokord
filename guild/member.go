@@ -369,3 +369,9 @@ func Prune(guildID string, days uint32) Request[uint32] {
 			return p.Pruned, Unmarshal(ctx, b, &p)
 		})
 }
+
+// GetCurrentMember returns a [user.Member] for the current [user.User] in the given [guild.Guild].
+func GetCurrentMember(guildID string) Request[*user.Member] {
+	return NewData[*user.Member](http.MethodGet, discord.EndpointUserGuildMember("@me", guildID)).
+		WithBucketID(discord.EndpointUserGuildMember("", guildID))
+}

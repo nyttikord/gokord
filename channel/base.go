@@ -332,3 +332,13 @@ func ListPinned(channelID string, before *time.Time, limit int) Request[*Message
 
 	return NewData[*MessagesPinned](http.MethodGet, uri)
 }
+
+// CreatePrivate [Channel] ([types.ChannelDM]) with another [user.User].
+func CreatePrivate(userID string) Request[*Channel] {
+	data := struct {
+		RecipientID string `json:"recipient_id"`
+	}{userID}
+
+	return NewData[*Channel](http.MethodPost, discord.EndpointUserChannels("@me")).
+		WithBucketID(discord.EndpointUserChannels("")).WithData(data)
+}

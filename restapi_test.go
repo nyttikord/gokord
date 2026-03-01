@@ -94,7 +94,7 @@ func TestUserChannelCreate(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := dg.UserAPI().ChannelCreate(envAdmin).Do(ctx)
+	_, err := channel.CreatePrivate(envAdmin).Do(ctx)
 	if err != nil {
 		t.Error(err.Error())
 	}

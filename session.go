@@ -23,7 +23,6 @@ import (
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
 )
@@ -179,11 +178,6 @@ func (s *Session) ChannelAPI() *channelapi.Requester {
 		s.channelAPI = &channelapi.Requester{REST: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
 	}
 	return s.channelAPI
-}
-
-// InviteAPI returns an inviteapi.Requester to interact with the invite package.
-func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{REST: s.rest}
 }
 
 // BotAPI returns a botapi.Requester to interact with the bot package.
