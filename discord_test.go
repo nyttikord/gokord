@@ -84,7 +84,7 @@ func TestOpenClose(t *testing.T) {
 		// UpdateStatus - maybe we move this into wsapi_test.go but the websocket
 		// created here is needed.  This helps tests that the websocket was setup
 		// and it is working.
-		if err := d.BotAPI().UpdateGameStatus(ctx, 0, time.Now().String()); err != nil {
+		if err := d.GatewayAPI().UpdateGameStatus(ctx, false, time.Now().String()); err != nil {
 			t.Errorf("UpdateStatus error: %+v", err)
 		}
 

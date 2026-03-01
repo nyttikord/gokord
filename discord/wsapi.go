@@ -9,7 +9,7 @@ type Event struct {
 	Type      string          `json:"t"`
 	RawData   json.RawMessage `json:"d"`
 	// Struct contains one of the other types in this file.
-	Struct interface{} `json:"-"`
+	Struct any `json:"-"`
 }
 
 type GatewayOpCode uint
@@ -27,32 +27,4 @@ const (
 	GatewayOpCodeHello                   GatewayOpCode = 10
 	GatewayOpCodeHeartbeatAck            GatewayOpCode = 11
 	GatewayOpCodeRequestSoundboardSounds GatewayOpCode = 31
-)
-
-type VoiceOpCode uint
-
-const (
-	VoiceOpCodeIdentify                        VoiceOpCode = 0
-	VoiceOpCodeSelectProtocol                  VoiceOpCode = 1
-	VoiceOpCodeReady                           VoiceOpCode = 2
-	VoiceOpCodeHeartbeat                       VoiceOpCode = 3
-	VoiceOpCodeSessionDescription              VoiceOpCode = 4
-	VoiceOpCodeSessionSpeaking                 VoiceOpCode = 5
-	VoiceOpCodeHeartbeatAck                    VoiceOpCode = 6
-	VoiceOpCodeHeartbeatResume                 VoiceOpCode = 7
-	VoiceOpCodeHello                           VoiceOpCode = 8
-	VoiceOpCodeResumed                         VoiceOpCode = 9
-	VoiceOpCodeClientsConnect                  VoiceOpCode = 11
-	VoiceOpCodeClientDisconnect                VoiceOpCode = 13
-	VoiceOpCodeDavePrepareTransition           VoiceOpCode = 21
-	VoiceOpCodeDaveExecuteTransition           VoiceOpCode = 22
-	VoiceOpCodeDaveTransitionReady             VoiceOpCode = 23
-	VoiceOpCodeDavePrepareEpoch                VoiceOpCode = 24
-	VoiceOpCodeDaveMlsExternalSender           VoiceOpCode = 25
-	VoiceOpCodeDaveMlsKeyPackage               VoiceOpCode = 26
-	VoiceOpCodeDaveMlsProposals                VoiceOpCode = 27
-	VoiceOpCodeDaveMlsCommitWelcome            VoiceOpCode = 28
-	VoiceOpCodeDaveMlsAnnounceCommitTransition VoiceOpCode = 29
-	VoiceOpCodeDaveMlsWelcome                  VoiceOpCode = 30
-	VoiceOpCodeDaveMlsInvalidCommitWelcome     VoiceOpCode = 31
 )

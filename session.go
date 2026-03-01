@@ -12,7 +12,6 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/bot"
-	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/discord/request"
@@ -163,9 +162,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
 		s.logger.Debug("creating new guild state")
 		s.guildAPI = &guildapi.Requester{
-			REST:      s.rest,
-			Websocket: s,
-			State:     guildapi.NewState(s.sessionState, s.GuildStorage),
+			State: guildapi.NewState(s.sessionState, s.GuildStorage),
 		}
 	}
 	return s.guildAPI
@@ -180,11 +177,6 @@ func (s *Session) ChannelAPI() *channelapi.Requester {
 	return s.channelAPI
 }
 
-// BotAPI returns a botapi.Requester to interact with the bot package.
-func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{REST: s.rest, Websocket: s}
-}
-
 // EventManager returns the event.Manager used by the Session.
 func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
@@ -193,6 +185,14 @@ func (s *Session) EventManager() bot.EventManager {
 // InteractionManager returns the *interactionhandler.Manager used by the Session.
 func (s *Session) InteractionManager() *interactionhandler.Manager {
 	return s.interactionManager
+}
+
+// GatewayAPI returns the API used to interact with the gateway.
+func (s *Session) GatewayAPI() bot.GatewayAPI {
+	return &wsAPI{
+		logger:  s.logger.With("module", "gateway"),
+		Session: s,
+	}
 }
 
 // SessionState returns the state.Bot of the Session.
