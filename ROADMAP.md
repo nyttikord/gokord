@@ -31,9 +31,9 @@ New higher-level interaction package using contexts:
 
 Rewrite HTTP API to create dynamic requests and to leave OOP.
 
-Create a higher-level component creator to limit errors and to provide a cleaner syntax.
-
 Use AVL as default state storage to reduce memory usage.
+
+Support new features in the Discord API.
 
 ## `0.35.0`
 
