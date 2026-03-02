@@ -262,11 +262,10 @@ func MoveMember(guildID string, userID string, channelID *string) Empty {
 // NOTE: Use [EditCurrentMember] to modify the current member.
 func EditMemberNickname(guildID, userID, nickname string) Empty {
 	if userID == "@me" {
-		/*r.Logger().WarnContext(
-			logger.NewContext(context.Background(), 1),
+		return WrapEmptyWarn(
+			EditCurrentMember(guildID, nickname, "", "", ""),
 			"this endpoint is deprecated for the current member, use MemberModifyCurrent instead",
-		)*/
-		return EditCurrentMember(guildID, nickname, "", "", "")
+		)
 	}
 
 	data := struct {

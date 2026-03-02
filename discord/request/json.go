@@ -27,7 +27,7 @@ func (r Do) do(ctx context.Context, cfg Config) ([]byte, error) {
 	return req.RequestWithBucketID(ctx, r.Method, r.Endpoint, r.Data, r.Bucket, cfg)
 }
 
-// Simple is a basic request that returns raw bytes.
+// Simple is a basic [Request] that returns raw bytes.
 type Simple struct {
 	baseRequest[[]byte]
 	do Do

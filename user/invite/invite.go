@@ -169,10 +169,12 @@ func Create(channelID string, i Invite) Request[*Invite] {
 		Roles []string `json:"role_ids,omitempty"`
 	}{i.MaxAge, i.MaxUses, i.Temporary, i.Unique, i.TargetType, uID, appID, i.Roles}
 
+	req := NewData[*Invite](http.MethodPost, discord.EndpointChannelInvites(channelID)).
+		WithData(data)
+
 	if len(i.TargetUsersFile) > 0 {
-		//r.Logger().WarnContext(logger.NewContext(context.Background(), 1), "InviteCreate does not support yet TargetUsersFile")
+		return WrapWarn(req, "InviteCreate does not support yet TargetUsersFile")
 	}
 
-	return NewData[*Invite](http.MethodPost, discord.EndpointChannelInvites(channelID)).
-		WithData(data)
+	return req
 }
