@@ -18,6 +18,11 @@ import (
 // It is immutable: when you call a method, it returns a new [Request] with this option.
 type Request[T any] interface {
 	// Do executes the request.
+	//
+	// The given context must have [discord.ContextLogger] and [discord.ContextREST].
+	// Every context given by gokord are valid.
+	// You can use [gokord.Session] NewContext to get a valid context from the current session.
+	// You can use [bot.NewContext] to create a new context outside the session.
 	Do(context.Context) (T, error)
 	// WithRetryOnRatelimit controls whether the session should retry the [Request] on rate limit.
 	WithRetryOnRateLimit(bool) Request[T]
@@ -37,6 +42,11 @@ type Request[T any] interface {
 // It is immutable: when you call a method, it returns a new [Empty] with this option.
 type Empty interface {
 	// Do executes the request.
+	//
+	// The given context must have [discord.ContextLogger] and [discord.ContextREST].
+	// Every context given by gokord are valid.
+	// You can use [gokord.Session] NewContext to get a valid context from the current session.
+	// You can use [bot.NewContext] to create a new context outside the session.
 	Do(context.Context) error
 	// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
 	WithRetryOnRateLimit(bool) Empty
