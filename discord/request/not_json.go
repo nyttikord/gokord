@@ -16,9 +16,9 @@ type Custom[T any] struct {
 	post Post[T]
 }
 
-func NewCustom[T any](req REST, method, endpoint string) Custom[T] {
+func NewCustom[T any](method, endpoint string) Custom[T] {
 	return Custom[T]{
-		do: newDo(req, method, endpoint),
+		do: newDo(method, endpoint),
 	}
 }
 
@@ -67,9 +67,9 @@ type Image struct {
 	pre Pre
 }
 
-func NewImage(req REST, method, endpoint string) Image {
+func NewImage(method, endpoint string) Image {
 	return Image{
-		do: newDo(req, method, endpoint),
+		do: newDo(method, endpoint),
 	}
 }
 

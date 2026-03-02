@@ -1,10 +1,15 @@
 package channel
 
 import (
+	"context"
+	"net/http"
 	"time"
 
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
+	"github.com/nyttikord/gokord/user"
 )
 
 // PollMedia contains common data used by question and answers.
@@ -13,21 +18,21 @@ type PollMedia struct {
 	Emoji *emoji.Component `json:"emoji,omitempty"` // TODO: rename the type
 }
 
-// PollAnswer represents a single answer in a Poll.
+// PollAnswer represents a single answer in a [Poll].
 type PollAnswer struct {
 	// NOTE: should not be set on creation.
 	AnswerID int        `json:"answer_id,omitempty"`
 	Media    *PollMedia `json:"poll_media"`
 }
 
-// PollAnswerCount stores counted Poll votes for a single answer.
+// PollAnswerCount stores counted [Poll] votes for a single answer.
 type PollAnswerCount struct {
 	ID      int  `json:"id"`
 	Count   int  `json:"count"`
 	MeVoted bool `json:"me_voted"`
 }
 
-// PollResults contains voting results on a Poll.
+// PollResults contains voting results on a [Poll].
 type PollResults struct {
 	Finalized    bool               `json:"is_finalized"`
 	AnswerCounts []*PollAnswerCount `json:"answer_counts"`
@@ -48,4 +53,22 @@ type Poll struct {
 	Results *PollResults `json:"results,omitempty"`
 	// NOTE: as Discord documentation notes, this field might be null even when fetching.
 	Expiry *time.Time `json:"expiry,omitempty"`
+}
+
+// GetPollVoters returns [user.User] who voted for a particular [PollAnswer] in a [Poll] on the given [Message].
+func GetPollVoters(channelID, messageID string, answerID int) Request[[]*user.User] {
+	return NewCustom[[]*user.User](http.MethodGet, discord.EndpointPollAnswerVoters(channelID, messageID, answerID)).
+		WithBucketID(discord.EndpointPollAnswerVoters(channelID, messageID, 0)).
+		WithPost(func(ctx context.Context, b []byte) ([]*user.User, error) {
+			var data struct {
+				Users []*user.User `json:"users"`
+			}
+			return data.Users, Unmarshal(ctx, b, &data)
+		})
+}
+
+// ExpirePoll on the given [Message].
+func ExpirePoll(channelID, messageID string) Request[*Message] {
+	return NewData[*Message](http.MethodPost, discord.EndpointPollExpire(channelID, messageID)).
+		WithBucketID(discord.EndpointPollExpire(channelID, ""))
 }

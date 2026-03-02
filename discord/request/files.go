@@ -30,9 +30,9 @@ type Multipart[T any] struct {
 	files []*File // files is not immutable.
 }
 
-func NewMultipart[T any](req REST, method, endpoint string, data any, files []*File) Multipart[T] {
+func NewMultipart[T any](method, endpoint string, data any, files []*File) Multipart[T] {
 	base := Multipart[T]{
-		do:    newDo(req, method, endpoint),
+		do:    newDo(method, endpoint),
 		files: files,
 	}
 	base.do.Data = data
@@ -77,7 +77,7 @@ func (r Multipart[T]) Do(ctx context.Context) (T, error) {
 	if r.do.Bucket != "" {
 		bucket = r.do.Bucket
 	}
-	b, err := r.do.req.RequestRaw(
+	b, err := getREST(ctx).RequestRaw(
 		ctx, http.MethodPatch, r.do.Endpoint, contentType, body, bucket, 0, r.Config(),
 	)
 	if err != nil {
@@ -86,7 +86,7 @@ func (r Multipart[T]) Do(ctx context.Context) (T, error) {
 	if r.post != nil {
 		return r.post(ctx, b)
 	}
-	err = r.do.req.Unmarshal(b, &v)
+	err = Unmarshal(ctx, b, &v)
 	if err != nil {
 		return v, err
 	}

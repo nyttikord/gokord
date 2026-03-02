@@ -1,6 +1,7 @@
 package guild
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/nyttikord/gokord/channel"
@@ -24,11 +25,8 @@ func MemberPermissions(guild *Guild, channel *channel.Channel, userID string, ro
 	}
 
 	for _, role := range guild.Roles {
-		for _, roleID := range roles {
-			if role.ID == roleID {
-				perms |= role.Permissions
-				break
-			}
+		if slices.Contains(roles, role.ID) {
+			perms |= role.Permissions
 		}
 	}
 

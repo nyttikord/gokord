@@ -1,18 +1,21 @@
 package channel
 
 import (
+	"net/http"
+
 	"github.com/nyttikord/gokord/component"
-	"github.com/nyttikord/gokord/discord/request"
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 )
 
-// MessageSend stores all parameters you can send with channelapi.Requester ChannelMessageSendComplex.
+// MessageSend stores all parameters you can send with [SendMessageComplex].
 type MessageSend struct {
 	Content         string                  `json:"content,omitempty"`
 	Embeds          []*MessageEmbed         `json:"embeds"`
 	TTS             bool                    `json:"tts"`
 	Components      []component.Message     `json:"components"`
-	Files           []*request.File         `json:"-"`
+	Files           []*File                 `json:"-"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Reference       *MessageReference       `json:"message_reference,omitempty"`
 	StickerIDs      []string                `json:"sticker_ids"`
@@ -20,8 +23,7 @@ type MessageSend struct {
 	Poll            *Poll                   `json:"poll,omitempty"`
 }
 
-// MessageEdit is used to chain parameters via channelapi.Requester ChannelMessageEditComplex, which is also where you
-// should get the instance from.
+// MessageEdit is used to chain parameters via [EditMessageComplex].
 type MessageEdit struct {
 	Content         *string                 `json:"content,omitempty"`
 	Components      *[]component.Message    `json:"components,omitempty"`
@@ -29,7 +31,7 @@ type MessageEdit struct {
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	Flags           MessageFlags            `json:"flags,omitempty"`
 	// Files to append to the message
-	Files []*request.File `json:"-"`
+	Files []*File `json:"-"`
 	// Overwrite existing attachments
 	Attachments *[]*MessageAttachment `json:"attachments,omitempty"`
 
@@ -37,7 +39,7 @@ type MessageEdit struct {
 	Channel string
 }
 
-// NewMessageEdit returns a MessageEdit struct, initialized with the Channel and ID.
+// NewMessageEdit returns a [MessageEdit] struct, initialized with the [Channel] and the ID.
 func NewMessageEdit(channelID string, messageID string) *MessageEdit {
 	return &MessageEdit{
 		Channel: channelID,
@@ -45,13 +47,13 @@ func NewMessageEdit(channelID string, messageID string) *MessageEdit {
 	}
 }
 
-// SetContent sets the content of the MessageEdit.
+// SetContent sets the content.
 func (m *MessageEdit) SetContent(str string) *MessageEdit {
 	m.Content = &str
 	return m
 }
 
-// SetEmbeds sets multiple MessageEmbed of the MessageEdit.
+// SetEmbeds sets multiple [MessageEmbed].
 func (m *MessageEdit) SetEmbeds(embeds ...*MessageEmbed) *MessageEdit {
 	m.Embeds = &embeds
 	return m
@@ -59,7 +61,7 @@ func (m *MessageEdit) SetEmbeds(embeds ...*MessageEmbed) *MessageEdit {
 
 // MessageAllowedMentions allows the user to specify which mentions Discord is allowed to parse in this message.
 //
-// This is useful when sending user input as a message, as it prevents unwanted mentions.
+// This is useful when sending user input as a [Message], as it prevents unwanted mentions.
 // If this type is used, all mentions must be explicitly whitelisted, either by putting an AllowedMentionType in the
 // Parse slice (allowing all mentions of that type) or, in the case of roles and users, explicitly allowing those
 // mentions on an ID-by-ID basis.
@@ -67,19 +69,70 @@ func (m *MessageEdit) SetEmbeds(embeds ...*MessageEmbed) *MessageEdit {
 // For more information on this functionality, see:
 // https://discordapp.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mentions-reference
 type MessageAllowedMentions struct {
-	// The mention types that are allowed to be parsed in this message.
-	// Please note that this is purposely **not** marked as omitempty, so if a zero-value MessageAllowedMentions object
-	// is provided no mentions will be allowed.
+	// The mention types that are allowed to be parsed in this [Message].
+	// Please note that this is purposely **not** marked as omitempty, so if a zero-value [MessageAllowedMentions]
+	// object is provided no mentions will be allowed.
 	Parse []types.AllowedMention `json:"parse"`
-
-	// A list of guild.Role IDs to allow.
-	// This cannot be used when specifying types.AllowedMentionRoles in the Parse slice.
+	// A list of [guild.Role] IDs to allow.
+	// This cannot be used when specifying [types.AllowedMentionRoles] in the Parse slice.
 	Roles []string `json:"roles,omitempty"`
-
-	// A list of user.User IDs to allow.
-	// This cannot be used when specifying types.AllowedMentionUsers in the Parse slice.
+	// A list of [user.User] IDs to allow.
+	// This cannot be used when specifying [types.AllowedMentionUsers] in the Parse slice.
 	Users []string `json:"users,omitempty"`
-
 	// For replies, whether to mention the author of the message being replied to
 	RepliedUser bool `json:"replied_user"`
+}
+
+// SendMessage to the given [Channel].
+func SendMessage(channelID string, content string) Request[*Message] {
+	return SendMessageComplex(channelID, &MessageSend{Content: content})
+}
+
+// SendMessageComplex to the given [Channel].
+func SendMessageComplex(channelID string, data *MessageSend) Request[*Message] {
+	for _, embed := range data.Embeds {
+		if embed.Type == "" {
+			embed.Type = types.EmbedRich
+		}
+	}
+	endpoint := discord.EndpointChannelMessages(channelID)
+
+	if data.StickerIDs != nil {
+		if len(data.StickerIDs) > 3 {
+			return NewError[*Message](ErrTooMuchStickers)
+		}
+	}
+
+	files := data.Files
+	if len(files) == 0 {
+		return NewData[*Message](http.MethodPost, endpoint).WithData(data)
+	}
+	return NewMultipart[*Message](http.MethodPost, endpoint, data, data.Files)
+}
+
+// SendMessageTTS to the given [Channel] with Text to Speech.
+func SendMessageTTS(channelID string, content string) Request[*Message] {
+	return SendMessageComplex(channelID, &MessageSend{
+		Content: content,
+		TTS:     true,
+	})
+}
+
+// SendMessageReply sends a reply to a [Message] in the given [Channel].
+//
+// reference is the [MessageReference] to send containing the [Message] to reply to.
+func SendMessageReply(channelID string, content string, reference *MessageReference) Request[*Message] {
+	if reference == nil {
+		return NewError[*Message](ErrReplyNilMessageRef)
+	}
+	return SendMessageComplex(channelID, &MessageSend{
+		Content:   content,
+		Reference: reference,
+	})
+}
+
+// CrosspostMessage in a news [Channel] to followers.
+func CrosspostMessage(channelID, messageID string) Request[*Message] {
+	return NewData[*Message](http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID)).
+		WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, ""))
 }

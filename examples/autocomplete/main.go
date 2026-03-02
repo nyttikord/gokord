@@ -74,7 +74,7 @@ var (
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.Command().Data
-				err := s.InteractionAPI().Respond(i, &interaction.Response{
+				err := interaction.Respond(i, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -121,7 +121,7 @@ var (
 					})
 				}
 
-				err := s.InteractionAPI().Respond(i, &interaction.Response{
+				err := interaction.Respond(i, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices, // This is basically the whole purpose of autocomplete interaction - return custom options to the user.
@@ -136,7 +136,7 @@ var (
 			switch i.Type {
 			case types.InteractionApplicationCommand:
 				data := i.Command().Data
-				err := s.InteractionAPI().Respond(i, &interaction.Response{
+				err := interaction.Respond(i, &interaction.Response{
 					Type: types.InteractionResponseChannelMessageWithSource,
 					Data: &interaction.ResponseData{
 						Content: fmt.Sprintf(
@@ -207,7 +207,7 @@ var (
 					}
 				}
 
-				err := s.InteractionAPI().Respond(i, &interaction.Response{
+				err := interaction.Respond(i, &interaction.Response{
 					Type: types.InteractionApplicationCommandAutocompleteResult,
 					Data: &interaction.ResponseData{
 						Choices: choices,
@@ -234,7 +234,9 @@ func main() {
 	}
 	defer s.Close(context.Background())
 
-	createdCommands, err := s.InteractionAPI().CommandBulkOverwrite(s.SessionState().User().ID, *GuildID, commands).Do(context.Background())
+	ctx := s.NewContext(context.Background())
+
+	createdCommands, err := interaction.OverwriteCommands(s.SessionState().User().ID, *GuildID, commands).Do(ctx)
 
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
@@ -247,7 +249,7 @@ func main() {
 
 	if *RemoveCommands {
 		for _, cmd := range createdCommands {
-			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, cmd.ID).Do(context.Background())
+			err := interaction.DeleteCommand(s.SessionState().User().ID, *GuildID, cmd.ID).Do(ctx)
 			if err != nil {
 				log.Fatalf("Cannot delete %q command: %v", cmd.Name, err)
 			}

@@ -5,16 +5,14 @@ import (
 )
 
 type Do struct {
-	req      REST
 	Method   string
 	Bucket   string
 	Endpoint string
 	Data     any
 }
 
-func newDo(req REST, method, endpoint string) Do {
+func newDo(method, endpoint string) Do {
 	return Do{
-		req:      req,
 		Method:   method,
 		Endpoint: endpoint,
 		Data:     nil,
@@ -22,21 +20,22 @@ func newDo(req REST, method, endpoint string) Do {
 }
 
 func (r Do) do(ctx context.Context, cfg Config) ([]byte, error) {
+	req := getREST(ctx)
 	if len(r.Bucket) == 0 {
-		return r.req.Request(ctx, r.Method, r.Endpoint, r.Data, cfg)
+		return req.Request(ctx, r.Method, r.Endpoint, r.Data, cfg)
 	}
-	return r.req.RequestWithBucketID(ctx, r.Method, r.Endpoint, r.Data, r.Bucket, cfg)
+	return req.RequestWithBucketID(ctx, r.Method, r.Endpoint, r.Data, r.Bucket, cfg)
 }
 
-// Simple is a basic request that returns raw bytes.
+// Simple is a basic [Request] that returns raw bytes.
 type Simple struct {
 	baseRequest[[]byte]
 	do Do
 }
 
-func NewSimple(req REST, method, endpoint string) Simple {
+func NewSimple(method, endpoint string) Simple {
 	return Simple{
-		do: newDo(req, method, endpoint),
+		do: newDo(method, endpoint),
 	}
 }
 
@@ -60,9 +59,9 @@ type Data[T any] struct {
 	pre Pre
 }
 
-func NewData[T any](req REST, method, endpoint string) Data[T] {
+func NewData[T any](method, endpoint string) Data[T] {
 	return Data[T]{
-		do: newDo(req, method, endpoint),
+		do: newDo(method, endpoint),
 	}
 }
 
@@ -93,6 +92,6 @@ func (r Data[T]) Do(ctx context.Context) (T, error) {
 	if err != nil {
 		return v, err
 	}
-	err = r.do.req.Unmarshal(b, &v)
+	err = Unmarshal(ctx, b, &v)
 	return v, err
 }

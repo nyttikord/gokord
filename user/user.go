@@ -1,13 +1,17 @@
 package user
 
 import (
+	"image"
+	"net/http"
+
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 
 	"strconv"
 )
 
-// Flags is the flags for User.
+// Flags is the flags for [User].
 // https://discord.com/developers/docs/resources/user#user-object-user-flags
 type Flags int
 
@@ -32,93 +36,71 @@ const (
 
 // User stores all data for an individual Discord user.
 type User struct {
-	// The ID of the User.
 	ID string `json:"id"`
-
-	// The Email of the User.
+	// Email of the [User].
 	// This is only present when the application possesses the email scope for the User.
-	Email string `json:"email"`
-
-	// The User's Username.
+	Email    string `json:"email"`
 	Username string `json:"username"`
-
-	// The hash of the User's Avatar.
-	// Use User.AvatarURL to retrieve the avatar itself.
+	// The hash of the [User]'s Avatar.
+	// Use [User.AvatarURL] to retrieve the avatar itself.
 	Avatar string `json:"avatar"`
-
-	// The User's chosen language option.
-	Locale string `json:"locale"`
-
-	// The discriminator of the User (4 numbers after name).
+	// The [User]'s chosen language option.
+	Locale discord.Locale `json:"locale"`
+	// The discriminator of the [User] (4 numbers after name).
+	// Legacy: only used for bots.
 	Discriminator string `json:"discriminator"`
-
-	// The User's display name, if it is set.
-	// For bots, this is the application.Application name.
+	// The [User]'s display name, if it is set.
+	// For bots, this is the [application.Application] name.
 	GlobalName string `json:"global_name"`
-
-	// The Token of the User.
+	// Token of the [User].
 	// This is only present for the user represented by the current session.
 	Token string `json:"token"`
-
-	// Whether the User's email is Verified.
+	// Whether the [User]'s email is Verified.
 	Verified bool `json:"verified"`
-
-	// Whether the User has multifactor authentication enabled.
+	// Whether the [User] has multifactor authentication enabled.
 	MFAEnabled bool `json:"mfa_enabled"`
-
-	// The hash of the User's Banner image.
+	// The hash of the [User]'s Banner image.
+	// Use [User.BannerURL] to retrieve the banner itself.
 	Banner string `json:"banner"`
-
-	// User's Banner color, encoded as an integer representation of hexadecimal color code.
+	// [User]'s [Banner] color, encoded as an integer representation of hexadecimal color code.
 	AccentColor int `json:"accent_color"`
-
-	// Whether the User is a bot.
+	// Whether the [User] is a bot.
 	Bot bool `json:"bot"`
-
-	// The PublicFlags on a User's account.
+	// The PublicFlags on a [User]'s account.
 	// This is a combination of bit masks; the presence of a certain flag can be checked by performing a bitwise AND
 	// between this int and the flag.
 	PublicFlags Flags `json:"public_flags"`
-
-	// The type of Nitro subscription on a User's account.
+	// The type of Nitro subscription on a [User]'s account.
 	// Only available when the request is authorized via a Bearer token.
 	PremiumType types.Premium `json:"premium_type"`
-
 	// Whether the user is an Official Discord System User (part of the urgent message system).
 	System bool `json:"system"`
-
-	// The Flags on a User's account.
+	// The Flags on a [User]'s account.
 	// Only available when the request is authorized via a Bearer token.
 	Flags int `json:"flags"`
-
-	// Data for the User's AvatarDecoration.
+	// Data for the [User]'s [AvatarDecoration].
 	AvatarDecorationData *AvatarDecoration `json:"avatar_decoration_data"`
-
-	// Data for the User's Collectibles.
+	// Data for the [User]'s [Collectibles].
 	Collectibles *Collectibles `json:"collectibles"`
-
-	// User's PrimaryGuild (the tag).
+	// [User]'s [PrimaryGuild] (their tag).
 	PrimaryGuild *PrimaryGuild `json:"primary_guild"`
 }
 
-// String returns a unique identifier of the form username#discriminator or just username, if the discriminator is set
-// to "0".
 func (u *User) String() string {
 	// If the user has been migrated from the legacy username system, their discriminator is "0".
 	// See https://support-dev.discord.com/hc/en-us/articles/13667755828631
 	if u.Discriminator == "0" {
 		return u.Username
 	}
-
 	return u.Username + "#" + u.Discriminator
 }
 
-// Mention return a string which mentions the User.
+// Mention return a string which mentions the [User].
 func (u *User) Mention() string {
 	return "<@" + u.ID + ">"
 }
 
-// AvatarURL returns a URL to the User.Avatar.
+// AvatarURL returns a URL to the [User.Avatar].
 //
 // size is the size of the avatar as a power of two if size is an empty string, no size parameter will be added to the
 // URL (between 16 and 4096).
@@ -132,7 +114,7 @@ func (u *User) AvatarURL(size string) string {
 	)
 }
 
-// BannerURL returns the URL of the User.Banner.
+// BannerURL returns the URL of the [User.Banner].
 //
 // size is the size of the banner as a power of two if size is an empty string, no size parameter will be added to the
 // URL (between 16 and 4096).
@@ -140,7 +122,7 @@ func (u *User) BannerURL(size string) string {
 	return discord.BannerURL(u.Banner, discord.EndpointUserBanner(u.ID, u.Banner), discord.EndpointUserBannerAnimated(u.ID, u.Banner), size)
 }
 
-// DefaultAvatarIndex returns the index of the user's default avatar.
+// DefaultAvatarIndex returns the index of the [User]'s default avatar.
 func (u *User) DefaultAvatarIndex() int {
 	if u.Discriminator == "0" {
 		id, _ := strconv.ParseUint(u.ID, 10, 64)
@@ -151,7 +133,7 @@ func (u *User) DefaultAvatarIndex() int {
 	return id % 5
 }
 
-// DisplayName returns the User's global name if they have one, otherwise it returns their User.Username.
+// DisplayName returns the [User]'s global name if they have one, otherwise it returns their [User.Username].
 func (u *User) DisplayName() string {
 	if u.GlobalName != "" {
 		return u.GlobalName
@@ -160,9 +142,9 @@ func (u *User) DisplayName() string {
 }
 
 type AvatarDecoration struct {
-	// Avatar decoration hash.
+	// [AvatarDecoration] hash.
 	Asset string `json:"asset"`
-	// ID of the AvatarDecoration's premium.SKU.
+	// ID of the [AvatarDecoration]'s [premium.SKU].
 	SkuID string `json:"sku_id"`
 }
 
@@ -187,32 +169,65 @@ const (
 )
 
 type Nameplate struct {
-	// ID of the Nameplate premium.SKU.
+	// ID of the [Nameplate] [premium.SKU].
 	SkuID string `json:"sku_id"`
-	// Path to the Nameplate Asset
+	// Path to the [Nameplate] Asset
 	Asset string `json:"asset"`
-	// Label of this Nameplate.
+	// Label of this [Nameplate].
 	// Currently unused.
 	Label string `json:"label"`
-	// Background color of the Nameplate.
+	// Background color of the [Nameplate].
 	Palette NameplatePalette `json:"palette"`
 }
 
 type PrimaryGuild struct {
-	// ID of the User's primary guild.Guild.
+	// ID of the [User]'s primary [guild.Guild].
 	GuildID string `json:"identity_guild_id"`
-	// Whether the User is displaying the primary guild.Guild's server tag.
+	// Whether the User is displaying the primary [guild.Guild]'s server tag.
 	//
-	// This can be null if the system clears the identity, e.g. the server no longer supports tags.
+	// This can be null if the system clears the identity, e.g. the [guild.Guild] no longer supports tags.
 	// This will be false if the user manually removes their tag.
 	Enabled *bool `json:"identity_enabled"`
-	// Text of the User's server Tag.
+	// Text of the [User]'s server Tag.
 	// Limited to 4 characters
 	Tag *string `json:"tag"`
-	// Server tag Badge hash.
+	// [guild.Guild] tag Badge hash.
 	Badge *string `json:"badge"`
 }
 
 func (upg *PrimaryGuild) IsEnabled() bool {
 	return upg.Enabled != nil && *upg.Enabled
+}
+
+// Get returns the [User] details of the given userID (can be @me to be the current User ID).
+func Get(userID string) Request[*User] {
+	return NewData[*User](http.MethodGet, discord.EndpointUser(userID)).
+		WithBucketID(discord.EndpointUsers)
+}
+
+// AvatarDecode returns an [image.Image] of a [User.Avatar].
+func AvatarDecode(u *User) Request[image.Image] {
+	return NewImage(http.MethodGet, discord.EndpointUserAvatar(u.ID, u.Avatar)).
+		WithBucketID(discord.EndpointUserAvatar("", ""))
+}
+
+// Edit current [User] settings.
+//
+// NOTE: Avatar must be either the hash/id of existing Avatar or
+// data:image/png;base64,BASE64_STRING_OF_NEW_AVATAR_PNG to set a new avatar.
+// If left blank, avatar will be set to null/blank.
+func Edit(username, avatar, banner string) Request[*User] {
+	data := struct {
+		Username string `json:"username,omitempty"`
+		Avatar   string `json:"avatar,omitempty"`
+		Banner   string `json:"banner,omitempty"`
+	}{username, avatar, banner}
+
+	return NewData[*User](http.MethodPatch, discord.EndpointUser("@me")).
+		WithBucketID(discord.EndpointUsers).WithData(data)
+}
+
+// ListConnections returns all current [Connection]s.
+func ListConnections() Request[[]*Connection] {
+	return NewData[[]*Connection](http.MethodGet, discord.EndpointUserConnections("@me"))
 }

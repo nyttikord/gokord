@@ -32,7 +32,7 @@ func (s *Session) Open(ctx context.Context) error {
 		return ErrWSAlreadyOpen
 	}
 
-	ctx = bot.CreateContext(ctx, s.logger, s)
+	ctx = bot.NewContext(ctx, s.logger, s, s.rest)
 
 	// init new sequence
 	s.sequence = &atomic.Int64{}

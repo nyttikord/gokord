@@ -4,30 +4,11 @@ import (
 	"context"
 
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 )
-
-// channelGetter represents a type fetching channel.Channel.
-type channelGetter interface {
-	// Channel returns the channel.Channel with the given ID.
-	Channel(string) request.Request[*channel.Channel]
-}
-
-// rolesGetter represents a type fetching []*guild.Role.
-type rolesGetter interface {
-	// Roles returns the []*guild.Role in the given guild.Guild.
-	Roles(string) request.Request[[]*guild.Role]
-}
-
-// userGetter represents a type fetching user.User.
-type userGetter interface {
-	// User returns the user.User with the given ID.
-	User(string) request.Request[*user.User]
-}
 
 // CommandInteractionData contains the data of Command Interaction.
 type CommandInteractionData struct {
@@ -149,7 +130,7 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state st
 			return ch
 		}
 	}
-	ch, err := loadChannelGetter(ctx).Channel(chanID).Do(ctx)
+	ch, err := channel.Get(chanID).Do(ctx)
 	if err != nil {
 		return &channel.Channel{ID: chanID}
 	}
@@ -176,7 +157,7 @@ func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string,
 	if err == nil {
 		return r
 	}
-	roles, err := loadRolesGetter(ctx).Roles(gID).Do(ctx)
+	roles, err := guild.ListRoles(gID).Do(ctx)
 	if err == nil {
 		for _, r = range roles {
 			if r.ID == roleID {
@@ -196,7 +177,7 @@ func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User 
 	}
 	userID := o.Value.(string)
 
-	u, err := loadUserGetter(ctx).User(userID).Do(ctx)
+	u, err := user.Get(userID).Do(ctx)
 	if err != nil {
 		return &user.User{ID: userID}
 	}

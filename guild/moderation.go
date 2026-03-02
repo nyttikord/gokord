@@ -1,7 +1,13 @@
 package guild
 
 import (
+	"net/http"
+	"net/url"
+	"strconv"
+
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/user"
 )
@@ -123,8 +129,8 @@ type AuditLogEntry struct {
 
 // AuditLogChange for an AuditLogEntry.
 type AuditLogChange struct {
-	NewValue interface{}        `json:"new_value"`
-	OldValue interface{}        `json:"old_value"`
+	NewValue any                `json:"new_value"`
+	OldValue any                `json:"old_value"`
 	Key      *AuditLogChangeKey `json:"key"`
 }
 
@@ -388,3 +394,62 @@ const (
 	AuditLogActionHomeSettingsCreate = 190
 	AuditLogActionHomeSettingsUpdate = 191
 )
+
+// GetAuditLog returns the [AuditLog] for a [Guild].
+//
+// If provided, all returned [AuditLog] will be filtered for the given userID.
+// If provided all [AuditLog] entries returned will be before the given beforeID.
+// If provided the [AuditLog] will be filtered for the given actionType.
+// limit is the number of messages that can be returned (default 50, min 1, max 100).
+func GetAuditLog(guildID, userID, beforeID string, actionType, limit int) Request[*AuditLog] {
+	uri := discord.EndpointGuildAuditLogs(guildID)
+
+	v := url.Values{}
+	if userID != "" {
+		v.Set("user_id", userID)
+	}
+	if beforeID != "" {
+		v.Set("before", beforeID)
+	}
+	if actionType > 0 {
+		v.Set("action_type", strconv.Itoa(actionType))
+	}
+	if limit > 0 {
+		v.Set("limit", strconv.Itoa(limit))
+	}
+	if len(v) > 0 {
+		uri += "?" + v.Encode()
+	}
+
+	return NewData[*AuditLog](http.MethodGet, uri)
+}
+
+// ListAutoModerationRules returns a list of [AutoModerationRule] in the given [Guild].
+func ListAutoModerationRules(guildID string) Request[[]*AutoModerationRule] {
+	return NewData[[]*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID))
+}
+
+// GetAutoModerationRule returns a [AutoModerationRule] in the [Guild].
+func GetAutoModerationRule(guildID, ruleID string) Request[*AutoModerationRule] {
+	return NewData[*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
+		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID))
+}
+
+// CreateAutoModerationRule creates a [AutoModerationRule] and returns it.
+func CreateAutoModerationRule(guildID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
+	return NewData[*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID)).
+		WithData(rule)
+}
+
+// EditAutoModerationRule and returns the updated [AutoModerationRule].
+func EditAutoModerationRule(guildID, ruleID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
+	return NewData[*AutoModerationRule](http.MethodPatch, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
+		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID)).WithData(rule)
+}
+
+// DeleteAutoModerationRule deletes a [AutoModerationRule].
+func DeleteAutoModerationRule(guildID, ruleID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
+		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID))
+	return WrapAsEmpty(req)
+}

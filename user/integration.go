@@ -1,7 +1,4 @@
-// Package user contains everything related to Discord User, guild.Guild Member and Integration.
-//
-// Use userapi.Requester to interact with this.
-// You can get this with gokord.Session.
+// Package user contains everything related to Discord [User], [guild.Guild] [Member] and [Integration].
 package user
 
 import (

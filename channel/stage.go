@@ -1,44 +1,68 @@
 package channel
 
+import (
+	"net/http"
+
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
+)
+
 // StageInstance holds information about a live stage.
 // https://discord.com/developers/docs/resources/stage-instance#stage-instance-resource
 type StageInstance struct {
-	// The id of this Stage instance.
-	ID string `json:"id"`
-	// The guild.Guild id of the associated Stage Channel.
-	GuildID string `json:"guild_id"`
-	// The id of the associated Stage Channel.
+	ID        string `json:"id"`
+	GuildID   string `json:"guild_id"`
 	ChannelID string `json:"channel_id"`
-	// The topic of the Stage instance (1-120 characters).
-	Topic string `json:"topic"`
-	// The privacy level of the Stage instance.
+	Topic     string `json:"topic"`
+	// PrivacyLevel of the [StageInstance].
 	// https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level"`
-	// The id of the guild.ScheduledEvent for this Stage instance.
+	// GuildScheduledEventID linked with this [StageInstance].
 	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
 }
 
-// StageInstanceParams represents the parameters needed to create or edit a stage instance.
+// StageInstanceParams represents the parameters needed to create or edit a [StageInstance].
 type StageInstanceParams struct {
-	// ChannelID represents the id of the Stage Channel.
 	ChannelID string `json:"channel_id,omitempty"`
-	// Topic of the Stage instance (1-120 characters).
-	Topic string `json:"topic,omitempty"`
-	// PrivacyLevel of the Stage instance.
+	Topic     string `json:"topic,omitempty"`
+	// PrivacyLevel of the [StageInstance].
 	//
-	// Default: StageInstancePrivacyLevelGuildOnly
+	// Default: [StageInstancePrivacyLevelGuildOnly]
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level,omitempty"`
-	// SendStartNotification will notify @everyone that a Stage instance has started.
+	// SendStartNotification will notify @everyone that a [StageInstance] has started.
 	SendStartNotification bool `json:"send_start_notification,omitempty"`
 }
 
-// StageInstancePrivacyLevel represents the privacy level of a Stage instance.
+// StageInstancePrivacyLevel represents the privacy level of a [StageInstance].
 // https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 type StageInstancePrivacyLevel int
 
 const (
 	// NOTE: the Level "1" is not used anymore, so it was deleted.
 
-	// StageInstancePrivacyLevelGuildOnly The Stage instance is visible to only guild members.
+	// StageInstancePrivacyLevelGuildOnly is visible to only [user.Member]s.
 	StageInstancePrivacyLevelGuildOnly StageInstancePrivacyLevel = 2
 )
+
+// CreateStageInstance returns a new [StageInstance] associated to a [types.ChannelGuildStageVoice].
+func CreateStageInstance(data *StageInstanceParams) Request[*StageInstance] {
+	return NewData[*StageInstance](http.MethodPost, discord.EndpointStageInstances).
+		WithData(data)
+}
+
+// GetStageInstance will retrieve a [StageInstance] by the ID of the [types.ChannelGuildStageVoice].
+func GetStageInstance(channelID string) Request[*StageInstance] {
+	return NewData[*StageInstance](http.MethodGet, discord.EndpointStageInstance(channelID))
+}
+
+// EditStageInstance by ID of the [types.ChannelGuildStageVoice].
+func EditStageInstance(channelID string, data *StageInstanceParams) Request[*StageInstance] {
+	return NewData[*StageInstance](http.MethodPatch, discord.EndpointStageInstance(channelID)).
+		WithData(data)
+}
+
+// DeleteStageInstance by ID of the [types.ChannelGuildStageVoice].
+func DeleteStageInstance(channelID string) Empty {
+	req := NewSimple(http.MethodGet, discord.EndpointStageInstance(channelID))
+	return WrapAsEmpty(req)
+}

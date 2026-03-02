@@ -18,7 +18,7 @@ type TooManyRequests struct {
 	RetryAfter time.Duration `json:"retry_after"`
 }
 
-// UnmarshalJSON helps support translation of a milliseconds-based float into a time.Duration on TooManyRequests.
+// UnmarshalJSON helps support translation of a milliseconds-based float into a [time.Duration] on [TooManyRequests].
 func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
 	u := struct {
 		Bucket     string  `json:"bucket"`
@@ -53,7 +53,7 @@ type RateLimiter struct {
 	customRateLimits []*customRateLimit
 }
 
-// NewRateLimiter returns a new RateLimiter.
+// NewRateLimiter returns a new [RateLimiter].
 func NewRateLimiter() *RateLimiter {
 	return &RateLimiter{
 		buckets: make(map[string]*Bucket),
@@ -68,7 +68,7 @@ func NewRateLimiter() *RateLimiter {
 	}
 }
 
-// GetBucket retrieves or creates a Bucket in the RateLimiter.
+// GetBucket retrieves or creates a [Bucket] in the [RateLimiter].
 func (r *RateLimiter) GetBucket(key string) *Bucket {
 	r.Lock()
 	defer r.Unlock()
@@ -95,7 +95,7 @@ func (r *RateLimiter) GetBucket(key string) *Bucket {
 	return b
 }
 
-// GetWaitTime returns the duration you should wait for a Bucket.
+// GetWaitTime returns the duration you should wait for a [Bucket].
 func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 	// If we ran out of calls and the reset time is still ahead of us then we need to take it easy and relax a little.
 	if b.Remaining < minRemaining && b.reset.After(time.Now()) {
@@ -111,12 +111,12 @@ func (r *RateLimiter) GetWaitTime(b *Bucket, minRemaining int) time.Duration {
 	return 0
 }
 
-// LockBucket locks until a request can be made.
+// LockBucket locks until a [Request] can be made.
 func (r *RateLimiter) LockBucket(bucketID string) *Bucket {
 	return r.LockBucketObject(r.GetBucket(bucketID))
 }
 
-// LockBucketObject locks an already resolved bucket until a request can be made.
+// LockBucketObject locks an already resolved bucket until a [Request] can be made.
 func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	b.Lock()
 
@@ -142,8 +142,8 @@ type Bucket struct {
 	Userdata        any
 }
 
-// Release unlocks the bucket and reads the headers to update the buckets rate limit info and locks up the whole thing in
-// case if there's a global rate limit.
+// Release unlocks the bucket and reads the headers to update the [Bucket]s rate limit info and locks up the whole thing
+// in case if there's a global rate limit.
 func (b *Bucket) Release(headers http.Header) error {
 	defer b.Unlock()
 

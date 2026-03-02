@@ -49,7 +49,7 @@ var (
 )
 
 func handleModalsSurvey(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	err := interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseModal,
 		Data: &interaction.ResponseData{
 			CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
@@ -100,7 +100,7 @@ func main() {
 			return
 		}
 
-		err := s.InteractionAPI().Respond(i, &interaction.Response{
+		err := interaction.Respond(i, &interaction.Response{
 			Type: types.InteractionResponseChannelMessageWithSource,
 			Data: &interaction.ResponseData{
 				Content: "Thank you for taking your time to fill this survey",
@@ -112,7 +112,7 @@ func main() {
 		}
 
 		userid := strings.Split(data.CustomID, "_")[2]
-		_, err = s.ChannelAPI().MessageSend(*ResultsChannel, fmt.Sprintf(
+		_, err = channel.SendMessage(*ResultsChannel, fmt.Sprintf(
 			"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 			userid,
 			data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
@@ -125,8 +125,10 @@ func main() {
 
 	cmdIDs := make(map[string]string, len(commands))
 
+	ctx := s.NewContext(context.Background())
+
 	for _, cmd := range commands {
-		rcmd, err := s.InteractionAPI().CommandCreate(*AppID, *GuildID, &cmd).Do(context.Background())
+		rcmd, err := interaction.CreateCommand(*AppID, *GuildID, &cmd).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -150,7 +152,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := s.InteractionAPI().CommandDelete(*AppID, *GuildID, id).Do(context.Background())
+		err := interaction.DeleteCommand(*AppID, *GuildID, id).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

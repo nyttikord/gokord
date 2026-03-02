@@ -11,6 +11,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/event"
@@ -27,12 +28,14 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	session := gokord.New("Bot " + *BotToken)
-	session.Identify.Intents |= discord.IntentAutoModerationExecution
-	session.Identify.Intents |= discord.IntentMessageContent
+	dg := gokord.New("Bot " + *BotToken)
+	dg.Identify.Intents |= discord.IntentAutoModerationExecution
+	dg.Identify.Intents |= discord.IntentMessageContent
+
+	ctx := dg.NewContext(context.Background())
 
 	enabled := true
-	rule, err := session.GuildAPI().AutoModerationRuleCreate(*GuildID, &guild.AutoModerationRule{
+	rule, err := guild.CreateAutoModerationRule(*GuildID, &guild.AutoModerationRule{
 		Name:        "Auto Moderation example",
 		EventType:   guild.AutoModerationRuleEventMessageSend,
 		TriggerType: guild.AutoModerationRuleTriggerKeywordPreset,
@@ -45,16 +48,16 @@ func main() {
 		Actions: []guild.AutoModerationAction{
 			{Type: types.AutoModerationActionBlockMessage},
 		},
-	}).Do(context.Background())
+	}).Do(ctx)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Successfully created the rule")
-	defer session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(context.Background())
+	defer guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 
-	session.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
-		_, err = session.GuildAPI().AutoModerationRuleEdit(*GuildID, rule.ID, &guild.AutoModerationRule{
+	dg.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
+		_, err = guild.EditAutoModerationRule(*GuildID, rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
 			},
@@ -66,18 +69,19 @@ func main() {
 			},
 		}).Do(ctx)
 		if err != nil {
-			session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(ctx)
+			guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 			panic(err)
 		}
 
-		s.ChannelAPI().MessageSend(e.ChannelID, "Congratulations! You have just triggered an auto moderation rule.\n"+
+		channel.SendMessage(e.ChannelID, "Congratulations! You have just triggered an auto moderation rule.\n"+
 			"The current trigger can match anywhere in the word, so even if you write the trigger word as a part of another word, it will still match.\n"+
 			"The rule has now been changed, now the trigger matches only in the full words.\n"+
-			"Additionally, when you send a message, an alert will be sent to this channel and you will be **timed out** for a minute.\n").Do(ctx)
+			"Additionally, when you send a message, an alert will be sent to this channel and you will be **timed out** for a minute.\n",
+		).Do(ctx)
 
 		var counter int
 		var counterMutex sync.Mutex
-		session.EventManager().AddHandler(func(s bot.Session, e *event.AutoModerationActionExecution) {
+		dg.EventManager().AddHandler(func(s bot.Session, e *event.AutoModerationActionExecution) {
 			action := "unknown"
 			switch e.Action.Type {
 			case types.AutoModerationActionBlockMessage:
@@ -92,29 +96,29 @@ func main() {
 			counter++
 			if counter == 1 {
 				counterMutex.Unlock()
-				s.ChannelAPI().MessageSend(e.ChannelID, "Nothing has changed, right? "+
+				channel.SendMessage(e.ChannelID, "Nothing has changed, right? "+
 					"Well, since separate gateway events are fired per each action (current is "+action+"), "+
 					"you'll see a second message about an action pop up soon").Do(ctx)
 			} else if counter == 2 {
 				counterMutex.Unlock()
-				s.ChannelAPI().MessageSend(e.ChannelID, "Now the second ("+action+") action got executed.").Do(ctx)
-				s.ChannelAPI().MessageSend(e.ChannelID, "And... you've made it! That's the end of the example.\n"+
+				channel.SendMessage(e.ChannelID, "Now the second ("+action+") action got executed.").Do(ctx)
+				channel.SendMessage(e.ChannelID, "And... you've made it! That's the end of the example.\n"+
 					"For more information about the automod and how to use it, "+
 					"you can visit the official Discord docs: https://discord.dev/resources/auto-moderation or ask in our server: https://discord.gg/6dzbuDpSWY",
 				).Do(ctx)
 
-				session.Close(ctx)
-				session.GuildAPI().AutoModerationRuleDelete(*GuildID, rule.ID).Do(ctx)
+				dg.Close(ctx)
+				guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
 				os.Exit(0)
 			}
 		})
 	})
 
-	err = session.Open(context.Background())
+	err = dg.Open(context.Background())
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer session.Close(context.Background())
+	defer dg.Close(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

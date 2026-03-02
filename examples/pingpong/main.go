@@ -11,6 +11,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 )
@@ -62,11 +63,11 @@ func messageCreate(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 	}
 	// If the message is "ping" reply with "Pong!"
 	if m.Content == "ping" {
-		s.ChannelAPI().MessageSend(m.ChannelID, "Pong!").Do(ctx)
+		channel.SendMessage(m.ChannelID, "Pong!").Do(ctx)
 	}
 
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
-		s.ChannelAPI().MessageSend(m.ChannelID, "Ping!").Do(ctx)
+		channel.SendMessage(m.ChannelID, "Ping!").Do(ctx)
 	}
 }

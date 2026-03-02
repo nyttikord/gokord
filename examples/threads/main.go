@@ -36,7 +36,7 @@ func main() {
 	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
 			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
-				thread, err := s.ChannelAPI().MessageThreadStartComplex(m.ChannelID, m.ID, &channel.ThreadStart{
+				thread, err := channel.StartThreadMessageComplex(m.ChannelID, m.ID, &channel.ThreadStart{
 					Name:                "Pong game with " + m.Author.Username,
 					AutoArchiveDuration: 60,
 					Invitable:           false,
@@ -45,17 +45,17 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				_, _ = s.ChannelAPI().MessageSend(thread.ID, "pong").Do(ctx)
+				_, _ = channel.SendMessage(thread.ID, "pong").Do(ctx)
 				m.ChannelID = thread.ID
 			} else {
-				_, _ = s.ChannelAPI().MessageSendReply(m.ChannelID, "pong", m.Reference()).Do(ctx)
+				_, _ = channel.SendMessageReply(m.ChannelID, "pong", m.Reference()).Do(ctx)
 			}
 			games[m.ChannelID] = time.Now()
 			<-time.After(timeout)
 			if time.Since(games[m.ChannelID]) >= timeout {
 				archived := true
 				locked := true
-				_, err := s.ChannelAPI().ChannelEdit(m.ChannelID, &channel.Edit{
+				_, err := channel.Edit(m.ChannelID, &channel.EditData{
 					Archived: &archived,
 					Locked:   &locked,
 				}).Do(ctx)

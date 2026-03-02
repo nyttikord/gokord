@@ -11,20 +11,16 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/nyttikord/gokord/application/applicationapi"
 	"github.com/nyttikord/gokord/bot"
-	"github.com/nyttikord/gokord/bot/botapi"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/guild/guildapi"
-	"github.com/nyttikord/gokord/interaction/interactionapi"
 	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
-	"github.com/nyttikord/gokord/user/invite/inviteapi"
 	"github.com/nyttikord/gokord/user/status"
 	"github.com/nyttikord/gokord/user/userapi"
 )
@@ -165,9 +161,7 @@ func (s *Session) GuildAPI() *guildapi.Requester {
 	if s.guildAPI == nil {
 		s.logger.Debug("creating new guild state")
 		s.guildAPI = &guildapi.Requester{
-			REST:      s.rest,
-			Websocket: s,
-			State:     guildapi.NewState(s.sessionState, s.GuildStorage),
+			State: guildapi.NewState(s.sessionState, s.GuildStorage),
 		}
 	}
 	return s.guildAPI
@@ -182,26 +176,6 @@ func (s *Session) ChannelAPI() *channelapi.Requester {
 	return s.channelAPI
 }
 
-// InviteAPI returns an inviteapi.Requester to interact with the invite package.
-func (s *Session) InviteAPI() *inviteapi.Requester {
-	return &inviteapi.Requester{REST: s.rest}
-}
-
-// InteractionAPI returns an interactionapi.Requester to interact with the interaction package.
-func (s *Session) InteractionAPI() *interactionapi.Requester {
-	return &interactionapi.Requester{REST: s.rest, ChannelAPI: s.ChannelAPI}
-}
-
-// ApplicationAPI returns an applicationapi.Requester to interact with the application package.
-func (s *Session) ApplicationAPI() *applicationapi.Requester {
-	return &applicationapi.Requester{REST: s.rest}
-}
-
-// BotAPI returns a botapi.Requester to interact with the bot package.
-func (s *Session) BotAPI() *botapi.Requester {
-	return &botapi.Requester{REST: s.rest, Websocket: s}
-}
-
 // EventManager returns the event.Manager used by the Session.
 func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
@@ -210,6 +184,14 @@ func (s *Session) EventManager() bot.EventManager {
 // InteractionManager returns the *interactionhandler.Manager used by the Session.
 func (s *Session) InteractionManager() *interactionhandler.Manager {
 	return s.interactionManager
+}
+
+// GatewayAPI returns the API used to interact with the gateway.
+func (s *Session) GatewayAPI() bot.GatewayAPI {
+	return &wsAPI{
+		logger:  s.logger.With("module", "gateway"),
+		Session: s,
+	}
 }
 
 // SessionState returns the state.Bot of the Session.
@@ -237,4 +219,9 @@ func (s *Session) LastHeartbeatSent() time.Time {
 // Logger returns the logger used by the Session.
 func (s *Session) Logger() *slog.Logger {
 	return s.logger
+}
+
+// NewContext returns a new context usable everywhere.
+func (s *Session) NewContext(ctx context.Context) context.Context {
+	return bot.NewContext(ctx, s.logger, s, s.rest)
 }

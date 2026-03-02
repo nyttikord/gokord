@@ -25,7 +25,7 @@ func handleEcho(ctx context.Context, s bot.Session, i *interaction.ApplicationCo
 	}
 	builder.WriteString(opts["message"].StringValue())
 
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	err := interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: builder.String(),
@@ -76,7 +76,9 @@ func main() {
 		log.Printf("Logged in as %s", r.User.String())
 	})
 
-	_, err := dg.InteractionAPI().CommandBulkOverwrite(*App, *Guild, commands).Do(context.Background())
+	ctx := dg.NewContext(context.Background())
+
+	_, err := interaction.OverwriteCommands(*App, *Guild, commands).Do(ctx)
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}

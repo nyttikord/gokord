@@ -7,29 +7,6 @@ import (
 	"github.com/nyttikord/gokord/discord/request"
 )
 
-// getter is a trick to get needed methods on bot.Session via a context
-type getters interface {
-	ChannelGetter() channelGetter
-	RolesGetter() rolesGetter
-	UserGetter() userGetter
-}
-
-func loadGetters(ctx context.Context) getters {
-	return ctx.Value(discord.ContextSession).(getters)
-}
-
-func loadRolesGetter(ctx context.Context) rolesGetter {
-	return loadGetters(ctx).RolesGetter()
-}
-
-func loadChannelGetter(ctx context.Context) channelGetter {
-	return loadGetters(ctx).ChannelGetter()
-}
-
-func loadUserGetter(ctx context.Context) userGetter {
-	return loadGetters(ctx).UserGetter()
-}
-
 // getResponseChannel returns a channel that must be called when a response is send.
 func getResponseChannel(ctx context.Context) chan<- struct{} {
 	raw := ctx.Value(discord.ContextInteractionResponse)

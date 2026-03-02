@@ -5,9 +5,11 @@
 package interaction
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 )
 
@@ -104,4 +106,108 @@ type GuildCommandPermissions struct {
 	ApplicationID string                `json:"application_id"`
 	GuildID       string                `json:"guild_id"`
 	Permissions   []*CommandPermissions `json:"permissions"`
+}
+
+// CreateCommand and returns it.
+//
+// Specifies guildID if you want to create a [guild.Guild] [Command] instead of a global one.
+func CreateCommand(appID string, guildID string, cmd *Command) request.Request[*Command] {
+	endpoint := discord.EndpointApplicationGlobalCommands(appID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
+	}
+
+	return request.NewData[*Command](http.MethodPost, endpoint).WithData(cmd)
+}
+
+// EditCommand and returns new [Command] data.
+//
+// Specifies guildID to edit a [guild.Guild] [Command].
+func EditCommand(appID, guildID, cmdID string, cmd *Command) request.Request[*Command] {
+	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
+	}
+
+	return request.NewData[*Command](http.MethodPatch, endpoint).WithData(cmd)
+}
+
+// OverwriteCommands creates [Command]s overwriting all existing [Command]s.
+func OverwriteCommands(appID string, guildID string, cmds []*Command) request.Request[[]*Command] {
+	endpoint := discord.EndpointApplicationGlobalCommands(appID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
+	}
+
+	return request.NewData[[]*Command](http.MethodPut, endpoint).WithData(cmds)
+}
+
+// DeleteCommand deletes a [Command].
+//
+// Specifies guildID to delete a [guild.Guild] [Command].
+func DeleteCommand(appID, guildID, cmdID string) request.Empty {
+	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
+	}
+	bucket := discord.EndpointApplicationGlobalCommand(appID, "")
+	if guildID != "" {
+		bucket = discord.EndpointApplicationGuildCommand(appID, guildID, "")
+	}
+
+	req := request.NewSimple(http.MethodDelete, endpoint).WithBucketID(bucket)
+	return request.WrapAsEmpty(req)
+}
+
+// GetCommand retrieves an [Command].
+//
+// Specifies guildID to retrieve a [guild.Guild] [Command].
+func GetCommand(appID, guildID, cmdID string) request.Request[*Command] {
+	endpoint := discord.EndpointApplicationGlobalCommand(appID, cmdID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommand(appID, guildID, cmdID)
+	}
+
+	return request.NewData[*Command](http.MethodGet, endpoint)
+}
+
+// ListCommands retrieves all [Command].
+//
+// Specifies guildID to retrieve all [guild.Guild] [Command]s from the specified [guild.Guild].
+func ListCommands(appID, guildID string) request.Request[[]*Command] {
+	endpoint := discord.EndpointApplicationGlobalCommands(appID)
+	if guildID != "" {
+		endpoint = discord.EndpointApplicationGuildCommands(appID, guildID)
+	}
+
+	return request.NewData[[]*Command](http.MethodGet, endpoint+"?with_localizations=true")
+}
+
+// GetGuildCommandsPermissions returns permissions for [Command] in a [guild.Guild].
+func GetGuildCommandsPermissions(appID, guildID string) request.Request[[]*GuildCommandPermissions] {
+	endpoint := discord.EndpointApplicationCommandsGuildPermissions(appID, guildID)
+
+	return request.NewData[[]*GuildCommandPermissions](http.MethodGet, endpoint)
+}
+
+// GetCommandPermissions returns all permissions of an [Command].
+//
+// guildID is the [guild.Guild] containing the [Command].
+// (I don't know if this is required.)
+func GetCommandPermissions(appID, guildID, cmdID string) request.Request[*GuildCommandPermissions] {
+	endpoint := discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)
+
+	return request.NewData[*GuildCommandPermissions](http.MethodGet, endpoint)
+}
+
+// EditCommandPermissions edits the permissions of an [Command].
+//
+// guildID is the [guild.Guild] containing the [Command].
+// (I don't know if this is required.)
+//
+// NOTE: Requires OAuth2 token with applications.commands.permissions.update scope.
+func EditCommandPermissions(appID, guildID, cmdID string, permissions *CommandPermissionsList) request.Empty {
+	req := request.NewSimple(http.MethodPut, discord.EndpointApplicationCommandPermissions(appID, guildID, cmdID)).
+		WithBucketID(discord.EndpointApplicationCommandPermissions(appID, guildID, "")).WithData(permissions)
+	return request.WrapAsEmpty(req)
 }

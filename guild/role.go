@@ -1,12 +1,15 @@
 package guild
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 )
 
-// RoleFlags represent the flags of a Role.
+// RoleFlags represent the flags of a [Role].
 // https://discord.com/developers/docs/topics/permissions#role-object-role-flags
 type RoleFlags int
 
@@ -16,50 +19,33 @@ const (
 	RoleFlagInPrompt RoleFlags = 1 << 0
 )
 
-// A Role stores information about Discord Guild user.Member role.
+// Role stores information about Discord [Guild] [user.Member] role.
 type Role struct {
-	// The ID of the Role.
-	ID string `json:"id"`
-
-	// The Name of the Role.
+	ID   string `json:"id"`
 	Name string `json:"name"`
-
-	// Whether this Role is managed by a user.Integration, and thus cannot be manually added to, or taken from,
-	// user.Member.
+	// Whether this [Role] is managed by a [user.Integration], and thus cannot be manually added to, or taken from,
+	// [user.Member].
 	Managed bool `json:"managed"`
-
-	// Whether this Role is Mentionable.
+	// Whether this [Role] is Mentionable.
 	Mentionable bool `json:"mentionable"`
-
-	// Whether this Role is hoisted (shows up separately in user.Member list).
+	// Whether this [Role] is hoisted (shows up separately in [user.Member] list).
 	Hoist bool `json:"hoist"`
-
-	// The hex Color of this Role.
+	// The hex Color of this [Role].
 	//
-	// Deprecated: use Role.Colors.
+	// DEPRECATED: use Role.Colors.
 	// Will be removed after the 1.0.0.
 	Color int `json:"color"`
-
-	// The Role's Colors
+	// The Role's Colors.
 	Colors RoleColors `json:"colors"`
-
-	// The Position of this Role in the Guild's role hierarchy.
+	// Position of this [Role] in the [Guild]'s role hierarchy.
 	Position int `json:"position"`
-
-	// The Permissions of the role on the Guild (doesn't include channel overrides).
-	// This is a combination of bit masks;
-	// the presence of a certain permission can be checked by performing a bitwise AND between this int and the permission.
+	// Permissions of the role on the [Guild] (doesn't include [channel.Channel] overrides).
 	Permissions int64 `json:"permissions,string"`
-
-	// The hash of the Role Icon. Use Role.IconURL to retrieve the icon's URL.
+	// The hash of the [Role] Icon. Use [Role.IconURL] to retrieve the icon's URL.
 	Icon string `json:"icon"`
-
-	// The UnicodeEmoji assigned to this Role.
+	// UnicodeEmoji assigned to this [Role].
 	UnicodeEmoji string `json:"unicode_emoji"`
-
-	// The Flags of the Role, which describe its extra features.
-	// This is a combination of bit masks;
-	// the presence of a certain flag can be checked by performing a bitwise AND between this int and the flag.
+	// Flags of the [Role], which describe its extra features.
 	Flags RoleFlags `json:"flags"`
 }
 
@@ -68,7 +54,7 @@ func (r *Role) Mention() string {
 	return fmt.Sprintf("<@&%s>", r.ID)
 }
 
-// IconURL returns the URL of the Role's icon.
+// IconURL returns the URL of the [Role.Icon].
 //
 // size is the size of the desired icon image as a power of two.
 // It can be any power of two between 16 and 4096.
@@ -85,9 +71,8 @@ func (r *Role) IconURL(size string) string {
 	return URL
 }
 
-// RoleParams represents the parameters needed to create or update a Role.
+// RoleParams represents the parameters needed to create or update a [Role].
 type RoleParams struct {
-	// The Role's Name.
 	Name string `json:"name,omitempty"`
 	// The Color the Role should have (as a decimal, not hex).
 	Color *int `json:"color,omitempty"`
@@ -107,7 +92,7 @@ type RoleParams struct {
 	Icon *string `json:"icon,omitempty"`
 }
 
-// Roles are a collection of Role.
+// Roles are a collection of [Role].
 type Roles []*Role
 
 func (r Roles) Len() int {
@@ -122,18 +107,80 @@ func (r Roles) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
 }
 
-// RoleColors stores colors of the Role.
+// RoleColors stores colors of the [Role].
 type RoleColors struct {
-	// PrimaryColor for the Role.
+	// PrimaryColor for the [Role].
 	PrimaryColor int `json:"primary_color"`
-	// SecondaryColor for the Role, this will make the role a gradient between the other provided colors.
+	// SecondaryColor for the [Role], this will make the role a gradient between the other provided colors.
 	SecondaryColor *int `json:"secondary_color"`
-	// TertiaryColor for the Role, this will turn the gradient into a holographic style.
+	// TertiaryColor for the [Role], this will turn the gradient into a holographic style.
 	TertiaryColor *int `json:"tertiary_color"`
 }
 
-// A GuildedRole stores data for Guild Role.
+// A GuildedRole stores data for [Guild] [Role].
 type GuildedRole struct {
 	Role    *Role  `json:"role"`
 	GuildID string `json:"guild_id"`
+}
+
+var (
+	ErrVerificationLevelBounds = errors.New("VerificationLevel out of bounds, should be between 0 and 3")
+	ErrInvalidColorValue       = errors.New("invalid color value: cannot be larger than 0xFFFFFF")
+)
+
+// AddMemberRole adds the specified [Role] to a given [user.Member].
+func AddMemberRole(guildID, userID, roleID string) Empty {
+	req := NewSimple(http.MethodPut, discord.EndpointGuildMemberRole(guildID, userID, roleID)).
+		WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
+}
+
+// RemoveMemberRole removes the specified [Role] to a given [user.Member].
+func RemoveMemberRole(guildID, userID, roleID string) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointGuildMemberRole(guildID, userID, roleID)).
+		WithBucketID(discord.EndpointGuildMembers(guildID))
+	return WrapAsEmpty(req)
+}
+
+// CreateRole in the given [Guild].
+func CreateRole(guildID string, data *RoleParams) Request[*Role] {
+	return NewData[*Role](http.MethodPost, discord.EndpointGuildRoles(guildID)).
+		WithData(data)
+}
+
+// ListRoles returns all [Role] for the given [Guild].
+func ListRoles(guildID string) Request[[]*Role] {
+	return NewData[[]*Role](http.MethodPost, discord.EndpointGuildRoles(guildID))
+}
+
+// EditRole and returns updated data.
+func EditRole(guildID, roleID string, data *RoleParams) Request[*Role] {
+	// Prevent sending a color int that is too big.
+	if data.Color != nil && *data.Color > 0xFFFFFF {
+		return NewError[*Role](ErrInvalidColorValue)
+	}
+
+	return NewData[*Role](http.MethodPatch, discord.EndpointGuildRole(guildID, roleID)).
+		WithBucketID(discord.EndpointGuildRoles(guildID)).WithData(data)
+}
+
+// ReorderRole with the given data.
+func ReorderRole(guildID string, roles []*Role) Empty {
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildRoles(guildID)).
+		WithData(roles)
+	return WrapAsEmpty(req)
+}
+
+// DeleteRole with the given data.
+func DeleteRole(guildID, roleID string) Empty {
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildRole(guildID, roleID)).
+		WithBucketID(discord.EndpointGuildRoles(guildID))
+	return WrapAsEmpty(req)
+}
+
+// CountsRoleMember returns a map of [Role.ID] to the number of [user.Member] with this role.
+// It doesn't include the @everyone [Role].
+func CountsRoleMember(guildID string) Request[map[string]uint] {
+	return NewData[map[string]uint](http.MethodPost, discord.EndpointGuildRoleMemberCounts(guildID)).
+		WithBucketID(discord.EndpointGuildRoles(guildID))
 }

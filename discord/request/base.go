@@ -1,10 +1,10 @@
 // Package request contains utils to create and process requests.
 //
-// Request[T] is a general interface representing any requests returning something.
+// [Request] is a general interface representing any requests returning something.
 // Methods should always use this one instead of a more precise returns type.
 //
-// Empty is a simple request returning nothing (only an error).
-// You wan wrap any Simple request as an EmptyRequest with WrapAsEmpty.
+// [Empty] is a simple request returning nothing (only an error).
+// You wan wrap any [Simple] request as an [EmptyRequest] with [WrapAsEmpty].
 package request
 
 import (
@@ -15,28 +15,38 @@ import (
 )
 
 // Request represents an HTTP request.
-// It is immutable: when you call a method, it returns a new Request with this option.
+// It is immutable: when you call a method, it returns a new [Request] with this option.
 type Request[T any] interface {
 	// Do executes the request.
+	//
+	// The given context must have [discord.ContextLogger] and [discord.ContextREST].
+	// Every context given by gokord are valid.
+	// You can use [gokord.Session] NewContext to get a valid context from the current session.
+	// You can use [bot.NewContext] to create a new context outside the session.
 	Do(context.Context) (T, error)
-	// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
+	// WithRetryOnRatelimit controls whether the session should retry the [Request] on rate limit.
 	WithRetryOnRateLimit(bool) Request[T]
 	// WithRestRetries changes maximum amount of retries if request fails.
 	WithRestRetries(uint) Request[T]
-	// WithHeader sets a header in the request.
+	// WithHeader sets a header in the [Request].
 	WithHeader(string, string) Request[T]
-	// WithAuditLogReason changes audit log reason associated with the request.
+	// WithAuditLogReason changes audit log reason associated with the [Request].
 	WithAuditLogReason(string) Request[T]
-	// WithLocale changes accepted locale of the request.
+	// WithLocale changes accepted locale of the [Request].
 	WithLocale(discord.Locale) Request[T]
-	// Config returns the Config used
+	// Config returns the [Config] used
 	Config() Config
 }
 
 // Empty represents an HTTP request that only returns an error when it is executed.
-// It is immutable: when you call a method, it returns a new Request with this option.
+// It is immutable: when you call a method, it returns a new [Empty] with this option.
 type Empty interface {
 	// Do executes the request.
+	//
+	// The given context must have [discord.ContextLogger] and [discord.ContextREST].
+	// Every context given by gokord are valid.
+	// You can use [gokord.Session] NewContext to get a valid context from the current session.
+	// You can use [bot.NewContext] to create a new context outside the session.
 	Do(context.Context) error
 	// WithRetryOnRatelimit controls whether the session should retry the request on rate limit.
 	WithRetryOnRateLimit(bool) Empty
@@ -156,15 +166,18 @@ func (r baseRequest[T]) Config() Config {
 	return Config(r)
 }
 
-// Error is a request that returns the specified error when Do is called.
+// Error is a request that returns the specified error when [Error.Do] is called.
 type Error[T any] struct {
 	baseRequest[T]
 	err error
 }
 
+// NewError returns an [Error] [Request].
+//
+// Panics if error is nil.
 func NewError[T any](err error) Error[T] {
 	if err == nil {
-		panic("cannot use nil error in request.Error")
+		panic("cannot use nil error in NewError")
 	}
 	return Error[T]{err: err}
 }

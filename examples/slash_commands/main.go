@@ -243,10 +243,12 @@ func main() {
 		panic(err)
 	}
 
+	ctx := s.NewContext(context.Background())
+
 	log.Println("Adding commands...")
 	registeredCommands := make([]*interaction.Command, len(commands))
 	for i, v := range commands {
-		cmd, err := s.InteractionAPI().CommandCreate(s.SessionState().User().ID, *GuildID, v).Do(context.Background())
+		cmd, err := interaction.CreateCommand(s.SessionState().User().ID, *GuildID, v).Do(ctx)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -272,7 +274,7 @@ func main() {
 		// }
 
 		for _, v := range registeredCommands {
-			err := s.InteractionAPI().CommandDelete(s.SessionState().User().ID, *GuildID, v.ID).Do(context.Background())
+			err := interaction.DeleteCommand(s.SessionState().User().ID, *GuildID, v.ID).Do(ctx)
 			if err != nil {
 				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 			}
@@ -283,7 +285,7 @@ func main() {
 }
 
 func basicCommand(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: "Hey there! Congratulations, you just executed your first slash command",
@@ -292,7 +294,7 @@ func basicCommand(ctx context.Context, s bot.Session, i *interaction.Application
 }
 
 func basicCommandWithFiles(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
@@ -315,7 +317,7 @@ func localizedCommand(ctx context.Context, s bot.Session, i *interaction.Applica
 	if r, ok := responses[i.Locale]; ok {
 		response = r
 	}
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	err := interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: response,
@@ -381,7 +383,7 @@ func options(ctx context.Context, s bot.Session, i *interaction.ApplicationComma
 		msgformat += "> role-option: <@&%s>\n"
 	}
 
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		// Ignore type for now, they will be discussed in "responses"
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
@@ -394,11 +396,11 @@ func options(ctx context.Context, s bot.Session, i *interaction.ApplicationComma
 }
 
 func permissionOverview(ctx context.Context, s bot.Session, i *interaction.ApplicationCommand) {
-	perms, err := s.InteractionAPI().CommandPermissions(s.SessionState().User().ID, i.GuildID, i.Data.ID).Do(ctx)
+	perms, err := interaction.GetCommandPermissions(s.SessionState().User().ID, i.GuildID, i.Data.ID).Do(ctx)
 
 	var restError *gokord.RESTError
 	if errors.As(err, &restError) && restError.Message != nil && restError.Message.Code == discord.ErrCodeUnknownApplicationCommandPermissions {
-		s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		interaction.Respond(i.Interaction, &interaction.Response{
 			Type: types.InteractionResponseChannelMessageWithSource,
 			Data: &interaction.ResponseData{
 				Content: ":x: No permission overwrites",
@@ -444,7 +446,7 @@ func permissionOverview(ctx context.Context, s bot.Session, i *interaction.Appli
 		}
 	}
 
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Embeds: []*channel.MessageEmbed{
@@ -492,7 +494,7 @@ func subcommands(ctx context.Context, s bot.Session, i *interaction.ApplicationC
 		}
 	}
 
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			Content: content,
@@ -518,25 +520,25 @@ func responses(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 		content +=
 			"\nAlso... you can edit your response, wait 5 seconds and this message will be changed"
 	default:
-		err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+		err := interaction.Respond(i.Interaction, &interaction.Response{
 			Type: types.InteractionResponse(i.Data.Options[0].IntValue()),
 		}).Do(ctx)
 		if err != nil {
-			s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+			interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 				Content: "Something went wrong",
 			}).Do(ctx)
 		}
 		return
 	}
 
-	err := s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	err := interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponse(i.Data.Options[0].IntValue()),
 		Data: &interaction.ResponseData{
 			Content: content,
 		},
 	}).Do(ctx)
 	if err != nil {
-		s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+		interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 			Content: "Something went wrong",
 		}).Do(ctx)
 		return
@@ -545,17 +547,17 @@ func responses(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 		content := content + "\n\nWell, now you know how to create and edit responses. " +
 			"But you still don't know how to delete them... so... wait 10 seconds and this " +
 			"message will be deleted."
-		_, err = s.InteractionAPI().ResponseEdit(i.Interaction, &channel.WebhookEdit{
+		_, err = interaction.EditResponse(i.Interaction, &channel.WebhookEdit{
 			Content: &content,
 		}).Do(ctx)
 		if err != nil {
-			s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+			interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 				Content: "Something went wrong",
 			}).Do(ctx)
 			return
 		}
 		time.Sleep(time.Second * 10)
-		s.InteractionAPI().ResponseDelete(i.Interaction).Do(ctx)
+		interaction.DeleteResponse(i.Interaction).Do(ctx)
 	})
 }
 
@@ -564,7 +566,7 @@ func followups(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 	// but work as they are created by webhooks and their functionality
 	// is for handling additional messages after sending a response.
 
-	s.InteractionAPI().Respond(i.Interaction, &interaction.Response{
+	interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseChannelMessageWithSource,
 		Data: &interaction.ResponseData{
 			// Note: this isn't documented, but you can use that if you want to.
@@ -574,11 +576,11 @@ func followups(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 			Content: "Surprise!",
 		},
 	}).Do(ctx)
-	msg, err := s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+	msg, err := interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 		Content: "Followup message has been created, after 5 seconds it will be edited",
 	}).Do(ctx)
 	if err != nil {
-		s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+		interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 			Content: "Something went wrong",
 		}).Do(ctx)
 		return
@@ -586,15 +588,15 @@ func followups(ctx context.Context, s bot.Session, i *interaction.ApplicationCom
 	time.Sleep(time.Second * 5)
 
 	content := "Now the original message is gone and after 10 seconds this message will ~~self-destruct~~ be deleted."
-	s.InteractionAPI().FollowupMessageEdit(i.Interaction, msg.ID, &channel.WebhookEdit{
+	interaction.EditFollowupMessage(i.Interaction, msg.ID, &channel.WebhookEdit{
 		Content: &content,
 	}).Do(ctx)
 
 	time.Sleep(time.Second * 10)
 
-	s.InteractionAPI().FollowupMessageDelete(i.Interaction, msg.ID).Do(ctx)
+	interaction.DeleteFollowupMessage(i.Interaction, msg.ID).Do(ctx)
 
-	s.InteractionAPI().FollowupMessageCreate(i.Interaction, true, &channel.WebhookParams{
+	interaction.CreateFollowupMessage(i.Interaction, true, &channel.WebhookParams{
 		Content: "For those, who didn't skip anything and followed tutorial along fairly, " +
 			"take a unicorn :unicorn: as reward!\n" +
 			"Also, as bonus... look at the original interaction response :D",

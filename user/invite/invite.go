@@ -2,16 +2,20 @@
 package invite
 
 import (
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/nyttikord/gokord/application"
 	"github.com/nyttikord/gokord/channel"
+	"github.com/nyttikord/gokord/discord"
+	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/user"
 )
 
-// Invite stores all data related to a specific Discord guild.Guild or channel.Channel invite.
+// Invite stores all data related to a specific Discord [guild.Guild] or [channel.Channel] invite.
 type Invite struct {
 	Type      types.Invite     `json:"type"`
 	Guild     *guild.Guild     `json:"guild"`
@@ -25,24 +29,25 @@ type Invite struct {
 	Revoked   bool             `json:"revoked"`
 	Temporary bool             `json:"temporary"`
 	Unique    bool             `json:"unique"`
-	// See TargetUser and TargetApplication.
+	// See [Invite.TargetUser] and [Invite.TargetApplication].
 	TargetType types.InviteTarget `json:"target_type"`
-	// TargetUser is the user.User streaming displayed for this Invite.
-	// Requires TargetType to be types.InviteTargetStream.
-	// Set TargetUserID when creating an Invite to use this feature.
+	// TargetUser is the [user.User] streaming displayed for this [Invite].
+	// Requires [Invite.TargetType] to be [types.InviteTargetStream].
+	// Set [Invite.TargetUserID] when creating an [Invite] to use this feature.
 	TargetUser *user.User `json:"target_user,omitempty"`
-	// TargetApplication is the embedded application.Application to open for this Invite.
-	// Requires TargetType to be types.InviteTargetEmbeddedApplication.
-	// Set TargetApplicationID when creating an Invite to use this feature.
+	// TargetApplication is the embedded [application.Application] to open for this [Invite].
+	// Requires [Invite.TargetType] to be [types.InviteTargetEmbeddedApplication].
+	// Set [Invite.TargetApplicationID] when creating an [Invite] to use this feature.
 	TargetApplication *application.Application `json:"target_application,omitempty"`
-	// TargetUsersFile is a CSV with a single column of user.User IDs for all the user.User able to accept this Invite.
-	// Does not work with a channel.Channel Invite.
+	// TargetUsersFile is a CSV with a single column of [user.User] IDs for all the [user.User] able to accept this
+	// [Invite].
+	// Does not work with a [channel.Channel] [Invite].
 	TargetUsersFile []byte `json:"target_users_file,omitempty"`
 	// Roles are the guild.Role given when the user.User joins the guild.Guild.
-	// Does not work with a channel.Channel Invite.
+	// Does not work with a [channel.Channel] [Invite].
 	Roles []string `json:"role_ids,omitempty"`
 
-	// will only be filled when using InviteWithCounts
+	// will only be filled when using [GetWithCounts].
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
 	ApproximateMemberCount   int `json:"approximate_member_count"`
 
@@ -58,4 +63,118 @@ type TargetUsersJobStatus struct {
 	CreatedAt      time.Time                  `json:"created_at"`
 	CompletedAt    time.Time                  `json:"completed_at"`
 	ErrorMessage   string                     `json:"error_message"`
+}
+
+// Get the [Invite].
+func Get(inviteID string) Request[*Invite] {
+	return GetComplex(inviteID, "", false, false)
+}
+
+// GetWithCounts returns the [Invite] including approximate [user.Member] counts.
+func GetWithCounts(inviteID string) Request[*Invite] {
+	return GetComplex(inviteID, "", true, false)
+}
+
+// GetComplex returns the [Invite] with the given ID including specified fields.
+//
+// If specified, it includes specified [guild.ScheduledEvent] with guildScheduledEventID.
+// withCounts indicates whether to include approximate [user.Member] counts.
+// withExpiration indicates whether to include expiration time.
+func GetComplex(inviteID, guildScheduledEventID string, withCounts, withExpiration bool) Request[*Invite] {
+	endpoint := discord.EndpointInvite(inviteID)
+	v := url.Values{}
+	if guildScheduledEventID != "" {
+		v.Set("guild_scheduled_event_id", guildScheduledEventID)
+	}
+	if withCounts {
+		v.Set("with_counts", "true")
+	}
+	if withExpiration {
+		v.Set("with_expiration", "true")
+	}
+
+	if len(v) != 0 {
+		endpoint += "?" + v.Encode()
+	}
+
+	return NewData[*Invite](http.MethodGet, endpoint).
+		WithBucketID(discord.EndpointInvite(""))
+}
+
+// Delete an existing [Invite].
+func Delete(inviteID string) Request[*Invite] {
+	return NewData[*Invite](http.MethodDelete, discord.EndpointInvite(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
+}
+
+// Accept an [Invite].
+func Accept(inviteID string) Request[*Invite] {
+	return NewData[*Invite](http.MethodPut, discord.EndpointInvite(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
+}
+
+// GetTargetUsers returns a CSV with a single column Users containing the [user.User] IDs targetted by the [Invite].
+func GetTargetUsers(inviteID string) Request[[]byte] {
+	return NewSimple(http.MethodPut, discord.EndpointInviteTargetUsers(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
+}
+
+// UpdateTargetUsers updates the [user.User] allowed to see and accept this
+// See [Invite.TargetUsers].
+/*func (r Requester) UpdateTargetUsers(ctx context.Context, inviteID string, csvFile string, options ...discord.RequestOption) error {
+	_, err := r.RequestWithBucketID(
+		ctx,
+		http.MethodGet,
+		discord.EndpointInviteTargetUsers(inviteID)+"?target_users_file="+url.PathEscape(csvFile),
+		nil,
+		discord.EndpointInvite(""),
+		options...,
+	)
+	return err
+}*/
+
+// The Discord's documentation does not yet provide complete information.
+// Check https://discord.com/developers/docs/resources/invite#get-target-users-job-status for more information.
+func GetTargetUsersJobStatus(inviteID string) Request[*TargetUsersJobStatus] {
+	return NewData[*TargetUsersJobStatus](http.MethodPut, discord.EndpointInviteTargetUsersJobStatus(inviteID)).
+		WithBucketID(discord.EndpointInvite(""))
+}
+
+// List returns all [Invite] for the given [channel.Channel].
+func List(channelID string) Request[[]*Invite] {
+	return NewData[[]*Invite](http.MethodDelete, discord.EndpointChannelInvites(channelID))
+}
+
+// Create a new [Invite] for the given [channel.Channel].
+//
+// NOTE: [Invite] must have MaxAge, MaxUses and Temporary.
+func Create(channelID string, i Invite) Request[*Invite] {
+	uID := ""
+	if i.TargetUser != nil {
+		uID = i.TargetUser.ID
+	}
+	appID := ""
+	if i.TargetApplication != nil {
+		appID = i.TargetApplication.ID
+	}
+	data := struct {
+		MaxAge            int                `json:"max_age"`
+		MaxUses           int                `json:"max_uses"`
+		Temporary         bool               `json:"temporary"`
+		Unique            bool               `json:"unique"`
+		TargetType        types.InviteTarget `json:"target_type"`
+		TargetUser        string             `json:"target_user_id"`
+		TargetApplication string             `json:"target_application_id"`
+		//TargerUsers       []byte             `json:"target_users_file,omitempty"`
+		Roles []string `json:"role_ids,omitempty"`
+	}{i.MaxAge, i.MaxUses, i.Temporary, i.Unique, i.TargetType, uID, appID, i.Roles}
+
+	req := NewData[*Invite](http.MethodPost, discord.EndpointChannelInvites(channelID)).
+		WithData(data)
+
+	if len(i.TargetUsersFile) > 0 {
+		return WrapWarn(req, "InviteCreate does not support yet TargetUsersFile")
+	}
+
+	return req
 }
