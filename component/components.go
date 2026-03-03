@@ -74,7 +74,9 @@ func (un *Unmarshaler) UnmarshalJSON(data []byte) error {
 	case types.ComponentFileUpload:
 		un.Component = &FileUpload{}
 	case types.ComponentCheckbox:
+		un.Component = &Checkbox{}
 	case types.ComponentCheckboxGroup:
+		un.Component = &CheckboxGroup{}
 	case types.ComponentRadioGroup:
 	default:
 		return fmt.Errorf("unknown component type: %d", v.Type)
