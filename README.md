@@ -123,7 +123,7 @@ Go reference (below) presents that information in a nice format.
 
 ## Examples
 
-Below is a list of examples and other projects using Gokord. 
+Below is a list of examples and other projects using gokord. 
 
 - [gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with gokord (really outdated)
 

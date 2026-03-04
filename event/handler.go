@@ -53,7 +53,7 @@ func (eh interfaceHandler) Handle(ctx context.Context, s bot.Session, i any) {
 
 var registeredInterfaceProviders = map[string]InterfaceProvider{}
 
-// registerInterfaceProvider registers a provider so that Gokord can access it's New() method.
+// registerInterfaceProvider registers a provider so that gokord can access it's New() method.
 func registerInterfaceProvider(eh InterfaceProvider) {
 	if _, ok := registeredInterfaceProviders[eh.Type()]; ok {
 		panic("event " + eh.Type() + " already registered")

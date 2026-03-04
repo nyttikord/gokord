@@ -20,7 +20,7 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// VERSION of Gokord, follows Semantic Versioning. (http://semver.org/)
+// VERSION of gokord, follows Semantic Versioning. (http://semver.org/)
 const VERSION = "0.34.0"
 
 // New creates a new Discord session with provided token.
