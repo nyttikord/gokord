@@ -56,6 +56,7 @@ const (
 	ErrCodeUnknownGuildScheduledEvent            = 10070
 	ErrCodeUnknownGuildScheduledEventUser        = 10071
 	ErrUnknownTag                                = 10087
+	ErrUnknownSound                              = 10097
 
 	ErrCodeBotsCannotUseEndpoint                                            = 20001
 	ErrCodeOnlyBotsCanUseEndpoint                                           = 20002
@@ -149,6 +150,7 @@ const (
 	ErrCodeThisServerNeedsMonetizationEnabledInOrderToPerformThisAction = 50097
 	ErrCodeThisServerNeedsMoreBoostsToPerformThisAction                 = 50101
 	ErrCodeTheRequestBodyContainsInvalidJSON                            = 50109
+	ErrCodeUserMustBeInVoiceChannelToSendVoiceChannelEffect             = 50168
 
 	ErrCodeNoUsersWithDiscordTagExist = 80004
 

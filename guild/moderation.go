@@ -185,6 +185,8 @@ const (
 	AuditLogChangeKeyDescription AuditLogChangeKey = "description"
 	// AuditLogChangeKeyDiscoverySplashHash is sent when discovery splash changed (string) - Guild.
 	AuditLogChangeKeyDiscoverySplashHash AuditLogChangeKey = "discovery_splash_hash"
+	// AuditLogChangeKeyEmojiName is sent when emoji name changed for sound (string) - emoji
+	AuditLogChangeKeyEmojiName AuditLogChangeKey = "emoji_name"
 	// AuditLogChangeKeyEnableEmoticons is sent when integration emoticons enabled/disabled (bool) - types.IntegrationInstall.
 	AuditLogChangeKeyEnableEmoticons AuditLogChangeKey = "enable_emoticons"
 	// AuditLogChangeKeyEntityType is sent when entity type of guild scheduled event was changed (int) - ScheduledEvent.
@@ -256,6 +258,8 @@ const (
 	AuditLogChangeKeyRegion AuditLogChangeKey = "region"
 	// AuditLogChangeKeyRulesChannelID is sent when id of the rules channel changed (snowflake) - Guild.
 	AuditLogChangeKeyRulesChannelID AuditLogChangeKey = "rules_channel_id"
+	// AuditLogChangeKeySoundID is sent when soundboard sound changed (string) - guild
+	AuditLogChangeKeySoundID AuditLogChangeKey = "sound_id"
 	// AuditLogChangeKeySplashHash is sent when invite splash page artwork changed (string) - Guild.
 	AuditLogChangeKeySplashHash AuditLogChangeKey = "splash_hash"
 	// AuditLogChangeKeyStatus is sent when status of guild scheduled event was changed (int - guild scheduled event
@@ -282,6 +286,8 @@ const (
 	AuditLogChangeKeyVanityURLCode AuditLogChangeKey = "vanity_url_code"
 	// AuditLogChangeKeyVerificationLevel is sent when required verification level changed (int - verification level) - Guild.
 	AuditLogChangeKeyVerificationLevel AuditLogChangeKey = "verification_level"
+	// AuditLogChangeKeyVolume is sent when soundboard sound volume changed (float) - guild
+	AuditLogChangeKeyVolume AuditLogChangeKey = "volume"
 	// AuditLogChangeKeyWidgetChannelID is sent when channel id of the server widget changed (snowflake) - Guild.
 	AuditLogChangeKeyWidgetChannelID AuditLogChangeKey = "widget_channel_id"
 	// AuditLogChangeKeyWidgetEnabled is sent when server widget enabled/disabled (bool) - Guild.
@@ -374,6 +380,10 @@ const (
 	AuditLogActionThreadDelete AuditLogAction = 112
 
 	AuditLogActionApplicationCommandPermissionUpdate AuditLogAction = 121
+
+	AuditLogActionSoundboardSoundCreate AuditLogAction = 130
+	AuditLogActionSoundboardSoundUpdate AuditLogAction = 131
+	AuditLogActionSoundboardSoundDelete AuditLogAction = 132
 
 	AuditLogActionAutoModerationRuleCreate                AuditLogAction = 140
 	AuditLogActionAutoModerationRuleUpdate                AuditLogAction = 141

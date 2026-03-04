@@ -470,3 +470,46 @@ type SubscriptionUpdate struct {
 type SubscriptionDelete struct {
 	*premium.Subscription
 }
+
+// GuildSoundboardSoundCreate is the data for a GuildSoundboardSoundCreate event.
+type GuildSoundboardSoundCreate struct {
+	*emoji.SoundboardSound
+}
+
+// GuildSoundboardSoundUpdate is the data for a GuildSoundboardSoundUpdate event.
+type GuildSoundboardSoundUpdate struct {
+	*emoji.SoundboardSound
+}
+
+// GuildSoundboardSoundDelete is the data for a GuildSoundboardSoundDelete event.
+type GuildSoundboardSoundDelete struct {
+	SoundID string `json:"sound_id"`
+	GuildID string `json:"guild_id"`
+}
+
+// GuildSoundboardSoundsUpdate is the data for a GuildSoundboardSoundsUpdate event.
+type GuildSoundboardSoundsUpdate struct {
+	SoundboardSounds []*emoji.SoundboardSound `json:"soundboard_sounds"`
+	GuildID          string                   `json:"guild_id"`
+}
+
+// SoundboardSoundsRequest is the data for a SoundboardSoundsRequest event.
+// https://discord.com/developers/docs/events/gateway-events#request-soundboard-sounds
+type SoundboardSoundsRequest struct {
+	SoundboardSounds []*emoji.SoundboardSound `json:"soundboard_sounds"`
+	GuildID          string                   `json:"guild_id"`
+}
+
+// VoiceChannelEffectSend is the data for a VoiceChannelEffectSend event.
+// https://discord.com/developers/docs/events/gateway-events#voice-channel-effect-send
+type VoiceChannelEffectSend struct {
+	ChannelID     string              `json:"channel_id"`
+	GuildID       string              `json:"guild_id"`
+	UserID        string              `json:"user_id"`
+	EmojiEffect   emoji.Emoji         `json:"emoji"`
+	AnimationType emoji.AnimationType `json:"animation_type"`
+	AnimationID   int                 `json:"animation_id"`
+	SoundID       string              `json:"sound_id"`
+	// Volume of the sound (0-1)
+	Volume float64 `json:"sound_volume"`
+}

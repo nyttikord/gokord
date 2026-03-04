@@ -112,6 +112,11 @@ var (
 		return EndpointCDNGuilds + gId + "/users/" + uID + "/banners/" + hash + ".gif"
 	}
 
+	EndpointGuildSoundboardSounds = func(gId string) string { return EndpointGuild(gId) + "/soundboard-sounds" }
+	EndpointGuildSoundboardSound  = func(gId, sId string) string {
+		return EndpointGuildSoundboardSounds(gId) + "/" + sId
+	}
+
 	EndpointRoleIcon = func(rID, hash string) string {
 		return EndpointCDNRoleIcons + rID + "/" + hash + ".png"
 	}
@@ -134,8 +139,11 @@ var (
 	EndpointChannelMessagePin                   = func(cID, mID string) string { return EndpointChannel(cID) + "/messages/pins/" + mID }
 	EndpointChannelMessageCrosspost             = func(cID, mID string) string { return EndpointChannel(cID) + "/messages/" + mID + "/crosspost" }
 	EndpointChannelFollow                       = func(cID string) string { return EndpointChannel(cID) + "/followers" }
-	EndpointThreadMembers                       = func(tID string) string { return EndpointChannel(tID) + "/thread-members" }
-	EndpointThreadMember                        = func(tID, mID string) string { return EndpointThreadMembers(tID) + "/" + mID }
+	EndpointChannelSoundboardSoundSend          = func(cID string) string {
+		return EndpointChannel(cID) + "/send-soundboard-sound"
+	}
+	EndpointThreadMembers = func(tID string) string { return EndpointChannel(tID) + "/thread-members" }
+	EndpointThreadMember  = func(tID, mID string) string { return EndpointThreadMembers(tID) + "/" + mID }
 
 	EndpointGroupIcon = func(cID, hash string) string { return EndpointCDNChannelIcons + cID + "/" + hash + ".png" }
 
@@ -225,6 +233,8 @@ var (
 		return EndpointWebhookMessage(aID, iToken, mID)
 	}
 
+	EndpointSoundboardSounds = EndpointAPI + "soundboard-default-sounds"
+
 	EndpointInvite                     = func(iID string) string { return EndpointAPI + "invites/" + iID }
 	EndpointInviteTargetUsers          = func(iID string) string { return EndpointInvite(iID) + "/target-users" }
 	EndpointInviteTargetUsersJobStatus = func(iID string) string { return EndpointInviteTargetUsers(iID) + "/job-status" }
@@ -267,4 +277,5 @@ func ChangeAPIVersion(v string) {
 	EndpointApplications = EndpointAPI + "applications"
 	EndpointOAuth2 = EndpointAPI + "oauth2/"
 	EndpointOAuth2Applications = EndpointOAuth2 + "applications"
+	EndpointSoundboardSounds = EndpointAPI + "soundboard-default-sounds"
 }
