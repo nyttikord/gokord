@@ -75,7 +75,7 @@ type Channel struct {
 	// This is only populated in DM [Channel]s.
 	Recipients []*user.User `json:"recipients"`
 	// The messages in the [Channel].
-	// This is only present in state-cached [Channel]s, and State.MaxMessageCount must be non-zero.
+	// This is only present in state-cached [Channel]s, and MaxMessageCount must be non-zero.
 	Messages []*Message `json:"-"`
 	// A list of permission overwrites present for the [Channel].
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites"`

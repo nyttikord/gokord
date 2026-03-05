@@ -16,7 +16,7 @@ to add the official Gokord test bot **dgo** to your server. This provides
 indispensable help to this project.
 -->
 
-gokord is based on [DiscordGo](https://github.com/bwmarrin/discordgo)
+gokord is based on [DiscordGo](https://github.com/bwmarrin/discordgo).
 We have decided to fork it, because:
 - maintainers are inactives;
 - [maintainers do not want to upgrade to newer versions to fix 4 CVE](https://github.com/bwmarrin/discordgo/pull/1528);
@@ -66,6 +66,8 @@ We have completely refactored the code base to clean it and to update it.
 We have:
 - recoded the websocket to follow Discord documentations;
 - modified how goroutines were managed to avoid data races with Mutex (this actually leads to a faster code :D);
+- recoded HTTP API;
+- new interaction packages;
 - fixed lot of bugs related to invalid handling of rate limits;
 - updated the documentation;
 - added missing features.
@@ -79,11 +81,6 @@ Sadly, we have dropped the support of the voice package, because it is going to 
 Feel free to open a PR if you want to help use here.
 
 #### What you will see
-
-We are currently simplifying how data is shared between goroutines using `context` package to build a more seamless
-development experience.
-
-We are going to refactor how interactions are handled and we will create helpful structs to achieve the same goal.
 
 Check the [ROADMAP](./ROADMAP.md) to have the details ;D
 
