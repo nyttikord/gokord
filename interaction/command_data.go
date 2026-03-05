@@ -10,21 +10,23 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// CommandInteractionData contains the data of Command Interaction.
+// CommandInteractionData contains the data of [ApplicationCommand] interaction.
 type CommandInteractionData struct {
 	ID          string                          `json:"id"`
 	Name        string                          `json:"name"`
 	CommandType types.Command                   `json:"type"`
 	Resolved    *CommandInteractionDataResolved `json:"resolved"`
 
-	// Slash command options
+	// Slash [Command] options
 	Options []*CommandInteractionDataOption `json:"options"`
 	// InviteTarget (user/message) id on which context menu command was called.
 	// The details are stored in Resolved according to command type.
 	TargetID string `json:"target_id"`
 }
 
-// GetOption finds and returns an CommandOption by its name.
+// GetOption finds and returns an [CommandOption] by its name.
+//
+// Deprecated: use [ApplicationCommand.OptionMap] to get the [CommandOptionMap].
 func (d *CommandInteractionData) GetOption(name string) *CommandInteractionDataOption {
 	for _, opt := range d.Options {
 		if opt.Name == name {
@@ -34,28 +36,27 @@ func (d *CommandInteractionData) GetOption(name string) *CommandInteractionDataO
 	return nil
 }
 
-// CommandInteractionDataResolved contains resolved data of Command execution.
+// CommandInteractionDataResolved contains resolved data of [ApplicationCommand] execution.
 type CommandInteractionDataResolved struct {
 	Users map[string]*user.User `json:"users"`
-	// Partial user.Member are missing user.User, Deaf and Mute fields.
+	// Partial [user.Member] are missing [user.User], Deaf and Mute fields.
 	Members map[string]*user.Member `json:"members"`
 	Roles   map[string]*guild.Role  `json:"roles"`
-	// Partial channel.Channel only have ID, Name, Type and Permissions fields.
+	// Partial [channel.Channel] only have ID, Name, Type and Permissions fields.
 	Channels    map[string]*channel.Channel           `json:"channels"`
 	Messages    map[string]*channel.Message           `json:"messages"`
 	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
 }
 
-// Type returns the type of Data.
 func (*CommandInteractionData) Type() types.Interaction {
 	return types.InteractionApplicationCommand
 }
 
-// CommandInteractionDataOption represents an option of a slash Command.
+// CommandInteractionDataOption represents an option of an [ApplicationCommand].
 type CommandInteractionDataOption struct {
 	Name string              `json:"name"`
 	Type types.CommandOption `json:"type"`
-	// NOTE: Contains the value specified by Type.
+	// NOTE: Contains the value specified by [Type].
 	Value   any                             `json:"value,omitempty"`
 	Options []*CommandInteractionDataOption `json:"options,omitempty"`
 
@@ -63,7 +64,7 @@ type CommandInteractionDataOption struct {
 	Focused bool `json:"focused,omitempty"`
 }
 
-// GetOption finds and returns an CommandOption by its name.
+// GetOption finds and returns an option by its name.
 func (o CommandInteractionDataOption) GetOption(name string) *CommandInteractionDataOption {
 	for _, opt := range o.Options {
 		if opt.Name == name {
@@ -73,7 +74,7 @@ func (o CommandInteractionDataOption) GetOption(name string) *CommandInteraction
 	return nil
 }
 
-// IntValue is a utility function for casting CommandOption value to integer.
+// IntValue is a utility function for casting option value to integer.
 func (o CommandInteractionDataOption) IntValue() int64 {
 	if o.Type != types.CommandOptionInteger {
 		panic("IntValue called on data option of type " + o.Type.String())
@@ -81,7 +82,7 @@ func (o CommandInteractionDataOption) IntValue() int64 {
 	return int64(o.Value.(float64))
 }
 
-// UintValue is a utility function for casting CommandOption value to unsigned integer.
+// UintValue is a utility function for casting option value to unsigned integer.
 func (o CommandInteractionDataOption) UintValue() uint64 {
 	if o.Type != types.CommandOptionInteger {
 		panic("UintValue called on data option of type " + o.Type.String())
@@ -89,7 +90,7 @@ func (o CommandInteractionDataOption) UintValue() uint64 {
 	return uint64(o.Value.(float64))
 }
 
-// FloatValue is a utility function for casting CommandOption value to float.
+// FloatValue is a utility function for casting option value to float.
 func (o CommandInteractionDataOption) FloatValue() float64 {
 	if o.Type != types.CommandOptionNumber {
 		panic("FloatValue called on data option of type " + o.Type.String())
@@ -97,7 +98,7 @@ func (o CommandInteractionDataOption) FloatValue() float64 {
 	return o.Value.(float64)
 }
 
-// StringValue is a utility function for casting CommandOption value to string.
+// StringValue is a utility function for casting option value to string.
 func (o CommandInteractionDataOption) StringValue() string {
 	if o.Type != types.CommandOptionString {
 		panic("StringValue called on data option of type " + o.Type.String())
@@ -105,7 +106,7 @@ func (o CommandInteractionDataOption) StringValue() string {
 	return o.Value.(string)
 }
 
-// BoolValue is a utility function for casting CommandOption value to bool.
+// BoolValue is a utility function for casting option value to bool.
 func (o CommandInteractionDataOption) BoolValue() bool {
 	if o.Type != types.CommandOptionBoolean {
 		panic("BoolValue called on data option of type " + o.Type.String())
@@ -113,11 +114,7 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 	return o.Value.(bool)
 }
 
-// ChannelValue is a utility function for casting CommandOption value to channel.Channel.
-//
-// s is a ChannelGetter (implemented by gokord.Session), if not nil, function additionally fetches all
-// channel.Channel's data.
-// state is the ChannelAPI state.
+// ChannelValue is a utility function for casting option value to [channel.Channel].
 func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *state.Channel) *channel.Channel {
 	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
@@ -125,7 +122,7 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *s
 	chanID := o.Value.(string)
 
 	if state != nil {
-		ch, err := state.Channel(chanID)
+		ch, err := state.GetChannel(chanID)
 		if err == nil {
 			return ch
 		}
@@ -137,12 +134,7 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *s
 	return ch
 }
 
-// RoleValue is a utility function for casting CommandOption value to guild.Role.
-//
-// gID is the guild.Guild ID containing the role.
-// s is a RolesGetter (implemented by gokord.Session), if not nil, function additionally fetches all
-// guild.Role's data.
-// state is the GuildAPI state.
+// RoleValue is a utility function for casting option value to [guild.Role].
 func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string, state *state.Guild) *guild.Role {
 	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
@@ -153,7 +145,7 @@ func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string,
 		return &guild.Role{ID: roleID}
 	}
 
-	r, err := state.Role(gID, roleID)
+	r, err := state.GetRole(gID, roleID)
 	if err == nil {
 		return r
 	}
@@ -168,9 +160,7 @@ func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string,
 	return &guild.Role{ID: roleID}
 }
 
-// UserValue is a utility function for casting CommandOption value to user.User.
-//
-// s is a UserGetter (implemented by gokord.Session), if not nil, function additionally fetches all user.User's data.
+// UserValue is a utility function for casting option value to [user.User].
 func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User {
 	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())

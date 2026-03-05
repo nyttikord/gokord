@@ -38,9 +38,9 @@ func KeyGuildReverse(guildID string) uint64 {
 	return stringToUint(guildID)
 }
 
-// GuildAdd adds a guild.Guild to the current State, or updates it if it already exists.
-func (s *Guild) GuildAdd(g *guild.Guild) error {
-	if gl, err := s.Guild(g.ID); err == nil {
+// AddGuild adds a [guild.Guild] to the current [Guild] state, or updates it if it already exists.
+func (s *Guild) AddGuild(g *guild.Guild) error {
+	if gl, err := s.GetGuild(g.ID); err == nil {
 		if g.MemberCount == 0 {
 			g.MemberCount = gl.MemberCount
 		}
@@ -72,14 +72,14 @@ func (s *Guild) GuildAdd(g *guild.Guild) error {
 
 	// Update the channels to point to the right gd
 	for _, c := range g.Channels {
-		if err := s.ChannelState().AppendGuildChannel(c); err != nil {
+		if err := s.ChannelState().storage.Write(KeyChannel(c), *c); err != nil {
 			return err
 		}
 	}
 
 	// Add all the threads to the state in case of thread sync list.
 	for _, t := range g.Threads {
-		if err := s.ChannelState().AppendGuildChannel(t); err != nil {
+		if err := s.ChannelState().storage.Write(KeyChannel(t), *t); err != nil {
 			return err
 		}
 	}
@@ -94,8 +94,8 @@ func (s *Guild) GuildAdd(g *guild.Guild) error {
 	return nil
 }
 
-// GuildRemove removes a guild.Guild from current State.
-func (s *Guild) GuildRemove(guild *guild.Guild) error {
+// RemoveGuild removes a [guild.Guild] from current [Guild] state.
+func (s *Guild) RemoveGuild(guild *guild.Guild) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -107,13 +107,13 @@ func (s *Guild) GuildRemove(guild *guild.Guild) error {
 	return nil
 }
 
-// Guild returns the guild.Guild.
+// GetGuild returns the [guild.Guild].
 //
-// Useful for querying if @me is in a guild:
+// Useful for querying if @me is in a [guild.Guild]:
 //
-//	_, err := s.GuildState().Guild(guildID)
+//	_, err := s.GuildState().GetGuild(guildID)
 //	isInGuild := !errors.Is(err, state.ErrStateNotFound)
-func (s *Guild) Guild(guildID string) (*guild.Guild, error) {
+func (s *Guild) GetGuild(guildID string) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -125,43 +125,43 @@ func (s *Guild) Guild(guildID string) (*guild.Guild, error) {
 	return &g, nil
 }
 
-// Guilds returns the sorted list of guilds ID.
-func (s *Guild) Guilds() []string {
+// ListGuilds returns the sorted list of [guild.Guild]s ID.
+func (s *Guild) ListGuilds() []string {
 	return s.guilds.Sort()
 }
 
-// RoleAdd adds a guild.Role to the current State, or updates it if it already exists.
-func (s *Guild) RoleAdd(guildID string, role *guild.Role) error {
-	g, err := s.Guild(guildID)
+// AddRole adds a [guild.Role] to the current [Guild] state, or updates it if it already exists.
+func (s *Guild) AddRole(guildID string, role *guild.Role) error {
+	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err
 	}
 
-	if _, err = s.Role(guildID, role.ID); err == nil {
+	if _, err = s.GetRole(guildID, role.ID); err == nil {
 		id := slices.IndexFunc(g.Roles, func(r *guild.Role) bool { return r.ID == role.ID })
 		g.Roles[id] = role
 	} else {
 		g.Roles = append(g.Roles, role)
 	}
 
-	return s.GuildAdd(g)
+	return s.AddGuild(g)
 }
 
-// RoleRemove removes a guild.Role from current State.
-func (s *Guild) RoleRemove(guildID, roleID string) error {
-	g, err := s.Guild(guildID)
+// RemoveRole removes a [guild.Role] from current [Role] state.
+func (s *Guild) RemoveRole(guildID, roleID string) error {
+	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err
 	}
 
 	g.Roles = slices.DeleteFunc(g.Roles, func(r *guild.Role) bool { return r.ID == roleID })
 
-	return s.GuildAdd(g)
+	return s.AddGuild(g)
 }
 
-// Role returns the guild.Role from a guild.Guild.
-func (s *Guild) Role(guildID, roleID string) (*guild.Role, error) {
-	g, err := s.Guild(guildID)
+// GetRole returns the [guild.GetRole] from a [guild.Guild].
+func (s *Guild) GetRole(guildID, roleID string) (*guild.Role, error) {
+	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,9 +175,9 @@ func (s *Guild) Role(guildID, roleID string) (*guild.Role, error) {
 	return nil, ErrNotFound
 }
 
-// Emoji returns an emoji.Emoji in the guild.Guild.
-func (s *Guild) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
-	g, err := s.Guild(guildID)
+// GetEmoji returns an [emoji.Emoji] in the [guild.Guild].
+func (s *Guild) GetEmoji(guildID, emojiID string) (*emoji.Emoji, error) {
+	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -191,29 +191,19 @@ func (s *Guild) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 	return nil, ErrNotFound
 }
 
-// EmojiAdd adds an emoji.Emoji to the current State.
-func (s *Guild) EmojiAdd(guildID string, em *emoji.Emoji) error {
-	g, err := s.Guild(guildID)
+// AddEmoji adds an [emoji.Emoji] to the current [Guild] state.
+func (s *Guild) AddEmoji(guildID string, em *emoji.Emoji) error {
+	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err
 	}
 
-	if _, err = s.Emoji(guildID, em.ID); err == nil {
+	if _, err = s.GetEmoji(guildID, em.ID); err == nil {
 		id := slices.IndexFunc(g.Emojis, func(e *emoji.Emoji) bool { return e.ID == em.ID })
 		g.Emojis[id] = em
 	} else {
 		g.Emojis = append(g.Emojis, em)
 	}
 
-	return s.GuildAdd(g)
-}
-
-// EmojisAdd adds multiple emoji.Emoji to the current State.
-func (s *Guild) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
-	for _, e := range emojis {
-		if err := s.EmojiAdd(guildID, e); err != nil {
-			return err
-		}
-	}
-	return nil
+	return s.AddGuild(g)
 }

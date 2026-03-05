@@ -61,14 +61,14 @@ func NewState(s *Session) state.State {
 
 func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) (err error) {
 	var g *guild.Guild
-	g, err = s.GuildState().Guild(update.GuildID)
+	g, err = s.GuildState().GetGuild(update.GuildID)
 	if err != nil {
 		return
 	}
 
 	defer func() {
 		if err == nil {
-			err = s.GuildState().GuildAdd(g)
+			err = s.GuildState().AddGuild(g)
 		}
 	}()
 
@@ -95,7 +95,7 @@ func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) (err err
 
 // VoiceState gets a VoiceState by guild and user ID.
 func (s *sessionState) VoiceState(guildID, userID string) (*user.VoiceState, error) {
-	g, err := s.GuildState().Guild(guildID)
+	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,14 +123,14 @@ func (s *sessionState) onReady(se *Session, r *event.Ready) error {
 	}
 
 	for _, g := range r.Guilds {
-		err := s.GuildState().GuildAdd(g)
+		err := s.GuildState().AddGuild(g)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, c := range r.PrivateChannels {
-		if err := s.ChannelState().ChannelAdd(c); err != nil {
+		if err := s.ChannelState().AddChannel(c); err != nil {
 			return err
 		}
 	}
@@ -151,19 +151,19 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 
 	switch t := i.(type) {
 	case *event.GuildCreate:
-		return s.GuildState().GuildAdd(t.Guild)
+		return s.GuildState().AddGuild(t.Guild)
 	case *event.GuildUpdate:
-		return s.GuildState().GuildAdd(t.Guild)
+		return s.GuildState().AddGuild(t.Guild)
 	case *event.GuildDelete:
-		old, err := s.GuildState().Guild(t.ID)
+		old, err := s.GuildState().GetGuild(t.ID)
 		if err == nil {
 			oldCopy := *old
 			t.BeforeDelete = &oldCopy
 		}
-		return s.GuildState().GuildRemove(t.Guild)
+		return s.GuildState().RemoveGuild(t.Guild)
 	case *event.GuildMemberAdd:
 		// Updates the MemberCount of the guild.
-		g, err := s.GuildState().Guild(t.Member.GuildID)
+		g, err := s.GuildState().GetGuild(t.Member.GuildID)
 		if err != nil {
 			return err
 		}
@@ -171,24 +171,24 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 
 		// Caches member if tracking is enabled.
 		if s.params.TrackMembers {
-			err = s.MemberState().MemberAdd(t.Member)
+			err = s.MemberState().AddMember(t.Member)
 			if err != nil {
 				return err
 			}
 		}
-		return s.GuildState().GuildAdd(g)
+		return s.GuildState().AddGuild(g)
 	case *event.GuildMemberUpdate:
 		if s.params.TrackMembers {
-			old, err := s.MemberState().Member(t.GuildID, t.User.ID)
+			old, err := s.MemberState().GetMember(t.GuildID, t.User.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			return s.MemberState().MemberAdd(t.Member)
+			return s.MemberState().AddMember(t.Member)
 		}
 	case *event.GuildMemberRemove:
 		// Updates the MemberCount of the g.
-		g, err := s.GuildState().Guild(t.Member.GuildID)
+		g, err := s.GuildState().GetGuild(t.Member.GuildID)
 		if err != nil {
 			return err
 		}
@@ -197,28 +197,28 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 		// Removes member from the cache if tracking is enabled.
 		if s.params.TrackMembers {
 			var old *user.Member
-			old, err = s.MemberState().Member(t.Member.GuildID, t.Member.User.ID)
+			old, err = s.MemberState().GetMember(t.Member.GuildID, t.Member.User.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			err = s.MemberState().MemberRemove(t.Member)
+			err = s.MemberState().RemoveMember(t.Member)
 			if err != nil {
 				return err
 			}
 		}
-		return s.GuildState().GuildAdd(g)
+		return s.GuildState().AddGuild(g)
 	case *event.GuildMembersChunk:
 		if s.params.TrackMembers {
 			for i := range t.Members {
 				t.Members[i].GuildID = t.GuildID
-				return s.MemberState().MemberAdd(t.Members[i])
+				return s.MemberState().AddMember(t.Members[i])
 			}
 		}
 
 		if s.params.TrackPresences {
 			for _, p := range t.Presences {
-				err := s.MemberState().PresenceAdd(t.GuildID, p)
+				err := s.MemberState().AddPresence(t.GuildID, p)
 				if err != nil {
 					return err
 				}
@@ -226,87 +226,87 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 		}
 	case *event.GuildRoleCreate:
 		if s.params.TrackRoles {
-			return s.GuildState().RoleAdd(t.GuildID, t.Role)
+			return s.GuildState().AddRole(t.GuildID, t.Role)
 		}
 	case *event.GuildRoleUpdate:
 		if s.params.TrackRoles {
-			old, err := s.GuildState().Role(t.GuildID, t.Role.ID)
+			old, err := s.GuildState().GetRole(t.GuildID, t.Role.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			return s.GuildState().RoleAdd(t.GuildID, t.Role)
+			return s.GuildState().AddRole(t.GuildID, t.Role)
 		}
 	case *event.GuildRoleDelete:
 		if s.params.TrackRoles {
-			old, err := s.GuildState().Role(t.GuildID, t.RoleID)
+			old, err := s.GuildState().GetRole(t.GuildID, t.RoleID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			return s.GuildState().RoleRemove(t.GuildID, t.RoleID)
+			return s.GuildState().RemoveRole(t.GuildID, t.RoleID)
 		}
 	case *event.GuildEmojisUpdate:
 		if s.params.TrackEmojis {
-			g, err := s.GuildState().Guild(t.GuildID)
+			g, err := s.GuildState().GetGuild(t.GuildID)
 			if err != nil {
 				return err
 			}
 			g.Emojis = t.Emojis
-			return s.GuildState().GuildAdd(g)
+			return s.GuildState().AddGuild(g)
 		}
 	case *event.GuildStickersUpdate:
 		if s.params.TrackStickers {
-			g, err := s.GuildState().Guild(t.GuildID)
+			g, err := s.GuildState().GetGuild(t.GuildID)
 			if err != nil {
 				return err
 			}
 			g.Stickers = t.Stickers
-			return s.GuildState().GuildAdd(g)
+			return s.GuildState().AddGuild(g)
 		}
 	case *event.ChannelCreate:
 		if s.params.TrackChannels {
-			return s.ChannelState().ChannelAdd(t.Channel)
+			return s.ChannelState().AddChannel(t.Channel)
 		}
 	case *event.ChannelUpdate:
 		if s.params.TrackChannels {
-			old, err := s.ChannelState().Channel(t.ID)
+			old, err := s.ChannelState().GetChannel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			return s.ChannelState().ChannelAdd(t.Channel)
+			return s.ChannelState().AddChannel(t.Channel)
 		}
 	case *event.ChannelDelete:
 		if s.params.TrackChannels {
-			old, err := s.ChannelState().Channel(t.ID)
+			old, err := s.ChannelState().GetChannel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			return s.ChannelState().ChannelRemove(t.Channel)
+			return s.ChannelState().RemoveChannel(t.Channel)
 		}
 	case *event.ThreadCreate:
 		if s.params.TrackThreads {
-			return s.ChannelState().ChannelAdd(t.Channel)
+			return s.ChannelState().AddChannel(t.Channel)
 		}
 	case *event.ThreadUpdate:
 		if s.params.TrackThreads {
-			old, err := s.ChannelState().Channel(t.ID)
+			old, err := s.ChannelState().GetChannel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			return s.ChannelState().ChannelAdd(t.Channel)
+			return s.ChannelState().AddChannel(t.Channel)
 		}
 	case *event.ThreadDelete:
 		if s.params.TrackThreads {
-			old, err := s.ChannelState().Channel(t.ID)
+			old, err := s.ChannelState().GetChannel(t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			return s.ChannelState().ChannelRemove(t.Channel)
+			return s.ChannelState().RemoveChannel(t.Channel)
 		}
 	case *event.ThreadMemberUpdate:
 		if s.params.TrackThreads {
@@ -314,38 +314,38 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 		}
 	case *event.ThreadMembersUpdate:
 		if s.params.TrackThreadMembers {
-			return s.ChannelState().ThreadMembersUpdate(t.ID, t.GuildID, t.MemberCount, t.AddedMembers, t.RemovedMembers)
+			return s.ChannelState().OnThreadMembersUpdate(t.ID, t.GuildID, t.MemberCount, t.AddedMembers, t.RemovedMembers)
 		}
 	case *event.ThreadListSync:
 		if s.params.TrackThreads {
-			return s.ChannelState().ThreadListSync(t.GuildID, t.ChannelIDs, t.Threads, t.Members)
+			return s.ChannelState().OnThreadListSync(t.GuildID, t.ChannelIDs, t.Threads, t.Members)
 		}
 	case *event.MessageCreate:
 		if s.params.MaxMessageCount != 0 {
-			return s.ChannelState().MessageAdd(t.Message)
+			return s.ChannelState().AddMessage(t.Message)
 		}
 	case *event.MessageUpdate:
 		if s.params.MaxMessageCount != 0 {
-			old, err := s.ChannelState().Message(t.ChannelID, t.ID)
+			old, err := s.ChannelState().GetMessage(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeUpdate = &oldCopy
 			}
-			return s.ChannelState().MessageAdd(t.Message)
+			return s.ChannelState().AddMessage(t.Message)
 		}
 	case *event.MessageDelete:
 		if s.params.MaxMessageCount != 0 {
-			old, err := s.ChannelState().Message(t.ChannelID, t.ID)
+			old, err := s.ChannelState().GetMessage(t.ChannelID, t.ID)
 			if err == nil {
 				oldCopy := *old
 				t.BeforeDelete = &oldCopy
 			}
-			return s.ChannelState().MessageRemove(t.Message)
+			return s.ChannelState().RemoveMessage(t.Message)
 		}
 	case *event.MessageDeleteBulk:
 		if s.params.MaxMessageCount != 0 {
 			for _, mID := range t.Messages {
-				err := s.ChannelState().MessageRemoveByID(t.ChannelID, mID)
+				err := s.ChannelState().RemoveMessageByID(t.ChannelID, mID)
 				if err != nil {
 					return err
 				}
@@ -363,13 +363,13 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 		}
 	case *event.PresenceUpdate:
 		if s.params.TrackPresences {
-			err := s.MemberState().PresenceAdd(t.GuildID, &t.Presence)
+			err := s.MemberState().AddPresence(t.GuildID, &t.Presence)
 			if err != nil {
 				return err
 			}
 		}
 		if s.params.TrackMembers {
-			m, err := s.MemberState().Member(t.GuildID, t.User.ID)
+			m, err := s.MemberState().GetMember(t.GuildID, t.User.ID)
 			if err != nil {
 				// Member not found; this is a user coming online
 				m = &user.Member{
@@ -381,7 +381,7 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 					m.User.Username = t.User.Username
 				}
 			}
-			return s.MemberState().MemberAdd(m)
+			return s.MemberState().AddMember(m)
 		}
 	}
 	return nil

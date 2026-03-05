@@ -48,16 +48,10 @@ func KeyChannelReverse(channelID string) uint64 {
 	return stringToUint(channelID)
 }
 
-// AppendGuildChannel is for internal use only.
-// Use ChannelAdd instead.
-func (s *Channel) AppendGuildChannel(c *channel.Channel) error {
-	return s.storage.Write(KeyChannel(c), *c)
-}
-
-// ChannelAdd adds a channel.Channel to the current State, or updates it if it already exists.
-// Channels may exist either as PrivateChannels or inside a guild.Guild.
-func (s *Channel) ChannelAdd(chann *channel.Channel) error {
-	g, err := s.GuildState().Guild(chann.GuildID)
+// AddChannel adds a [channel.Channel] to the current [Channel] state, or updates it if it already exists.
+// Channels may exist either as private channels or inside a [guild.Guild].
+func (s *Channel) AddChannel(chann *channel.Channel) error {
+	g, err := s.GuildState().GetGuild(chann.GuildID)
 
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -66,7 +60,7 @@ func (s *Channel) ChannelAdd(chann *channel.Channel) error {
 		return err
 	}
 
-	if c, err := s.Channel(chann.ID); err == nil {
+	if c, err := s.GetChannel(chann.ID); err == nil {
 		if chann.Messages == nil {
 			chann.Messages = c.Messages
 		}
@@ -95,7 +89,7 @@ func (s *Channel) ChannelAdd(chann *channel.Channel) error {
 		} else {
 			fn(g.Channels)
 		}
-		err = s.GuildState().GuildAdd(g)
+		err = s.GuildState().AddGuild(g)
 		if err != nil {
 			return err
 		}
@@ -104,12 +98,12 @@ func (s *Channel) ChannelAdd(chann *channel.Channel) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return s.AppendGuildChannel(chann)
+	return s.storage.Write(KeyChannel(chann), *chann)
 }
 
-// ChannelRemove removes a channel.Channel from current State.
-func (s *Channel) ChannelRemove(chann *channel.Channel) error {
-	_, err := s.Channel(chann.ID)
+// RemoveChannel removes a [channel.Channel] from current [Channel] state.
+func (s *Channel) RemoveChannel(chann *channel.Channel) error {
+	_, err := s.GetChannel(chann.ID)
 	if err != nil {
 		return err
 	}
@@ -122,7 +116,7 @@ func (s *Channel) ChannelRemove(chann *channel.Channel) error {
 		return s.storage.Delete(KeyChannel(chann))
 	}
 
-	g, err := s.GuildState().Guild(chann.GuildID)
+	g, err := s.GuildState().GetGuild(chann.GuildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelGuildNotCached)
@@ -136,7 +130,7 @@ func (s *Channel) ChannelRemove(chann *channel.Channel) error {
 		g.Channels = slices.DeleteFunc(g.Channels, func(c *channel.Channel) bool { return c.ID == chann.ID })
 	}
 
-	err = s.GuildState().GuildAdd(g)
+	err = s.GuildState().AddGuild(g)
 	if err != nil {
 		return err
 	}
@@ -147,8 +141,8 @@ func (s *Channel) ChannelRemove(chann *channel.Channel) error {
 	return s.storage.Delete(KeyChannel(chann))
 }
 
-// Channel returns the channel.Channel.
-func (s *Channel) Channel(channelID string) (*channel.Channel, error) {
+// GetChannel returns the [channel.Channel].
+func (s *Channel) GetChannel(channelID string) (*channel.Channel, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -159,16 +153,16 @@ func (s *Channel) Channel(channelID string) (*channel.Channel, error) {
 	return &c, nil
 }
 
-// PrivateChannels returns all private channels.
-func (s *Channel) PrivateChannels() []*channel.Channel {
+// ListPrivateChannels returns all private [channel.Channel]s.
+func (s *Channel) ListPrivateChannels() []*channel.Channel {
 	return s.privateChannels
 }
 
-// MessageAdd adds a channel.Message to the current State, or updates it if it exists.
-// If the channel cannot be found, the message is discarded.
-// Messages are kept in state up to state.State GetMaxMessageCount per channel.
-func (s *Channel) MessageAdd(message *channel.Message) error {
-	c, err := s.Channel(message.ChannelID)
+// AddMessage adds a [channel.Message] to the current [Channel] state, or updates it if it exists.
+// If the [channel.Channel] cannot be found, the message is discarded.
+// Messages are kept in state up to [Params.MaxMessageCount] per [channel.Channel].
+func (s *Channel) AddMessage(message *channel.Message) error {
+	c, err := s.GetChannel(message.ChannelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
@@ -176,7 +170,7 @@ func (s *Channel) MessageAdd(message *channel.Message) error {
 		return err
 	}
 
-	if m, err := s.Message(message.ChannelID, message.ID); err == nil {
+	if m, err := s.GetMessage(message.ChannelID, message.ID); err == nil {
 		if message.Content == "" {
 			message.Content = m.Content
 		}
@@ -208,17 +202,17 @@ func (s *Channel) MessageAdd(message *channel.Message) error {
 		c.Messages = c.Messages[len(c.Messages)-s.params.MaxMessageCount:]
 	}
 
-	return s.ChannelAdd(c)
+	return s.AddChannel(c)
 }
 
-// MessageRemove removes a channel.Message from the current State.
-func (s *Channel) MessageRemove(message *channel.Message) error {
-	return s.MessageRemoveByID(message.ChannelID, message.ID)
+// RemoveMessage removes a [channel.Message] from the current [Channel] state.
+func (s *Channel) RemoveMessage(message *channel.Message) error {
+	return s.RemoveMessageByID(message.ChannelID, message.ID)
 }
 
-// MessageRemoveByID removes a channel.Message by channelID and messageID from the current State.
-func (s *Channel) MessageRemoveByID(channelID, messageID string) error {
-	c, err := s.Channel(channelID)
+// RemoveMessageByID removes a [channel.Message] by channelID and messageID from the current [Channel] state.
+func (s *Channel) RemoveMessageByID(channelID, messageID string) error {
+	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
@@ -228,12 +222,12 @@ func (s *Channel) MessageRemoveByID(channelID, messageID string) error {
 
 	c.Messages = slices.DeleteFunc(c.Messages, func(m *channel.Message) bool { return m.ID == messageID })
 
-	return s.ChannelAdd(c)
+	return s.AddChannel(c)
 }
 
-// Message gets a message by channel and message ID.
-func (s *Channel) Message(channelID, messageID string) (*channel.Message, error) {
-	c, err := s.Channel(channelID)
+// GetMessage gets a [channel.Message] by [channel.Channel.ID] and [channel.Message.ID].
+func (s *Channel) GetMessage(channelID, messageID string) (*channel.Message, error) {
+	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return nil, errors.Join(err, ErrChannelNotCached)
@@ -250,10 +244,9 @@ func (s *Channel) Message(channelID, messageID string) (*channel.Message, error)
 	return nil, ErrNotFound
 }
 
-// ThreadListSync syncs guild threads with provided ones.
-// TODO: use gokord.ThreadListSync when event will be remade
-func (s *Channel) ThreadListSync(guildID string, channelIDs []string, threads []*channel.Channel, members []*channel.ThreadMember) error {
-	g, err := s.GuildState().Guild(guildID)
+// OnThreadListSync syncs [guild.Guild] threads with provided ones.
+func (s *Channel) OnThreadListSync(guildID string, channelIDs []string, threads []*channel.Channel, members []*channel.ThreadMember) error {
+	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelGuildNotCached)
@@ -304,19 +297,18 @@ func (s *Channel) ThreadListSync(guildID string, channelIDs []string, threads []
 			}
 		}
 		ths = append(ths, c)
-		err = s.ChannelAdd(c)
+		err = s.AddChannel(c)
 		if err != nil {
 			return err
 		}
 	}
 	g.Threads = ths
-	return s.GuildState().GuildAdd(g)
+	return s.GuildState().AddGuild(g)
 }
 
-// ThreadMembersUpdate updates thread members list.
-// TODO: use gokord.ThreadMembersUpdate when event will be remade
-func (s *Channel) ThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
-	thread, err := s.Channel(id)
+// OnThreadMembersUpdate updates [channel.ThreadMember]s list.
+func (s *Channel) OnThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
+	thread, err := s.GetChannel(id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
@@ -331,13 +323,13 @@ func (s *Channel) ThreadMembersUpdate(id string, guildID string, count int, adde
 	for _, addedMember := range addedMembers {
 		thread.Members = append(thread.Members, addedMember.ThreadMember)
 		if addedMember.Member != nil {
-			err = s.MemberState().MemberAdd(addedMember.Member)
+			err = s.MemberState().AddMember(addedMember.Member)
 			if err != nil {
 				return err
 			}
 		}
 		if addedMember.Presence != nil {
-			err = s.MemberState().PresenceAdd(guildID, addedMember.Presence)
+			err = s.MemberState().AddPresence(guildID, addedMember.Presence)
 			if err != nil {
 				return err
 			}
@@ -345,12 +337,12 @@ func (s *Channel) ThreadMembersUpdate(id string, guildID string, count int, adde
 	}
 	thread.MemberCount = count
 
-	return s.ChannelAdd(thread)
+	return s.AddChannel(thread)
 }
 
 // ThreadMemberUpdate sets or updates member data for the current user.
 func (s *Channel) ThreadMemberUpdate(tm *channel.ThreadMember) error {
-	thread, err := s.Channel(tm.ID)
+	thread, err := s.GetChannel(tm.ID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrChannelNotCached)
@@ -362,9 +354,9 @@ func (s *Channel) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 	return nil
 }
 
-// UserChannelPermissions returns the permission of a user in a channel.
-func (s *Channel) UserChannelPermissions(userID, channelID string) (int64, error) {
-	c, err := s.Channel(channelID)
+// GetUserChannelPermissions returns the permission of a [user.User] in a [channel.Channel].
+func (s *Channel) GetUserChannelPermissions(userID, channelID string) (int64, error) {
+	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return 0, errors.Join(err, ErrChannelNotCached)
@@ -372,13 +364,13 @@ func (s *Channel) UserChannelPermissions(userID, channelID string) (int64, error
 		return 0, err
 	}
 
-	g, err := s.GuildState().Guild(c.GuildID)
+	g, err := s.GuildState().GetGuild(c.GuildID)
 	if err != nil {
 		// checking for state.ErrStateNotFound is useless because it is already checked by Channel
 		return 0, err
 	}
 
-	member, err := s.MemberState().Member(g.ID, userID)
+	member, err := s.MemberState().GetMember(g.ID, userID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return 0, errors.Join(err, ErrMemberNotCached)
@@ -389,14 +381,14 @@ func (s *Channel) UserChannelPermissions(userID, channelID string) (int64, error
 	return guild.MemberPermissions(g, c, userID, member.Roles), nil
 }
 
-// MessagePermissions returns the permissions of the author of the channel.Message in the channel.Channel in which it
-// was sent.
-func (s *Channel) MessagePermissions(message *channel.Message) (int64, error) {
+// GetMessagePermissions returns the permissions of the author of the [channel.Message] in the [channel.Channel] in
+// which it was sent.
+func (s *Channel) GetMessagePermissions(message *channel.Message) (int64, error) {
 	if message.Author == nil || message.Member == nil {
 		return 0, ErrMessageIncompletePermissions
 	}
 
-	c, err := s.Channel(message.ChannelID)
+	c, err := s.GetChannel(message.ChannelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return 0, errors.Join(err, ErrChannelNotCached)
@@ -404,7 +396,7 @@ func (s *Channel) MessagePermissions(message *channel.Message) (int64, error) {
 		return 0, err
 	}
 
-	g, err := s.GuildState().Guild(c.GuildID)
+	g, err := s.GuildState().GetGuild(c.GuildID)
 	if err != nil {
 		// checking for state.ErrStateNotFound is useless because it is already checked by Channel
 		return 0, err
@@ -413,19 +405,20 @@ func (s *Channel) MessagePermissions(message *channel.Message) (int64, error) {
 	return guild.MemberPermissions(g, c, message.Author.ID, message.Member.Roles), nil
 }
 
-// MessageColor returns the color of the author's name as displayed in the client associated with this channel.Message.
+// GetMessageColor returns the color of the author's name as displayed in the client associated with this
+// [channel.Message].
 // Returns 0 in cases of error, which is the color of @everyone.
-func (s *Channel) MessageColor(message *channel.Message) int {
+func (s *Channel) GetMessageColor(message *channel.Message) int {
 	if message.Member == nil || message.Member.Roles == nil {
 		return 0
 	}
 
-	c, err := s.Channel(message.ChannelID)
+	c, err := s.GetChannel(message.ChannelID)
 	if err != nil {
 		return 0
 	}
 
-	g, err := s.GuildState().Guild(c.GuildID)
+	g, err := s.GuildState().GetGuild(c.GuildID)
 	if err != nil {
 		return 0
 	}

@@ -15,20 +15,18 @@ type MemberStorage Storage[string, user.Member]
 
 type Member struct {
 	State
-	mu        sync.RWMutex
-	storage   MemberStorage
-	memberMap map[string]map[string]*user.Member
-	params    *Params
+	mu      sync.RWMutex
+	storage MemberStorage
+	params  *Params
 }
 
 var ErrMemberGuildNotCached = errors.New("member's guild not cached")
 
 func NewMember(state State, storage MemberStorage, params *Params) *Member {
 	return &Member{
-		State:     state,
-		storage:   storage,
-		memberMap: make(map[string]map[string]*user.Member),
-		params:    params,
+		State:   state,
+		storage: storage,
+		params:  params,
 	}
 }
 
@@ -42,9 +40,9 @@ func KeyMemberReverse(guildID, userID string) string {
 	return fmt.Sprintf("%s:%s", guildID, userID)
 }
 
-// MemberAdd adds a user.Member to the current State, or updates it if it already exists.
-func (s *Member) MemberAdd(member *user.Member) error {
-	g, err := s.GuildState().Guild(member.GuildID)
+// AddMember adds a [user.Member] to the current [Member] state, or updates it if it already exists.
+func (s *Member) AddMember(member *user.Member) error {
+	g, err := s.GuildState().GetGuild(member.GuildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrMemberGuildNotCached)
@@ -52,7 +50,7 @@ func (s *Member) MemberAdd(member *user.Member) error {
 		return err
 	}
 
-	if m, err := s.Member(member.GuildID, member.User.ID); err == nil {
+	if m, err := s.GetMember(member.GuildID, member.User.ID); err == nil {
 		if member.JoinedAt.IsZero() {
 			member.JoinedAt = m.JoinedAt
 		}
@@ -67,7 +65,7 @@ func (s *Member) MemberAdd(member *user.Member) error {
 	} else {
 		g.Members[id] = member
 	}
-	err = s.GuildState().GuildAdd(g)
+	err = s.GuildState().AddGuild(g)
 	if err != nil {
 		return err
 	}
@@ -75,13 +73,13 @@ func (s *Member) MemberAdd(member *user.Member) error {
 	return s.storage.Write(KeyMember(member), *member)
 }
 
-// MemberRemove removes a user.Member from current State.
-func (s *Member) MemberRemove(member *user.Member) error {
-	_, err := s.Member(member.GuildID, member.User.ID)
+// RemoveMember removes a [user.Member] from current [Member] state.
+func (s *Member) RemoveMember(member *user.Member) error {
+	_, err := s.GetMember(member.GuildID, member.User.ID)
 	if err != nil {
 		return err
 	}
-	g, err := s.GuildState().Guild(member.GuildID)
+	g, err := s.GuildState().GetGuild(member.GuildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrMemberGuildNotCached)
@@ -93,7 +91,7 @@ func (s *Member) MemberRemove(member *user.Member) error {
 	defer s.mu.Unlock()
 
 	g.Members = slices.DeleteFunc(g.Members, func(m *user.Member) bool { return m.User.ID == member.User.ID })
-	err = s.GuildState().GuildAdd(g)
+	err = s.GuildState().AddGuild(g)
 	if err != nil {
 		return err
 	}
@@ -101,8 +99,8 @@ func (s *Member) MemberRemove(member *user.Member) error {
 	return s.storage.Delete(KeyMember(member))
 }
 
-// Member returns the user.Member from a guild.Guild.
-func (s *Member) Member(guildID, userID string) (*user.Member, error) {
+// GetMember returns the [user.Member] from a [guild.Guild].
+func (s *Member) GetMember(guildID, userID string) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -113,9 +111,9 @@ func (s *Member) Member(guildID, userID string) (*user.Member, error) {
 	return &m, nil
 }
 
-// PresenceAdd adds a status.Presence to the current State, or updates it if it already exists.
-func (s *Member) PresenceAdd(guildID string, presence *status.Presence) error {
-	g, err := s.GuildState().Guild(guildID)
+// AddPresence adds a [status.Presence] to the current [Member] state, or updates it if it already exists.
+func (s *Member) AddPresence(guildID string, presence *status.Presence) error {
+	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return errors.Join(err, ErrMemberGuildNotCached)
@@ -123,7 +121,7 @@ func (s *Member) PresenceAdd(guildID string, presence *status.Presence) error {
 		return err
 	}
 
-	if p, err := s.Presence(guildID, presence.User.ID); err == nil {
+	if p, err := s.GetPresence(guildID, presence.User.ID); err == nil {
 		if presence.Status == "" {
 			presence.Status = p.Status
 		}
@@ -157,29 +155,29 @@ func (s *Member) PresenceAdd(guildID string, presence *status.Presence) error {
 		g.Presences = append(g.Presences, presence)
 	}
 
-	return s.GuildState().GuildAdd(g)
+	return s.GuildState().AddGuild(g)
 }
 
-// PresenceRemove removes a status.Presence from the current State.
-func (s *Member) PresenceRemove(guildID string, presence *status.Presence) error {
-	g, err := s.GuildState().Guild(guildID)
+// RemovePresence removes a [status.Presence] from the current [Member] state.
+func (s *Member) RemovePresence(guildID string, presence *status.Presence) error {
+	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.Presence(guildID, presence.User.ID)
+	_, err = s.GetPresence(guildID, presence.User.ID)
 	if err != nil {
 		return err
 	}
 
 	g.Presences = slices.DeleteFunc(g.Presences, func(p *status.Presence) bool { return p.User.ID == presence.User.ID })
 
-	return s.GuildState().GuildAdd(g)
+	return s.GuildState().AddGuild(g)
 }
 
-// Presence returns the status.Presence from a guild.Guild.
-func (s *Member) Presence(guildID, userID string) (*status.Presence, error) {
-	g, err := s.GuildState().Guild(guildID)
+// GetPresence returns the [status.Presence] from a [guild.Guild].
+func (s *Member) GetPresence(guildID, userID string) (*status.Presence, error) {
+	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -193,21 +191,22 @@ func (s *Member) Presence(guildID, userID string) (*status.Presence, error) {
 	return nil, ErrNotFound
 }
 
-// UserColor returns the color of a user.User in a channel.Channel.
-// While colors are defined at a guild.Guild level, determining for a channel.Channel is more useful in message handlers.
+// GetUserColor returns the color of a [user.User] in a [channel.Channel].
+// While colors are defined at a [guild.Guild] level, determining for a [channel.Channel] is more useful in message
+// handlers.
 // Returns 0 in cases of error, which is the color of @everyone.
-func (s *Member) UserColor(userID, channelID string) int {
-	c, err := s.ChannelState().Channel(channelID)
+func (s *Member) GetUserColor(userID, channelID string) int {
+	c, err := s.ChannelState().GetChannel(channelID)
 	if err != nil {
 		return 0
 	}
 
-	g, err := s.GuildState().Guild(c.GuildID)
+	g, err := s.GuildState().GetGuild(c.GuildID)
 	if err != nil {
 		return 0
 	}
 
-	member, err := s.Member(g.ID, userID)
+	member, err := s.GetMember(g.ID, userID)
 	if err != nil {
 		return 0
 	}
