@@ -12,7 +12,7 @@ import (
 
 // sessionState contains the current known state.
 type sessionState struct {
-	session     *Session
+	*Session
 	user        *user.User
 	sessionID   string
 	shard       *[2]int
@@ -37,30 +37,14 @@ func (s *sessionState) Application() *application.Application {
 	return s.application
 }
 
-func (s *sessionState) MemberState() state.Member {
-	return s.session.UserAPI().State
-}
-
-func (s *sessionState) ChannelState() state.Channel {
-	return s.session.ChannelAPI().State
-}
-
-func (s *sessionState) GuildState() state.Guild {
-	return s.session.GuildAPI().State
-}
-
-func (s *sessionState) BotState() state.Bot {
+func (s *sessionState) SessionState() state.Bot {
 	return s
 }
 
-func (s *sessionState) Params() state.Params {
-	return s.params
-}
-
-// NewState creates an empty state.State.
+// newState creates an empty [state.State].
 func NewState(s *Session) state.State {
 	return &sessionState{
-		session: s,
+		Session: s,
 		params: state.Params{
 			TrackChannels:      true,
 			TrackThreads:       true,

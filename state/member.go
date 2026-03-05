@@ -1,4 +1,4 @@
-package userapi
+package state
 
 import (
 	"errors"
@@ -6,34 +6,35 @@ import (
 	"sync"
 
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
 )
 
-type State struct {
-	state.State
+type Member struct {
+	State
 	mu        sync.RWMutex
-	storage   state.Storage[user.Member]
+	storage   Storage[uint64, user.Member]
 	memberMap map[string]map[string]*user.Member
+	params    *Params
 }
 
-var ErrGuildNotCached = errors.New("member's guild not cached")
+var ErrMemberGuildNotCached = errors.New("member's guild not cached")
 
-func NewState(state state.State, storage state.Storage[user.Member]) *State {
-	return &State{
+func NewMember(state State, storage Storage[uint64, user.Member], params *Params) *Member {
+	return &Member{
 		State:     state,
 		storage:   storage,
 		memberMap: make(map[string]map[string]*user.Member),
+		params:    params,
 	}
 }
 
 // MemberAdd adds a user.Member to the current State, or updates it if it already exists.
-func (s *State) MemberAdd(member *user.Member) error {
+func (s *Member) MemberAdd(member *user.Member) error {
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
-		if errors.Is(err, state.ErrNotFound) {
-			return errors.Join(err, ErrGuildNotCached)
+		if errors.Is(err, ErrNotFound) {
+			return errors.Join(err, ErrMemberGuildNotCached)
 		}
 		return err
 	}
@@ -58,19 +59,19 @@ func (s *State) MemberAdd(member *user.Member) error {
 		return err
 	}
 
-	return s.storage.Write(state.KeyMember(member), *member)
+	return s.storage.Write(KeyMember(member), *member)
 }
 
 // MemberRemove removes a user.Member from current State.
-func (s *State) MemberRemove(member *user.Member) error {
+func (s *Member) MemberRemove(member *user.Member) error {
 	_, err := s.Member(member.GuildID, member.User.ID)
 	if err != nil {
 		return err
 	}
 	g, err := s.GuildState().Guild(member.GuildID)
 	if err != nil {
-		if errors.Is(err, state.ErrNotFound) {
-			return errors.Join(err, ErrGuildNotCached)
+		if errors.Is(err, ErrNotFound) {
+			return errors.Join(err, ErrMemberGuildNotCached)
 		}
 		return err
 	}
@@ -84,15 +85,15 @@ func (s *State) MemberRemove(member *user.Member) error {
 		return err
 	}
 
-	return s.storage.Delete(state.KeyMember(member))
+	return s.storage.Delete(KeyMember(member))
 }
 
 // Member returns the user.Member from a guild.Guild.
-func (s *State) Member(guildID, userID string) (*user.Member, error) {
+func (s *Member) Member(guildID, userID string) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	m, err := s.storage.Get(state.KeyMemberRaw(guildID, userID))
+	m, err := s.storage.Get(stringToUint(guildID, userID))
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +101,11 @@ func (s *State) Member(guildID, userID string) (*user.Member, error) {
 }
 
 // PresenceAdd adds a status.Presence to the current State, or updates it if it already exists.
-func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
+func (s *Member) PresenceAdd(guildID string, presence *status.Presence) error {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
-		if errors.Is(err, state.ErrNotFound) {
-			return errors.Join(err, ErrGuildNotCached)
+		if errors.Is(err, ErrNotFound) {
+			return errors.Join(err, ErrMemberGuildNotCached)
 		}
 		return err
 	}
@@ -147,7 +148,7 @@ func (s *State) PresenceAdd(guildID string, presence *status.Presence) error {
 }
 
 // PresenceRemove removes a status.Presence from the current State.
-func (s *State) PresenceRemove(guildID string, presence *status.Presence) error {
+func (s *Member) PresenceRemove(guildID string, presence *status.Presence) error {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return err
@@ -164,7 +165,7 @@ func (s *State) PresenceRemove(guildID string, presence *status.Presence) error 
 }
 
 // Presence returns the status.Presence from a guild.Guild.
-func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
+func (s *Member) Presence(guildID, userID string) (*status.Presence, error) {
 	g, err := s.GuildState().Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -176,13 +177,13 @@ func (s *State) Presence(guildID, userID string) (*status.Presence, error) {
 		}
 	}
 
-	return nil, state.ErrNotFound
+	return nil, ErrNotFound
 }
 
 // UserColor returns the color of a user.User in a channel.Channel.
 // While colors are defined at a guild.Guild level, determining for a channel.Channel is more useful in message handlers.
 // Returns 0 in cases of error, which is the color of @everyone.
-func (s *State) UserColor(userID, channelID string) int {
+func (s *Member) UserColor(userID, channelID string) int {
 	c, err := s.ChannelState().Channel(channelID)
 	if err != nil {
 		return 0

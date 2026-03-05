@@ -35,31 +35,27 @@ type Storage[K, V any] interface {
 	Delete(key K) error
 }
 
-// KeyMember returns the unique key linked with the given [user.Member].
-func KeyMember(m *user.Member) uint64 {
-	v, err := strconv.ParseUint(m.User.ID, 10, 64)
+func stringToUint(s string) uint64 {
+	v, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		panic(err)
 	}
 	return v
+}
+
+// KeyMember returns the unique key linked with the given [user.Member].
+func KeyMember(m *user.Member) uint64 {
+	return stringToUint(m.User.ID)
 }
 
 // KeyGuild returns the unique key linked with the given [guild.Guild].
 func KeyGuild(g *guild.Guild) uint64 {
-	v, err := strconv.ParseUint(g.ID, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return v
+	return stringToUint(g.ID)
 }
 
 // KeyChannel returns the unique key linked with the given [channel.Channel].
 func KeyChannel(c *channel.Channel) uint64 {
-	v, err := strconv.ParseUint(c.ID, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return v
+	return stringToUint(c.ID)
 }
 
 // MapStorage is a standard implementation of [Storage] used.

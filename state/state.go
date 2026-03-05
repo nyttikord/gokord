@@ -10,16 +10,13 @@ var ErrNotFound = errors.New("request not found in state")
 // State represents the cache to prevent using too much requests.
 type State interface {
 	// MemberState returns the state of user.Member.
-	MemberState() Member
+	MemberState() *Member
 	// ChannelState returns the state for channel package.
-	ChannelState() Channel
+	ChannelState() *Channel
 	// GuildState returns the state for guild package and emoji package.
-	GuildState() Guild
-	// BotState returns the state of the Bot.
-	BotState() Bot
-
-	// Params returns the state.Params of the State
-	Params() Params
+	GuildState() *Guild
+	// SessionState returns the state of the Bot.
+	SessionState() Bot
 }
 
 // Params describes the parameters of the [State].

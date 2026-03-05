@@ -118,7 +118,7 @@ func (o CommandInteractionDataOption) BoolValue() bool {
 // s is a ChannelGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // channel.Channel's data.
 // state is the ChannelAPI state.
-func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state state.Channel) *channel.Channel {
+func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *state.Channel) *channel.Channel {
 	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
@@ -143,7 +143,7 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state st
 // s is a RolesGetter (implemented by gokord.Session), if not nil, function additionally fetches all
 // guild.Role's data.
 // state is the GuildAPI state.
-func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string, state state.Guild) *guild.Role {
+func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string, state *state.Guild) *guild.Role {
 	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}

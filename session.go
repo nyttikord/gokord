@@ -13,16 +13,13 @@ import (
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/channel/channelapi"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
-	"github.com/nyttikord/gokord/user/userapi"
 )
 
 type mutex struct {
@@ -93,13 +90,13 @@ type Session struct {
 	// true if the session is restarting
 	restarting atomic.Bool
 
-	// API with state.State
+	// Cached things
 
-	userAPI    *userapi.Requester
-	channelAPI *channelapi.Requester
-	guildAPI   *guildapi.Requester
+	memberState  *state.Member
+	channelState *state.Channel
+	guildState   *state.Guild
 
-	UserStorage    state.Storage[uint64, user.Member]     // UserStorage is the [state.Storage] used for users
+	MemberStorage  state.Storage[uint64, user.Member]     // UserStorage is the [state.Storage] used for users
 	ChannelStorage state.Storage[uint64, channel.Channel] // ChannelStorage is the [state.Storage] used for channelsI
 	GuildStorage   state.Storage[uint64, guild.Guild]     // GuildStorage is the [state.Storage] used for guilds
 }
@@ -147,35 +144,6 @@ func (s *Session) OpenAndBlock(ctx context.Context) error {
 	}
 }
 
-// UserAPI returns an userapi.Requester to interact with the user package.
-func (s *Session) UserAPI() *userapi.Requester {
-	if s.userAPI == nil {
-		s.logger.Debug("creating new user state")
-		s.userAPI = &userapi.Requester{REST: s.rest, State: userapi.NewState(s.sessionState, s.UserStorage)}
-	}
-	return s.userAPI
-}
-
-// GuildAPI returns a guildapi.Requester to interact with the guild package.
-func (s *Session) GuildAPI() *guildapi.Requester {
-	if s.guildAPI == nil {
-		s.logger.Debug("creating new guild state")
-		s.guildAPI = &guildapi.Requester{
-			State: guildapi.NewState(s.sessionState, s.GuildStorage),
-		}
-	}
-	return s.guildAPI
-}
-
-// ChannelAPI returns a channelapi.Requester to interact with the channel package.
-func (s *Session) ChannelAPI() *channelapi.Requester {
-	if s.channelAPI == nil {
-		s.logger.Debug("creating new channel state")
-		s.channelAPI = &channelapi.Requester{REST: s.rest, State: channelapi.NewState(s.sessionState, s.ChannelStorage)}
-	}
-	return s.channelAPI
-}
-
 // EventManager returns the event.Manager used by the Session.
 func (s *Session) EventManager() bot.EventManager {
 	return s.eventManager
@@ -192,6 +160,27 @@ func (s *Session) GatewayAPI() bot.GatewayAPI {
 		logger:  s.logger.With("module", "gateway"),
 		Session: s,
 	}
+}
+
+func (s *Session) MemberState() *state.Member {
+	if s.memberState == nil {
+		s.memberState = state.NewMember(s, s.MemberStorage, &s.sessionState.params)
+	}
+	return s.memberState
+}
+
+func (s *Session) ChannelState() *state.Channel {
+	if s.memberState == nil {
+		s.channelState = state.NewChannel(s, s.ChannelStorage, &s.sessionState.params)
+	}
+	return s.channelState
+}
+
+func (s *Session) GuildState() *state.Guild {
+	if s.memberState == nil {
+		s.guildState = state.NewGuild(s, s.GuildStorage, &s.sessionState.params)
+	}
+	return s.guildState
 }
 
 // SessionState returns the state.Bot of the Session.

@@ -1,6 +1,7 @@
 package gokord
 
 import (
+	"cmp"
 	"context"
 	"log/slog"
 	"net/http"
@@ -73,9 +74,9 @@ func NewWithLogger(token string, logger *slog.Logger) *Session {
 		logger:         logger,
 		mu:             &mutex{logger: logger.With("module", "mutex")},
 		waitListen:     &syncListener{logger: logger.With("module", "ws")},
-		UserStorage:    state.NewAVLStorage[user.Member](),
-		ChannelStorage: state.NewAVLStorage[channel.Channel](),
-		GuildStorage:   state.NewAVLStorage[guild.Guild](),
+		MemberStorage:  state.NewAVLStorage[user.Member](),
+		ChannelStorage: state.NewAVLStorage[uint64, channel.Channel](cmp.Compare),
+		GuildStorage:   state.NewAVLStorage[uint64, guild.Guild](cmp.Compare),
 	}
 	s.sessionState = NewState(s).(*sessionState)
 	s.eventManager = event.NewManager(s, s.onInterface, logger.With("module", "event"))

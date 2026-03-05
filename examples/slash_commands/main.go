@@ -369,7 +369,7 @@ func options(ctx context.Context, s bot.Session, i *interaction.ApplicationComma
 	}
 
 	if opt, ok := optionMap["channel-option"]; ok {
-		margs = append(margs, opt.ChannelValue(ctx, s.ChannelAPI().State).ID)
+		margs = append(margs, opt.ChannelValue(ctx, s.ChannelState()).ID)
 		msgformat += "> channel-option: <#%s>\n"
 	}
 
@@ -379,7 +379,7 @@ func options(ctx context.Context, s bot.Session, i *interaction.ApplicationComma
 	}
 
 	if opt, ok := optionMap["role-option"]; ok {
-		margs = append(margs, opt.RoleValue(ctx, "", s.GuildAPI().State).ID)
+		margs = append(margs, opt.RoleValue(ctx, "", s.GuildState()).ID)
 		msgformat += "> role-option: <@&%s>\n"
 	}
 

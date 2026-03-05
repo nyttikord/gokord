@@ -1,4 +1,4 @@
-package guildapi
+package state
 
 import (
 	"slices"
@@ -7,26 +7,27 @@ import (
 	"github.com/nyttikord/avl"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/state"
 )
 
-type State struct {
-	state.State
+type Guild struct {
+	State
 	mu      sync.RWMutex
-	storage state.Storage[guild.Guild]
+	storage Storage[uint64, guild.Guild]
 	guilds  *avl.SimpleAVL[string]
+	params  *Params
 }
 
-func NewState(state state.State, storage state.Storage[guild.Guild]) *State {
-	return &State{
+func NewGuild(state State, storage Storage[uint64, guild.Guild], params *Params) *Guild {
+	return &Guild{
 		State:   state,
 		storage: storage,
 		guilds:  avl.NewString(),
+		params:  params,
 	}
 }
 
 // GuildAdd adds a guild.Guild to the current State, or updates it if it already exists.
-func (s *State) GuildAdd(g *guild.Guild) error {
+func (s *Guild) GuildAdd(g *guild.Guild) error {
 	if gl, err := s.Guild(g.ID); err == nil {
 		if g.MemberCount == 0 {
 			g.MemberCount = gl.MemberCount
@@ -71,7 +72,7 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 		}
 	}
 
-	err := s.storage.Write(state.KeyGuild(g), *g)
+	err := s.storage.Write(KeyGuild(g), *g)
 	if err != nil {
 		return err
 	}
@@ -82,11 +83,11 @@ func (s *State) GuildAdd(g *guild.Guild) error {
 }
 
 // GuildRemove removes a guild.Guild from current State.
-func (s *State) GuildRemove(guild *guild.Guild) error {
+func (s *Guild) GuildRemove(guild *guild.Guild) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	err := s.storage.Delete(state.KeyGuild(guild))
+	err := s.storage.Delete(KeyGuild(guild))
 	if err != nil {
 		return err
 	}
@@ -100,11 +101,11 @@ func (s *State) GuildRemove(guild *guild.Guild) error {
 //
 //	_, err := s.GuildState().Guild(guildID)
 //	isInGuild := !errors.Is(err, state.ErrStateNotFound)
-func (s *State) Guild(guildID string) (*guild.Guild, error) {
+func (s *Guild) Guild(guildID string) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	g, err := s.storage.Get(state.KeyGuildRaw(guildID))
+	g, err := s.storage.Get(stringToUint(guildID))
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +114,12 @@ func (s *State) Guild(guildID string) (*guild.Guild, error) {
 }
 
 // Guilds returns the sorted list of guilds ID.
-func (s *State) Guilds() []string {
+func (s *Guild) Guilds() []string {
 	return s.guilds.Sort()
 }
 
 // RoleAdd adds a guild.Role to the current State, or updates it if it already exists.
-func (s *State) RoleAdd(guildID string, role *guild.Role) error {
+func (s *Guild) RoleAdd(guildID string, role *guild.Role) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return err
@@ -135,7 +136,7 @@ func (s *State) RoleAdd(guildID string, role *guild.Role) error {
 }
 
 // RoleRemove removes a guild.Role from current State.
-func (s *State) RoleRemove(guildID, roleID string) error {
+func (s *Guild) RoleRemove(guildID, roleID string) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return err
@@ -147,7 +148,7 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 }
 
 // Role returns the guild.Role from a guild.Guild.
-func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
+func (s *Guild) Role(guildID, roleID string) (*guild.Role, error) {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -159,11 +160,11 @@ func (s *State) Role(guildID, roleID string) (*guild.Role, error) {
 		}
 	}
 
-	return nil, state.ErrNotFound
+	return nil, ErrNotFound
 }
 
 // Emoji returns an emoji.Emoji in the guild.Guild.
-func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
+func (s *Guild) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return nil, err
@@ -175,11 +176,11 @@ func (s *State) Emoji(guildID, emojiID string) (*emoji.Emoji, error) {
 		}
 	}
 
-	return nil, state.ErrNotFound
+	return nil, ErrNotFound
 }
 
 // EmojiAdd adds an emoji.Emoji to the current State.
-func (s *State) EmojiAdd(guildID string, em *emoji.Emoji) error {
+func (s *Guild) EmojiAdd(guildID string, em *emoji.Emoji) error {
 	g, err := s.Guild(guildID)
 	if err != nil {
 		return err
@@ -196,7 +197,7 @@ func (s *State) EmojiAdd(guildID string, em *emoji.Emoji) error {
 }
 
 // EmojisAdd adds multiple emoji.Emoji to the current State.
-func (s *State) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
+func (s *Guild) EmojisAdd(guildID string, emojis []*emoji.Emoji) error {
 	for _, e := range emojis {
 		if err := s.EmojiAdd(guildID, e); err != nil {
 			return err
