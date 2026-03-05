@@ -2,6 +2,7 @@ package state
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"sync"
 
@@ -10,23 +11,35 @@ import (
 	"github.com/nyttikord/gokord/user/status"
 )
 
+type MemberStorage Storage[string, user.Member]
+
 type Member struct {
 	State
 	mu        sync.RWMutex
-	storage   Storage[uint64, user.Member]
+	storage   MemberStorage
 	memberMap map[string]map[string]*user.Member
 	params    *Params
 }
 
 var ErrMemberGuildNotCached = errors.New("member's guild not cached")
 
-func NewMember(state State, storage Storage[uint64, user.Member], params *Params) *Member {
+func NewMember(state State, storage MemberStorage, params *Params) *Member {
 	return &Member{
 		State:     state,
 		storage:   storage,
 		memberMap: make(map[string]map[string]*user.Member),
 		params:    params,
 	}
+}
+
+// KeyMember returns the unique key linked with the given [user.Member].
+func KeyMember(m *user.Member) string {
+	return KeyMemberReverse(m.GuildID, m.User.ID)
+}
+
+// KeyMemberReverse returns the key linked with the requested [user.Member].
+func KeyMemberReverse(guildID, userID string) string {
+	return fmt.Sprintf("%s:%s", guildID, userID)
 }
 
 // MemberAdd adds a user.Member to the current State, or updates it if it already exists.
@@ -93,7 +106,7 @@ func (s *Member) Member(guildID, userID string) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	m, err := s.storage.Get(stringToUint(guildID, userID))
+	m, err := s.storage.Get(KeyMemberReverse(guildID, userID))
 	if err != nil {
 		return nil, err
 	}

@@ -10,10 +10,12 @@ import (
 	"github.com/nyttikord/gokord/guild"
 )
 
+type ChannelStorage Storage[uint64, channel.Channel]
+
 type Channel struct {
 	State
 	mu              sync.RWMutex
-	storage         Storage[uint64, channel.Channel]
+	storage         ChannelStorage
 	privateChannels []*channel.Channel
 	params          *Params
 }
@@ -27,13 +29,23 @@ var (
 	ErrMessageIncompletePermissions = errors.New("message incomplete, unable to determine permissions")
 )
 
-func NewChannel(state State, storage Storage[uint64, channel.Channel], params *Params) *Channel {
+func NewChannel(state State, storage ChannelStorage, params *Params) *Channel {
 	return &Channel{
 		State:           state,
 		storage:         storage,
 		privateChannels: make([]*channel.Channel, 0),
 		params:          params,
 	}
+}
+
+// KeyChannel returns the unique key linked with the given [channel.Channel].
+func KeyChannel(c *channel.Channel) uint64 {
+	return KeyChannelReverse(c.ID)
+}
+
+// KeyChannelReverse returns the key linked with the requested [channel.Channel].
+func KeyChannelReverse(channelID string) uint64 {
+	return stringToUint(channelID)
 }
 
 // AppendGuildChannel is for internal use only.
@@ -140,7 +152,7 @@ func (s *Channel) Channel(channelID string) (*channel.Channel, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	c, err := s.storage.Get(stringToUint(channelID))
+	c, err := s.storage.Get(KeyChannelReverse(channelID))
 	if err != nil {
 		return nil, err
 	}

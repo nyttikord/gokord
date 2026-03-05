@@ -9,21 +9,33 @@ import (
 	"github.com/nyttikord/gokord/guild"
 )
 
+type GuildStorage Storage[uint64, guild.Guild]
+
 type Guild struct {
 	State
 	mu      sync.RWMutex
-	storage Storage[uint64, guild.Guild]
+	storage GuildStorage
 	guilds  *avl.SimpleAVL[string]
 	params  *Params
 }
 
-func NewGuild(state State, storage Storage[uint64, guild.Guild], params *Params) *Guild {
+func NewGuild(state State, storage GuildStorage, params *Params) *Guild {
 	return &Guild{
 		State:   state,
 		storage: storage,
 		guilds:  avl.NewString(),
 		params:  params,
 	}
+}
+
+// KeyGuild returns the unique key linked with the given [guild.Guild].
+func KeyGuild(g *guild.Guild) uint64 {
+	return KeyGuildReverse(g.ID)
+}
+
+// KeyGuildReverse returns the key linked with the requested [guild.Guild].
+func KeyGuildReverse(guildID string) uint64 {
+	return stringToUint(guildID)
 }
 
 // GuildAdd adds a guild.Guild to the current State, or updates it if it already exists.
@@ -105,7 +117,7 @@ func (s *Guild) Guild(guildID string) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	g, err := s.storage.Get(stringToUint(guildID))
+	g, err := s.storage.Get(KeyGuildReverse(guildID))
 	if err != nil {
 		return nil, err
 	}

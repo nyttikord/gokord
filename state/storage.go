@@ -6,9 +6,6 @@ import (
 	"strconv"
 
 	"github.com/nyttikord/avl"
-	"github.com/nyttikord/gokord/channel"
-	"github.com/nyttikord/gokord/guild"
-	"github.com/nyttikord/gokord/user"
 )
 
 var (
@@ -41,21 +38,6 @@ func stringToUint(s string) uint64 {
 		panic(err)
 	}
 	return v
-}
-
-// KeyMember returns the unique key linked with the given [user.Member].
-func KeyMember(m *user.Member) uint64 {
-	return stringToUint(m.User.ID)
-}
-
-// KeyGuild returns the unique key linked with the given [guild.Guild].
-func KeyGuild(g *guild.Guild) uint64 {
-	return stringToUint(g.ID)
-}
-
-// KeyChannel returns the unique key linked with the given [channel.Channel].
-func KeyChannel(c *channel.Channel) uint64 {
-	return stringToUint(c.ID)
 }
 
 // MapStorage is a standard implementation of [Storage] used.
@@ -105,7 +87,7 @@ type AVLStorage[K, V any] struct {
 }
 
 // NewAVLStorage creates a new AVLStorage.
-func NewAVLStorage[K, V any](cmp avl.CompareFunc[K]) *AVLStorage[K, V] {
+func AVLAsStorage[K, V any](cmp avl.CompareFunc[K]) *AVLStorage[K, V] {
 	tree := avl.NewKeyImmutable(cmp, func(v V) V {
 		cp, err := deepCopy(v)
 		if err != nil {

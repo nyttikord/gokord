@@ -12,13 +12,10 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/nyttikord/gokord/bot"
-	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/event"
-	"github.com/nyttikord/gokord/guild"
 	"github.com/nyttikord/gokord/interaction/interactionhandler"
 	"github.com/nyttikord/gokord/logger"
 	"github.com/nyttikord/gokord/state"
-	"github.com/nyttikord/gokord/user"
 	"github.com/nyttikord/gokord/user/status"
 )
 
@@ -96,9 +93,9 @@ type Session struct {
 	channelState *state.Channel
 	guildState   *state.Guild
 
-	MemberStorage  state.Storage[uint64, user.Member]     // UserStorage is the [state.Storage] used for users
-	ChannelStorage state.Storage[uint64, channel.Channel] // ChannelStorage is the [state.Storage] used for channelsI
-	GuildStorage   state.Storage[uint64, guild.Guild]     // GuildStorage is the [state.Storage] used for guilds
+	MemberStorage  state.MemberStorage  // MemberStorage is the [state.Storage] used for [state.Member].
+	ChannelStorage state.ChannelStorage // ChannelStorage is the [state.Storage] used for [state.Channel].
+	GuildStorage   state.GuildStorage   // GuildStorage is the [state.Storage] used for [state.Guild].
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
