@@ -30,6 +30,8 @@ type Storage[K, V any] interface {
 	//
 	// Does not return an error if the value was not present.
 	Delete(key K) error
+	// All returns every value stored in the [Storage].
+	All() []V
 }
 
 func stringToUint(s string) uint64 {
@@ -78,6 +80,16 @@ func (m MapStorage[K, V]) Delete(key K) error {
 	return nil
 }
 
+func (m MapStorage[K, V]) All() []V {
+	vs := make([]V, len(m))
+	i := 0
+	for _, v := range m {
+		vs[i] = v
+		i++
+	}
+	return vs
+}
+
 // AVLStorage is a standard implementation of [Storage] used if no implementation is given.
 // It uses an AVL (self-balancing binary search tree) to store data.
 //
@@ -115,4 +127,8 @@ func (a *AVLStorage[K, V]) Write(key K, data V) error {
 func (a *AVLStorage[K, V]) Delete(key K) error {
 	a.tree.Delete(key)
 	return nil
+}
+
+func (a *AVLStorage[K, V]) All() []V {
+	return a.tree.Sort()
 }
