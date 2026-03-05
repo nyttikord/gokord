@@ -6,32 +6,29 @@ package bot
 import (
 	"context"
 
-	"github.com/nyttikord/gokord/channel/channelapi"
-	"github.com/nyttikord/gokord/guild/guildapi"
 	"github.com/nyttikord/gokord/state"
 	"github.com/nyttikord/gokord/user/status"
-	"github.com/nyttikord/gokord/user/userapi"
 )
 
 // Session represents a bot session.
-// Default implementation is gokord.Session which is using the gateway.
+// Default implementation is [gokord.Session] which is using the gateway.
 // You can create your own implementation to use webhooks.
 type Session interface {
-	// EventManager returns the EventManager used by the Session.
+	// EventManager returns the [EventManager] used by the Session.
 	EventManager() EventManager
 
-	// ChannelAPI returns a channelapi.Requester to interact with the channel package.
-	ChannelAPI() *channelapi.Requester
-	// UserAPI returns an userapi.Requester to interact with the user package.
-	UserAPI() *userapi.Requester
-	// GuildAPI returns a guildapi.Requester to interact with the guild package.
-	GuildAPI() *guildapi.Requester
 	// GatewayAPI returns the [GatewayAPI] used by the [Session].
 	// It can be nil if the [Session] does not support the gateway.
 	// [gokord.Session] supports this API.
 	GatewayAPI() GatewayAPI
 
-	// SessionState returns the state.Bot of the Session.
+	// MemberState returns the [state.Member] of the Session.
+	MemberState() *state.Member
+	// ChannelState returns the [state.Channel] of the Session.
+	ChannelState() *state.Channel
+	// GuildState returns the [state.Guild] of the Session.
+	GuildState() *state.Guild
+	// SessionState returns the [state.Bot] of the Session.
 	SessionState() state.Bot
 }
 

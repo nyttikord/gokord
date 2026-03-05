@@ -35,7 +35,7 @@ func main() {
 	})
 	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, m *event.MessageCreate) {
 		if strings.Contains(m.Content, "ping") {
-			if ch, err := s.ChannelAPI().State.Channel(m.ChannelID); err != nil || !ch.IsThread() {
+			if ch, err := s.ChannelState().GetChannel(m.ChannelID); err != nil || !ch.IsThread() {
 				thread, err := channel.StartThreadMessageComplex(m.ChannelID, m.ID, &channel.ThreadStart{
 					Name:                "Pong game with " + m.Author.Username,
 					AutoArchiveDuration: 60,

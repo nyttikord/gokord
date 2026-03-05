@@ -31,7 +31,7 @@ func (r ResponseRequest[T]) Do(ctx context.Context) (T, error) {
 	}
 	responsec := getResponseChannel(ctx)
 	if responsec != nil {
-		responsec <- struct{}{}
+		close(responsec)
 	}
 	return v, nil
 }
@@ -51,7 +51,7 @@ func (r ResponseEmptyRequest) Do(ctx context.Context) error {
 	}
 	responsec := getResponseChannel(ctx)
 	if responsec != nil {
-		responsec <- struct{}{}
+		close(responsec)
 	}
 	return nil
 }
