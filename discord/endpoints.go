@@ -1,10 +1,13 @@
 // Package discord contains every object used to interact with the Discord API.
 package discord
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // APIVersion is the Discord API version used for the REST and Websocket API.
-var APIVersion = "10"
+var APIVersion uint = 10
 
 var (
 	EndpointStatus     = "https://status.discord.com/api/v2/"
@@ -13,7 +16,7 @@ var (
 	EndpointSmUpcoming = EndpointSm + "upcoming.json"
 
 	EndpointDiscord        = "https://discord.com/"
-	EndpointAPI            = EndpointDiscord + "api/v" + APIVersion + "/"
+	EndpointAPI            = fmt.Sprintf("%sapi/v%d/", EndpointDiscord, APIVersion)
 	EndpointGuilds         = EndpointAPI + "guilds/"
 	EndpointChannels       = EndpointAPI + "channels/"
 	EndpointUsers          = EndpointAPI + "users/"
@@ -54,8 +57,10 @@ var (
 	EndpointUserGuild                     = func(uID, gID string) string { return EndpointUsers + uID + "/guilds/" + gID }
 	EndpointUserGuildMember               = func(uID, gID string) string { return EndpointUserGuild(uID, gID) + "/member" }
 	EndpointUserChannels                  = func(uID string) string { return EndpointUsers + uID + "/channels" }
-	EndpointUserApplicationRoleConnection = func(aID string) string { return EndpointUsers + "@me/applications/" + aID + "/role-connection" }
-	EndpointUserConnections               = func(uID string) string { return EndpointUsers + uID + "/connections" }
+	EndpointUserApplicationRoleConnection = func(aID uint64) string {
+		return fmt.Sprintf("%s@me/applications/%d/role-connection", EndpointUsers, aID)
+	}
+	EndpointUserConnections = func(uID string) string { return EndpointUsers + uID + "/connections" }
 
 	EndpointGuild                    = func(gID string) string { return EndpointGuilds + gID }
 	EndpointGuildAutoModeration      = func(gID string) string { return EndpointGuild(gID) + "/auto-moderation" }
@@ -177,17 +182,17 @@ var (
 		return EndpointPoll(cID, mID) + "/expire"
 	}
 
-	EndpointApplicationSKUs = func(aID string) string {
+	EndpointApplicationSKUs = func(aID uint64) string {
 		return EndpointApplication(aID) + "/skus"
 	}
 
-	EndpointEntitlements = func(aID string) string {
+	EndpointEntitlements = func(aID uint64) string {
 		return EndpointApplication(aID) + "/entitlements"
 	}
-	EndpointEntitlement = func(aID, eID string) string {
-		return EndpointEntitlements(aID) + "/" + eID
+	EndpointEntitlement = func(aID, eID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointEntitlements(aID), eID)
 	}
-	EndpointEntitlementConsume = func(aID, eID string) string {
+	EndpointEntitlementConsume = func(aID, eID uint64) string {
 		return EndpointEntitlement(aID, eID) + "/consume"
 	}
 
@@ -198,23 +203,23 @@ var (
 		return EndpointSubscriptions(skuID) + "/" + subID
 	}
 
-	EndpointApplicationGlobalCommands = func(aID string) string {
+	EndpointApplicationGlobalCommands = func(aID uint64) string {
 		return EndpointApplication(aID) + "/commands"
 	}
-	EndpointApplicationGlobalCommand = func(aID, cID string) string {
-		return EndpointApplicationGlobalCommands(aID) + "/" + cID
+	EndpointApplicationGlobalCommand = func(aID, cID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointApplicationGlobalCommands(aID), cID)
 	}
 
-	EndpointApplicationGuildCommands = func(aID, gID string) string {
-		return EndpointApplication(aID) + "/guilds/" + gID + "/commands"
+	EndpointApplicationGuildCommands = func(aID, gID uint64) string {
+		return fmt.Sprintf("%s/guilds/%d/commands", EndpointApplication(aID), gID)
 	}
-	EndpointApplicationGuildCommand = func(aID, gID, cID string) string {
-		return EndpointApplicationGuildCommands(aID, gID) + "/" + cID
+	EndpointApplicationGuildCommand = func(aID, gID, cID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointApplicationGuildCommands(aID, gID), cID)
 	}
-	EndpointApplicationCommandPermissions = func(aID, gID, cID string) string {
+	EndpointApplicationCommandPermissions = func(aID, gID, cID uint64) string {
 		return EndpointApplicationGuildCommand(aID, gID, cID) + "/permissions"
 	}
-	EndpointApplicationCommandsGuildPermissions = func(aID, gID string) string {
+	EndpointApplicationCommandsGuildPermissions = func(aID, gID uint64) string {
 		return EndpointApplicationGuildCommands(aID, gID) + "/permissions"
 	}
 	EndpointInteraction = func(aID, iToken string) string {
@@ -242,17 +247,27 @@ var (
 	EndpointEmoji         = func(eID string) string { return EndpointCDN + "emojis/" + eID + ".png" }
 	EndpointEmojiAnimated = func(eID string) string { return EndpointCDN + "emojis/" + eID + ".gif" }
 
-	EndpointApplications                      = EndpointAPI + "applications"
-	EndpointApplication                       = func(aID string) string { return EndpointApplications + "/" + aID }
-	EndpointApplicationRoleConnectionMetadata = func(aID string) string { return EndpointApplication(aID) + "/role-connections/metadata" }
+	EndpointApplications = EndpointAPI + "applications"
+	EndpointApplication  = func(aID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointApplications, +aID)
+	}
+	EndpointApplicationRoleConnectionMetadata = func(aID uint64) string {
+		return EndpointApplication(aID) + "/role-connections/metadata"
+	}
 
-	EndpointApplicationEmojis = func(aID string) string { return EndpointApplication(aID) + "/emojis" }
-	EndpointApplicationEmoji  = func(aID, eID string) string { return EndpointApplication(aID) + "/emojis/" + eID }
+	EndpointApplicationEmojis = func(aID uint64) string { return EndpointApplication(aID) + "/emojis" }
+	EndpointApplicationEmoji  = func(aID, eID uint64) string {
+		return fmt.Sprintf("%s/emojis/%d", EndpointApplication(aID), eID)
+	}
 
-	EndpointOAuth2                  = EndpointAPI + "oauth2/"
-	EndpointOAuth2Applications      = EndpointOAuth2 + "applications"
-	EndpointOAuth2Application       = func(aID string) string { return EndpointOAuth2Applications + "/" + aID }
-	EndpointOAuth2ApplicationsBot   = func(aID string) string { return EndpointOAuth2Applications + "/" + aID + "/bot" }
+	EndpointOAuth2             = EndpointAPI + "oauth2/"
+	EndpointOAuth2Applications = EndpointOAuth2 + "applications"
+	EndpointOAuth2Application  = func(aID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointOAuth2Applications, aID)
+	}
+	EndpointOAuth2ApplicationsBot = func(aID uint64) string {
+		return fmt.Sprintf("%s/%d/bot", EndpointOAuth2Applications, aID)
+	}
 	EndpointOAuth2ApplicationAssets = func(aID string) string { return EndpointOAuth2Applications + "/" + aID + "/assets" }
 )
 
@@ -260,9 +275,9 @@ var (
 // It modifies the constant APIVersion and every endpoint.
 //
 // v is the api version like "10".
-func ChangeAPIVersion(v string) {
+func ChangeAPIVersion(v uint) {
 	APIVersion = v
-	EndpointAPI = EndpointDiscord + "api/v" + APIVersion + "/"
+	EndpointAPI = fmt.Sprintf("%sapi/v%d/", EndpointDiscord, APIVersion)
 	EndpointGuilds = EndpointAPI + "guilds/"
 	EndpointChannels = EndpointAPI + "channels/"
 	EndpointUsers = EndpointAPI + "users/"
