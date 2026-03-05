@@ -4,8 +4,8 @@ import (
 	"errors"
 )
 
-// ErrNotFound is returned when the state cache requested is not found
-var ErrNotFound = errors.New("request not found in cache")
+// ErrNotFound is returned when the data requested is not found in the state
+var ErrNotFound = errors.New("request not found in state")
 
 // State represents the cache to prevent using too much requests.
 type State interface {
@@ -22,7 +22,7 @@ type State interface {
 	Params() Params
 }
 
-// Params describes the parameters of the State.
+// Params describes the parameters of the [State].
 type Params struct {
 	// MaxMessageCount represents how many messages per channel the state will store.
 	MaxMessageCount    int

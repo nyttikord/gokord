@@ -99,9 +99,9 @@ type Session struct {
 	channelAPI *channelapi.Requester
 	guildAPI   *guildapi.Requester
 
-	UserStorage    state.Storage[user.Member]     // UserStorage is the state.Storage used for the UserAPI
-	ChannelStorage state.Storage[channel.Channel] // ChannelStorage is the state.Storage used for the ChannelAPI
-	GuildStorage   state.Storage[guild.Guild]     // GuildStorage is the state.Storage used for the GuildAPI
+	UserStorage    state.Storage[uint64, user.Member]     // UserStorage is the [state.Storage] used for users
+	ChannelStorage state.Storage[uint64, channel.Channel] // ChannelStorage is the [state.Storage] used for channelsI
+	GuildStorage   state.Storage[uint64, guild.Guild]     // GuildStorage is the [state.Storage] used for guilds
 }
 
 // GatewayBotResponse stores the data for the gateway/bot response.
