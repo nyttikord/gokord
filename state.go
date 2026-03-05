@@ -357,7 +357,7 @@ func (s *sessionState) onInterface(se *Session, i any) error {
 			if err == nil {
 				t.BeforeUpdate = old
 			} else if !errors.Is(err, state.ErrNotFound) {
-				s.session.logger.Error("fetching before state", "error", err)
+				s.logger.Error("fetching before state", "error", err)
 			}
 			return s.voiceStateUpdate(t)
 		}

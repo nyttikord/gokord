@@ -86,16 +86,15 @@ type AVLStorage[K, V any] struct {
 	tree *avl.KeyAVL[K, V]
 }
 
-// NewAVLStorage creates a new AVLStorage.
-func AVLAsStorage[K, V any](cmp avl.CompareFunc[K]) *AVLStorage[K, V] {
-	tree := avl.NewKeyImmutable(cmp, func(v V) V {
+// WrapAVLAsStorage uses an [avl.KeyAVL] as a [Storage].
+func WrapAVLAsStorage[K, V any](tree *avl.KeyAVL[K, V]) *AVLStorage[K, V] {
+	return &AVLStorage[K, V]{tree: tree.ToImmutable(func(v V) V {
 		cp, err := deepCopy(v)
 		if err != nil {
 			panic(err)
 		}
 		return cp
-	})
-	return &AVLStorage[K, V]{tree: tree}
+	})}
 }
 
 func (a *AVLStorage[K, V]) Get(key K) (v V, err error) {
