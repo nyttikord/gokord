@@ -5,6 +5,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/nyttikord/avl"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/guild"
@@ -16,7 +17,7 @@ type Channel struct {
 	State
 	mu              sync.RWMutex
 	storage         ChannelStorage
-	privateChannels []*channel.Channel
+	privateChannels *avl.KeyAVL[uint64, channel.Channel]
 	params          *Params
 }
 
@@ -31,10 +32,16 @@ var (
 
 func NewChannel(state State, storage ChannelStorage, params *Params) *Channel {
 	return &Channel{
-		State:           state,
-		storage:         storage,
-		privateChannels: make([]*channel.Channel, 0),
-		params:          params,
+		State:   state,
+		storage: storage,
+		privateChannels: avl.NewKeySimpleImmutable[uint64, channel.Channel](func(c channel.Channel) channel.Channel {
+			cp, err := deepCopy(c)
+			if err != nil {
+				panic(err)
+			}
+			return cp
+		}),
+		params: params,
 	}
 }
 
@@ -82,7 +89,7 @@ func (s *Channel) AddChannel(chann *channel.Channel) error {
 	}
 
 	if chann.Type == types.ChannelDM || chann.Type == types.ChannelGroupDM {
-		fn(s.privateChannels)
+		s.privateChannels.Insert(KeyChannel(chann), *chann)
 	} else {
 		if chann.IsThread() {
 			fn(g.Threads)
@@ -112,8 +119,9 @@ func (s *Channel) RemoveChannel(chann *channel.Channel) error {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 
-		s.privateChannels = slices.DeleteFunc(s.privateChannels, func(c *channel.Channel) bool { return c.ID == chann.ID })
-		return s.storage.Delete(KeyChannel(chann))
+		key := KeyChannel(chann)
+		s.privateChannels.Delete(key)
+		return s.storage.Delete(key)
 	}
 
 	g, err := s.GuildState().GetGuild(chann.GuildID)
@@ -154,8 +162,8 @@ func (s *Channel) GetChannel(channelID string) (*channel.Channel, error) {
 }
 
 // ListPrivateChannels returns all private [channel.Channel]s.
-func (s *Channel) ListPrivateChannels() []*channel.Channel {
-	return s.privateChannels
+func (s *Channel) ListPrivateChannels() []channel.Channel {
+	return s.privateChannels.Sort()
 }
 
 // AddMessage adds a [channel.Message] to the current [Channel] state, or updates it if it exists.
