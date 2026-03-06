@@ -51,7 +51,7 @@ type Role struct {
 
 // Mention returns a string which mentions the Role.
 func (r *Role) Mention() string {
-	return fmt.Sprintf("<@&%s>", r.ID)
+	return fmt.Sprintf("<@&%d>", r.ID)
 }
 
 // IconURL returns the URL of the [Role.Icon].

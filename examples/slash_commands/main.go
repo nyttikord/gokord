@@ -25,7 +25,7 @@ import (
 
 // Bot parameters
 var (
-	GuildID        = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
+	GuildID        = flag.Uint("guild", 0, "Test guild ID. If not passed - bot registers commands globally")
 	BotToken       = flag.String("token", "", "Bot access token")
 	RemoveCommands = flag.Bool("rmcmd", true, "Remove all commands after shutdowning or not")
 )
@@ -248,7 +248,7 @@ func main() {
 	log.Println("Adding commands...")
 	registeredCommands := make([]*interaction.Command, len(commands))
 	for i, v := range commands {
-		cmd, err := interaction.CreateCommand(s.SessionState().User().ID, *GuildID, v).Do(ctx)
+		cmd, err := interaction.CreateCommand(s.SessionState().User().ID, uint64(*GuildID), v).Do(ctx)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -274,7 +274,7 @@ func main() {
 		// }
 
 		for _, v := range registeredCommands {
-			err := interaction.DeleteCommand(s.SessionState().User().ID, *GuildID, v.ID).Do(ctx)
+			err := interaction.DeleteCommand(s.SessionState().User().ID, uint64(*GuildID), v.ID).Do(ctx)
 			if err != nil {
 				log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 			}
@@ -379,7 +379,7 @@ func options(ctx context.Context, s bot.Session, i *interaction.ApplicationComma
 	}
 
 	if opt, ok := optionMap["role-option"]; ok {
-		margs = append(margs, opt.RoleValue(ctx, "", s.GuildState()).ID)
+		margs = append(margs, opt.RoleValue(ctx, i.GuildID, s.GuildState()).ID)
 		msgformat += "> role-option: <@&%s>\n"
 	}
 
@@ -428,20 +428,20 @@ func permissionOverview(ctx context.Context, s bot.Session, i *interaction.Appli
 
 		switch o.Type {
 		case types.CommandPermissionUser:
-			users += fmt.Sprintf(format, emoji, "<@!"+o.ID+">")
+			users += fmt.Sprintf(format, emoji, fmt.Sprintf("<@!%d>", o.ID))
 		case types.CommandPermissionChannel:
-			allChannels, _ := interaction.GuildAllChannelsID(i.GuildID)
+			/*allChannels, _ := interaction.GuildAllChannelsID(i.GuildID)
 
 			if o.ID == allChannels {
 				channels += fmt.Sprintf(format, emoji, "All channels")
 			} else {
-				channels += fmt.Sprintf(format, emoji, "<#"+o.ID+">")
-			}
+				channels += fmt.Sprintf(format, emoji, fmt.Sprintf("<#%d>", o.ID))
+			}*/
 		case types.CommandPermissionRole:
 			if o.ID == i.GuildID {
 				roles += fmt.Sprintf(format, emoji, "@everyone")
 			} else {
-				roles += fmt.Sprintf(format, emoji, "<@&"+o.ID+">")
+				roles += fmt.Sprintf(format, emoji, fmt.Sprintf("<@&%d>", o.ID))
 			}
 		}
 	}

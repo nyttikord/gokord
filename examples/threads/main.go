@@ -24,7 +24,7 @@ var (
 
 const timeout time.Duration = time.Second * 10
 
-var games map[string]time.Time = make(map[string]time.Time)
+var games map[uint64]time.Time = make(map[uint64]time.Time)
 
 func init() { flag.Parse() }
 

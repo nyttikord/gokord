@@ -134,7 +134,7 @@ func webhookExecute(method, uri, bucket string, wait bool, threadID uint64, data
 	}
 
 	if threadID != 0 {
-		v.Set("thread_id", fmt.Sprintf("%s", threadID))
+		v.Set("thread_id", fmt.Sprintf("%d", threadID))
 	}
 	if len(v) != 0 {
 		uri += "?" + v.Encode()

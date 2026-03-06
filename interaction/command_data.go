@@ -39,14 +39,14 @@ func (d *CommandInteractionData) GetOption(name string) *CommandInteractionDataO
 
 // CommandInteractionDataResolved contains resolved data of [ApplicationCommand] execution.
 type CommandInteractionDataResolved struct {
-	Users map[string]*user.User `json:"users"`
+	Users map[uint64]*user.User `json:"users"`
 	// Partial [user.Member] are missing [user.User], Deaf and Mute fields.
-	Members map[string]*user.Member `json:"members"`
-	Roles   map[string]*guild.Role  `json:"roles"`
+	Members map[uint64]*user.Member `json:"members"`
+	Roles   map[uint64]*guild.Role  `json:"roles"`
 	// Partial [channel.Channel] only have ID, Name, Type and Permissions fields.
-	Channels    map[string]*channel.Channel           `json:"channels"`
-	Messages    map[string]*channel.Message           `json:"messages"`
-	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
+	Channels    map[uint64]*channel.Channel           `json:"channels"`
+	Messages    map[uint64]*channel.Message           `json:"messages"`
+	Attachments map[uint64]*channel.MessageAttachment `json:"attachments"`
 }
 
 func (*CommandInteractionData) Type() types.Interaction {
@@ -172,7 +172,10 @@ func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User 
 	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
-	userID := o.Value.(string)
+	userID, err := strconv.ParseUint(o.Value.(string), 10, 64)
+	if err != nil {
+		panic(err)
+	}
 
 	u, err := user.Get(userID).Do(ctx)
 	if err != nil {

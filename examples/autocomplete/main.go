@@ -17,7 +17,7 @@ import (
 
 // Bot parameters
 var (
-	GuildID        = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
+	GuildID        = flag.Uint("guild", 0, "Test guild ID. If not passed - bot registers commands globally")
 	BotToken       = flag.String("token", "", "Bot access token")
 	RemoveCommands = flag.Bool("rmcmd", true, "Remove all commands after shutdowning or not")
 )
@@ -236,7 +236,7 @@ func main() {
 
 	ctx := s.NewContext(context.Background())
 
-	createdCommands, err := interaction.OverwriteCommands(s.SessionState().User().ID, *GuildID, commands).Do(ctx)
+	createdCommands, err := interaction.OverwriteCommands(s.SessionState().User().ID, uint64(*GuildID), commands).Do(ctx)
 
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
@@ -249,7 +249,7 @@ func main() {
 
 	if *RemoveCommands {
 		for _, cmd := range createdCommands {
-			err := interaction.DeleteCommand(s.SessionState().User().ID, *GuildID, cmd.ID).Do(ctx)
+			err := interaction.DeleteCommand(s.SessionState().User().ID, uint64(*GuildID), cmd.ID).Do(ctx)
 			if err != nil {
 				log.Fatalf("Cannot delete %q command: %v", cmd.Name, err)
 			}

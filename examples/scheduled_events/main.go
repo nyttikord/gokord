@@ -18,8 +18,8 @@ import (
 
 // Flags
 var (
-	GuildID        = flag.String("guild", "", "Test guild ID")
-	VoiceChannelID = flag.String("voice", "", "Test voice channel ID")
+	GuildID        = flag.Uint("guild", 0, "Test guild ID")
+	VoiceChannelID = flag.Uint("voice", 0, "Test voice channel ID")
 	BotToken       = flag.String("token", "", "Bot token")
 )
 
@@ -56,13 +56,13 @@ func createAmazingEvent(ctx context.Context) *guild.ScheduledEvent {
 	// Define the ending time (must be after starting time)
 	endingTime := startingTime.Add(30 * time.Minute)
 	// Create the event
-	scheduledEvent, err := guild.CreateScheduledEvent(*GuildID, &guild.ScheduledEventParams{
+	scheduledEvent, err := guild.CreateScheduledEvent(uint64(*GuildID), &guild.ScheduledEventParams{
 		Name:               "Amazing Event",
 		Description:        "This event will start in 1 hour and last 30 minutes",
 		ScheduledStartTime: &startingTime,
 		ScheduledEndTime:   &endingTime,
 		EntityType:         types.ScheduledEventEntityVoice,
-		ChannelID:          *VoiceChannelID,
+		ChannelID:          uint64(*VoiceChannelID),
 		PrivacyLevel:       guild.ScheduledEventPrivacyLevelGuildOnly,
 	}).Do(ctx)
 	if err != nil {
@@ -75,7 +75,7 @@ func createAmazingEvent(ctx context.Context) *guild.ScheduledEvent {
 }
 
 func transformEventToExternalEvent(ctx context.Context, event *guild.ScheduledEvent) {
-	scheduledEvent, err := guild.EditScheduledEvent(*GuildID, event.ID, &guild.ScheduledEventParams{
+	scheduledEvent, err := guild.EditScheduledEvent(uint64(*GuildID), event.ID, &guild.ScheduledEventParams{
 		Name:       "Amazing Event @ Discord Website",
 		EntityType: types.ScheduledEventEntityExternal,
 		EntityMetadata: &guild.ScheduledEventEntityMetadata{

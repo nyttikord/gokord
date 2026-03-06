@@ -83,7 +83,7 @@ func (activity *Activity) UnmarshalJSON(b []byte) error {
 		Type          types.Activity `json:"type"`
 		URL           string         `json:"url,omitempty"`
 		CreatedAt     int64          `json:"created_at"`
-		ApplicationID json.Number    `json:"application_id,omitempty"`
+		ApplicationID uint64         `json:"application_id,omitempty,string"`
 		State         string         `json:"state,omitempty"`
 		Details       string         `json:"details,omitempty"`
 		Timestamps    TimeStamps     `json:"timestamps"`
@@ -98,7 +98,7 @@ func (activity *Activity) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	activity.ApplicationID = temp.ApplicationID.String()
+	activity.ApplicationID = temp.ApplicationID
 	activity.CreatedAt = time.Unix(0, temp.CreatedAt*1000000)
 	activity.Assets = temp.Assets
 	activity.Details = temp.Details

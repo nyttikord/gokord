@@ -121,7 +121,7 @@ type Channel struct {
 
 // Mention returns a string which mentions the [Channel]
 func (c *Channel) Mention() string {
-	return fmt.Sprintf("<#%s>", c.ID)
+	return fmt.Sprintf("<#%d>", c.ID)
 }
 
 // IsThread returns true if the [Channel] is a thread.

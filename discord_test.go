@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -20,13 +21,33 @@ var (
 	dg    *Session // Stores a global discordgo user session
 	dgBot *Session // Stores a global discordgo bot session
 
-	envOAuth2Token  = os.Getenv("DG_OAUTH2_TOKEN")  // Token to use when authenticating using OAuth2 token
-	envBotToken     = os.Getenv("DG_TOKEN")         // Token to use when authenticating the bot account
-	envGuild        = os.Getenv("DG_GUILD")         // Application ID to use for tests
-	envChannel      = os.Getenv("DG_CHANNEL")       // Application ID to use for tests
-	envVoiceChannel = os.Getenv("DG_VOICE_CHANNEL") // Application ID to use for tests
-	envAdmin        = os.Getenv("DG_ADMIN")         // Application ID of admin user to use for tests
+	envOAuth2Token  = os.Getenv("DG_OAUTH2_TOKEN") // Token to use when authenticating using OAuth2 token
+	envBotToken     = os.Getenv("DG_TOKEN")        // Token to use when authenticating the bot account
+	envGuild        uint64                         // Application ID to use for tests
+	envChannel      uint64                         // Application ID to use for tests
+	envVoiceChannel uint64                         // Application ID to use for tests
+	envAdmin        uint64                         // Application ID of admin user to use for tests
 )
+
+func init() {
+	var err error
+	envGuild, err = strconv.ParseUint(os.Getenv("DG_GUILD"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	envChannel, err = strconv.ParseUint(os.Getenv("DG_CHANNEL"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	envVoiceChannel, err = strconv.ParseUint(os.Getenv("DG_VOICE_CHANNEL"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	envAdmin, err = strconv.ParseUint(os.Getenv("DG_ADMIN"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func TestMain(m *testing.M) {
 	fmt.Println("Init is being called.")

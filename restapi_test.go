@@ -11,7 +11,7 @@ import (
 
 // TestChannelMessageSend tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend(t *testing.T) {
-	if envChannel == "" {
+	if envChannel == 0 {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
 
@@ -88,7 +88,7 @@ func TestUserChannelCreate(t *testing.T) {
 		t.Skip("Cannot TestUserChannelCreate, dg not set.")
 	}
 
-	if envAdmin == "" {
+	if envAdmin == 0 {
 		t.Skip("Skipped, DG_ADMIN not set.")
 	}
 
@@ -146,7 +146,7 @@ func TestVoiceRegions(t *testing.T) {
 	}
 }
 func TestGuildRoles(t *testing.T) {
-	if envGuild == "" {
+	if envGuild == 0 {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
 
@@ -164,7 +164,7 @@ func TestGuildRoles(t *testing.T) {
 }
 
 func TestGuildMemberNickname(t *testing.T) {
-	if envGuild == "" {
+	if envGuild == 0 {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
 
@@ -174,7 +174,7 @@ func TestGuildMemberNickname(t *testing.T) {
 
 	ctx := dg.NewContext(context.Background())
 
-	err := guild.EditMemberNickname(envGuild, "@me/nick", "B1nzyRocks").Do(ctx)
+	err := guild.EditCurrentMember(envGuild, "B1nzyRocks", "", "", "").Do(ctx)
 	if err != nil {
 		t.Errorf("GuildNickname returned error: %+v", err)
 	}
@@ -182,7 +182,7 @@ func TestGuildMemberNickname(t *testing.T) {
 
 // TestChannelMessageSend2 tests the ChannelMessageSend() function. This should not return an error.
 func TestChannelMessageSend2(t *testing.T) {
-	if envChannel == "" {
+	if envChannel == 0 {
 		t.Skip("Skipping, DG_CHANNEL not set.")
 	}
 
@@ -200,7 +200,7 @@ func TestChannelMessageSend2(t *testing.T) {
 
 // TestGuildPruneCount tests PruneCount() function. This should not return an error.
 func TestGuildPruneCount(t *testing.T) {
-	if envGuild == "" {
+	if envGuild == 0 {
 		t.Skip("Skipping, DG_GUILD not set.")
 	}
 

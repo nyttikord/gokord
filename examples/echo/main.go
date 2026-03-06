@@ -59,13 +59,13 @@ var commands = []*interaction.Command{
 
 var (
 	Token = flag.String("token", "", "Bot authentication token")
-	App   = flag.String("app", "", "Application ID")
-	Guild = flag.String("guild", "", "Application ID")
+	App   = flag.Uint("app", 0, "Application ID")
+	Guild = flag.Uint("guild", 0, "Application ID")
 )
 
 func main() {
 	flag.Parse()
-	if *App == "" {
+	if *App == 0 {
 		log.Fatal("application id is not set")
 	}
 
@@ -78,7 +78,7 @@ func main() {
 
 	ctx := dg.NewContext(context.Background())
 
-	_, err := interaction.OverwriteCommands(*App, *Guild, commands).Do(ctx)
+	_, err := interaction.OverwriteCommands(uint64(*App), uint64(*Guild), commands).Do(ctx)
 	if err != nil {
 		log.Fatalf("could not register commands: %s", err)
 	}
