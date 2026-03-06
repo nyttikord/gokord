@@ -85,8 +85,14 @@ func EndpointWebhook(wID uint64) string {
 func EndpointWebhookToken(wID uint64, token string) string {
 	return EndpointWebhook(wID) + "/" + token
 }
+func getWebhookMessage(mID uint64) string {
+	if mID == 0 {
+		return "@original"
+	}
+	return fmt.Sprintf("%d", mID)
+}
 func EndpointWebhookMessage(wID uint64, token string, messageID uint64) string {
-	return fmt.Sprintf("%s/messages/%d", EndpointWebhookToken(wID, token), messageID)
+	return fmt.Sprintf("%s/messages/%s", EndpointWebhookToken(wID, token), getWebhookMessage(messageID))
 }
 
 func EndpointMessageReactionsAll(cID, mID uint64) string {

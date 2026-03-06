@@ -1,7 +1,7 @@
 // Package interactionhandler contains utilities helping handling interactions.
 // It provides a higher API than the traditional interaction and interactionapi packages.
 //
-// You can register custom interaction handlers via the Manager (available with gokord.Session InteractionManager()
+// You can register custom interaction handlers via the [Manager] (available with [gokord.Session.InteractionManager]
 // method).
 // An handler is linked with one interaction type and its unique identifier (like its custom id or its name).
 // The context received is automatically cancelled after interaction.Deadline if nothing is sent.

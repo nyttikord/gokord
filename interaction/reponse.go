@@ -125,12 +125,12 @@ func Respond(i *Interaction, resp *Response) request.Empty {
 
 // GetResponse to an [Interaction].
 func GetResponse(i *Interaction) request.Request[*channel.Message] {
-	return WrapRequestAsResponse(channel.GetWebhookMessage(i.AppID, i.Token, "@original"))
+	return WrapRequestAsResponse(channel.GetWebhookMessage(i.AppID, i.Token, 0))
 }
 
 // EditResponse to an [Interaction].
 func EditResponse(i *Interaction, newresp *channel.WebhookEdit) request.Request[*channel.Message] {
-	return channel.EditWebhookMessage(i.AppID, i.Token, "@original", newresp)
+	return channel.EditWebhookMessage(i.AppID, i.Token, 0, newresp)
 }
 
 // DeleteResponse to an [Interaction].
@@ -148,11 +148,11 @@ func CreateFollowupMessage(i *Interaction, wait bool, data *channel.WebhookParam
 }
 
 // EditFollowupMessage of an [Interaction].
-func EditFollowupMessage(i *Interaction, messageID string, data *channel.WebhookEdit) request.Request[*channel.Message] {
+func EditFollowupMessage(i *Interaction, messageID uint64, data *channel.WebhookEdit) request.Request[*channel.Message] {
 	return channel.EditWebhookMessage(i.AppID, i.Token, messageID, data)
 }
 
 // DeleteFollowupMessage of an [Interaction].
-func DeleteFollowupMessage(i *Interaction, messageID string) request.Empty {
+func DeleteFollowupMessage(i *Interaction, messageID uint64) request.Empty {
 	return channel.DeleteWebhookMessage(i.AppID, i.Token, messageID)
 }
