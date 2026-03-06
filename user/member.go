@@ -1,81 +1,69 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/nyttikord/gokord/discord"
 )
 
-// MemberFlags represent flags of a guild.Guild Member.
+// MemberFlags represent flags of a [guild.Guild] [Member].
 // https://discord.com/developers/docs/resources/guild#guild-member-object-guild-member-flags
 type MemberFlags int
 
 const (
-	// MemberFlagDidRejoin indicates whether the Member has left and rejoined the guild.
+	// MemberFlagDidRejoin indicates whether the [Member] has left and rejoined the [guild.Guild].
 	MemberFlagDidRejoin MemberFlags = 1 << 0
-	// MemberFlagCompletedOnboarding indicates whether the Member has completed onboarding.
+	// MemberFlagCompletedOnboarding indicates whether the [Member] has completed onboarding.
 	MemberFlagCompletedOnboarding MemberFlags = 1 << 1
-	// MemberFlagBypassesVerification indicates whether the Member is exempt from guild verification requirements.
+	// MemberFlagBypassesVerification indicates whether the [Member] is exempt from guild verification requirements.
 	MemberFlagBypassesVerification MemberFlags = 1 << 2
-	// MemberFlagStartedOnboarding indicates whether the Member has started onboarding.
+	// MemberFlagStartedOnboarding indicates whether the [Member] has started onboarding.
 	MemberFlagStartedOnboarding MemberFlags = 1 << 3
 )
 
-// Member stores user information for a guild.Guild member.
-// This represents a certain user.User's presence in a guild.Guild.
+// Member stores user information for a [guild.Guild] member.
+// This represents a certain [user.User]'s presence in a [guild.Guild].
 type Member struct {
-	// The GuildID on which the Member exists.
-	GuildID string `json:"guild_id"`
-
-	// The time at which the Member joined the guild.Guild.
+	// The GuildID on which the [Member] exists.
+	GuildID uint64 `json:"guild_id,string"`
+	// The time at which the [Member] joined the [guild.Guild].
 	JoinedAt time.Time `json:"joined_at"`
-
-	// The nickname of the Member, if they have one.
+	// The nickname of the [Member], if they have one.
 	Nick string `json:"nick"`
-
-	// Whether the Member is deafened at a guild.Guild level.
+	// Whether the Member is deafened at a [guild.Guild] level.
 	Deaf bool `json:"deaf"`
-
-	// Whether the Member is muted at a guild.Guild level.
+	// Whether the Member is muted at a [guild.Guild] level.
 	Mute bool `json:"mute"`
-
-	// The hash of the Avatar for the guild.Guild Member, if any.
+	// The hash of the Avatar for the [guild.Guild] [Member], if any.
 	Avatar string `json:"avatar"`
-
-	// The hash of the Banner for the guild.Guild Member, if any.
+	// The hash of the Banner for the [guild.Guild] [Member], if any.
 	Banner string `json:"banner"`
-
-	// The underlying user.User on which the Member is based.
+	// The underlying [user.User] on which the [Member] is based.
 	User *User `json:"user"`
-
-	// A list of IDs of the Roles which are possessed by the Member.
-	Roles []string `json:"roles"`
-
-	// Time since the Member used their Nitro boost on the guild.Guild.
+	// A list of IDs of the [guild.Role]s which are possessed by the [Member].
+	Roles []uint64 `json:"roles,string"`
+	// Time since the [Member] used their Nitro boost on the [guild.Guild].
 	PremiumSince *time.Time `json:"premium_since"`
-
-	// The flags of this member.
+	// The flags of this [Member].
 	// This is a combination of bit masks; the presence of a certain flag can be checked by performing a bitwise AND
 	// between this int and the flag.
 	Flags MemberFlags `json:"flags"`
-
-	// Is true while the Member hasn't accepted the membership screen.
+	// Is true while the [Member] hasn't accepted the membership screen.
 	Pending bool `json:"pending"`
-
 	// Total Permissions of the Member in the channel, including overrides (only returned from an interaction.Interaction).
 	Permissions int64 `json:"permissions,string"`
-
-	// The time at which the Member's timeout will expire.
+	// The time at which the [Member]'s timeout will expire.
 	// Time in the past or nil if the Member is not timed out.
 	CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 }
 
-// Mention creates a Member mention.
+// Mention creates a [Member] mention.
 func (m *Member) Mention() string {
-	return "<@!" + m.User.ID + ">"
+	return fmt.Sprintf("<@!%d>", m.User.ID)
 }
 
-// AvatarURL returns the URL of the Member.Avatar
+// AvatarURL returns the URL of the [Member.Avatar].
 //
 // size is the size of the avatar as a power of two if size is an empty string, no size parameter will be added to the
 // URL (between 16 and 4096).
@@ -89,7 +77,7 @@ func (m *Member) AvatarURL(size string) string {
 
 }
 
-// BannerURL returns the URL of the Member.Banner.
+// BannerURL returns the URL of the [Member.Banner].
 //
 // size is the size of the banner as a power of two if size is an empty string, no size parameter will be added to the
 // URL (between 16 and 4096).
@@ -113,13 +101,13 @@ func (m *Member) DisplayName() string {
 	return m.User.DisplayName()
 }
 
-// VoiceState stores the voice states of guild.Guild.
+// VoiceState stores the voice states of [guild.Guild].
 type VoiceState struct {
-	GuildID                 string     `json:"guild_id"`
-	ChannelID               string     `json:"channel_id"`
-	UserID                  string     `json:"user_id"`
+	GuildID                 uint64     `json:"guild_id,string"`
+	ChannelID               uint64     `json:"channel_id,string"`
+	UserID                  uint64     `json:"user_id,string"`
 	Member                  *Member    `json:"member"`
-	SessionID               string     `json:"session_id"`
+	SessionID               uint64     `json:"session_id,string"`
 	Deaf                    bool       `json:"deaf"`
 	Mute                    bool       `json:"mute"`
 	SelfDeaf                bool       `json:"self_deaf"`

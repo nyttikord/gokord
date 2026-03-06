@@ -43,9 +43,9 @@ type Invite struct {
 	// [Invite].
 	// Does not work with a [channel.Channel] [Invite].
 	TargetUsersFile []byte `json:"target_users_file,omitempty"`
-	// Roles are the guild.Role given when the user.User joins the guild.Guild.
+	// Roles are the [guild.Role] given when the [user.User] joins the [guild.Guild].
 	// Does not work with a [channel.Channel] [Invite].
-	Roles []string `json:"role_ids,omitempty"`
+	Roles []uint64 `json:"role_ids,omitempty,string"`
 
 	// will only be filled when using [GetWithCounts].
 	ApproximatePresenceCount int `json:"approximate_presence_count"`
@@ -141,19 +141,19 @@ func GetTargetUsersJobStatus(inviteID string) Request[*TargetUsersJobStatus] {
 }
 
 // List returns all [Invite] for the given [channel.Channel].
-func List(channelID string) Request[[]*Invite] {
+func List(channelID uint64) Request[[]*Invite] {
 	return NewData[[]*Invite](http.MethodDelete, discord.EndpointChannelInvites(channelID))
 }
 
 // Create a new [Invite] for the given [channel.Channel].
 //
 // NOTE: [Invite] must have MaxAge, MaxUses and Temporary.
-func Create(channelID string, i Invite) Request[*Invite] {
-	uID := ""
+func Create(channelID uint64, i Invite) Request[*Invite] {
+	uID := uint64(0)
 	if i.TargetUser != nil {
 		uID = i.TargetUser.ID
 	}
-	appID := ""
+	appID := uint64(0)
 	if i.TargetApplication != nil {
 		appID = i.TargetApplication.ID
 	}
@@ -163,10 +163,10 @@ func Create(channelID string, i Invite) Request[*Invite] {
 		Temporary         bool               `json:"temporary"`
 		Unique            bool               `json:"unique"`
 		TargetType        types.InviteTarget `json:"target_type"`
-		TargetUser        string             `json:"target_user_id"`
-		TargetApplication string             `json:"target_application_id"`
+		TargetUser        uint64             `json:"target_user_id,string"`
+		TargetApplication uint64             `json:"target_application_id,string"`
 		//TargerUsers       []byte             `json:"target_users_file,omitempty"`
-		Roles []string `json:"role_ids,omitempty"`
+		Roles []uint64 `json:"role_ids,omitempty,string"`
 	}{i.MaxAge, i.MaxUses, i.Temporary, i.Unique, i.TargetType, uID, appID, i.Roles}
 
 	req := NewData[*Invite](http.MethodPost, discord.EndpointChannelInvites(channelID)).

@@ -118,7 +118,7 @@ func (activity *Activity) UnmarshalJSON(b []byte) error {
 // Party defines the Party field in Activity.
 // https://discord.com/developers/docs/topics/gateway#activity-object
 type Party struct {
-	ID   string `json:"id,omitempty"`
+	ID   uint64 `json:"id,omitempty,string"`
 	Size []int  `json:"size,omitempty"`
 }
 

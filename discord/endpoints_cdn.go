@@ -24,7 +24,7 @@ func EndpointUserAvatar(uID uint64, aID string) string {
 func EndpointUserAvatarAnimated(uID uint64, aID string) string {
 	return endpointCDN(EndpointCDNAvatars, uID, aID) + ".gif"
 }
-func EndpointDefaultUserAvatar(idx uint64) string {
+func EndpointDefaultUserAvatar(idx int) string {
 	return fmt.Sprintf("%s/embed/avatars/%d.png", EndpointCDN, idx)
 }
 func EndpointUserBanner(uID uint64, cID string) string {
