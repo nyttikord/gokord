@@ -26,7 +26,7 @@ type SelectMenuOption struct {
 
 // SelectMenuDefaultValue represents an entity selected by default in autopopulated [SelectMenu]s.
 type SelectMenuDefaultValue struct {
-	ID   string                       `json:"id"`
+	ID   uint64                       `json:"id,string"`
 	Type types.SelectMenuDefaultValue `json:"type"`
 }
 

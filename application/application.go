@@ -42,7 +42,7 @@ type Application struct {
 	VerifyKey              string                                              `json:"verify_key"`
 	Team                   *Team                                               `json:"team"`
 	GuildID                uint64                                              `json:"guild_id,string"`
-	PrimarySKUID           string                                              `json:"primary_sku_id"`
+	PrimarySKUID           uint64                                              `json:"primary_sku_id,string"`
 	Slug                   string                                              `json:"slug"`
 	CoverImage             string                                              `json:"cover_image"`
 	Flags                  int                                                 `json:"flags,omitempty"`

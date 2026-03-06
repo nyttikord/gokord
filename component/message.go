@@ -80,7 +80,7 @@ type Button struct {
 	CustomID string `json:"custom_id,omitempty"`
 	// Identifier for a purchasable [premium.SKU].
 	// Only available when using [ButtonStylePremium].
-	SKUID string `json:"sku_id,omitempty"`
+	SKUID uint64 `json:"sku_id,omitempty,string"`
 	// Unique identifier for the [Component]; autopopulated through increment if not provided.
 	ID int `json:"id,omitempty"`
 }

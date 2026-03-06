@@ -222,7 +222,7 @@ type Guild struct {
 	PreferredLocale discord.Locale `json:"preferred_locale"`
 	// The ID of the [channel.Channel] where admins and moderators of guilds with the "PUBLIC" feature receive notices
 	// from Discord.
-	PublicUpdatesChannelID string `json:"public_updates_channel_id"`
+	PublicUpdatesChannelID uint64 `json:"public_updates_channel_id,string"`
 	// The maximum amount of [user.Member]s in a video [channel.Channel].
 	MaxVideoChannelUsers int `json:"max_video_channel_users"`
 	// Approximate number of [user.Member]s in this [Guild].
@@ -281,7 +281,7 @@ type Params struct {
 // Embed stores data for a [Guild] embed.
 type Embed struct {
 	Enabled   *bool  `json:"enabled,omitempty"`
-	ChannelID string `json:"channel_id,omitempty"`
+	ChannelID uint64 `json:"channel_id,omitempty,string"`
 }
 
 var (

@@ -101,20 +101,24 @@ type Message struct {
 
 // GetCustomEmojis pulls out all the custom (Non-unicode) emojis from a [Message] and returns them.
 func (m *Message) GetCustomEmojis() []*emoji.Emoji {
-	var toReturn []*emoji.Emoji
 	emojis := emoji.Regex.FindAllString(m.Content, -1)
 	if len(emojis) < 1 {
-		return toReturn
+		return nil
 	}
-	for _, em := range emojis {
+	emjs := make([]*emoji.Emoji, len(emojis))
+	for i, em := range emojis {
 		parts := strings.Split(em, ":")
-		toReturn = append(toReturn, &emoji.Emoji{
-			ID:       parts[2][:len(parts[2])-1],
+		v, err := strconv.ParseUint(parts[2][:len(parts[2])-1], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		emjs[i] = &emoji.Emoji{
+			ID:       v,
 			Name:     parts[1],
 			Animated: strings.HasPrefix(em, "<a:"),
-		})
+		}
 	}
-	return toReturn
+	return emjs
 }
 
 // MessageFlags is the flags of [Message].
@@ -178,7 +182,7 @@ const (
 // MessageActivity is sent with Rich Presence-related chat embeds.
 type MessageActivity struct {
 	Type    types.MessageActivity `json:"type"`
-	PartyID string                `json:"party_id"`
+	PartyID uint64                `json:"party_id,string"`
 }
 
 // MessageApplication is sent with Rich Presence-related chat embeds.
@@ -232,16 +236,15 @@ func (m *Message) Forward() *MessageReference {
 }
 
 // ContentWithMentionsReplaced will replace all @<id> mentions with the username of the mention.
-func (m *Message) ContentWithMentionsReplaced() (content string) {
-	content = m.Content
-
+func (m *Message) ContentWithMentionsReplaced() string {
+	content := m.Content
 	for _, u := range m.Mentions {
 		content = strings.NewReplacer(
-			"<@"+u.ID+">", "@"+u.Username,
-			"<@!"+u.ID+">", "@"+u.Username,
+			fmt.Sprintf("<@%d>", u.ID), "@"+u.Username,
+			fmt.Sprintf("<@!%d>", u.ID), "@"+u.Username,
 		).Replace(content)
 	}
-	return
+	return content
 }
 
 var PatternChannels = regexp.MustCompile("<#[^>]*>")
@@ -307,11 +310,11 @@ type MessageInteractionMetadata struct {
 	// ID of the original response [Message].
 	//
 	// NOTE: present only on followup [Message]s.
-	OriginalResponseMessageID string `json:"original_response_message_id,omitempty"`
+	OriginalResponseMessageID uint64 `json:"original_response_message_id,omitempty,string"`
 	// ID of the [Message] that contained interactive [component.Component].
 	//
 	// NOTE: present only on Message [component.Component] interactions.
-	InteractedMessageID string `json:"interacted_message_id,omitempty"`
+	InteractedMessageID uint64 `json:"interacted_message_id,omitempty,string"`
 	// Metadata for [interaction.Interaction] that was used to open a modal.
 	//
 	// NOTE: present only on modal submit interactions.

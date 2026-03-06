@@ -100,8 +100,8 @@ func EndpointGuildSticker(gID, sID uint64) string {
 	return fmt.Sprintf("%s/%d", EndpointGuildStickers(gID), sID)
 }
 
-func EndpointStageInstance(cID string) string {
-	return EndpointStageInstances + "/" + cID
+func EndpointStageInstance(cID uint64) string {
+	return fmt.Sprintf("%s/%d", EndpointStageInstances, cID)
 }
 func EndpointGuildScheduledEvents(gID uint64) string {
 	return EndpointGuild(gID) + "/scheduled-events"
@@ -118,7 +118,7 @@ func EndpointGuildOnboarding(gID uint64) string {
 }
 
 func EndpointGuildTemplate(tID string) string {
-	return fmt.Sprintf("%s/templates/%d", EndpointGuilds, tID)
+	return fmt.Sprintf("%s/templates/%s", EndpointGuilds, tID)
 }
 func EndpointGuildTemplates(gID uint64) string {
 	return EndpointGuild(gID) + "/templates"

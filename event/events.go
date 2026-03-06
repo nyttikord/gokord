@@ -365,7 +365,7 @@ type VoiceStateUpdate struct {
 }
 
 type MessageDeleteBulk struct {
-	Messages  []string `json:"ids"`
+	Messages  []uint64 `json:"ids,string"`
 	ChannelID uint64   `json:"channel_id,string"`
 	GuildID   uint64   `json:"guild_id,string"`
 }

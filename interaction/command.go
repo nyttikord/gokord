@@ -103,8 +103,8 @@ type CommandPermissionsList struct {
 // GuildCommandPermissions represents all permissions for a single [guild.Guild] [Command].
 type GuildCommandPermissions struct {
 	ID            uint64                `json:"id,string"`
-	ApplicationID string                `json:"application_id"`
-	GuildID       string                `json:"guild_id"`
+	ApplicationID uint64                `json:"application_id,string"`
+	GuildID       uint64                `json:"guild_id,string"`
 	Permissions   []*CommandPermissions `json:"permissions"`
 }
 

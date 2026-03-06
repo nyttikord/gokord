@@ -63,7 +63,7 @@ type Activity struct {
 	Type          types.Activity `json:"type"`
 	URL           string         `json:"url,omitempty"`
 	CreatedAt     time.Time      `json:"created_at"`
-	ApplicationID string         `json:"application_id,omitempty"`
+	ApplicationID uint64         `json:"application_id,omitempty,string"`
 	State         string         `json:"state,omitempty"`
 	Details       string         `json:"details,omitempty"`
 	Timestamps    TimeStamps     `json:"timestamps"`

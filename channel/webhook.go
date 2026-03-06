@@ -24,7 +24,7 @@ type Webhook struct {
 	Token     string        `json:"token"`
 
 	// ApplicationID is the bot/OAuth2 application that created this [Webhook].
-	ApplicationID string `json:"application_id,omitempty"`
+	ApplicationID uint64 `json:"application_id,omitempty,string"`
 }
 
 // WebhookParams is used in the [ExecuteWebhook].
@@ -87,11 +87,11 @@ func GetWebhookWithToken(webhookID uint64, token string) Request[*Webhook] {
 }
 
 // EditWebhook with the given data.
-func EditWebhook(webhookID uint64, name, avatar, channelID string) Request[*Webhook] {
+func EditWebhook(webhookID uint64, name, avatar string, channelID uint64) Request[*Webhook] {
 	data := struct {
 		Name      string `json:"name,omitempty"`
 		Avatar    string `json:"avatar,omitempty"`
-		ChannelID string `json:"channel_id,omitempty"`
+		ChannelID uint64 `json:"channel_id,omitempty,string"`
 	}{name, avatar, channelID}
 
 	return NewData[*Webhook](http.MethodPatch, discord.EndpointWebhook(webhookID)).

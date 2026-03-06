@@ -64,7 +64,7 @@ type Template struct {
 	// The timestamp of when the [Template] was last synced.
 	UpdatedAt time.Time `json:"updated_at"`
 	// The ID of the [Guild] the [Template] was based on.
-	SourceGuildID string `json:"source_guild_id"`
+	SourceGuildID uint64 `json:"source_guild_id,string"`
 	// The [Guild] snapshot this [Template] contains.
 	SerializedSourceGuild *Guild `json:"serialized_source_guild"`
 	// Whether the [Template] has unsynced changes.

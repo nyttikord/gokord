@@ -1,7 +1,6 @@
 package discord
 
 import (
-	"strconv"
 	"strings"
 	"time"
 )
@@ -59,13 +58,10 @@ func IconURL(iconHash, staticIconURL, animatedIconURL, size string) string {
 
 var QuoteEscaper = strings.NewReplacer(`\`, `\\`, `"`, `\"`)
 
+const DiscordEpoch int64 = 1420070400000
+
 // SnowflakeTimestamp returns the creation time of a Snowflake ID relative to the creation of Discord.
-func SnowflakeTimestamp(ID string) (t time.Time, err error) {
-	i, err := strconv.ParseInt(ID, 10, 64)
-	if err != nil {
-		return
-	}
-	timestamp := (i >> 22) + 1420070400000
-	t = time.Unix(0, timestamp*1000000)
-	return
+func SnowflakeTimestamp(id uint64) time.Time {
+	timestamp := int64(id>>22) + DiscordEpoch
+	return time.Unix(0, timestamp*int64(time.Millisecond))
 }

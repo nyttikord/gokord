@@ -129,7 +129,7 @@ type GatewayAPI interface {
 	// limit is the maximum number of items to return, or 0 to request every [user.Member] matched.
 	// nonce to identify the [event.GuildMembersChunk] response.
 	// presences indicates whether to request presences of [user.Member].
-	GatewayMembers(ctx context.Context, guildID, query string, limit int, nonce string, presences bool) error
+	GatewayMembers(ctx context.Context, guildID uint64, query string, limit int, nonce string, presences bool) error
 	// GatewayMembersList requests [user.Member] from the gateway.
 	// It responds with [event.GuildMembersChunk].
 	//
@@ -137,5 +137,5 @@ type GatewayAPI interface {
 	// limit is the maximum number of items to return, or 0 to request every [user.Member] matched.
 	// nonce to identify the [event.GuildMembersChunk] response.
 	// presences indicates whether to request presences of [user.Member].
-	GatewayMembersList(ctx context.Context, guildID string, userIDs []string, limit int, nonce string, presences bool) error
+	GatewayMembersList(ctx context.Context, guildID uint64, userIDs []uint64, limit int, nonce string, presences bool) error
 }

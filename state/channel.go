@@ -315,7 +315,7 @@ func (s *Channel) OnThreadListSync(guildID uint64, channelIDs []uint64, threads 
 }
 
 // OnThreadMembersUpdate updates [channel.ThreadMember]s list.
-func (s *Channel) OnThreadMembersUpdate(id uint64, guildID uint64, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
+func (s *Channel) OnThreadMembersUpdate(id uint64, guildID uint64, count int, addedMembers []channel.AddedThreadMember, removedMembers []uint64) error {
 	thread, err := s.GetChannel(id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {

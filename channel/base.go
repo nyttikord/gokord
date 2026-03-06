@@ -83,7 +83,7 @@ type Channel struct {
 	UserLimit int `json:"user_limit"`
 	// The ID of the parent [Channel], if the [Channel] is under a category.
 	// For threads, it is the id of the [Channel] thread was created in.
-	ParentID string `json:"parent_id"`
+	ParentID uint64 `json:"parent_id,string"`
 	// Amount of seconds a [user.User] has to wait before sending another [Message] or creating another Thread
 	// (0-21600).
 	//

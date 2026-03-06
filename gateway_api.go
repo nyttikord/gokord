@@ -87,12 +87,12 @@ func (s *wsAPI) UpdateStatusComplex(ctx context.Context, usd bot.UpdateStatusDat
 }
 
 type requestGuildMembersData struct {
-	GuildID   string    `json:"guild_id"`
-	Query     *string   `json:"query,omitempty"`
-	UserIDs   *[]string `json:"user_ids,omitempty"`
-	Limit     int       `json:"limit"`
-	Nonce     string    `json:"nonce,omitempty"`
-	Presences bool      `json:"presences"`
+	GuildID   uint64   `json:"guild_id,string"`
+	Query     *string  `json:"query,omitempty"`
+	UserIDs   []uint64 `json:"user_ids,omitempty,string"`
+	Limit     int      `json:"limit"`
+	Nonce     string   `json:"nonce,omitempty"`
+	Presences bool     `json:"presences"`
 }
 
 type requestGuildMembersOp struct {
@@ -100,7 +100,7 @@ type requestGuildMembersOp struct {
 	Data requestGuildMembersData `json:"d"`
 }
 
-func (s *wsAPI) GatewayMembers(ctx context.Context, guildID, query string, limit int, nonce string, presences bool) error {
+func (s *wsAPI) GatewayMembers(ctx context.Context, guildID uint64, query string, limit int, nonce string, presences bool) error {
 	data := requestGuildMembersData{
 		GuildID:   guildID,
 		Query:     &query,
@@ -111,10 +111,10 @@ func (s *wsAPI) GatewayMembers(ctx context.Context, guildID, query string, limit
 	return s.gatewayRequestMembers(ctx, data)
 }
 
-func (s *wsAPI) GatewayMembersList(ctx context.Context, guildID string, userIDs []string, limit int, nonce string, presences bool) error {
+func (s *wsAPI) GatewayMembersList(ctx context.Context, guildID uint64, userIDs []uint64, limit int, nonce string, presences bool) error {
 	data := requestGuildMembersData{
 		GuildID:   guildID,
-		UserIDs:   &userIDs,
+		UserIDs:   userIDs,
 		Limit:     limit,
 		Nonce:     nonce,
 		Presences: presences,

@@ -73,7 +73,7 @@ func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) (err err
 	}()
 
 	// Handle Leaving Application
-	if update.ChannelID == "" {
+	if update.ChannelID == 0 {
 		for i, st := range g.VoiceStates {
 			if st.UserID == update.UserID {
 				g.VoiceStates = append(g.VoiceStates[:i], g.VoiceStates[i+1:]...)
@@ -94,7 +94,7 @@ func (s *sessionState) voiceStateUpdate(update *event.VoiceStateUpdate) (err err
 }
 
 // VoiceState gets a VoiceState by guild and user ID.
-func (s *sessionState) VoiceState(guildID, userID string) (*user.VoiceState, error) {
+func (s *sessionState) VoiceState(guildID, userID uint64) (*user.VoiceState, error) {
 	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return nil, err
