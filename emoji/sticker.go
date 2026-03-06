@@ -16,36 +16,36 @@ const (
 	StickerFormatGIF    StickerFormat = 4
 )
 
-// Sticker represents a sticker object that can be sent in a channel.Message.
+// Sticker represents a sticker object that can be sent in a [channel.Message].
 type Sticker struct {
-	ID          string        `json:"id"`
-	PackID      string        `json:"pack_id"`
+	ID          uint64        `json:"id,string"`
+	PackID      uint64        `json:"pack_id,string"`
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Tags        string        `json:"tags"`
 	Type        types.Sticker `json:"type"`
 	FormatType  StickerFormat `json:"format_type"`
 	Available   bool          `json:"available"`
-	GuildID     string        `json:"guild_id"`
+	GuildID     uint64        `json:"guild_id,string"`
 	User        *user.User    `json:"user"`
 	SortValue   int           `json:"sort_value"`
 }
 
-// StickerItem represents the smallest amount of data required to render a Sticker.
-// A partial Sticker object.
+// StickerItem represents the smallest amount of data required to render a [Sticker].
+// A partial [Sticker] object.
 type StickerItem struct {
-	ID         string        `json:"id"`
+	ID         uint64        `json:"id,string"`
 	Name       string        `json:"name"`
 	FormatType StickerFormat `json:"format_type"`
 }
 
-// StickerPack represents a pack of standard stickers.
+// StickerPack represents a pack of standard [Sticker]s.
 type StickerPack struct {
-	ID             string     `json:"id"`
+	ID             uint64     `json:"id,string"`
 	Stickers       []*Sticker `json:"stickers"`
 	Name           string     `json:"name"`
-	SKUID          string     `json:"sku_id"`
-	CoverStickerID string     `json:"cover_sticker_id"`
+	SKUID          uint64     `json:"sku_id,string"`
+	CoverStickerID uint64     `json:"cover_sticker_id,string"`
 	Description    string     `json:"description"`
-	BannerAssetID  string     `json:"banner_asset_id"`
+	BannerAssetID  uint64     `json:"banner_asset_id,string"`
 }
