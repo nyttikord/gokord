@@ -3,7 +3,6 @@ package state
 import (
 	"encoding/json"
 	"errors"
-	"strconv"
 
 	"github.com/nyttikord/avl"
 )
@@ -32,14 +31,6 @@ type Storage[K, V any] interface {
 	Delete(key K) error
 	// All returns every value stored in the [Storage].
 	All() []V
-}
-
-func stringToUint(s string) uint64 {
-	v, err := strconv.ParseUint(s, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	return v
 }
 
 // MapStorage is a standard implementation of [Storage] used.

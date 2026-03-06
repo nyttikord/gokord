@@ -36,8 +36,8 @@ func KeyMember(m *user.Member) string {
 }
 
 // KeyMemberReverse returns the key linked with the requested [user.Member].
-func KeyMemberReverse(guildID, userID string) string {
-	return fmt.Sprintf("%s:%s", guildID, userID)
+func KeyMemberReverse(guildID, userID uint64) string {
+	return fmt.Sprintf("%d:%d", guildID, userID)
 }
 
 // AddMember adds a [user.Member] to the current [Member] state, or updates it if it already exists.
@@ -100,7 +100,7 @@ func (s *Member) RemoveMember(member *user.Member) error {
 }
 
 // GetMember returns the [user.Member] from a [guild.Guild].
-func (s *Member) GetMember(guildID, userID string) (*user.Member, error) {
+func (s *Member) GetMember(guildID, userID uint64) (*user.Member, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -112,7 +112,7 @@ func (s *Member) GetMember(guildID, userID string) (*user.Member, error) {
 }
 
 // AddPresence adds a [status.Presence] to the current [Member] state, or updates it if it already exists.
-func (s *Member) AddPresence(guildID string, presence *status.Presence) error {
+func (s *Member) AddPresence(guildID uint64, presence *status.Presence) error {
 	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -159,7 +159,7 @@ func (s *Member) AddPresence(guildID string, presence *status.Presence) error {
 }
 
 // RemovePresence removes a [status.Presence] from the current [Member] state.
-func (s *Member) RemovePresence(guildID string, presence *status.Presence) error {
+func (s *Member) RemovePresence(guildID uint64, presence *status.Presence) error {
 	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func (s *Member) RemovePresence(guildID string, presence *status.Presence) error
 }
 
 // GetPresence returns the [status.Presence] from a [guild.Guild].
-func (s *Member) GetPresence(guildID, userID string) (*status.Presence, error) {
+func (s *Member) GetPresence(guildID, userID uint64) (*status.Presence, error) {
 	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (s *Member) GetPresence(guildID, userID string) (*status.Presence, error) {
 // While colors are defined at a [guild.Guild] level, determining for a [channel.Channel] is more useful in message
 // handlers.
 // Returns 0 in cases of error, which is the color of @everyone.
-func (s *Member) GetUserColor(userID, channelID string) int {
+func (s *Member) GetUserColor(userID, channelID uint64) int {
 	c, err := s.ChannelState().GetChannel(channelID)
 	if err != nil {
 		return 0
