@@ -125,15 +125,15 @@ const (
 // A Guild holds all data related to a specific Discord guild.
 // Guilds are also sometimes referred to as Servers in the Discord client.
 type Guild struct {
-	ID   string `json:"id"`
+	ID   uint64 `json:"id,string"`
 	Name string `json:"name"`
 	// The hash of the Guild's Icon.
 	// Use [Guild.IconURL] to retrieve the icon itself.
 	Icon         string `json:"icon"`
-	Region       string `json:"region"`         // The voice region of the [Guild].
-	AfkChannelID string `json:"afk_channel_id"` // The ID of the AFK voice [channel.Channel].
-	OwnerID      string `json:"owner_id"`       // The [user.User] ID of the owner of the [Guild].
-	Owner        bool   `json:"owner"`          // If we are the owner of the [Guild].
+	Region       string `json:"region"`                // The voice region of the [Guild].
+	AfkChannelID uint64 `json:"afk_channel_id,string"` // The ID of the AFK voice [channel.Channel].
+	OwnerID      uint64 `json:"owner_id,string"`       // The [user.User] ID of the owner of the [Guild].
+	Owner        bool   `json:"owner"`                 // If we are the owner of the [Guild].
 	// The time at which the current [user.User] joined the [Guild].
 	//
 	// This field is only present in GUILD_CREATE events and websocket update events, and thus is only present in
@@ -201,14 +201,14 @@ type Guild struct {
 	Features []Feature `json:"features"`
 	MfaLevel MfaLevel  `json:"mfa_level"` // Required [MfaLevel] for the [Guild].
 	// The [application.Application] ID of the Guild if bot created.
-	ApplicationID   string `json:"application_id"`
-	WidgetEnabled   bool   `json:"widget_enabled"`    // Whether the Server Widget is enabled
-	WidgetChannelID string `json:"widget_channel_id"` // The [channel.Channel] ID for the Server Widget
+	ApplicationID   uint64 `json:"application_id,string"`
+	WidgetEnabled   bool   `json:"widget_enabled"`           // Whether the Server Widget is enabled
+	WidgetChannelID uint64 `json:"widget_channel_id,string"` // The [channel.Channel] ID for the Server Widget
 	// The [channel.Channel] ID to which system messages are sent (e.g., join and leave messages)
-	SystemChannelID    string            `json:"system_channel_id"`
-	SystemChannelFlags SystemChannelFlag `json:"system_channel_flags"` // [SystemChannelFlag]s for the [Guild].
-	RulesChannelID     string            `json:"rules_channel_id"`     // The ID of the rules [channel.Channel].
-	VanityURLCode      string            `json:"vanity_url_code"`      // The VanityURLCode for the [Guild].
+	SystemChannelID    uint64            `json:"system_channel_id,string"`
+	SystemChannelFlags SystemChannelFlag `json:"system_channel_flags"`    // [SystemChannelFlag]s for the [Guild].
+	RulesChannelID     uint64            `json:"rules_channel_id,string"` // The ID of the rules [channel.Channel].
+	VanityURLCode      string            `json:"vanity_url_code"`         // The VanityURLCode for the [Guild].
 	Description        string            `json:"description"`
 	// The hash of the [Guild]'s Banner.
 	// Use [Guild.BannerURL] to retrieve the banner itself.
@@ -261,17 +261,17 @@ type Params struct {
 	VerificationLevel           *VerificationLevel   `json:"verification_level,omitempty"`
 	DefaultMessageNotifications MessageNotifications `json:"default_message_notifications,omitempty"` // TODO: Separate type?
 	ExplicitContentFilter       int                  `json:"explicit_content_filter,omitempty"`
-	AfkChannelID                string               `json:"afk_channel_id,omitempty"`
+	AfkChannelID                uint64               `json:"afk_channel_id,omitempty,string"`
 	AfkTimeout                  int                  `json:"afk_timeout,omitempty"`
 	Icon                        string               `json:"icon,omitempty"`
-	OwnerID                     string               `json:"owner_id,omitempty"`
+	OwnerID                     uint64               `json:"owner_id,omitempty,string"`
 	Splash                      string               `json:"splash,omitempty"`
 	DiscoverySplash             string               `json:"discovery_splash,omitempty"`
 	Banner                      string               `json:"banner,omitempty"`
-	SystemChannelID             string               `json:"system_channel_id,omitempty"`
+	SystemChannelID             uint64               `json:"system_channel_id,omitempty,string"`
 	SystemChannelFlags          SystemChannelFlag    `json:"system_channel_flags,omitempty"`
-	RulesChannelID              string               `json:"rules_channel_id,omitempty"`
-	PublicUpdatesChannelID      string               `json:"public_updates_channel_id,omitempty"`
+	RulesChannelID              uint64               `json:"rules_channel_id,omitempty,string"`
+	PublicUpdatesChannelID      uint64               `json:"public_updates_channel_id,omitempty,string"`
 	PreferredLocale             discord.Locale       `json:"preferred_locale,omitempty"`
 	Features                    []Feature            `json:"features,omitempty"`
 	Description                 string               `json:"description,omitempty"`
@@ -291,17 +291,17 @@ var (
 )
 
 // Get returns the [Guild] with the given guildID.
-func Get(guildID string) Request[*Guild] {
+func Get(guildID uint64) Request[*Guild] {
 	return NewData[*Guild](http.MethodGet, discord.EndpointGuild(guildID))
 }
 
 // GetWithCounts returns the guild.Guild with the given guildID with approximate user.Member and status.Presence counts.
-func GetWithCounts(guildID string) Request[*Guild] {
+func GetWithCounts(guildID uint64) Request[*Guild] {
 	return NewData[*Guild](http.MethodGet, discord.EndpointGuild(guildID)+"?with_counts=true")
 }
 
 // Edit a [Guild] with the given params.
-func Edit(guildID string, params *Params) Request[*Guild] {
+func Edit(guildID uint64, params *Params) Request[*Guild] {
 	return NewData[*Guild](http.MethodPatch, discord.EndpointGuild(guildID)).
 		WithData(params).
 		WithPre(func(ctx context.Context, do *Do) error {
@@ -321,9 +321,9 @@ func Edit(guildID string, params *Params) Request[*Guild] {
 			if valid {
 				return nil
 			}
-			var validRegions []string
-			for _, r := range regions {
-				validRegions = append(validRegions, r.ID)
+			validRegions := make([]string, len(regions))
+			for i, r := range regions {
+				validRegions[i] = r.ID
 			}
 			return errors.Join(
 				ErrInvalidVoiceRegions, fmt.Errorf("%s is not a voice region (%q)", params.Region, validRegions),
@@ -332,15 +332,15 @@ func Edit(guildID string, params *Params) Request[*Guild] {
 }
 
 // Delete a [Guild].
-func Delete(guildID string) Empty {
+func Delete(guildID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuild(guildID))
 	return WrapAsEmpty(req)
 }
 
 // Leave a [Guild].
-func Leave(guildID string) Empty {
-	req := NewSimple(http.MethodDelete, discord.EndpointUserGuild("@e", guildID)).
-		WithBucketID(discord.EndpointUserGuild("", guildID))
+func Leave(guildID uint64) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointUserGuild(0, guildID)).
+		WithBucketID(discord.EndpointUserGuild(0, guildID))
 	return WrapAsEmpty(req)
 }
 
@@ -350,7 +350,7 @@ func ListVoiceRegions() Request[[]*discord.VoiceRegion] {
 }
 
 // GetIcon returns an [image.Image] of a [Guild.GetIcon].
-func GetIcon(guildID string) Request[image.Image] {
+func GetIcon(guildID uint64) Request[image.Image] {
 	return NewImage(http.MethodGet, "").
 		WithBucketID(discord.EndpointGuildIcon(guildID, "")).
 		WithPre(func(ctx context.Context, do *Do) error {
@@ -367,7 +367,7 @@ func GetIcon(guildID string) Request[image.Image] {
 }
 
 // GetSplash returns an [image.Image] of a [Guild.GetSplash].
-func GetSplash(guildID string) Request[image.Image] {
+func GetSplash(guildID uint64) Request[image.Image] {
 	return NewImage(http.MethodGet, "").
 		WithBucketID(discord.EndpointGuildSplash(guildID, "")).
 		WithPre(func(ctx context.Context, do *Do) error {
@@ -384,12 +384,12 @@ func GetSplash(guildID string) Request[image.Image] {
 }
 
 // GetEmbed returns the [Embed] for a [Guild].
-func GetEmbed(guildID string) Request[*Embed] {
+func GetEmbed(guildID uint64) Request[*Embed] {
 	return NewData[*Embed](http.MethodGet, discord.EndpointGuildEmbed(guildID))
 }
 
 // EditEmbed of a [Guild].
-func EditEmbed(guildID string, data *Embed) Empty {
+func EditEmbed(guildID uint64, data *Embed) Empty {
 	req := NewSimple(http.MethodPatch, discord.EndpointGuildEmbed(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }
@@ -402,11 +402,11 @@ func ListInvites(guildID string) Request[[]*invite.Invite] {
 */
 
 // ListThreadsActive returns all active threads in the given [guild.Guild].
-func ListThreadsActive(guildID string) Request[*channel.ThreadsList] {
+func ListThreadsActive(guildID uint64) Request[*channel.ThreadsList] {
 	return NewData[*channel.ThreadsList](http.MethodGet, discord.EndpointGuildActiveThreads(guildID))
 }
 
 // ListWebhooks returns all [channel.Webhook] for a given [guild.Guild].
-func ListWebhooks(guildID string) Request[[]*channel.Webhook] {
+func ListWebhooks(guildID uint64) Request[[]*channel.Webhook] {
 	return NewData[[]*channel.Webhook](http.MethodGet, discord.EndpointGuildWebhooks(guildID))
 }

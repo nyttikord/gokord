@@ -23,7 +23,7 @@ const (
 // Onboarding represents the onboarding flow for a [Guild].
 // https://discord.com/developers/docs/resources/guild#guild-onboarding-object
 type Onboarding struct {
-	GuildID string `json:"guild_id,omitempty"`
+	GuildID uint64 `json:"guild_id,omitempty,string"`
 	// Prompts shown during [Onboarding] and in the customize community ([channel.Channel]s & [Role]s) tab.
 	Prompts *[]OnboardingPrompt `json:"prompts,omitempty"`
 	// [channel.Channel] IDs that members get opted into automatically.
@@ -42,7 +42,7 @@ type OnboardingPrompt struct {
 	//
 	// Note: always requires to be a valid snowflake (e.g. "0"), see
 	// https://github.com/discord/discord-api-docs/issues/6320 for more information.
-	ID string `json:"id,omitempty"`
+	ID uint64 `json:"id,omitempty,string"`
 	// Type of the [OnboardingPrompt].
 	Type types.OnboardingPrompt `json:"type"`
 	// Options available within the [OnboardingPrompt].
@@ -60,11 +60,11 @@ type OnboardingPrompt struct {
 // OnboardingPromptOption is an option available within an [OnboardingPrompt].
 // https://discord.com/developers/docs/resources/guild#guild-onboarding-object-prompt-option-structure
 type OnboardingPromptOption struct {
-	ID string `json:"id,omitempty"`
+	ID uint64 `json:"id,omitempty,string"`
 	// IDs for channels a [user.Member] is added to when the [OnboardingPromptOption] is selected.
-	ChannelIDs []string `json:"channel_ids"`
+	ChannelIDs []uint64 `json:"channel_ids,string"`
 	// IDs for [Role]s assigned to a [user.Member] when the [OnboardingPromptOption] is selected.
-	RoleIDs []string `json:"role_ids"`
+	RoleIDs []uint64 `json:"role_ids,string"`
 	// [emoji.Emoji] of the option.
 	//
 	// NOTE: when creating or updating a [OnboardingPromptOption] EmojiID, EmojiName and EmojiAnimated should be used
@@ -73,7 +73,7 @@ type OnboardingPromptOption struct {
 	Title       string       `json:"title"`
 	Description string       `json:"description"`
 	// See [OnboardingPromptOption.Emoji].
-	EmojiID string `json:"emoji_id,omitempty"`
+	EmojiID uint64 `json:"emoji_id,omitempty,string"`
 	// See [OnboardingPromptOption.Emoji].
 	EmojiName string `json:"emoji_name,omitempty"`
 	// See [OnboardingPromptOption.Emoji].
@@ -81,12 +81,12 @@ type OnboardingPromptOption struct {
 }
 
 // GetOnboarding returns [Onboarding] configuration of a [Guild].
-func GetOnboarding(guildID string) Request[*Onboarding] {
+func GetOnboarding(guildID uint64) Request[*Onboarding] {
 	return NewData[*Onboarding](http.MethodGet, discord.EndpointGuildOnboarding(guildID))
 }
 
 // EditOnboarding configuration of a [Guild].
-func EditOnboarding(guildID string, o *Onboarding) Request[*Onboarding] {
+func EditOnboarding(guildID uint64, o *Onboarding) Request[*Onboarding] {
 	return NewData[*Onboarding](http.MethodPut, discord.EndpointGuildOnboarding(guildID)).
 		WithData(o)
 }

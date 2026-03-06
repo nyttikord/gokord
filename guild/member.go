@@ -25,7 +25,7 @@ type MemberParams struct {
 	Roles *[]string `json:"roles,omitempty"`
 	// ChannelID to move [user.Member] to (if they are connected to voice).
 	// Set to "" to remove user from a voice [channel.Channel].
-	ChannelID *string `json:"channel_id,omitempty"`
+	ChannelID *uint64 `json:"channel_id,omitempty,string"`
 	// Whether the [user.Member] is muted in voice [channel.Channel]s.
 	Mute *bool `json:"mute,omitempty"`
 	// Whether the [user.Member] is deafened in voice [channel.Channel]s.
@@ -45,7 +45,7 @@ func (p MemberParams) MarshalJSON() (res []byte, err error) {
 	}{guildMemberParams: guildMemberParams(p)}
 
 	if p.ChannelID != nil {
-		if *p.ChannelID == "" {
+		if *p.ChannelID == 0 {
 			v.ChannelID = json.RawMessage(`null`)
 		} else {
 			res, err = json.Marshal(p.ChannelID)
@@ -90,7 +90,7 @@ type MemberAddParams struct {
 // limit is the limit of bans to return (max 1000).
 // If not empty, all returned Ban will be before the ID specified by beforeID.
 // If not empty, all returned Ban will be after the ID specified by afterID.
-func ListBans(guildID string, limit int, beforeID, afterID string) Request[[]*Ban] {
+func ListBans(guildID uint64, limit int, beforeID, afterID string) Request[[]*Ban] {
 	uri := discord.EndpointGuildBans(guildID)
 
 	v := url.Values{}
@@ -116,18 +116,18 @@ func ListBans(guildID string, limit int, beforeID, afterID string) Request[[]*Ba
 // days is the number of days of previous comments to delete.
 //
 // NOTE: See BanCreateWithReason.
-func CreateBan(guildID, userID string, days int) Request[*Ban] {
+func CreateBan(guildID, userID uint64, days int) Request[*Ban] {
 	return CreateBanWithReason(guildID, userID, "", days)
 }
 
 // GetBan finds a ban with given [Guild] and [user.User].
-func GetBan(guildID, userID string) Request[*Ban] {
+func GetBan(guildID, userID uint64) Request[*Ban] {
 	return NewData[*Ban](http.MethodGet, discord.EndpointGuildBan(guildID, userID)).
 		WithBucketID(discord.EndpointGuildBans(guildID))
 }
 
 // CreateBanWithReason bans the given [user.User] from the given [Guild] with the given reason.
-func CreateBanWithReason(guildID, userID, reason string, days int) Request[*Ban] {
+func CreateBanWithReason(guildID, userID uint64, reason string, days int) Request[*Ban] {
 	uri := discord.EndpointGuildBan(guildID, userID)
 
 	queryParams := url.Values{}
@@ -150,7 +150,7 @@ func CreateBanWithReason(guildID, userID, reason string, days int) Request[*Ban]
 //
 // If afterID is set, every member ID will be after this.
 // limit is the maximum number of members to return (max 1000).
-func ListMembers(guildID string, afterID string, limit int) Request[[]*user.Member] {
+func ListMembers(guildID uint64, afterID string, limit int) Request[[]*user.Member] {
 	uri := discord.EndpointGuildMembers(guildID)
 
 	v := url.Values{}
@@ -185,7 +185,7 @@ func ListMembers(guildID string, afterID string, limit int) Request[[]*user.Memb
 // SearchMembers returns a list of [user.Member] whose username or nickname starts with the provided string.
 //
 // limit is the maximum number of members to return (min 1, max 1000).
-func SearchMembers(guildID, query string, limit int) Request[[]*user.Member] {
+func SearchMembers(guildID uint64, query string, limit int) Request[[]*user.Member] {
 	uri := discord.EndpointGuildMembersSearch(guildID)
 
 	queryParams := url.Values{}
@@ -199,7 +199,7 @@ func SearchMembers(guildID, query string, limit int) Request[[]*user.Member] {
 }
 
 // GetMember returns a [user.Member] of a [Guild].
-func GetMember(guildID, userID string) Request[*user.Member] {
+func GetMember(guildID, userID uint64) Request[*user.Member] {
 	return NewCustom[*user.Member](http.MethodGet, discord.EndpointGuildMember(guildID, userID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID)).
 		WithPost(func(ctx context.Context, b []byte) (*user.Member, error) {
@@ -215,19 +215,19 @@ func GetMember(guildID, userID string) Request[*user.Member] {
 }
 
 // AddMember force joins a [user.User] to the [Guild].
-func AddMember(guildID, userID string, data *MemberAddParams) Empty {
+func AddMember(guildID, userID uint64, data *MemberAddParams) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointGuildMember(guildID, userID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID))
 	return WrapAsEmpty(req)
 }
 
 // Kick the given [user.User] from the given [Guild].
-func Kick(guildID, userID string) Empty {
+func Kick(guildID, userID uint64) Empty {
 	return KickWithReason(guildID, userID, "")
 }
 
 // KickWithReason removes the given [user.User] from the given [Guild] with the given reason.
-func KickWithReason(guildID, userID, reason string) Empty {
+func KickWithReason(guildID, userID uint64, reason string) Empty {
 	uri := discord.EndpointGuildMember(guildID, userID)
 	if reason != "" {
 		uri += "?reason=" + url.QueryEscape(reason)
@@ -239,15 +239,15 @@ func KickWithReason(guildID, userID, reason string) Empty {
 }
 
 // EditMember with the given data and returns them.
-func EditMember(guildID, userID string, data *MemberParams) Request[*user.Member] {
+func EditMember(guildID, userID uint64, data *MemberParams) Request[*user.Member] {
 	return NewData[*user.Member](http.MethodPatch, discord.EndpointGuildMember(guildID, userID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID))
 }
 
 // MoveMember from one voice [channel.Channel] to another/none.
-func MoveMember(guildID string, userID string, channelID *string) Empty {
+func MoveMember(guildID, userID uint64, channelID *uint64) Empty {
 	data := struct {
-		ChannelID *string `json:"channel_id"`
+		ChannelID *uint64 `json:"channel_id,string"`
 	}{channelID}
 
 	req := NewSimple(http.MethodPatch, discord.EndpointGuildMember(guildID, userID)).
@@ -260,8 +260,8 @@ func MoveMember(guildID string, userID string, channelID *string) Empty {
 // NOTE: To reset the nickname, set it to an empty string.
 //
 // NOTE: Use [EditCurrentMember] to modify the current member.
-func EditMemberNickname(guildID, userID, nickname string) Empty {
-	if userID == "@me" {
+func EditMemberNickname(guildID, userID uint64, nickname string) Empty {
+	if userID == 0 {
 		return WrapEmptyWarn(
 			EditCurrentMember(guildID, nickname, "", "", ""),
 			"this endpoint is deprecated for the current member, use MemberModifyCurrent instead",
@@ -277,10 +277,10 @@ func EditMemberNickname(guildID, userID, nickname string) Empty {
 	return WrapAsEmpty(req)
 }
 
-// EditCurrentMember updates the nickname, the avatar, the banner and the bio of the current user.Member.
+// EditCurrentMember updates the nickname, the avatar, the banner and the bio of the current [user.Member].
 //
 // NOTE: Set any parameter to "" to avoid modifying it.
-func EditCurrentMember(guildID string, nick, avatar, banner, bio string) Empty {
+func EditCurrentMember(guildID uint64, nick, avatar, banner, bio string) Empty {
 	data := struct {
 		Nick   string `json:"nick,omitempty"`
 		Avatar string `json:"avatar,omitempty"`
@@ -288,13 +288,13 @@ func EditCurrentMember(guildID string, nick, avatar, banner, bio string) Empty {
 		Bio    string `json:"bio,omitempty"`
 	}{nick, avatar, banner, bio}
 
-	req := NewSimple(http.MethodPatch, discord.EndpointGuildMember(guildID, "@me")).
+	req := NewSimple(http.MethodPatch, discord.EndpointGuildMember(guildID, 0)).
 		WithBucketID(discord.EndpointGuildMembers(guildID)).WithData(data)
 	return WrapAsEmpty(req)
 }
 
 // MuteMember (or unmute) a [user.Member] in a [Guild].
-func MuteMember(guildID string, userID string, mute bool) Empty {
+func MuteMember(guildID, userID uint64, mute bool) Empty {
 	data := struct {
 		Mute bool `json:"mute"`
 	}{mute}
@@ -307,7 +307,7 @@ func MuteMember(guildID string, userID string, mute bool) Empty {
 // Timeout a [user.Member] in a [Guild].
 //
 // NOTE: Set until to nil to remove timeout.
-func Timeout(guildID string, userID string, until *time.Time) Empty {
+func Timeout(guildID, userID uint64, until *time.Time) Empty {
 	data := struct {
 		CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
 	}{until}
@@ -318,7 +318,7 @@ func Timeout(guildID string, userID string, until *time.Time) Empty {
 }
 
 // DeafenMember in a [Guild].
-func DeafenMember(guildID string, userID string, deaf bool) Empty {
+func DeafenMember(guildID, userID uint64, deaf bool) Empty {
 	data := struct {
 		Deaf bool `json:"deaf"`
 	}{deaf}
@@ -331,7 +331,7 @@ func DeafenMember(guildID string, userID string, deaf bool) Empty {
 // PruneCount returns the number of user.Member that would be removed in a prune operation.
 //
 // Requires discord.PermissionKickMembers.
-func PruneCount(guildID string, days uint32) Request[uint32] {
+func PruneCount(guildID uint64, days uint32) Request[uint32] {
 	if days <= 0 {
 		return NewError[uint32](ErrPruneDaysBounds)
 	}
@@ -350,7 +350,7 @@ func PruneCount(guildID string, days uint32) Request[uint32] {
 // Returns the number of pruned members.
 //
 // Requires discord.PermissionKickMembers.
-func Prune(guildID string, days uint32) Request[uint32] {
+func Prune(guildID uint64, days uint32) Request[uint32] {
 	if days <= 0 {
 		return NewError[uint32](ErrPruneDaysBounds)
 	}
@@ -370,7 +370,7 @@ func Prune(guildID string, days uint32) Request[uint32] {
 }
 
 // GetCurrentMember returns a [user.Member] for the current [user.User] in the given [guild.Guild].
-func GetCurrentMember(guildID string) Request[*user.Member] {
-	return NewData[*user.Member](http.MethodGet, discord.EndpointUserGuildMember("@me", guildID)).
-		WithBucketID(discord.EndpointUserGuildMember("", guildID))
+func GetCurrentMember(guildID uint64) Request[*user.Member] {
+	return NewData[*user.Member](http.MethodGet, discord.EndpointUserGuildMember(0, guildID)).
+		WithBucketID(discord.EndpointUserGuildMember(0, guildID))
 }

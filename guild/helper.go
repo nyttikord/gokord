@@ -11,7 +11,7 @@ import (
 
 // MemberPermissions calculates the permissions for a user.Member.
 // https://support.discord.com/hc/en-us/articles/206141927-How-is-the-permission-hierarchy-structured-
-func MemberPermissions(guild *Guild, channel *channel.Channel, userID string, roles []string) int64 {
+func MemberPermissions(guild *Guild, channel *channel.Channel, userID uint64, roles []uint64) int64 {
 	if userID == guild.OwnerID {
 		return discord.PermissionAll
 	}
@@ -73,7 +73,7 @@ func MemberPermissions(guild *Guild, channel *channel.Channel, userID string, ro
 	return perms
 }
 
-func FirstRoleColor(g *Guild, memberRoles []string) int {
+func FirstRoleColor(g *Guild, memberRoles []uint64) int {
 	roles := Roles(g.Roles)
 	sort.Sort(roles)
 

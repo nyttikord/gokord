@@ -16,14 +16,14 @@ import (
 // Only for retrieval of the data.
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event
 type ScheduledEvent struct {
-	ID string `json:"id"`
+	ID uint64 `json:"id,string"`
 	// The [Guild.ID] which the [ScheduledEvent] belongs to.
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 	// The [channel.Channel] ID in which the [ScheduledEvent] will be hosted, or null if [EntityType] is
 	// [types.ScheduledEventEntityExternal].
-	ChannelID string `json:"channel_id"`
+	ChannelID uint64 `json:"channel_id,string"`
 	// The [user.User] ID that created the ScheduledEvent.
-	CreatorID   string `json:"creator_id"`
+	CreatorID   uint64 `json:"creator_id,string"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	// The time the [ScheduledEvent] will start.
@@ -40,7 +40,7 @@ type ScheduledEvent struct {
 	// https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-field-requirements-by-entity-type
 	EntityType types.ScheduledEventEntity `json:"entity_type"`
 	// The ID of an entity associated with a [ScheduledEvent].
-	EntityID string `json:"entity_id"`
+	EntityID uint64 `json:"entity_id,string"`
 	// Additional metadata for the [ScheduledEvent].
 	EntityMetadata ScheduledEventEntityMetadata `json:"entity_metadata"`
 	// The [user.User] that created the [ScheduledEvent].
@@ -59,7 +59,7 @@ type ScheduledEvent struct {
 //
 // See [ScheduledEvent] for the documentations of the fields.
 type ScheduledEventParams struct {
-	ChannelID          string                        `json:"channel_id,omitempty"`
+	ChannelID          uint64                        `json:"channel_id,omitempty,string"`
 	Name               string                        `json:"name,omitempty"`
 	Description        string                        `json:"description,omitempty"`
 	ScheduledStartTime *time.Time                    `json:"scheduled_start_time,omitempty"`
@@ -130,7 +130,7 @@ const (
 // ScheduledEventUser is a [user.User] subscribed to a [ScheduledEvent].
 // https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-user-object
 type ScheduledEventUser struct {
-	GuildScheduledEventID string       `json:"guild_scheduled_event_id"`
+	GuildScheduledEventID uint64       `json:"guild_scheduled_event_id,string"`
 	User                  *user.User   `json:"user"`
 	Member                *user.Member `json:"member"`
 }
@@ -138,7 +138,7 @@ type ScheduledEventUser struct {
 // ListScheduledEvents returns all [ScheduledEvent]s for the [Guild].
 //
 // userCount indicates whether to include the user count in the response.
-func ListScheduledEvents(guildID string, userCount bool) Request[[]*ScheduledEvent] {
+func ListScheduledEvents(guildID uint64, userCount bool) Request[[]*ScheduledEvent] {
 	uri := discord.EndpointGuildScheduledEvents(guildID)
 	if userCount {
 		uri += "?with_user_count=true"
@@ -150,7 +150,7 @@ func ListScheduledEvents(guildID string, userCount bool) Request[[]*ScheduledEve
 // GetScheduledEvent returns a specific [ScheduledEvent] in a [Guild].
 //
 // userCount indicates whether to include the user count in the response.
-func GetScheduledEvent(guildID, eventID string, userCount bool) Request[*ScheduledEvent] {
+func GetScheduledEvent(guildID, eventID uint64, userCount bool) Request[*ScheduledEvent] {
 	uri := discord.EndpointGuildScheduledEvent(guildID, eventID)
 	if userCount {
 		uri += "?with_user_count=true"
@@ -160,21 +160,21 @@ func GetScheduledEvent(guildID, eventID string, userCount bool) Request[*Schedul
 }
 
 // CreateScheduledEvent for a [Guild] and returns it.
-func CreateScheduledEvent(guildID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
+func CreateScheduledEvent(guildID uint64, event *ScheduledEventParams) Request[*ScheduledEvent] {
 	return NewData[*ScheduledEvent](http.MethodPost, discord.EndpointGuildScheduledEvents(guildID)).
 		WithData(event)
 }
 
 // EditScheduledEvent for a [Guild] and returns it.
-func EditScheduledEvent(guildID, eventID string, event *ScheduledEventParams) Request[*ScheduledEvent] {
+func EditScheduledEvent(guildID, eventID uint64, event *ScheduledEventParams) Request[*ScheduledEvent] {
 	return NewData[*ScheduledEvent](http.MethodPatch, discord.EndpointGuildScheduledEvent(guildID, eventID)).
-		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, "")).WithData(event)
+		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, 0)).WithData(event)
 }
 
 // DeleteScheduledEvent in a [Guild].
-func DeleteScheduledEvent(guildID, eventID string) Empty {
+func DeleteScheduledEvent(guildID, eventID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuildScheduledEvent(guildID, eventID)).
-		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, eventID))
+		WithBucketID(discord.EndpointGuildScheduledEvent(guildID, 0))
 	return WrapAsEmpty(req)
 }
 
@@ -184,7 +184,7 @@ func DeleteScheduledEvent(guildID, eventID string) Empty {
 // withMember indicates whether to include the member object in the response.
 // If is not empty all returned users entries will be before beforeID.
 // If is not empty all returned users entries will be after afterID.
-func ListScheduledEventUsers(guildID, eventID string, limit int, withMember bool, beforeID, afterID string) Request[[]*ScheduledEventUser] {
+func ListScheduledEventUsers(guildID, eventID uint64, limit int, withMember bool, beforeID, afterID string) Request[[]*ScheduledEventUser] {
 	uri := discord.EndpointGuildScheduledEventUsers(guildID, eventID)
 
 	queryParams := url.Values{}
@@ -206,5 +206,5 @@ func ListScheduledEventUsers(guildID, eventID string, limit int, withMember bool
 	}
 
 	return NewData[[]*ScheduledEventUser](http.MethodPost, uri).
-		WithBucketID(discord.EndpointGuildScheduledEventUsers(guildID, ""))
+		WithBucketID(discord.EndpointGuildScheduledEventUsers(guildID, 0))
 }

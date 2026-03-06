@@ -117,14 +117,14 @@ func EndpointGuildOnboarding(gID uint64) string {
 	return EndpointGuild(gID) + "/onboarding"
 }
 
-func EndpointGuildTemplate(tID uint64) string {
-	return fmt.Sprintf("%stemplates/%d", EndpointGuilds, tID)
+func EndpointGuildTemplate(tID string) string {
+	return fmt.Sprintf("%s/templates/%d", EndpointGuilds, tID)
 }
 func EndpointGuildTemplates(gID uint64) string {
 	return EndpointGuild(gID) + "/templates"
 }
-func EndpointGuildTemplateSync(gID, tID uint64) string {
-	return fmt.Sprintf("%s/%d", EndpointGuildTemplates(gID), tID)
+func EndpointGuildTemplateSync(gID uint64, tID string) string {
+	return fmt.Sprintf("%s/%s", EndpointGuildTemplates(gID), tID)
 }
 
 func EndpointGuildSoundboardSounds(gId uint64) string {

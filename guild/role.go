@@ -21,7 +21,7 @@ const (
 
 // Role stores information about Discord [Guild] [user.Member] role.
 type Role struct {
-	ID   string `json:"id"`
+	ID   uint64 `json:"id,string"`
 	Name string `json:"name"`
 	// Whether this [Role] is managed by a [user.Integration], and thus cannot be manually added to, or taken from,
 	// [user.Member].
@@ -120,7 +120,7 @@ type RoleColors struct {
 // A GuildedRole stores data for [Guild] [Role].
 type GuildedRole struct {
 	Role    *Role  `json:"role"`
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 var (
@@ -129,32 +129,32 @@ var (
 )
 
 // AddMemberRole adds the specified [Role] to a given [user.Member].
-func AddMemberRole(guildID, userID, roleID string) Empty {
+func AddMemberRole(guildID, userID, roleID uint64) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointGuildMemberRole(guildID, userID, roleID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID))
 	return WrapAsEmpty(req)
 }
 
 // RemoveMemberRole removes the specified [Role] to a given [user.Member].
-func RemoveMemberRole(guildID, userID, roleID string) Empty {
+func RemoveMemberRole(guildID, userID, roleID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuildMemberRole(guildID, userID, roleID)).
 		WithBucketID(discord.EndpointGuildMembers(guildID))
 	return WrapAsEmpty(req)
 }
 
 // CreateRole in the given [Guild].
-func CreateRole(guildID string, data *RoleParams) Request[*Role] {
+func CreateRole(guildID uint64, data *RoleParams) Request[*Role] {
 	return NewData[*Role](http.MethodPost, discord.EndpointGuildRoles(guildID)).
 		WithData(data)
 }
 
 // ListRoles returns all [Role] for the given [Guild].
-func ListRoles(guildID string) Request[[]*Role] {
+func ListRoles(guildID uint64) Request[[]*Role] {
 	return NewData[[]*Role](http.MethodPost, discord.EndpointGuildRoles(guildID))
 }
 
 // EditRole and returns updated data.
-func EditRole(guildID, roleID string, data *RoleParams) Request[*Role] {
+func EditRole(guildID, roleID uint64, data *RoleParams) Request[*Role] {
 	// Prevent sending a color int that is too big.
 	if data.Color != nil && *data.Color > 0xFFFFFF {
 		return NewError[*Role](ErrInvalidColorValue)
@@ -165,14 +165,14 @@ func EditRole(guildID, roleID string, data *RoleParams) Request[*Role] {
 }
 
 // ReorderRole with the given data.
-func ReorderRole(guildID string, roles []*Role) Empty {
+func ReorderRole(guildID uint64, roles []*Role) Empty {
 	req := NewSimple(http.MethodPatch, discord.EndpointGuildRoles(guildID)).
 		WithData(roles)
 	return WrapAsEmpty(req)
 }
 
 // DeleteRole with the given data.
-func DeleteRole(guildID, roleID string) Empty {
+func DeleteRole(guildID, roleID uint64) Empty {
 	req := NewSimple(http.MethodPatch, discord.EndpointGuildRole(guildID, roleID)).
 		WithBucketID(discord.EndpointGuildRoles(guildID))
 	return WrapAsEmpty(req)
@@ -180,7 +180,7 @@ func DeleteRole(guildID, roleID string) Empty {
 
 // CountsRoleMember returns a map of [Role.ID] to the number of [user.Member] with this role.
 // It doesn't include the @everyone [Role].
-func CountsRoleMember(guildID string) Request[map[string]uint] {
+func CountsRoleMember(guildID uint64) Request[map[string]uint] {
 	return NewData[map[string]uint](http.MethodPost, discord.EndpointGuildRoleMemberCounts(guildID)).
 		WithBucketID(discord.EndpointGuildRoles(guildID))
 }
