@@ -40,7 +40,7 @@ const (
 
 // PermissionOverwrite holds permission overwrite data for a [Channel].
 type PermissionOverwrite struct {
-	ID    string                    `json:"id"`
+	ID    uint64                    `json:"id,string"`
 	Type  types.PermissionOverwrite `json:"type"`
 	Deny  int64                     `json:"deny,string"`
 	Allow int64                     `json:"allow,string"`
@@ -48,16 +48,16 @@ type PermissionOverwrite struct {
 
 // Channel holds all data related to an individual Discord
 type Channel struct {
-	ID string `json:"id"` // The ID of the [Channel].
+	ID uint64 `json:"id,string"`
 	// The ID of the guild.Guild to which the [Channel] belongs, if it is in a [guild.Guild].
 	// Else, this ID is empty (e.g. DM channels).
-	GuildID string        `json:"guild_id"`
+	GuildID uint64        `json:"guild_id,string"`
 	Name    string        `json:"name"`
 	Topic   string        `json:"topic"`
 	Type    types.Channel `json:"type"`
 	// The ID of the last message sent in the [Channel].
 	// This is not guaranteed to be an ID of a valid [Message].
-	LastMessageID string `json:"last_message_id"`
+	LastMessageID uint64 `json:"last_message_id,string"`
 	// The timestamp of the last pinned [Message] in the [Channel].
 	// It is nil if the [Channel] has no pinned messages.
 	LastPinTimestamp *time.Time `json:"last_pin_timestamp"`
@@ -91,9 +91,9 @@ type Channel struct {
 	// [discord.PermissionManageChannels], are unaffected
 	RateLimitPerUser int `json:"rate_limit_per_user"`
 	// ID of the creator of the group DM or thread
-	OwnerID string `json:"owner_id"`
+	OwnerID uint64 `json:"owner_id,string"`
 	// ApplicationID of the DM creator Zeroed if [guild.Guild] [Channel] or not a bot [user.User].
-	ApplicationID string `json:"application_id"`
+	ApplicationID uint64 `json:"application_id,string"`
 	// Thread-specific fields not needed by other [Channel]s.
 	ThreadMetadata *ThreadMetadata `json:"thread_metadata,omitempty"`
 	// ThreadMember for the current [user.User], if they have joined the thread, only included on certain API endpoints
@@ -140,7 +140,7 @@ type EditData struct {
 	Bitrate                       int                    `json:"bitrate,omitempty"`
 	UserLimit                     int                    `json:"user_limit,omitempty"`
 	PermissionOverwrites          []*PermissionOverwrite `json:"permission_overwrites,omitempty"`
-	ParentID                      string                 `json:"parent_id,omitempty"`
+	ParentID                      uint64                 `json:"parent_id,omitempty,string"`
 	RateLimitPerUser              *int                   `json:"rate_limit_per_user,omitempty"`
 	Flags                         *Flags                 `json:"flags,omitempty"`
 	DefaultThreadRateLimitPerUser *int                   `json:"default_thread_rate_limit_per_user,omitempty"`
@@ -169,8 +169,8 @@ type EditData struct {
 
 // A Follow holds data returned after following a news [Channel].
 type Follow struct {
-	ChannelID string `json:"channel_id"`
-	WebhookID string `json:"webhook_id"`
+	ChannelID uint64 `json:"channel_id,string"`
+	WebhookID uint64 `json:"webhook_id,string"`
 }
 
 // ForumDefaultReaction specifies [emoji.Emoji] to use as the default reaction to a forum post.
@@ -178,38 +178,38 @@ type Follow struct {
 // NOTE: Exactly one of EmojiID and EmojiName must be set.
 type ForumDefaultReaction struct {
 	// The id of a guild's custom [emoji.Emoji].
-	EmojiID string `json:"emoji_id,omitempty"`
+	EmojiID uint64 `json:"emoji_id,omitempty,string"`
 	// The Unicode character of the [emoji.Emoji].
 	EmojiName string `json:"emoji_name,omitempty"`
 }
 
 // ForumTag represents a tag that can be applied to a thread in a forum [Channel].
 type ForumTag struct {
-	ID        string `json:"id,omitempty"`
+	ID        uint64 `json:"id,omitempty,string"`
 	Name      string `json:"name"`
 	Moderated bool   `json:"moderated"`
-	EmojiID   string `json:"emoji_id,omitempty"`
+	EmojiID   uint64 `json:"emoji_id,omitempty,string"`
 	EmojiName string `json:"emoji_name,omitempty"`
 }
 
 // Get returns the [Channel] with the given ID.
-func Get(channelID string) Request[*Channel] {
+func Get(channelID uint64) Request[*Channel] {
 	return NewData[*Channel](http.MethodGet, discord.EndpointChannel(channelID))
 }
 
 // Edit the given [Channel].
-func Edit(channelID string, data *EditData) Request[*Channel] {
+func Edit(channelID uint64, data *EditData) Request[*Channel] {
 	return NewData[*Channel](http.MethodPatch, discord.EndpointChannel(channelID)).
 		WithData(data)
 }
 
 // Delete the given [Channel].
-func Delete(channelID string) Request[*Channel] {
+func Delete(channelID uint64) Request[*Channel] {
 	return NewData[*Channel](http.MethodDelete, discord.EndpointChannel(channelID))
 }
 
 // List returns the list of [Channel] in the [guild.Guild].
-func List(guildID string) Request[[]*Channel] {
+func List(guildID uint64) Request[[]*Channel] {
 	return NewData[[]*Channel](http.MethodGet, discord.EndpointGuildChannels(guildID))
 }
 
@@ -223,18 +223,18 @@ type CreateData struct {
 	RateLimitPerUser     int                    `json:"rate_limit_per_user,omitempty"`
 	Position             int                    `json:"position,omitempty"`
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites,omitempty"`
-	ParentID             string                 `json:"parent_id,omitempty"`
+	ParentID             uint64                 `json:"parent_id,omitempty,string"`
 	NSFW                 bool                   `json:"nsfw,omitempty"`
 }
 
 // CreateComplex creates a new [Channel] in the given [guild.Guild].
-func CreateComplex(guildID string, data CreateData) Request[*Channel] {
+func CreateComplex(guildID uint64, data CreateData) Request[*Channel] {
 	return NewData[*Channel](http.MethodPost, discord.EndpointGuildChannels(guildID)).
 		WithData(data)
 }
 
 // Create a new [Channel] in the given [guild.Guild].
-func Create(guildID, name string, ctype types.Channel) Request[*Channel] {
+func Create(guildID uint64, name string, ctype types.Channel) Request[*Channel] {
 	return CreateComplex(guildID, CreateData{
 		Name: name,
 		Type: ctype,
@@ -242,9 +242,9 @@ func Create(guildID, name string, ctype types.Channel) Request[*Channel] {
 }
 
 // Reorder updates the order of [Channel] in a [guild.Guild].
-func Reorder(guildID string, channels []*Channel) Empty {
+func Reorder(guildID uint64, channels []*Channel) Empty {
 	data := make([]struct {
-		ID       string `json:"id"`
+		ID       uint64 `json:"id,string"`
 		Position int    `json:"position"`
 	}, len(channels))
 
@@ -258,15 +258,15 @@ func Reorder(guildID string, channels []*Channel) Empty {
 }
 
 // Typing broadcasts to all members that authenticated [user.User] is typing in the given [Channel].
-func Typing(channelID string) Empty {
+func Typing(channelID uint64) Empty {
 	req := NewSimple(http.MethodPost, discord.EndpointChannelTyping(channelID))
 	return WrapAsEmpty(req)
 }
 
 // SetPermission creates a [PermissionOverwrite] for the given [Channel].
-func SetPermission(channelID, targetID string, targetType types.PermissionOverwrite, allow, deny int64) Empty {
+func SetPermission(channelID, targetID uint64, targetType types.PermissionOverwrite, allow, deny int64) Empty {
 	data := struct {
-		ID    string                    `json:"id"`
+		ID    uint64                    `json:"id,string"`
 		Type  types.PermissionOverwrite `json:"type"`
 		Allow int64                     `json:"allow,string"`
 		Deny  int64                     `json:"deny,string"`
@@ -274,14 +274,14 @@ func SetPermission(channelID, targetID string, targetType types.PermissionOverwr
 
 	req := NewSimple(http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
 		WithData(data).
-		WithBucketID(discord.EndpointChannelPermission(channelID, ""))
+		WithBucketID(discord.EndpointChannelPermission(channelID, 0))
 	return WrapAsEmpty(req)
 }
 
 // DeletePermission [PermissionOverwrite] for the given [Channel].
-func DeletePermission(channelID, targetID string) Empty {
+func DeletePermission(channelID, targetID uint64) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointChannelPermission(channelID, targetID)).
-		WithBucketID(discord.EndpointChannelPermission(channelID, ""))
+		WithBucketID(discord.EndpointChannelPermission(channelID, 0))
 	return WrapAsEmpty(req)
 }
 
@@ -289,9 +289,9 @@ func DeletePermission(channelID, targetID string) Empty {
 //
 // channelID is the [Channel] to follow.
 // targetID is where the news [Channel] should post to.
-func FollowNews(channelID, targetID string) Request[*Follow] {
+func FollowNews(channelID, targetID uint64) Request[*Follow] {
 	data := struct {
-		WebhookChannelID string `json:"webhook_channel_id"`
+		WebhookChannelID uint64 `json:"webhook_channel_id,string"`
 	}{targetID}
 
 	return NewData[*Follow](http.MethodPost, discord.EndpointChannelFollow(channelID)).
@@ -299,16 +299,16 @@ func FollowNews(channelID, targetID string) Request[*Follow] {
 }
 
 // Pin a [Message] within the given [Channel].
-func Pin(channelID, messageID string) Empty {
+func Pin(channelID, messageID uint64) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointChannelMessagePin(channelID, messageID)).
-		WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
+		WithBucketID(discord.EndpointChannelMessagePin(channelID, 0))
 	return WrapAsEmpty(req)
 }
 
 // Unpin a [Message] within the given [Channel].
-func Unpin(channelID, messageID string) Empty {
+func Unpin(channelID, messageID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointChannelMessagePin(channelID, messageID)).
-		WithBucketID(discord.EndpointChannelMessagePin(channelID, ""))
+		WithBucketID(discord.EndpointChannelMessagePin(channelID, 0))
 	return WrapAsEmpty(req)
 }
 
@@ -316,7 +316,7 @@ func Unpin(channelID, messageID string) Empty {
 //
 // limit is the max number of messages to return (max 50).
 // If provided all messages returned will be before the given time.
-func ListPinned(channelID string, before *time.Time, limit int) Request[*MessagesPinned] {
+func ListPinned(channelID uint64, before *time.Time, limit int) Request[*MessagesPinned] {
 	uri := discord.EndpointChannelMessagesPins(channelID)
 
 	v := url.Values{}
@@ -334,11 +334,11 @@ func ListPinned(channelID string, before *time.Time, limit int) Request[*Message
 }
 
 // CreatePrivate [Channel] ([types.ChannelDM]) with another [user.User].
-func CreatePrivate(userID string) Request[*Channel] {
+func CreatePrivate(userID uint64) Request[*Channel] {
 	data := struct {
-		RecipientID string `json:"recipient_id"`
+		RecipientID uint64 `json:"recipient_id,string"`
 	}{userID}
 
-	return NewData[*Channel](http.MethodPost, discord.EndpointUserChannels("@me")).
-		WithBucketID(discord.EndpointUserChannels("")).WithData(data)
+	return NewData[*Channel](http.MethodPost, discord.EndpointUserChannels(0)).
+		WithBucketID(discord.EndpointUserChannels(0)).WithData(data)
 }

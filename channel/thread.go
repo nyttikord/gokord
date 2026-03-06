@@ -43,8 +43,8 @@ type ThreadMetadata struct {
 //
 // NOTE: ID and UserID are empty (omitted) on the [user.Member] sent within each thread in the GUILD_CREATE event.
 type ThreadMember struct {
-	ID     string `json:"id,omitempty"`
-	UserID string `json:"user_id,omitempty"`
+	ID     uint64 `json:"id,omitempty,string"`
+	UserID uint64 `json:"user_id,omitempty,string"`
 	// The time the current user last joined the thread.
 	JoinTimestamp time.Time `json:"join_timestamp"`
 	// Any user-thread settings, currently only used for notifications.
@@ -70,15 +70,15 @@ type AddedThreadMember struct {
 }
 
 // StartThreadMessageComplex creates a new thread from an existing [Message].
-func StartThreadMessageComplex(channelID, messageID string, data *ThreadStart) Request[*Channel] {
+func StartThreadMessageComplex(channelID, messageID uint64, data *ThreadStart) Request[*Channel] {
 	return NewData[*Channel](http.MethodPost, discord.EndpointChannelMessageThread(channelID, messageID)).
-		WithBucketID(discord.EndpointChannelMessageThread(channelID, "")).WithData(data)
+		WithBucketID(discord.EndpointChannelMessageThread(channelID, 0)).WithData(data)
 }
 
 // StartThreadMessage creates a new thread from an existing [Message].
 //
 // archiveDuration is the auto archive duration in minutes.
-func StartThreadMessage(channelID, messageID string, name string, archiveDuration int) Request[*Channel] {
+func StartThreadMessage(channelID, messageID uint64, name string, archiveDuration int) Request[*Channel] {
 	return StartThreadMessageComplex(channelID, messageID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
@@ -86,7 +86,7 @@ func StartThreadMessage(channelID, messageID string, name string, archiveDuratio
 }
 
 // StartThreadComplex creates a new thread.
-func StartThreadComplex(channelID string, data *ThreadStart) Request[*Channel] {
+func StartThreadComplex(channelID uint64, data *ThreadStart) Request[*Channel] {
 	return NewData[*Channel](http.MethodPost, discord.EndpointChannelThreads(channelID)).
 		WithData(data)
 }
@@ -94,7 +94,7 @@ func StartThreadComplex(channelID string, data *ThreadStart) Request[*Channel] {
 // StartThread creates a new thread.
 //
 // archiveDuration is the auto archive duration in minutes.
-func StartThread(channelID, name string, typ types.Channel, archiveDuration int) Request[*Channel] {
+func StartThread(channelID uint64, name string, typ types.Channel, archiveDuration int) Request[*Channel] {
 	return StartThreadComplex(channelID, &ThreadStart{
 		Name:                name,
 		Type:                typ,
@@ -103,7 +103,7 @@ func StartThread(channelID, name string, typ types.Channel, archiveDuration int)
 }
 
 // StartForumThreadComplex in a [types.ChannelGuildForum].
-func StartForumThreadComplex(channelID string, threadData *ThreadStart, messageData *MessageSend) Request[*Channel] {
+func StartForumThreadComplex(channelID uint64, threadData *ThreadStart, messageData *MessageSend) Request[*Channel] {
 	endpoint := discord.EndpointChannelThreads(channelID)
 
 	for _, embed := range messageData.Embeds {
@@ -128,7 +128,7 @@ func StartForumThreadComplex(channelID string, threadData *ThreadStart, messageD
 // StartForumThread in a [types.ChannelGuildForum].
 //
 // archiveDuration is the auto archive duration in minutes.
-func StartForumThread(channelID, name string, archiveDuration int, content string) Request[*Channel] {
+func StartForumThread(channelID uint64, name string, archiveDuration int, content string) Request[*Channel] {
 	return StartForumThreadComplex(channelID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
@@ -138,14 +138,14 @@ func StartForumThread(channelID, name string, archiveDuration int, content strin
 // StartForumThreadEmbed in a [types.ChannelGuildForum].
 //
 // archiveDuration is the auto archive duration in minutes.
-func StartForumThreadEmbed(channelID, name string, archiveDuration int, embed *MessageEmbed) Request[*Channel] {
+func StartForumThreadEmbed(channelID uint64, name string, archiveDuration int, embed *MessageEmbed) Request[*Channel] {
 	return StartForumThreadEmbeds(channelID, name, archiveDuration, []*MessageEmbed{embed})
 }
 
 // StartForumThreadEmbeds in a [types.ChannelGuildForum].
 //
 // archiveDuration is the auto archive duration in minutes.
-func StartForumThreadEmbeds(channelID, name string, archiveDuration int, embeds []*MessageEmbed) Request[*Channel] {
+func StartForumThreadEmbeds(channelID uint64, name string, archiveDuration int, embeds []*MessageEmbed) Request[*Channel] {
 	return StartForumThreadComplex(channelID, &ThreadStart{
 		Name:                name,
 		AutoArchiveDuration: archiveDuration,
@@ -153,37 +153,37 @@ func StartForumThreadEmbeds(channelID, name string, archiveDuration int, embeds 
 }
 
 // JoinThread adds current [user.User] to a thread.
-func JoinThread(id string) Empty {
-	req := NewSimple(http.MethodPut, discord.EndpointThreadMember(id, "@me")).
-		WithBucketID(discord.EndpointThreadMember(id, ""))
+func JoinThread(id uint64) Empty {
+	req := NewSimple(http.MethodPut, discord.EndpointThreadMember(id, 0)).
+		WithBucketID(discord.EndpointThreadMember(id, 0))
 	return WrapAsEmpty(req)
 }
 
 // LeaveThread removes current [user.User] to a thread.
-func LeaveThread(id string) Empty {
-	req := NewSimple(http.MethodDelete, discord.EndpointThreadMember(id, "@me")).
-		WithBucketID(discord.EndpointThreadMember(id, ""))
+func LeaveThread(id uint64) Empty {
+	req := NewSimple(http.MethodDelete, discord.EndpointThreadMember(id, 0)).
+		WithBucketID(discord.EndpointThreadMember(id, 0))
 	return WrapAsEmpty(req)
 }
 
 // ThreadMemberAdd adds a [user.User] to a thread.
-func ThreadMemberAdd(threadID, memberID string) Empty {
+func ThreadMemberAdd(threadID, memberID uint64) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointThreadMember(threadID, memberID)).
-		WithBucketID(discord.EndpointThreadMember(threadID, ""))
+		WithBucketID(discord.EndpointThreadMember(threadID, 0))
 	return WrapAsEmpty(req)
 }
 
 // ThreadMemberRemove removes a [user.User] from a thread.
-func ThreadMemberRemove(threadID, memberID string) Empty {
+func ThreadMemberRemove(threadID, memberID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointThreadMember(threadID, memberID)).
-		WithBucketID(discord.EndpointThreadMember(threadID, ""))
+		WithBucketID(discord.EndpointThreadMember(threadID, 0))
 	return WrapAsEmpty(req)
 }
 
 // GetThreadMember for the specified [user.User] of the thread.
 //
 // If withMember is true, it includes a guild member object.
-func GetThreadMember(threadID, memberID string, withMember bool) Request[*ThreadMember] {
+func GetThreadMember(threadID, memberID uint64, withMember bool) Request[*ThreadMember] {
 	uri := discord.EndpointThreadMember(threadID, memberID)
 
 	queryParams := url.Values{}
@@ -196,7 +196,7 @@ func GetThreadMember(threadID, memberID string, withMember bool) Request[*Thread
 	}
 
 	return NewData[*ThreadMember](http.MethodGet, uri).
-		WithBucketID(discord.EndpointThreadMember(threadID, ""))
+		WithBucketID(discord.EndpointThreadMember(threadID, 0))
 }
 
 // ListThreadMembers returns all [ThreadMember] of specified thread.
@@ -204,7 +204,7 @@ func GetThreadMember(threadID, memberID string, withMember bool) Request[*Thread
 // limit is the max number of thread members to return (1-100). Defaults to 100.
 // If afterID is set, every member ID will be after this.
 // If withMember is true, it includes a guild member object.
-func ListThreadMembers(threadID string, limit int, withMember bool, afterID string) Request[[]*ThreadMember] {
+func ListThreadMembers(threadID uint64, limit int, withMember bool, afterID string) Request[[]*ThreadMember] {
 	uri := discord.EndpointThreadMembers(threadID)
 
 	queryParams := url.Values{}
@@ -226,7 +226,7 @@ func ListThreadMembers(threadID string, limit int, withMember bool, afterID stri
 }
 
 // ListThreadsActive returns all active threads in the given [Channel].
-func ListThreadsActive(channelID string) Request[*ThreadsList] {
+func ListThreadsActive(channelID uint64) Request[*ThreadsList] {
 	return NewData[*ThreadsList](http.MethodGet, discord.EndpointChannelActiveThreads(channelID))
 }
 
@@ -234,7 +234,7 @@ func ListThreadsActive(channelID string) Request[*ThreadsList] {
 //
 // If specified returns only threads before the timestamp
 // limit is the optional maximum amount of threads to return.
-func ListThreadsArchived(channelID string, before *time.Time, limit int) Request[*ThreadsList] {
+func ListThreadsArchived(channelID uint64, before *time.Time, limit int) Request[*ThreadsList] {
 	endpoint := discord.EndpointChannelPublicArchivedThreads(channelID)
 	v := url.Values{}
 	if before != nil {
@@ -256,7 +256,7 @@ func ListThreadsArchived(channelID string, before *time.Time, limit int) Request
 //
 // If specified returns only threads before the timestamp
 // limit is the optional maximum amount of threads to return.
-func ListThreadsPrivateArchived(channelID string, before *time.Time, limit int) Request[*ThreadsList] {
+func ListThreadsPrivateArchived(channelID uint64, before *time.Time, limit int) Request[*ThreadsList] {
 	endpoint := discord.EndpointChannelPrivateArchivedThreads(channelID)
 	v := url.Values{}
 	if before != nil {
@@ -278,7 +278,7 @@ func ListThreadsPrivateArchived(channelID string, before *time.Time, limit int) 
 //
 // If specified returns only threads before the timestamp
 // limit is the optional maximum amount of threads to return.
-func ListThreadsPrivateJoinedArchived(channelID string, before *time.Time, limit int) Request[*ThreadsList] {
+func ListThreadsPrivateJoinedArchived(channelID uint64, before *time.Time, limit int) Request[*ThreadsList] {
 	endpoint := discord.EndpointChannelJoinedPrivateArchivedThreads(channelID)
 	v := url.Values{}
 	if before != nil {

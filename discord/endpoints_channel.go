@@ -85,17 +85,17 @@ func EndpointWebhook(wID uint64) string {
 func EndpointWebhookToken(wID uint64, token string) string {
 	return EndpointWebhook(wID) + "/" + token
 }
-func EndpointWebhookMessage(wID uint64, token, messageID string) string {
-	return EndpointWebhookToken(wID, token) + "/messages/" + messageID
+func EndpointWebhookMessage(wID uint64, token string, messageID uint64) string {
+	return fmt.Sprintf("%s/messages/%d", EndpointWebhookToken(wID, token), messageID)
 }
 
 func EndpointMessageReactionsAll(cID, mID uint64) string {
 	return EndpointChannelMessage(cID, mID) + "/reactions"
 }
-func EndpointMessageReactions(cID, mID, eID uint64) string {
-	return fmt.Sprintf("%s/%d", EndpointMessageReactionsAll(cID, mID), eID)
+func EndpointMessageReactions(cID, mID uint64, eID string) string {
+	return fmt.Sprintf("%s/%s", EndpointMessageReactionsAll(cID, mID), eID)
 }
-func EndpointMessageReaction(cID, mID, eID, uID uint64) string {
+func EndpointMessageReaction(cID, mID uint64, eID string, uID uint64) string {
 	return fmt.Sprintf("%s/%d", EndpointMessageReactions(cID, mID, eID), uID)
 }
 

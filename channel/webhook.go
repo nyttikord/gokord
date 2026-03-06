@@ -1,6 +1,7 @@
 package channel
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -13,10 +14,10 @@ import (
 
 // Webhook stores the data for a webhook.
 type Webhook struct {
-	ID        string        `json:"id"`
+	ID        uint64        `json:"id,string"`
 	Type      types.Webhook `json:"type"`
-	GuildID   string        `json:"guild_id"`
-	ChannelID string        `json:"channel_id"`
+	GuildID   uint64        `json:"guild_id,string"`
+	ChannelID uint64        `json:"channel_id,string"`
 	User      *user.User    `json:"user"`
 	Name      string        `json:"name"`
 	Avatar    string        `json:"avatar"`
@@ -58,7 +59,7 @@ type WebhookEdit struct {
 }
 
 // CreateWebhook in the given [Channel].
-func CreateWebhook(channelID, name, avatar string) Request[*Webhook] {
+func CreateWebhook(channelID uint64, name, avatar string) Request[*Webhook] {
 	data := struct {
 		Name   string `json:"name"`
 		Avatar string `json:"avatar,omitempty"`
@@ -69,24 +70,24 @@ func CreateWebhook(channelID, name, avatar string) Request[*Webhook] {
 }
 
 // ListWebhooks returns all [Webhook] for a given [Channel].
-func ListWebhooks(channelID string) Request[[]*Webhook] {
+func ListWebhooks(channelID uint64) Request[[]*Webhook] {
 	return NewData[[]*Webhook](http.MethodGet, discord.EndpointChannelWebhooks(channelID))
 }
 
 // GetWebhook returns the [Webhook].
-func GetWebhook(webhookID string) Request[*Webhook] {
+func GetWebhook(webhookID uint64) Request[*Webhook] {
 	return NewData[*Webhook](http.MethodGet, discord.EndpointWebhook(webhookID)).
 		WithBucketID(discord.EndpointWebhooks)
 }
 
 // GetWebhookWithToken returns a [Webhook] for a given ID with the given token.
-func GetWebhookWithToken(webhookID, token string) Request[*Webhook] {
+func GetWebhookWithToken(webhookID uint64, token string) Request[*Webhook] {
 	return NewData[*Webhook](http.MethodGet, discord.EndpointWebhookToken(webhookID, token)).
 		WithBucketID(discord.EndpointWebhooks)
 }
 
 // EditWebhook with the given data.
-func EditWebhook(webhookID, name, avatar, channelID string) Request[*Webhook] {
+func EditWebhook(webhookID uint64, name, avatar, channelID string) Request[*Webhook] {
 	data := struct {
 		Name      string `json:"name,omitempty"`
 		Avatar    string `json:"avatar,omitempty"`
@@ -98,7 +99,7 @@ func EditWebhook(webhookID, name, avatar, channelID string) Request[*Webhook] {
 }
 
 // EditWebhookWithToken with an auth token.
-func EditWebhookWithToken(webhookID, token, name, avatar string) Request[*Webhook] {
+func EditWebhookWithToken(webhookID uint64, token, name, avatar string) Request[*Webhook] {
 	data := struct {
 		Name   string `json:"name,omitempty"`
 		Avatar string `json:"avatar,omitempty"`
@@ -109,20 +110,20 @@ func EditWebhookWithToken(webhookID, token, name, avatar string) Request[*Webhoo
 }
 
 // DeleteWebhook deletes a [Webhook].
-func DeleteWebhook(webhookID string) Empty {
+func DeleteWebhook(webhookID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointWebhook(webhookID)).
 		WithBucketID(discord.EndpointWebhooks)
 	return WrapAsEmpty(req)
 }
 
 // DeleteWebhookWithToken with an auth token.
-func DeleteWebhookWithToken(webhookID, token string) Empty {
+func DeleteWebhookWithToken(webhookID uint64, token string) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointWebhookToken(webhookID, token)).
 		WithBucketID(discord.EndpointWebhooks)
 	return WrapAsEmpty(req)
 }
 
-func webhookExecute(method, uri, bucket string, wait bool, threadID string, data *WebhookParams) Request[*Message] {
+func webhookExecute(method, uri, bucket string, wait bool, threadID uint64, data *WebhookParams) Request[*Message] {
 	v := url.Values{}
 	if wait {
 		v.Set("wait", "true")
@@ -132,8 +133,8 @@ func webhookExecute(method, uri, bucket string, wait bool, threadID string, data
 		v.Set("with_components", "true")
 	}
 
-	if threadID != "" {
-		v.Set("thread_id", threadID)
+	if threadID != 0 {
+		v.Set("thread_id", fmt.Sprintf("%s", threadID))
 	}
 	if len(v) != 0 {
 		uri += "?" + v.Encode()
@@ -149,13 +150,13 @@ func webhookExecute(method, uri, bucket string, wait bool, threadID string, data
 //
 // wait if must waits for server confirmation of message send and ensures that the return struct is populated (it is nil
 // otherwise)
-func ExecuteWebhook(webhookID, token string, wait bool, data *WebhookParams) Request[*Message] {
+func ExecuteWebhook(webhookID uint64, token string, wait bool, data *WebhookParams) Request[*Message] {
 	return webhookExecute(
 		http.MethodPost,
 		discord.EndpointWebhookToken(webhookID, token),
-		discord.EndpointWebhookToken("", ""),
+		discord.EndpointWebhookToken(0, ""),
 		wait,
-		"",
+		0,
 		data,
 	)
 }
@@ -166,11 +167,11 @@ func ExecuteWebhook(webhookID, token string, wait bool, data *WebhookParams) Req
 // otherwise)
 //
 // NOTE: The thread will automatically be unarchived.
-func ExecuteWebhookInThread(webhookID, token string, wait bool, threadID string, data *WebhookParams) Request[*Message] {
+func ExecuteWebhookInThread(webhookID uint64, token string, wait bool, threadID uint64, data *WebhookParams) Request[*Message] {
 	return webhookExecute(
 		http.MethodPost,
 		discord.EndpointWebhookToken(webhookID, token),
-		discord.EndpointWebhookToken("", ""),
+		discord.EndpointWebhookToken(0, ""),
 		wait,
 		threadID,
 		data,
@@ -178,13 +179,13 @@ func ExecuteWebhookInThread(webhookID, token string, wait bool, threadID string,
 }
 
 // GetWebhookMessage gets a [Message] sent by a [Webhook].
-func GetWebhookMessage(webhookID, token, messageID string) Request[*Message] {
+func GetWebhookMessage(webhookID uint64, token string, messageID uint64) Request[*Message] {
 	return NewData[*Message](http.MethodGet, discord.EndpointWebhookMessage(webhookID, token, messageID)).
 		WithBucketID(discord.EndpointWebhooks)
 }
 
 // EditWebhookMessage edits a [Message] sent by a [Webhook] and returns the updated [Message].
-func EditWebhookMessage(webhookID, token, messageID string, data *WebhookEdit) Request[*Message] {
+func EditWebhookMessage(webhookID uint64, token string, messageID uint64, data *WebhookEdit) Request[*Message] {
 	d := &WebhookParams{
 		Files:           data.Files,
 		AllowedMentions: data.AllowedMentions,
@@ -204,15 +205,15 @@ func EditWebhookMessage(webhookID, token, messageID string, data *WebhookEdit) R
 	return webhookExecute(
 		http.MethodPatch,
 		discord.EndpointWebhookMessage(webhookID, token, messageID),
-		discord.EndpointWebhookToken("", ""),
+		discord.EndpointWebhookToken(0, ""),
 		false,
-		"",
+		0,
 		d,
 	)
 }
 
 // DeleteWebhookMessage deletes a [Message] sent by a [Webhook].
-func DeleteWebhookMessage(webhookID, token, messageID string) Empty {
+func DeleteWebhookMessage(webhookID uint64, token string, messageID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointWebhookMessage(webhookID, token, messageID)).
 		WithBucketID(discord.EndpointWebhooks)
 	return WrapAsEmpty(req)

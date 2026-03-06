@@ -56,7 +56,7 @@ type Poll struct {
 }
 
 // GetPollVoters returns [user.User] who voted for a particular [PollAnswer] in a [Poll] on the given [Message].
-func GetPollVoters(channelID, messageID string, answerID int) Request[[]*user.User] {
+func GetPollVoters(channelID, messageID uint64, answerID int) Request[[]*user.User] {
 	return NewCustom[[]*user.User](http.MethodGet, discord.EndpointPollAnswerVoters(channelID, messageID, answerID)).
 		WithBucketID(discord.EndpointPollAnswerVoters(channelID, messageID, 0)).
 		WithPost(func(ctx context.Context, b []byte) ([]*user.User, error) {
@@ -68,7 +68,7 @@ func GetPollVoters(channelID, messageID string, answerID int) Request[[]*user.Us
 }
 
 // ExpirePoll on the given [Message].
-func ExpirePoll(channelID, messageID string) Request[*Message] {
+func ExpirePoll(channelID, messageID uint64) Request[*Message] {
 	return NewData[*Message](http.MethodPost, discord.EndpointPollExpire(channelID, messageID)).
-		WithBucketID(discord.EndpointPollExpire(channelID, ""))
+		WithBucketID(discord.EndpointPollExpire(channelID, 0))
 }
