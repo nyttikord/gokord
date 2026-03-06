@@ -70,8 +70,8 @@ type ChannelDelete struct {
 // ChannelPinsUpdate stores data for a ChannelPinsUpdate event.
 type ChannelPinsUpdate struct {
 	LastPinTimestamp string `json:"last_pin_timestamp"`
-	ChannelID        string `json:"channel_id"`
-	GuildID          string `json:"guild_id,omitempty"`
+	ChannelID        uint64 `json:"channel_id,string"`
+	GuildID          uint64 `json:"guild_id,omitempty,string"`
 }
 
 // ThreadCreate is the data for a ThreadCreate event.
@@ -95,11 +95,11 @@ type ThreadDelete struct {
 // ThreadListSync is the data for a ThreadListSync event.
 type ThreadListSync struct {
 	// The id of the guild
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 	// The parent channel ids whose threads are being synced.
 	// If omitted, then threads were synced for the entire guild.
 	// This array may contain channel_ids that have no active threads as well, so you know to clear that data.
-	ChannelIDs []string `json:"channel_ids"`
+	ChannelIDs []uint64 `json:"channel_ids,string"`
 	// All active threads in the given channels that the current user can access
 	Threads []*channel.Channel `json:"threads"`
 	// All thread member objects from the synced threads for the current user,
@@ -110,16 +110,16 @@ type ThreadListSync struct {
 // ThreadMemberUpdate is the data for a ThreadMemberUpdate event.
 type ThreadMemberUpdate struct {
 	*channel.ThreadMember
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // ThreadMembersUpdate is the data for a ThreadMembersUpdate event.
 type ThreadMembersUpdate struct {
-	ID             string                      `json:"id"`
-	GuildID        string                      `json:"guild_id"`
+	ID             uint64                      `json:"id,string"`
+	GuildID        uint64                      `json:"guild_id,string"`
 	MemberCount    int                         `json:"member_count"`
 	AddedMembers   []channel.AddedThreadMember `json:"added_members"`
-	RemovedMembers []string                    `json:"removed_member_ids"`
+	RemovedMembers []uint64                    `json:"removed_member_ids,string"`
 }
 
 // GuildCreate is the data for a GuildCreate event.
@@ -141,13 +141,13 @@ type GuildDelete struct {
 // GuildBanAdd is the data for a GuildBanAdd event.
 type GuildBanAdd struct {
 	User    *user.User `json:"user"`
-	GuildID string     `json:"guild_id"`
+	GuildID uint64     `json:"guild_id,string"`
 }
 
 // GuildBanRemove is the data for a GuildBanRemove event.
 type GuildBanRemove struct {
 	User    *user.User `json:"user"`
-	GuildID string     `json:"guild_id"`
+	GuildID uint64     `json:"guild_id,string"`
 }
 
 // GuildMemberAdd is the data for a GuildMemberAdd event.
@@ -180,26 +180,26 @@ type GuildRoleUpdate struct {
 
 // A GuildRoleDelete is the data for a GuildRoleDelete event.
 type GuildRoleDelete struct {
-	RoleID       string      `json:"role_id"`
-	GuildID      string      `json:"guild_id"`
+	RoleID       uint64      `json:"role_id,string"`
+	GuildID      uint64      `json:"guild_id,string"`
 	BeforeDelete *guild.Role `json:"-"`
 }
 
 // A GuildEmojisUpdate is the data for a guild emoji update event.
 type GuildEmojisUpdate struct {
-	GuildID string         `json:"guild_id"`
+	GuildID uint64         `json:"guild_id,string"`
 	Emojis  []*emoji.Emoji `json:"emojis"`
 }
 
 // A GuildStickersUpdate is the data for a GuildStickersUpdate event.
 type GuildStickersUpdate struct {
-	GuildID  string           `json:"guild_id"`
+	GuildID  uint64           `json:"guild_id,string"`
 	Stickers []*emoji.Sticker `json:"stickers"`
 }
 
 // A GuildMembersChunk is the data for a GuildMembersChunk event.
 type GuildMembersChunk struct {
-	GuildID    string             `json:"guild_id"`
+	GuildID    uint64             `json:"guild_id,string"`
 	Members    []*user.Member     `json:"members"`
 	ChunkIndex int                `json:"chunk_index"`
 	ChunkCount int                `json:"chunk_count"`
@@ -210,7 +210,7 @@ type GuildMembersChunk struct {
 
 // GuildIntegrationsUpdate is the data for a GuildIntegrationsUpdate event.
 type GuildIntegrationsUpdate struct {
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // StageInstanceEventCreate is the data for a StageInstanceEventCreate event.
@@ -245,35 +245,35 @@ type GuildScheduledEventDelete struct {
 
 // GuildScheduledEventUserAdd is the data for a GuildScheduledEventUserAdd event.
 type GuildScheduledEventUserAdd struct {
-	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
-	UserID                string `json:"user_id"`
-	GuildID               string `json:"guild_id"`
+	GuildScheduledEventID uint64 `json:"guild_scheduled_event_id,string"`
+	UserID                uint64 `json:"user_id,string"`
+	GuildID               uint64 `json:"guild_id,string"`
 }
 
 // GuildScheduledEventUserRemove is the data for a GuildScheduledEventUserRemove event.
 type GuildScheduledEventUserRemove struct {
-	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
-	UserID                string `json:"user_id"`
-	GuildID               string `json:"guild_id"`
+	GuildScheduledEventID uint64 `json:"guild_scheduled_event_id,string"`
+	UserID                uint64 `json:"user_id,string"`
+	GuildID               uint64 `json:"guild_id,string"`
 }
 
 // IntegrationCreate is the data for a IntegrationCreate event.
 type IntegrationCreate struct {
 	*user.Integration
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // IntegrationUpdate is the data for a IntegrationUpdate event.
 type IntegrationUpdate struct {
 	*user.Integration
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // IntegrationDelete is the data for a IntegrationDelete event.
 type IntegrationDelete struct {
-	ID            string `json:"id"`
-	GuildID       string `json:"guild_id"`
-	ApplicationID string `json:"application_id,omitempty"`
+	ID            uint64 `json:"id,string"`
+	GuildID       uint64 `json:"guild_id,string"`
+	ApplicationID uint64 `json:"application_id,omitempty,string"`
 }
 
 // MessageCreate is the data for a MessageCreate event.
@@ -331,7 +331,7 @@ type PresencesReplace []*status.Presence
 // PresenceUpdate is the data for a PresenceUpdate event.
 type PresenceUpdate struct {
 	status.Presence
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // Resumed is the data for a Resumed event.
@@ -341,9 +341,9 @@ type Resumed struct {
 
 // TypingStart is the data for a TypingStart event.
 type TypingStart struct {
-	UserID    string `json:"user_id"`
-	ChannelID string `json:"channel_id"`
-	GuildID   string `json:"guild_id,omitempty"`
+	UserID    uint64 `json:"user_id,string"`
+	ChannelID uint64 `json:"channel_id,string"`
+	GuildID   uint64 `json:"guild_id,omitempty,string"`
 	Timestamp int    `json:"timestamp"`
 }
 
@@ -354,7 +354,7 @@ type UserUpdate struct {
 
 type VoiceServerUpdate struct {
 	Token    string `json:"token"`
-	GuildID  string `json:"guild_id"`
+	GuildID  uint64 `json:"guild_id,string"`
 	Endpoint string `json:"endpoint"`
 }
 
@@ -366,13 +366,13 @@ type VoiceStateUpdate struct {
 
 type MessageDeleteBulk struct {
 	Messages  []string `json:"ids"`
-	ChannelID string   `json:"channel_id"`
-	GuildID   string   `json:"guild_id"`
+	ChannelID uint64   `json:"channel_id,string"`
+	GuildID   uint64   `json:"guild_id,string"`
 }
 
 type WebhooksUpdate struct {
-	GuildID   string `json:"guild_id"`
-	ChannelID string `json:"channel_id"`
+	GuildID   uint64 `json:"guild_id,string"`
+	ChannelID uint64 `json:"channel_id,string"`
 }
 
 type InteractionCreate struct {
@@ -385,13 +385,13 @@ func (i *InteractionCreate) UnmarshalJSON(b []byte) error {
 
 type InviteCreate struct {
 	*invite.Invite
-	ChannelID string `json:"channel_id"`
-	GuildID   string `json:"guild_id"`
+	ChannelID uint64 `json:"channel_id,string"`
+	GuildID   uint64 `json:"guild_id,string"`
 }
 
 type InviteDelete struct {
-	ChannelID string `json:"channel_id"`
-	GuildID   string `json:"guild_id"`
+	ChannelID uint64 `json:"channel_id,string"`
+	GuildID   uint64 `json:"guild_id,string"`
 	Code      string `json:"code"`
 }
 
@@ -412,14 +412,14 @@ type AutoModerationRuleDelete struct {
 }
 
 type AutoModerationActionExecution struct {
-	GuildID              string                          `json:"guild_id"`
+	GuildID              uint64                          `json:"guild_id,string"`
 	Action               guild.AutoModerationAction      `json:"action"`
-	RuleID               string                          `json:"rule_id"`
+	RuleID               uint64                          `json:"rule_id,string"`
 	RuleTriggerType      guild.AutoModerationRuleTrigger `json:"rule_trigger_type"`
-	UserID               string                          `json:"user_id"`
-	ChannelID            string                          `json:"channel_id"`
-	MessageID            string                          `json:"message_id"`
-	AlertSystemMessageID string                          `json:"alert_system_message_id"`
+	UserID               uint64                          `json:"user_id,string"`
+	ChannelID            uint64                          `json:"channel_id,string"`
+	MessageID            uint64                          `json:"message_id,string"`
+	AlertSystemMessageID uint64                          `json:"alert_system_message_id,string"`
 	Content              string                          `json:"content"`
 	MatchedKeyword       string                          `json:"matched_keyword"`
 	MatchedContent       string                          `json:"matched_content"`
@@ -427,22 +427,22 @@ type AutoModerationActionExecution struct {
 
 type GuildAuditLogEntryCreate struct {
 	*guild.AuditLogEntry
-	GuildID string `json:"guild_id"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 type MessagePollVoteAdd struct {
-	UserID    string `json:"user_id"`
-	ChannelID string `json:"channel_id"`
-	MessageID string `json:"message_id"`
-	GuildID   string `json:"guild_id,omitempty"`
+	UserID    uint64 `json:"user_id,string"`
+	ChannelID uint64 `json:"channel_id,string"`
+	MessageID uint64 `json:"message_id,string"`
+	GuildID   uint64 `json:"guild_id,omitempty,string"`
 	AnswerID  int    `json:"answer_id"`
 }
 
 type MessagePollVoteRemove struct {
-	UserID    string `json:"user_id"`
-	ChannelID string `json:"channel_id"`
-	MessageID string `json:"message_id"`
-	GuildID   string `json:"guild_id,omitempty"`
+	UserID    uint64 `json:"user_id,string"`
+	ChannelID uint64 `json:"channel_id,string"`
+	MessageID uint64 `json:"message_id,string"`
+	GuildID   uint64 `json:"guild_id,omitempty,string"`
 	AnswerID  int    `json:"answer_id"`
 }
 
@@ -483,33 +483,33 @@ type GuildSoundboardSoundUpdate struct {
 
 // GuildSoundboardSoundDelete is the data for a GuildSoundboardSoundDelete event.
 type GuildSoundboardSoundDelete struct {
-	SoundID string `json:"sound_id"`
-	GuildID string `json:"guild_id"`
+	SoundID uint64 `json:"sound_id,string"`
+	GuildID uint64 `json:"guild_id,string"`
 }
 
 // GuildSoundboardSoundsUpdate is the data for a GuildSoundboardSoundsUpdate event.
 type GuildSoundboardSoundsUpdate struct {
 	SoundboardSounds []*emoji.SoundboardSound `json:"soundboard_sounds"`
-	GuildID          string                   `json:"guild_id"`
+	GuildID          uint64                   `json:"guild_id,string"`
 }
 
 // SoundboardSoundsRequest is the data for a SoundboardSoundsRequest event.
 // https://discord.com/developers/docs/events/gateway-events#request-soundboard-sounds
 type SoundboardSoundsRequest struct {
 	SoundboardSounds []*emoji.SoundboardSound `json:"soundboard_sounds"`
-	GuildID          string                   `json:"guild_id"`
+	GuildID          uint64                   `json:"guild_id,string"`
 }
 
 // VoiceChannelEffectSend is the data for a VoiceChannelEffectSend event.
 // https://discord.com/developers/docs/events/gateway-events#voice-channel-effect-send
 type VoiceChannelEffectSend struct {
-	ChannelID     string              `json:"channel_id"`
-	GuildID       string              `json:"guild_id"`
-	UserID        string              `json:"user_id"`
+	ChannelID     uint64              `json:"channel_id,string"`
+	GuildID       uint64              `json:"guild_id,string"`
+	UserID        uint64              `json:"user_id,string"`
 	EmojiEffect   emoji.Emoji         `json:"emoji"`
 	AnimationType emoji.AnimationType `json:"animation_type"`
 	AnimationID   int                 `json:"animation_id"`
-	SoundID       string              `json:"sound_id"`
+	SoundID       uint64              `json:"sound_id,string"`
 	// Volume of the sound (0-1)
 	Volume float64 `json:"sound_volume"`
 }

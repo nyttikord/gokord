@@ -29,12 +29,12 @@ func EndpointInteractionResponse(iID uint64, iToken string) string {
 	return EndpointInteraction(iID, iToken) + "/callback"
 }
 func EndpointInteractionResponseActions(aID uint64, iToken string) string {
-	return EndpointWebhookMessage(aID, iToken, "@original")
+	return EndpointWebhookMessage(aID, iToken, 0)
 }
 
 func EndpointFollowupMessage(aID uint64, iToken string) string {
 	return EndpointWebhookToken(aID, iToken)
 }
-func EndpointFollowupMessageActions(aID uint64, iToken, mID string) string {
+func EndpointFollowupMessageActions(aID uint64, iToken string, mID uint64) string {
 	return EndpointWebhookMessage(aID, iToken, mID)
 }
