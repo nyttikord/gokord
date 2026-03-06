@@ -52,11 +52,11 @@ var (
 		return EndpointEntitlement(aID, eID) + "/consume"
 	}
 
-	EndpointSubscriptions = func(skuID string) string {
-		return EndpointSKUs + "/" + skuID + "/subscriptions"
+	EndpointSubscriptions = func(skuID uint64) string {
+		return fmt.Sprintf("%s/%d/subscriptions", EndpointSKUs, skuID)
 	}
-	EndpointSubscription = func(skuID, subID string) string {
-		return EndpointSubscriptions(skuID) + "/" + subID
+	EndpointSubscription = func(skuID, subID uint64) string {
+		return fmt.Sprintf("%s/%d", EndpointSubscriptions(skuID), subID)
 	}
 
 	EndpointInvite                     = func(iID string) string { return EndpointAPI + "/invites/" + iID }

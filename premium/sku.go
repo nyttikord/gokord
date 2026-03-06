@@ -5,6 +5,7 @@
 package premium
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +32,10 @@ const (
 
 // SKU (stock-keeping units) represent premium offerings.
 type SKU struct {
-	ID   string    `json:"id"`
+	ID   uint64    `json:"id,string"`
 	Type types.SKU `json:"type"`
 	// The id of the parent [application.Application].
-	ApplicationID string `json:"application_id"`
+	ApplicationID uint64 `json:"application_id,string"`
 	// Customer-facing name of the SKU.
 	Name string `json:"name"`
 	// System-generated URL Slug based on the [SKU]'s name.
@@ -46,15 +47,15 @@ type SKU struct {
 // Subscription represents a user making recurring payments for at least one [SKU] over an ongoing period.
 // https://discord.com/developers/docs/resources/subscription#subscription-object
 type Subscription struct {
-	ID string `json:"id"`
+	ID uint64 `json:"id,string"`
 	// ID of the [user.User] who is subscribed.
-	UserID string `json:"user_id"`
+	UserID uint64 `json:"user_id,string"`
 	// List of [SKU]s subscribed to.
-	SKUIDs []string `json:"sku_ids"`
+	SKUIDs []uint64 `json:"sku_ids,string"`
 	// List of [Entitlement] granted for this [Subscription].
-	EntitlementIDs []string `json:"entitlement_ids"`
+	EntitlementIDs []uint64 `json:"entitlement_ids,string"`
 	// List of [SKU]s that this [user.User] will be subscribed to at renewal.
-	RenewalSKUIDs []string `json:"renewal_sku_ids,omitempty"`
+	RenewalSKUIDs []uint64 `json:"renewal_sku_ids,omitempty,string"`
 	// Start of the current [Subscription] period.
 	CurrentPeriodStart time.Time `json:"current_period_start"`
 	// End of the current [Subscription] period.
@@ -82,14 +83,14 @@ const (
 // Entitlement represents that a [user.User] or [guild.Guild] has access to a premium offering in your
 // [application.Application].
 type Entitlement struct {
-	ID string `json:"id"`
+	ID uint64 `json:"id,string"`
 	// The ID of the [SKU].
-	SKUID string `json:"sku_id"`
+	SKUID uint64 `json:"sku_id,string"`
 	// The ID of the parent [application.Application].
-	ApplicationID string `json:"application_id"`
+	ApplicationID uint64 `json:"application_id,string"`
 	// The id of the [user.User] that is granted access to the [Entitlement]'s [SKU].
 	// Only available for [user.User] [Subscription]s.
-	UserID string `json:"user_id,omitempty"`
+	UserID uint64 `json:"user_id,omitempty,string"`
 	// The Type of the [Entitlement].
 	Type types.Entitlement `json:"type"`
 	// If fhe [Entitlement] was deleted.
@@ -102,21 +103,21 @@ type Entitlement struct {
 	EndsAt *time.Time `json:"ends_at,omitempty"`
 	// The id of the [guild.Guild] that is granted access to the [Entitlement]'s [SKU].
 	// Only available for [guild.Guild] [Subscription].
-	GuildID string `json:"guild_id,omitempty"`
+	GuildID uint64 `json:"guild_id,omitempty,string"`
 	// Whether the [Entitlement] has been consumed.
 	// Only available for consumable items.
 	Consumed *bool `json:"consumed,omitempty"`
 	// The SubscriptionID of the [Entitlement].
 	// Not present when using test [Entitlement].
-	SubscriptionID string `json:"subscription_id,omitempty"`
+	SubscriptionID uint64 `json:"subscription_id,omitempty,string"`
 }
 
 // EntitlementTest is used to test granting an [Entitlement] to a [user.User] or [guild.Guild].
 type EntitlementTest struct {
 	// The ID of the [SKU] to grant the [Entitlement] to.
-	SKUID string `json:"sku_id"`
+	SKUID uint64 `json:"sku_id,string"`
 	// The ID of the [guild.Guild] or [user.User] to grant the [Entitlement] to.
-	OwnerID string `json:"owner_id"`
+	OwnerID uint64 `json:"owner_id,string"`
 	// OwnerType is the type of which the [Entitlement] should be created.
 	OwnerType types.EntitlementOwner `json:"owner_type"`
 }
@@ -124,9 +125,9 @@ type EntitlementTest struct {
 // EntitlementFilterOptions are the options for filtering [Entitlement].
 type EntitlementFilterOptions struct {
 	// Optional [user.User] ID to look up for.
-	UserID string
+	UserID uint64
 	// Optional array of [SKU.ID]s to check for.
-	SkuIDs []string
+	SkuIDs []uint64
 	// Optional timestamp to retrieve [Entitlement] before this time.
 	Before *time.Time
 	// Optional timestamp to retrieve [Entitlement] after this time.
@@ -134,29 +135,34 @@ type EntitlementFilterOptions struct {
 	// Optional maximum number of [Entitlement] to return (1-100, default 100).
 	Limit int
 	// Optional [guild.Guild] ID to look up for.
-	GuildID string
+	GuildID uint64
 	// Optional whether ended [Entitlement] should be omitted.
 	ExcludeEnded bool
 }
 
 // ListSKUs returns all [SKU] for a given [application.Application].
-func ListSKUs(appID string) Request[[]*SKU] {
+func ListSKUs(appID uint64) Request[[]*SKU] {
 	return NewData[[]*SKU](http.MethodGet, discord.EndpointApplicationSKUs(appID))
 }
 
 // ListEntitlements returns all [Entitlement] for a given [application.Application], active and expired.
 //
 // filterOptions is the optional filter options; otherwise set it to nil.
-func ListEntitlements(appID string, filterOptions *EntitlementFilterOptions) Request[[]*Entitlement] {
+func ListEntitlements(appID uint64, filterOptions *EntitlementFilterOptions) Request[[]*Entitlement] {
 	endpoint := discord.EndpointEntitlements(appID)
 
 	queryParams := url.Values{}
 	if filterOptions != nil {
-		if filterOptions.UserID != "" {
-			queryParams.Set("user_id", filterOptions.UserID)
+		if filterOptions.UserID != 0 {
+			queryParams.Set("user_id", fmt.Sprintf("%d", filterOptions.UserID))
 		}
 		if len(filterOptions.SkuIDs) > 0 {
-			queryParams.Set("sku_ids", strings.Join(filterOptions.SkuIDs, ","))
+			var sb strings.Builder
+			sb.Grow(15 * len(filterOptions.SkuIDs))
+			for _, sk := range filterOptions.SkuIDs {
+				sb.WriteString(fmt.Sprintf("%d", sk))
+			}
+			queryParams.Set("sku_ids", sb.String())
 		}
 		if filterOptions.Before != nil {
 			queryParams.Set("before", filterOptions.Before.Format(time.RFC3339))
@@ -167,8 +173,8 @@ func ListEntitlements(appID string, filterOptions *EntitlementFilterOptions) Req
 		if filterOptions.Limit > 0 {
 			queryParams.Set("limit", strconv.Itoa(filterOptions.Limit))
 		}
-		if filterOptions.GuildID != "" {
-			queryParams.Set("guild_id", filterOptions.GuildID)
+		if filterOptions.GuildID != 0 {
+			queryParams.Set("guild_id", fmt.Sprintf("%d", filterOptions.GuildID))
 		}
 		if filterOptions.ExcludeEnded {
 			queryParams.Set("exclude_ended", "true")
@@ -180,16 +186,16 @@ func ListEntitlements(appID string, filterOptions *EntitlementFilterOptions) Req
 }
 
 // ConsumeEntitlement marks a given One-Time Purchase for the [user.User] as consumed.
-func ConsumeEntitlement(appID, entitlementID string) Empty {
+func ConsumeEntitlement(appID, entitlementID uint64) Empty {
 	req := NewSimple(http.MethodPost, discord.EndpointEntitlementConsume(appID, entitlementID)).
-		WithBucketID(discord.EndpointEntitlementConsume(appID, ""))
+		WithBucketID(discord.EndpointEntitlementConsume(appID, 0))
 	return WrapAsEmpty(req)
 }
 
 // CreateEntitlementTest to a given [SKU] for a given [guild.Guild] or [user.User].
 //
 // Discord will act as though that user or guild has [Entitlement] to your premium offering.
-func CreateEntitlementTest(appID string, data *EntitlementTest) Empty {
+func CreateEntitlementTest(appID uint64, data *EntitlementTest) Empty {
 	req := NewSimple(http.MethodPost, discord.EndpointEntitlements(appID)).WithData(data)
 	return WrapAsEmpty(req)
 }
@@ -197,9 +203,9 @@ func CreateEntitlementTest(appID string, data *EntitlementTest) Empty {
 // DeleteEntitlementTest deletes a currently-active test [Entitlement].
 //
 // Discord will act as though that [user.User] or [guild.Guild] no longer has [Entitlement] to your premium offering.
-func DeleteEntitlementTest(appID, entitlementID string) Empty {
+func DeleteEntitlementTest(appID, entitlementID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointEntitlement(appID, entitlementID)).
-		WithBucketID(discord.EndpointEntitlement(appID, ""))
+		WithBucketID(discord.EndpointEntitlement(appID, 0))
 	return WrapAsEmpty(req)
 }
 
@@ -208,7 +214,7 @@ func DeleteEntitlementTest(appID, entitlementID string) Empty {
 // before is an optional timestamp to retrieve Subscription before this time.
 // after is an optional timestamp to retrieve Subscription after this time.
 // limit is an optional maximum number of Subscription to return (1-100, default 50).
-func ListSubscriptions(skuID string, userID string, before, after *time.Time, limit int) Request[[]*Subscription] {
+func ListSubscriptions(skuID, userID uint64, before, after *time.Time, limit int) Request[[]*Subscription] {
 	endpoint := discord.EndpointSubscriptions(skuID)
 
 	queryParams := url.Values{}
@@ -218,8 +224,8 @@ func ListSubscriptions(skuID string, userID string, before, after *time.Time, li
 	if after != nil {
 		queryParams.Set("after", after.Format(time.RFC3339))
 	}
-	if userID != "" {
-		queryParams.Set("user_id", userID)
+	if userID != 0 {
+		queryParams.Set("user_id", fmt.Sprintf("%d", userID))
 	}
 	if limit > 0 {
 		queryParams.Set("limit", strconv.Itoa(limit))
@@ -232,13 +238,13 @@ func ListSubscriptions(skuID string, userID string, before, after *time.Time, li
 //
 // userID for which to return the [Subscription].
 // Required except for OAuth queries.
-func GetSubscription(skuID, subscriptionID, userID string) Request[*Subscription] {
+func GetSubscription(skuID, subscriptionID, userID uint64) Request[*Subscription] {
 	endpoint := discord.EndpointSubscription(skuID, subscriptionID)
 
 	queryParams := url.Values{}
-	if userID != "" {
+	if userID != 0 {
 		// Unlike stated in the documentation, the user_id parameter is required here.
-		queryParams.Set("user_id", userID) //TODO: check if this is true
+		queryParams.Set("user_id", fmt.Sprintf("%d", userID)) //TODO: check if this is true
 		endpoint += "?" + queryParams.Encode()
 	}
 
