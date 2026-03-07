@@ -14,7 +14,7 @@ import (
 
 // Preview holds data related to a specific public Discord [Guild], even if the [user.User] is not in the [Guild].
 type Preview struct {
-	ID   string `json:"id"`
+	ID   uint64 `json:"id,string"`
 	Name string `json:"name"`
 	// The hash of the [Guild]'s Icon.
 	//
@@ -56,7 +56,7 @@ type Template struct {
 	// The number of times this [Template] has been used.
 	UsageCount int `json:"usage_count"`
 	// The ID of the [user.User] who created the [Template].
-	CreatorID string `json:"creator_id"`
+	CreatorID uint64 `json:"creator_id,string"`
 	// The [user.User] who created the [Template].
 	Creator *user.User `json:"creator"`
 	// The timestamp of when the [Template] was created.
@@ -64,7 +64,7 @@ type Template struct {
 	// The timestamp of when the [Template] was last synced.
 	UpdatedAt time.Time `json:"updated_at"`
 	// The ID of the [Guild] the [Template] was based on.
-	SourceGuildID string `json:"source_guild_id"`
+	SourceGuildID uint64 `json:"source_guild_id,string"`
 	// The [Guild] snapshot this [Template] contains.
 	SerializedSourceGuild *Guild `json:"serialized_source_guild"`
 	// Whether the [Template] has unsynced changes.
@@ -79,7 +79,7 @@ type TemplateParams struct {
 
 // A UserGuild holds a brief version of a [Guild].
 type UserGuild struct {
-	ID          string    `json:"id"`
+	ID          uint64    `json:"id,string"`
 	Name        string    `json:"name"`
 	Icon        string    `json:"icon"`
 	Owner       bool      `json:"owner"`
@@ -96,7 +96,7 @@ type UserGuild struct {
 }
 
 // GetPreview returns the [Preview] for the given public [Guild] guildID.
-func GetPreview(guildID string) Request[*Preview] {
+func GetPreview(guildID uint64) Request[*Preview] {
 	return NewData[*Preview](http.MethodGet, discord.EndpointGuildPreview(guildID))
 }
 
@@ -122,12 +122,12 @@ func CreateWithTemplate(templateCode, name, icon string) Request[*Guild] {
 }
 
 // ListTemplates returns every [Template] of the given [Guild].
-func ListTemplates(guildID string) Request[[]*Template] {
+func ListTemplates(guildID uint64) Request[[]*Template] {
 	return NewData[[]*Template](http.MethodGet, discord.EndpointGuildTemplates(guildID))
 }
 
 // CreateTemplate for the given [Guild].
-func CreateTemplate(guildID string, data *TemplateParams) Request[*Template] {
+func CreateTemplate(guildID uint64, data *TemplateParams) Request[*Template] {
 	return NewData[*Template](http.MethodPost, discord.EndpointGuildTemplates(guildID)).
 		WithData(data)
 }
@@ -135,20 +135,20 @@ func CreateTemplate(guildID string, data *TemplateParams) Request[*Template] {
 // SyncTemplate to the [Guild]'s current state.
 //
 // code is [Template.Code].
-func SyncTemplate(guildID, code string) Empty {
+func SyncTemplate(guildID uint64, code string) Empty {
 	req := NewSimple(http.MethodPut, discord.EndpointGuildTemplateSync(guildID, code)).
 		WithBucketID(discord.EndpointGuildTemplates(guildID))
 	return WrapAsEmpty(req)
 }
 
 // EditTemplate metadata of the given [Guild].
-func EditTemplate(guildID, code string, data *TemplateParams) Request[*Template] {
+func EditTemplate(guildID uint64, code string, data *TemplateParams) Request[*Template] {
 	return NewData[*Template](http.MethodPatch, discord.EndpointGuildTemplateSync(guildID, code)).
 		WithBucketID(discord.EndpointGuildTemplates(guildID)).WithData(data)
 }
 
 // DeleteTemplate of the given [Guild].
-func DeleteTemplate(guildID, code string) Empty {
+func DeleteTemplate(guildID uint64, code string) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuildTemplateSync(guildID, code)).
 		WithBucketID(discord.EndpointGuildTemplates(guildID))
 	return WrapAsEmpty(req)
@@ -176,12 +176,12 @@ func ListUserGuilds(limit int, beforeID, afterID string, withCounts bool) Reques
 		v.Set("with_counts", "true")
 	}
 
-	uri := discord.EndpointUserGuilds("@me")
+	uri := discord.EndpointUserGuilds(0)
 
 	if len(v) > 0 {
 		uri += "?" + v.Encode()
 	}
 
 	return NewData[[]*UserGuild](http.MethodGet, uri).
-		WithBucketID(discord.EndpointUserGuilds(""))
+		WithBucketID(discord.EndpointUserGuilds(0))
 }

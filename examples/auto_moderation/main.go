@@ -21,7 +21,7 @@ import (
 // Command line flags
 var (
 	BotToken  = flag.String("token", "", "Bot authorization token")
-	GuildID   = flag.String("guild", "", "ID of the testing guild")
+	GuildID   = flag.Uint("guild", 0, "ID of the testing guild")
 	ChannelID = flag.String("channel", "", "ID of the testing channel")
 )
 
@@ -35,7 +35,7 @@ func main() {
 	ctx := dg.NewContext(context.Background())
 
 	enabled := true
-	rule, err := guild.CreateAutoModerationRule(*GuildID, &guild.AutoModerationRule{
+	rule, err := guild.CreateAutoModerationRule(uint64(*GuildID), &guild.AutoModerationRule{
 		Name:        "Auto Moderation example",
 		EventType:   guild.AutoModerationRuleEventMessageSend,
 		TriggerType: guild.AutoModerationRuleTriggerKeywordPreset,
@@ -54,10 +54,10 @@ func main() {
 	}
 
 	fmt.Println("Successfully created the rule")
-	defer guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
+	defer guild.DeleteAutoModerationRule(uint64(*GuildID), rule.ID).Do(ctx)
 
 	dg.EventManager().AddHandlerOnce(func(ctx context.Context, s bot.Session, e *event.AutoModerationActionExecution) {
-		_, err = guild.EditAutoModerationRule(*GuildID, rule.ID, &guild.AutoModerationRule{
+		_, err = guild.EditAutoModerationRule(uint64(*GuildID), rule.ID, &guild.AutoModerationRule{
 			TriggerMetadata: &guild.AutoModerationTriggerMetadata{
 				KeywordFilter: []string{"cat"},
 			},
@@ -69,7 +69,7 @@ func main() {
 			},
 		}).Do(ctx)
 		if err != nil {
-			guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
+			guild.DeleteAutoModerationRule(uint64(*GuildID), rule.ID).Do(ctx)
 			panic(err)
 		}
 
@@ -87,7 +87,7 @@ func main() {
 			case types.AutoModerationActionBlockMessage:
 				action = "block message"
 			case types.AutoModerationActionSendAlertMessage:
-				action = "send alert message into <#" + e.Action.Metadata.ChannelID + ">"
+				action = fmt.Sprintf("send alert message into <#%d>", e.Action.Metadata.ChannelID)
 			case types.AutoModerationActionTimeout:
 				action = "timeout"
 			}
@@ -108,7 +108,7 @@ func main() {
 				).Do(ctx)
 
 				dg.Close(ctx)
-				guild.DeleteAutoModerationRule(*GuildID, rule.ID).Do(ctx)
+				guild.DeleteAutoModerationRule(uint64(*GuildID), rule.ID).Do(ctx)
 				os.Exit(0)
 			}
 		})

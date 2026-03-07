@@ -20,9 +20,9 @@ import (
 
 // Bot parameters
 var (
-	GuildID  = flag.String("guild", "", "Test guild ID")
+	GuildID  = flag.Uint("guild", 0, "Test guild ID")
 	BotToken = flag.String("token", "", "Bot access token")
-	AppID    = flag.String("app", "", "Application ID")
+	AppID    = flag.Uint("app", 0, "Application ID")
 )
 
 func init() { flag.Parse() }
@@ -45,7 +45,7 @@ func main() {
 
 	ctx := s.NewContext(context.Background())
 
-	_, err := interaction.CreateCommand(*AppID, *GuildID, &interaction.Command{
+	_, err := interaction.CreateCommand(uint64(*AppID), uint64(*GuildID), &interaction.Command{
 		Name:        "buttons",
 		Description: "Test the buttons if you got courage",
 	}).Do(ctx)
@@ -53,7 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Cannot create slash command: %v", err)
 	}
-	_, err = interaction.CreateCommand(*AppID, *GuildID, &interaction.Command{
+	_, err = interaction.CreateCommand(uint64(*AppID), uint64(*GuildID), &interaction.Command{
 		Name: "selects",
 		Options: []*interaction.CommandOption{
 			{

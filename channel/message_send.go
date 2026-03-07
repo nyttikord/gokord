@@ -35,12 +35,12 @@ type MessageEdit struct {
 	// Overwrite existing attachments
 	Attachments *[]*MessageAttachment `json:"attachments,omitempty"`
 
-	ID      string
-	Channel string
+	ID      uint64
+	Channel uint64
 }
 
 // NewMessageEdit returns a [MessageEdit] struct, initialized with the [Channel] and the ID.
-func NewMessageEdit(channelID string, messageID string) *MessageEdit {
+func NewMessageEdit(channelID, messageID uint64) *MessageEdit {
 	return &MessageEdit{
 		Channel: channelID,
 		ID:      messageID,
@@ -84,12 +84,12 @@ type MessageAllowedMentions struct {
 }
 
 // SendMessage to the given [Channel].
-func SendMessage(channelID string, content string) Request[*Message] {
+func SendMessage(channelID uint64, content string) Request[*Message] {
 	return SendMessageComplex(channelID, &MessageSend{Content: content})
 }
 
 // SendMessageComplex to the given [Channel].
-func SendMessageComplex(channelID string, data *MessageSend) Request[*Message] {
+func SendMessageComplex(channelID uint64, data *MessageSend) Request[*Message] {
 	for _, embed := range data.Embeds {
 		if embed.Type == "" {
 			embed.Type = types.EmbedRich
@@ -111,7 +111,7 @@ func SendMessageComplex(channelID string, data *MessageSend) Request[*Message] {
 }
 
 // SendMessageTTS to the given [Channel] with Text to Speech.
-func SendMessageTTS(channelID string, content string) Request[*Message] {
+func SendMessageTTS(channelID uint64, content string) Request[*Message] {
 	return SendMessageComplex(channelID, &MessageSend{
 		Content: content,
 		TTS:     true,
@@ -121,7 +121,7 @@ func SendMessageTTS(channelID string, content string) Request[*Message] {
 // SendMessageReply sends a reply to a [Message] in the given [Channel].
 //
 // reference is the [MessageReference] to send containing the [Message] to reply to.
-func SendMessageReply(channelID string, content string, reference *MessageReference) Request[*Message] {
+func SendMessageReply(channelID uint64, content string, reference *MessageReference) Request[*Message] {
 	if reference == nil {
 		return NewError[*Message](ErrReplyNilMessageRef)
 	}
@@ -132,7 +132,7 @@ func SendMessageReply(channelID string, content string, reference *MessageRefere
 }
 
 // CrosspostMessage in a news [Channel] to followers.
-func CrosspostMessage(channelID, messageID string) Request[*Message] {
+func CrosspostMessage(channelID, messageID uint64) Request[*Message] {
 	return NewData[*Message](http.MethodPost, discord.EndpointChannelMessageCrosspost(channelID, messageID)).
-		WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, ""))
+		WithBucketID(discord.EndpointChannelMessageCrosspost(channelID, 0))
 }

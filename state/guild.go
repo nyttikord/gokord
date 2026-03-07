@@ -15,7 +15,7 @@ type Guild struct {
 	State
 	mu      sync.RWMutex
 	storage GuildStorage
-	guilds  *avl.SimpleAVL[string]
+	guilds  *avl.SimpleAVL[uint64]
 	params  *Params
 }
 
@@ -23,7 +23,7 @@ func NewGuild(state State, storage GuildStorage, params *Params) *Guild {
 	return &Guild{
 		State:   state,
 		storage: storage,
-		guilds:  avl.NewString(),
+		guilds:  avl.NewSimple[uint64](),
 		params:  params,
 	}
 }
@@ -34,8 +34,8 @@ func KeyGuild(g *guild.Guild) uint64 {
 }
 
 // KeyGuildReverse returns the key linked with the requested [guild.Guild].
-func KeyGuildReverse(guildID string) uint64 {
-	return stringToUint(guildID)
+func KeyGuildReverse(guildID uint64) uint64 {
+	return guildID
 }
 
 // AddGuild adds a [guild.Guild] to the current [Guild] state, or updates it if it already exists.
@@ -88,7 +88,7 @@ func (s *Guild) AddGuild(g *guild.Guild) error {
 	if err != nil {
 		return err
 	}
-	if len(g.ID) > 0 {
+	if g.ID != 0 {
 		s.guilds.Insert(g.ID)
 	}
 	return nil
@@ -113,7 +113,7 @@ func (s *Guild) RemoveGuild(guild *guild.Guild) error {
 //
 //	_, err := s.GuildState().GetGuild(guildID)
 //	isInGuild := !errors.Is(err, state.ErrStateNotFound)
-func (s *Guild) GetGuild(guildID string) (*guild.Guild, error) {
+func (s *Guild) GetGuild(guildID uint64) (*guild.Guild, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -126,12 +126,12 @@ func (s *Guild) GetGuild(guildID string) (*guild.Guild, error) {
 }
 
 // ListGuilds returns the sorted list of [guild.Guild]s ID.
-func (s *Guild) ListGuilds() []string {
+func (s *Guild) ListGuilds() []uint64 {
 	return s.guilds.Sort()
 }
 
 // AddRole adds a [guild.Role] to the current [Guild] state, or updates it if it already exists.
-func (s *Guild) AddRole(guildID string, role *guild.Role) error {
+func (s *Guild) AddRole(guildID uint64, role *guild.Role) error {
 	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err
@@ -148,7 +148,7 @@ func (s *Guild) AddRole(guildID string, role *guild.Role) error {
 }
 
 // RemoveRole removes a [guild.Role] from current [Role] state.
-func (s *Guild) RemoveRole(guildID, roleID string) error {
+func (s *Guild) RemoveRole(guildID, roleID uint64) error {
 	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func (s *Guild) RemoveRole(guildID, roleID string) error {
 }
 
 // GetRole returns the [guild.GetRole] from a [guild.Guild].
-func (s *Guild) GetRole(guildID, roleID string) (*guild.Role, error) {
+func (s *Guild) GetRole(guildID, roleID uint64) (*guild.Role, error) {
 	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (s *Guild) GetRole(guildID, roleID string) (*guild.Role, error) {
 }
 
 // GetEmoji returns an [emoji.Emoji] in the [guild.Guild].
-func (s *Guild) GetEmoji(guildID, emojiID string) (*emoji.Emoji, error) {
+func (s *Guild) GetEmoji(guildID, emojiID uint64) (*emoji.Emoji, error) {
 	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func (s *Guild) GetEmoji(guildID, emojiID string) (*emoji.Emoji, error) {
 }
 
 // AddEmoji adds an [emoji.Emoji] to the current [Guild] state.
-func (s *Guild) AddEmoji(guildID string, em *emoji.Emoji) error {
+func (s *Guild) AddEmoji(guildID uint64, em *emoji.Emoji) error {
 	g, err := s.GetGuild(guildID)
 	if err != nil {
 		return err

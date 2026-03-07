@@ -64,8 +64,7 @@ func (s *Session) Open(ctx context.Context) error {
 
 func (s *Session) setupGateway(ctx context.Context, gateway string) error {
 	// Add the version and encoding to the URL
-	gateway = strings.TrimSuffix(gateway, "/")
-	gateway += "/?v=" + discord.APIVersion + "&encoding=json"
+	gateway = fmt.Sprintf("%s/?v=%d&encoding=json", strings.TrimSuffix(gateway, "/"), discord.APIVersion)
 
 	// Connect to the Gateway
 	s.logger.Debug("connecting to gateway", "gateway", gateway)

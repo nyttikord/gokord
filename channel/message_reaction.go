@@ -23,11 +23,11 @@ type Reactions struct {
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format
 // (e.g. "hello:1234567654321").
-func AddReaction(channelID, messageID, emojiID string) Empty {
+func AddReaction(channelID, messageID uint64, emojiID string) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
-	req := NewSimple(http.MethodPut, discord.EndpointMessageReaction(channelID, messageID, emojiID, "@me")).
-		WithBucketID(discord.EndpointMessageReaction(channelID, "", "", "@me"))
+	req := NewSimple(http.MethodPut, discord.EndpointMessageReaction(channelID, messageID, emojiID, 0)).
+		WithBucketID(discord.EndpointMessageReaction(channelID, 0, "", 0))
 	return WrapAsEmpty(req)
 }
 
@@ -35,18 +35,18 @@ func AddReaction(channelID, messageID, emojiID string) Empty {
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format
 // (e.g. "hello:1234567654321").
-func DeleteReaction(channelID, messageID, emojiID, userID string) Empty {
+func DeleteReaction(channelID, messageID uint64, emojiID string, userID uint64) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	req := NewSimple(http.MethodDelete, discord.EndpointMessageReaction(channelID, messageID, emojiID, userID)).
-		WithBucketID(discord.EndpointMessageReaction(channelID, "", "", "@me"))
+		WithBucketID(discord.EndpointMessageReaction(channelID, 0, "", 0))
 	return WrapAsEmpty(req)
 }
 
 // DeleteAllReactions from a [Message].
-func DeleteAllReactions(channelID, messageID string) Empty {
+func DeleteAllReactions(channelID, messageID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointMessageReactionsAll(channelID, messageID)).
-		WithBucketID(discord.EndpointMessageReactionsAll(channelID, ""))
+		WithBucketID(discord.EndpointMessageReactionsAll(channelID, 0))
 	return WrapAsEmpty(req)
 }
 
@@ -54,11 +54,11 @@ func DeleteAllReactions(channelID, messageID string) Empty {
 //
 // emojiID is either the Unicode emoji for the reaction, or a guild emoji identifier in name:id format
 // (e.g. "hello:1234567654321").
-func DeleteEmojiReactions(channelID, messageID, emojiID string) Empty {
+func DeleteEmojiReactions(channelID, messageID uint64, emojiID string) Empty {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	req := NewSimple(http.MethodDelete, discord.EndpointMessageReactions(channelID, messageID, emojiID)).
-		WithBucketID(discord.EndpointMessageReactions(channelID, "", ""))
+		WithBucketID(discord.EndpointMessageReactions(channelID, 0, ""))
 	return WrapAsEmpty(req)
 }
 
@@ -69,7 +69,7 @@ func DeleteEmojiReactions(channelID, messageID, emojiID string) Empty {
 // limit is the max number of users to return (max 100).
 // If provided all reactions returned will be before beforeID.
 // If provided all reactions returned will be after afterID.
-func ListReactions(channelID, messageID, emojiID string, limit int, beforeID, afterID string) Request[[]*user.User] {
+func ListReactions(channelID, messageID uint64, emojiID string, limit int, beforeID, afterID string) Request[[]*user.User] {
 	// emoji such as  #⃣ need to have # escaped
 	emojiID = strings.ReplaceAll(emojiID, "#", "%23")
 	uri := discord.EndpointMessageReactions(channelID, messageID, emojiID)
@@ -90,5 +90,5 @@ func ListReactions(channelID, messageID, emojiID string, limit int, beforeID, af
 	}
 
 	return NewData[[]*user.User](http.MethodGet, uri).
-		WithBucketID(discord.EndpointMessageReaction(channelID, "", "", ""))
+		WithBucketID(discord.EndpointMessageReaction(channelID, 0, "", 0))
 }

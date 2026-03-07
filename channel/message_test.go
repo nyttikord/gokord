@@ -57,9 +57,9 @@ func TestGettingEmojisFromMessage(t *testing.T) {
 
 func TestMessage_Reference(t *testing.T) {
 	m := &Message{
-		ID:        "811736565172011001",
-		GuildID:   "811736565172011002",
-		ChannelID: "811736565172011003",
+		ID:        811736565172011001,
+		GuildID:   811736565172011002,
+		ChannelID: 811736565172011003,
 	}
 
 	ref := m.Reference()
@@ -83,9 +83,9 @@ func TestMessage_Reference(t *testing.T) {
 
 func TestMessage_Forward(t *testing.T) {
 	m := &Message{
-		ID:        "811736565172011001",
-		GuildID:   "811736565172011002",
-		ChannelID: "811736565172011003",
+		ID:        811736565172011001,
+		GuildID:   811736565172011002,
+		ChannelID: 811736565172011003,
 	}
 
 	ref := m.Forward()

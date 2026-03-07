@@ -25,12 +25,12 @@ const (
 
 // Interaction represents data of an interaction.
 type Interaction struct {
-	ID        string            `json:"id"`
-	AppID     string            `json:"application_id"`
+	ID        uint64            `json:"id,string"`
+	AppID     uint64            `json:"application_id,string"`
 	Type      types.Interaction `json:"type"`
 	Data      Data              `json:"data"`
-	GuildID   string            `json:"guild_id"`
-	ChannelID string            `json:"channel_id"`
+	GuildID   uint64            `json:"guild_id,string"`
+	ChannelID uint64            `json:"channel_id,string"`
 
 	// The Message on which Interaction was used.
 	//

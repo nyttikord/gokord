@@ -10,20 +10,20 @@ import (
 // StageInstance holds information about a live stage.
 // https://discord.com/developers/docs/resources/stage-instance#stage-instance-resource
 type StageInstance struct {
-	ID        string `json:"id"`
-	GuildID   string `json:"guild_id"`
-	ChannelID string `json:"channel_id"`
+	ID        uint64 `json:"id,string"`
+	GuildID   uint64 `json:"guild_id,string"`
+	ChannelID uint64 `json:"channel_id,string"`
 	Topic     string `json:"topic"`
 	// PrivacyLevel of the [StageInstance].
 	// https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level
 	PrivacyLevel StageInstancePrivacyLevel `json:"privacy_level"`
 	// GuildScheduledEventID linked with this [StageInstance].
-	GuildScheduledEventID string `json:"guild_scheduled_event_id"`
+	GuildScheduledEventID uint64 `json:"guild_scheduled_event_id,string"`
 }
 
 // StageInstanceParams represents the parameters needed to create or edit a [StageInstance].
 type StageInstanceParams struct {
-	ChannelID string `json:"channel_id,omitempty"`
+	ChannelID uint64 `json:"channel_id,omitempty,string"`
 	Topic     string `json:"topic,omitempty"`
 	// PrivacyLevel of the [StageInstance].
 	//
@@ -51,18 +51,18 @@ func CreateStageInstance(data *StageInstanceParams) Request[*StageInstance] {
 }
 
 // GetStageInstance will retrieve a [StageInstance] by the ID of the [types.ChannelGuildStageVoice].
-func GetStageInstance(channelID string) Request[*StageInstance] {
+func GetStageInstance(channelID uint64) Request[*StageInstance] {
 	return NewData[*StageInstance](http.MethodGet, discord.EndpointStageInstance(channelID))
 }
 
 // EditStageInstance by ID of the [types.ChannelGuildStageVoice].
-func EditStageInstance(channelID string, data *StageInstanceParams) Request[*StageInstance] {
+func EditStageInstance(channelID uint64, data *StageInstanceParams) Request[*StageInstance] {
 	return NewData[*StageInstance](http.MethodPatch, discord.EndpointStageInstance(channelID)).
 		WithData(data)
 }
 
 // DeleteStageInstance by ID of the [types.ChannelGuildStageVoice].
-func DeleteStageInstance(channelID string) Empty {
+func DeleteStageInstance(channelID uint64) Empty {
 	req := NewSimple(http.MethodGet, discord.EndpointStageInstance(channelID))
 	return WrapAsEmpty(req)
 }

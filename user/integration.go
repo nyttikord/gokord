@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ExpireBehavior of an Integration.
+// ExpireBehavior of an [Integration].
 // https://discord.com/developers/docs/resources/guild#integration-object-integration-expire-behaviors
 type ExpireBehavior int
 
@@ -14,20 +14,20 @@ const (
 	ExpireBehaviorKick       ExpireBehavior = 1
 )
 
-// IntegrationAccount is integration account information sent while fetching the Connection.
+// IntegrationAccount is integration account information sent while fetching the [Connection].
 type IntegrationAccount struct {
-	ID   string `json:"id"`
+	ID   uint64 `json:"id,string"`
 	Name string `json:"name"`
 }
 
 // Integration stores integration information.
 type Integration struct {
-	ID                string             `json:"id"`
+	ID                uint64             `json:"id,string"`
 	Name              string             `json:"name"`
 	Type              string             `json:"type"`
 	Enabled           bool               `json:"enabled"`
 	Syncing           bool               `json:"syncing"`
-	RoleID            string             `json:"role_id"`
+	RoleID            uint64             `json:"role_id,string"`
 	EnableEmoticons   bool               `json:"enable_emoticons"`
 	ExpireBehavior    ExpireBehavior     `json:"expire_behavior"`
 	ExpireGracePeriod int                `json:"expire_grace_period"`
@@ -38,7 +38,7 @@ type Integration struct {
 
 // Connection is a connection returned from the UserConnections endpoint.
 type Connection struct {
-	ID           string         `json:"id"`
+	ID           uint64         `json:"id,string"`
 	Name         string         `json:"name"`
 	Type         string         `json:"type"`
 	Revoked      bool           `json:"revoked"`

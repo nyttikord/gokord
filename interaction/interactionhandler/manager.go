@@ -9,7 +9,7 @@ import (
 	"github.com/nyttikord/gokord/logger"
 )
 
-// Manager manages CommandHandler, MessageComponentHandler, and ModalSubmitHandler.
+// Manager manages [CommandHandler], [MessageComponentHandler], and [ModalSubmitHandler].
 type Manager struct {
 	logger                   *slog.Logger
 	commandHandlers          handlers[*ApplicationCommand]
@@ -83,7 +83,7 @@ func (m *Manager) HandleModalSubmit(customID string, h Handler[*ModalSubmit]) fu
 	}
 }
 
-// Context returns the context associated with the manager.
+// Context returns the context associated with the [Manager].
 func (m *Manager) setContext(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, discord.ContextCommandHandlers, m.commandHandlers)
 	ctx = context.WithValue(ctx, discord.ContextMessageComponentHandlers, m.messageComponentHandlers)

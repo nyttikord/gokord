@@ -22,11 +22,11 @@ import (
 
 // Bot parameters
 var (
-	GuildID        = flag.String("guild", "", "Test guild ID")
+	GuildID        = flag.Uint("guild", 0, "Test guild ID")
 	BotToken       = flag.String("token", "", "Bot access token")
-	AppID          = flag.String("app", "", "Get ID")
+	AppID          = flag.Uint("app", 0, "Get ID")
 	Cleanup        = flag.Bool("cleanup", true, "Cleanup of commands")
-	ResultsChannel = flag.String("results", "", "Get where send survey results to")
+	ResultsChannel = flag.Uint("results", 0, "Get where send survey results to")
 )
 
 var s *gokord.Session
@@ -52,7 +52,7 @@ func handleModalsSurvey(ctx context.Context, s bot.Session, i *interaction.Appli
 	err := interaction.Respond(i.Interaction, &interaction.Response{
 		Type: types.InteractionResponseModal,
 		Data: &interaction.ResponseData{
-			CustomID: "modals_survey_" + i.Interaction.Member.User.ID,
+			CustomID: fmt.Sprintf("modals_survey_%d", i.Interaction.Member.User.ID),
 			Title:    "Modals survey",
 			Components: []component.Component{
 				&component.Label{
@@ -112,7 +112,7 @@ func main() {
 		}
 
 		userid := strings.Split(data.CustomID, "_")[2]
-		_, err = channel.SendMessage(*ResultsChannel, fmt.Sprintf(
+		_, err = channel.SendMessage(uint64(*ResultsChannel), fmt.Sprintf(
 			"Feedback received. From <@%s>\n\n**Opinion**:\n%s\n\n**Suggestions**:\n%s",
 			userid,
 			data.Components[0].(*component.Label).Component.(*component.TextInput).Value,
@@ -123,12 +123,12 @@ func main() {
 		}
 	})
 
-	cmdIDs := make(map[string]string, len(commands))
+	cmdIDs := make(map[uint64]string, len(commands))
 
 	ctx := s.NewContext(context.Background())
 
 	for _, cmd := range commands {
-		rcmd, err := interaction.CreateCommand(*AppID, *GuildID, &cmd).Do(ctx)
+		rcmd, err := interaction.CreateCommand(uint64(*AppID), uint64(*GuildID), &cmd).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -152,7 +152,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := interaction.DeleteCommand(*AppID, *GuildID, id).Do(ctx)
+		err := interaction.DeleteCommand(uint64(*AppID), uint64(*GuildID), id).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

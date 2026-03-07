@@ -1,6 +1,7 @@
 package guild
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -38,10 +39,10 @@ const (
 
 // AutoModerationRule stores data for an auto moderation rule.
 type AutoModerationRule struct {
-	ID              string                         `json:"id,omitempty"`
-	GuildID         string                         `json:"guild_id,omitempty"`
+	ID              uint64                         `json:"id,omitempty,string"`
+	GuildID         uint64                         `json:"guild_id,omitempty,string"`
 	Name            string                         `json:"name,omitempty"`
-	CreatorID       string                         `json:"creator_id,omitempty"`
+	CreatorID       uint64                         `json:"creator_id,omitempty,string"`
 	EventType       AutoModerationRuleEvent        `json:"event_type,omitempty"`
 	TriggerType     AutoModerationRuleTrigger      `json:"trigger_type,omitempty"`
 	TriggerMetadata *AutoModerationTriggerMetadata `json:"trigger_metadata,omitempty"`
@@ -89,7 +90,7 @@ type AutoModerationTriggerMetadata struct {
 type AutoModerationActionMetadata struct {
 	// Channel to which user content should be logged.
 	// NOTE: should be only used with send alert message action type.
-	ChannelID string `json:"channel_id,omitempty"`
+	ChannelID uint64 `json:"channel_id,omitempty,string"`
 
 	// Timeout duration in seconds (maximum of 2419200 - 4 weeks).
 	// NOTE: should be only used with timeout action type.
@@ -118,10 +119,10 @@ type AuditLog struct {
 // AuditLogEntry for a AuditLog.
 // https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-audit-log-entry-structure
 type AuditLogEntry struct {
-	TargetID   string            `json:"target_id"`
+	TargetID   uint64            `json:"target_id,string"`
 	Changes    []*AuditLogChange `json:"changes"`
-	UserID     string            `json:"user_id"`
-	ID         string            `json:"id"`
+	UserID     uint64            `json:"user_id,string"`
+	ID         uint64            `json:"id,string"`
 	ActionType *AuditLogAction   `json:"action_type"`
 	Options    *AuditLogOptions  `json:"options"`
 	Reason     string            `json:"reason"`
@@ -303,13 +304,13 @@ const (
 type AuditLogOptions struct {
 	DeleteMemberDays              string                 `json:"delete_member_days"`
 	MembersRemoved                string                 `json:"members_removed"`
-	ChannelID                     string                 `json:"channel_id"`
-	MessageID                     string                 `json:"message_id"`
+	ChannelID                     uint64                 `json:"channel_id,string"`
+	MessageID                     uint64                 `json:"message_id,string"`
 	Count                         string                 `json:"count"`
-	ID                            string                 `json:"id"`
+	ID                            uint64                 `json:"id,string"`
 	Type                          *types.AuditLogOptions `json:"type"`
 	RoleName                      string                 `json:"role_name"`
-	ApplicationID                 string                 `json:"application_id"`
+	ApplicationID                 uint64                 `json:"application_id,string"`
 	AutoModerationRuleName        string                 `json:"auto_moderation_rule_name"`
 	AutoModerationRuleTriggerType string                 `json:"auto_moderation_rule_trigger_type"`
 	IntegrationType               string                 `json:"integration_type"`
@@ -411,12 +412,12 @@ const (
 // If provided all [AuditLog] entries returned will be before the given beforeID.
 // If provided the [AuditLog] will be filtered for the given actionType.
 // limit is the number of messages that can be returned (default 50, min 1, max 100).
-func GetAuditLog(guildID, userID, beforeID string, actionType, limit int) Request[*AuditLog] {
+func GetAuditLog(guildID, userID uint64, beforeID string, actionType, limit int) Request[*AuditLog] {
 	uri := discord.EndpointGuildAuditLogs(guildID)
 
 	v := url.Values{}
-	if userID != "" {
-		v.Set("user_id", userID)
+	if userID != 0 {
+		v.Set("user_id", fmt.Sprintf("%d", userID))
 	}
 	if beforeID != "" {
 		v.Set("before", beforeID)
@@ -435,30 +436,30 @@ func GetAuditLog(guildID, userID, beforeID string, actionType, limit int) Reques
 }
 
 // ListAutoModerationRules returns a list of [AutoModerationRule] in the given [Guild].
-func ListAutoModerationRules(guildID string) Request[[]*AutoModerationRule] {
+func ListAutoModerationRules(guildID uint64) Request[[]*AutoModerationRule] {
 	return NewData[[]*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID))
 }
 
 // GetAutoModerationRule returns a [AutoModerationRule] in the [Guild].
-func GetAutoModerationRule(guildID, ruleID string) Request[*AutoModerationRule] {
+func GetAutoModerationRule(guildID, ruleID uint64) Request[*AutoModerationRule] {
 	return NewData[*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
 		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID))
 }
 
 // CreateAutoModerationRule creates a [AutoModerationRule] and returns it.
-func CreateAutoModerationRule(guildID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
+func CreateAutoModerationRule(guildID uint64, rule *AutoModerationRule) Request[*AutoModerationRule] {
 	return NewData[*AutoModerationRule](http.MethodGet, discord.EndpointGuildAutoModerationRules(guildID)).
 		WithData(rule)
 }
 
 // EditAutoModerationRule and returns the updated [AutoModerationRule].
-func EditAutoModerationRule(guildID, ruleID string, rule *AutoModerationRule) Request[*AutoModerationRule] {
+func EditAutoModerationRule(guildID, ruleID uint64, rule *AutoModerationRule) Request[*AutoModerationRule] {
 	return NewData[*AutoModerationRule](http.MethodPatch, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
 		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID)).WithData(rule)
 }
 
 // DeleteAutoModerationRule deletes a [AutoModerationRule].
-func DeleteAutoModerationRule(guildID, ruleID string) Empty {
+func DeleteAutoModerationRule(guildID, ruleID uint64) Empty {
 	req := NewSimple(http.MethodDelete, discord.EndpointGuildAutoModerationRule(guildID, ruleID)).
 		WithBucketID(discord.EndpointGuildAutoModerationRules(guildID))
 	return WrapAsEmpty(req)

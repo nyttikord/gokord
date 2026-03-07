@@ -21,9 +21,9 @@ import (
 
 // Bot parameters
 var (
-	GuildID  = flag.String("guild", "", "Test guild ID")
+	GuildID  = flag.Uint("guild", 0, "Test guild ID")
 	BotToken = flag.String("token", "", "Bot access token")
-	AppID    = flag.String("app", "", "Application ID")
+	AppID    = flag.Uint("app", 0, "Application ID")
 	Cleanup  = flag.Bool("cleanup", true, "Cleanup of commands")
 )
 
@@ -82,12 +82,12 @@ func main() {
 	s.InteractionManager().HandleCommand("discordjs-it", djsIt)
 	s.InteractionManager().HandleCommand("discordpy-it", dpyIt)
 
-	cmdIDs := make(map[string]string, len(commands))
+	cmdIDs := make(map[uint64]string, len(commands))
 
 	ctx := s.NewContext(context.Background())
 
 	for _, cmd := range commands {
-		rcmd, err := interaction.CreateCommand(*AppID, *GuildID, &cmd).Do(ctx)
+		rcmd, err := interaction.CreateCommand(uint64(*AppID), uint64(*GuildID), &cmd).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot create slash command %q: %v", cmd.Name, err)
 		}
@@ -112,7 +112,7 @@ func main() {
 	}
 
 	for id, name := range cmdIDs {
-		err := interaction.DeleteCommand(*AppID, *GuildID, id).Do(ctx)
+		err := interaction.DeleteCommand(uint64(*AppID), uint64(*GuildID), id).Do(ctx)
 		if err != nil {
 			log.Fatalf("Cannot delete slash command %q: %v", name, err)
 		}

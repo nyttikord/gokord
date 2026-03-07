@@ -15,8 +15,8 @@ import (
 
 // Flags
 var (
-	GuildID        = flag.String("guild", "", "Test guild ID")
-	StageChannelID = flag.String("stage", "", "Test stage channel ID")
+	GuildID        = flag.Uint("guild", 0, "Test guild ID")
+	StageChannelID = flag.Uint("stage", 0, "Test stage channel ID")
 	BotToken       = flag.String("token", "", "Bot token")
 )
 
@@ -40,7 +40,7 @@ func main() {
 
 	// Create a new Stage instance on the previous channel
 	si, err := channel.CreateStageInstance(&channel.StageInstanceParams{
-		ChannelID:             *StageChannelID,
+		ChannelID:             uint64(*StageChannelID),
 		Topic:                 "Amazing topic",
 		PrivacyLevel:          channel.StageInstancePrivacyLevelGuildOnly,
 		SendStartNotification: true,
@@ -51,7 +51,7 @@ func main() {
 	log.Printf("Stage Instance %s has been successfully created", si.Topic)
 
 	// Edit the stage instance with a new Topic
-	si, err = channel.EditStageInstance(*StageChannelID, &channel.StageInstanceParams{
+	si, err = channel.EditStageInstance(uint64(*StageChannelID), &channel.StageInstanceParams{
 		Topic: "New amazing topic",
 	}).Do(ctx)
 	if err != nil {
@@ -60,7 +60,7 @@ func main() {
 	log.Printf("Stage Instance %s has been successfully edited", si.Topic)
 
 	time.Sleep(5 * time.Second)
-	if err = channel.DeleteStageInstance(*StageChannelID).Do(ctx); err != nil {
+	if err = channel.DeleteStageInstance(uint64(*StageChannelID)).Do(ctx); err != nil {
 		log.Fatalf("Cannot delete stage instance: %v", err)
 	}
 	log.Printf("Stage Instance %s has been successfully deleted", si.Topic)

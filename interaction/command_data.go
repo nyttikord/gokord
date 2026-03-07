@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/discord/types"
@@ -10,9 +11,9 @@ import (
 	"github.com/nyttikord/gokord/user"
 )
 
-// CommandInteractionData contains the data of [ApplicationCommand] interaction.
+// CommandInteractionData contains the data of [ApplicationCommand] [Interaction].
 type CommandInteractionData struct {
-	ID          string                          `json:"id"`
+	ID          uint64                          `json:"id,string"`
 	Name        string                          `json:"name"`
 	CommandType types.Command                   `json:"type"`
 	Resolved    *CommandInteractionDataResolved `json:"resolved"`
@@ -21,7 +22,7 @@ type CommandInteractionData struct {
 	Options []*CommandInteractionDataOption `json:"options"`
 	// InviteTarget (user/message) id on which context menu command was called.
 	// The details are stored in Resolved according to command type.
-	TargetID string `json:"target_id"`
+	TargetID uint64 `json:"target_id,string"`
 }
 
 // GetOption finds and returns an [CommandOption] by its name.
@@ -38,14 +39,14 @@ func (d *CommandInteractionData) GetOption(name string) *CommandInteractionDataO
 
 // CommandInteractionDataResolved contains resolved data of [ApplicationCommand] execution.
 type CommandInteractionDataResolved struct {
-	Users map[string]*user.User `json:"users"`
+	Users map[uint64]*user.User `json:"users"`
 	// Partial [user.Member] are missing [user.User], Deaf and Mute fields.
-	Members map[string]*user.Member `json:"members"`
-	Roles   map[string]*guild.Role  `json:"roles"`
+	Members map[uint64]*user.Member `json:"members"`
+	Roles   map[uint64]*guild.Role  `json:"roles"`
 	// Partial [channel.Channel] only have ID, Name, Type and Permissions fields.
-	Channels    map[string]*channel.Channel           `json:"channels"`
-	Messages    map[string]*channel.Message           `json:"messages"`
-	Attachments map[string]*channel.MessageAttachment `json:"attachments"`
+	Channels    map[uint64]*channel.Channel           `json:"channels"`
+	Messages    map[uint64]*channel.Message           `json:"messages"`
+	Attachments map[uint64]*channel.MessageAttachment `json:"attachments"`
 }
 
 func (*CommandInteractionData) Type() types.Interaction {
@@ -119,7 +120,10 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *s
 	if o.Type != types.CommandOptionChannel {
 		panic("ChannelValue called on data option of type " + o.Type.String())
 	}
-	chanID := o.Value.(string)
+	chanID, err := strconv.ParseUint(o.Value.(string), 10, 64)
+	if err != nil {
+		panic(err)
+	}
 
 	if state != nil {
 		ch, err := state.GetChannel(chanID)
@@ -135,13 +139,16 @@ func (o CommandInteractionDataOption) ChannelValue(ctx context.Context, state *s
 }
 
 // RoleValue is a utility function for casting option value to [guild.Role].
-func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID string, state *state.Guild) *guild.Role {
+func (o CommandInteractionDataOption) RoleValue(ctx context.Context, gID uint64, state *state.Guild) *guild.Role {
 	if o.Type != types.CommandOptionRole && o.Type != types.CommandOptionMentionable {
 		panic("RoleValue called on data option of type " + o.Type.String())
 	}
-	roleID := o.Value.(string)
+	roleID, err := strconv.ParseUint(o.Value.(string), 10, 64)
+	if err != nil {
+		panic(err)
+	}
 
-	if gID == "" {
+	if gID == 0 {
 		return &guild.Role{ID: roleID}
 	}
 
@@ -165,7 +172,10 @@ func (o CommandInteractionDataOption) UserValue(ctx context.Context) *user.User 
 	if o.Type != types.CommandOptionUser && o.Type != types.CommandOptionMentionable {
 		panic("UserValue called on data option of type " + o.Type.String())
 	}
-	userID := o.Value.(string)
+	userID, err := strconv.ParseUint(o.Value.(string), 10, 64)
+	if err != nil {
+		panic(err)
+	}
 
 	u, err := user.Get(userID).Do(ctx)
 	if err != nil {

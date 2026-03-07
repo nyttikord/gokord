@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"image"
 	"net/http"
 
@@ -36,9 +37,9 @@ const (
 
 // User stores all data for an individual Discord user.
 type User struct {
-	ID string `json:"id"`
+	ID uint64 `json:"id,string"`
 	// Email of the [User].
-	// This is only present when the application possesses the email scope for the User.
+	// This is only present when the application possesses the email scope for the [User].
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	// The hash of the [User]'s Avatar.
@@ -97,7 +98,7 @@ func (u *User) String() string {
 
 // Mention return a string which mentions the [User].
 func (u *User) Mention() string {
-	return "<@" + u.ID + ">"
+	return fmt.Sprintf("<@%d>", u.ID)
 }
 
 // AvatarURL returns a URL to the [User.Avatar].
@@ -125,8 +126,7 @@ func (u *User) BannerURL(size string) string {
 // DefaultAvatarIndex returns the index of the [User]'s default avatar.
 func (u *User) DefaultAvatarIndex() int {
 	if u.Discriminator == "0" {
-		id, _ := strconv.ParseUint(u.ID, 10, 64)
-		return int((id >> 22) % 6)
+		return int((u.ID >> 22) % 6)
 	}
 
 	id, _ := strconv.Atoi(u.Discriminator)
@@ -145,7 +145,7 @@ type AvatarDecoration struct {
 	// [AvatarDecoration] hash.
 	Asset string `json:"asset"`
 	// ID of the [AvatarDecoration]'s [premium.SKU].
-	SkuID string `json:"sku_id"`
+	SkuID uint64 `json:"sku_id,string"`
 }
 
 type Collectibles struct {
@@ -170,7 +170,7 @@ const (
 
 type Nameplate struct {
 	// ID of the [Nameplate] [premium.SKU].
-	SkuID string `json:"sku_id"`
+	SkuID uint64 `json:"sku_id,string"`
 	// Path to the [Nameplate] Asset
 	Asset string `json:"asset"`
 	// Label of this [Nameplate].
@@ -182,7 +182,7 @@ type Nameplate struct {
 
 type PrimaryGuild struct {
 	// ID of the [User]'s primary [guild.Guild].
-	GuildID string `json:"identity_guild_id"`
+	GuildID uint64 `json:"identity_guild_id,string"`
 	// Whether the User is displaying the primary [guild.Guild]'s server tag.
 	//
 	// This can be null if the system clears the identity, e.g. the [guild.Guild] no longer supports tags.
@@ -200,7 +200,7 @@ func (upg *PrimaryGuild) IsEnabled() bool {
 }
 
 // Get returns the [User] details of the given userID (can be @me to be the current User ID).
-func Get(userID string) Request[*User] {
+func Get(userID uint64) Request[*User] {
 	return NewData[*User](http.MethodGet, discord.EndpointUser(userID)).
 		WithBucketID(discord.EndpointUsers)
 }
@@ -208,7 +208,7 @@ func Get(userID string) Request[*User] {
 // AvatarDecode returns an [image.Image] of a [User.Avatar].
 func AvatarDecode(u *User) Request[image.Image] {
 	return NewImage(http.MethodGet, discord.EndpointUserAvatar(u.ID, u.Avatar)).
-		WithBucketID(discord.EndpointUserAvatar("", ""))
+		WithBucketID(discord.EndpointUserAvatar(0, ""))
 }
 
 // Edit current [User] settings.
@@ -223,11 +223,11 @@ func Edit(username, avatar, banner string) Request[*User] {
 		Banner   string `json:"banner,omitempty"`
 	}{username, avatar, banner}
 
-	return NewData[*User](http.MethodPatch, discord.EndpointUser("@me")).
+	return NewData[*User](http.MethodPatch, discord.EndpointUser(0)).
 		WithBucketID(discord.EndpointUsers).WithData(data)
 }
 
 // ListConnections returns all current [Connection]s.
 func ListConnections() Request[[]*Connection] {
-	return NewData[[]*Connection](http.MethodGet, discord.EndpointUserConnections("@me"))
+	return NewData[[]*Connection](http.MethodGet, discord.EndpointUserConnections(0))
 }

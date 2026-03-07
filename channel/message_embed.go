@@ -78,26 +78,26 @@ type MessageEmbed struct {
 var ErrReplyNilMessageRef = errors.New("reply attempted with nil message reference")
 
 // SendEmbed to the given [Channel].
-func SendEmbed(channelID string, embed *MessageEmbed) Request[*Message] {
+func SendEmbed(channelID uint64, embed *MessageEmbed) Request[*Message] {
 	return SendEmbeds(channelID, []*MessageEmbed{embed})
 }
 
 // SendEmbeds sends multiple [MessageEmbed] to the given [Channel].
-func SendEmbeds(channelID string, embeds []*MessageEmbed) Request[*Message] {
+func SendEmbeds(channelID uint64, embeds []*MessageEmbed) Request[*Message] {
 	return SendMessageComplex(channelID, &MessageSend{Embeds: embeds})
 }
 
 // SendEmbedReply sends a reply channel.MessageEmbed to the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func SendEmbedReply(channelID string, embed *MessageEmbed, reference *MessageReference) Request[*Message] {
+func SendEmbedReply(channelID uint64, embed *MessageEmbed, reference *MessageReference) Request[*Message] {
 	return SendEmbedsReply(channelID, []*MessageEmbed{embed}, reference)
 }
 
 // SendEmbedsReply sends a reply with multiple channel.MessageEmbed in the given channel.Channel.
 //
 // reference is the message reference to send containing the channel.Message to reply to.
-func SendEmbedsReply(channelID string, embeds []*MessageEmbed, reference *MessageReference) Request[*Message] {
+func SendEmbedsReply(channelID uint64, embeds []*MessageEmbed, reference *MessageReference) Request[*Message] {
 	if reference == nil {
 		return NewError[*Message](ErrReplyNilMessageRef)
 	}
@@ -108,11 +108,11 @@ func SendEmbedsReply(channelID string, embeds []*MessageEmbed, reference *Messag
 }
 
 // EditEmbed, replacing it entirely with the given [MessageEmbed].
-func EditEmbed(channelID, messageID string, embed *MessageEmbed) Request[*Message] {
+func EditEmbed(channelID, messageID uint64, embed *MessageEmbed) Request[*Message] {
 	return EditEmbeds(channelID, messageID, []*MessageEmbed{embed})
 }
 
 // EditEmbeds, replacing it entirely with multiple [MessageEmbed]s.
-func EditEmbeds(channelID, messageID string, embeds []*MessageEmbed) Request[*Message] {
+func EditEmbeds(channelID, messageID uint64, embeds []*MessageEmbed) Request[*Message] {
 	return EditMessageComplex(NewMessageEdit(channelID, messageID).SetEmbeds(embeds...))
 }

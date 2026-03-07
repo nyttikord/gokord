@@ -51,8 +51,8 @@ func KeyChannel(c *channel.Channel) uint64 {
 }
 
 // KeyChannelReverse returns the key linked with the requested [channel.Channel].
-func KeyChannelReverse(channelID string) uint64 {
-	return stringToUint(channelID)
+func KeyChannelReverse(channelID uint64) uint64 {
+	return channelID
 }
 
 // AddChannel adds a [channel.Channel] to the current [Channel] state, or updates it if it already exists.
@@ -150,7 +150,7 @@ func (s *Channel) RemoveChannel(chann *channel.Channel) error {
 }
 
 // GetChannel returns the [channel.Channel].
-func (s *Channel) GetChannel(channelID string) (*channel.Channel, error) {
+func (s *Channel) GetChannel(channelID uint64) (*channel.Channel, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -219,7 +219,7 @@ func (s *Channel) RemoveMessage(message *channel.Message) error {
 }
 
 // RemoveMessageByID removes a [channel.Message] by channelID and messageID from the current [Channel] state.
-func (s *Channel) RemoveMessageByID(channelID, messageID string) error {
+func (s *Channel) RemoveMessageByID(channelID, messageID uint64) error {
 	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -234,7 +234,7 @@ func (s *Channel) RemoveMessageByID(channelID, messageID string) error {
 }
 
 // GetMessage gets a [channel.Message] by [channel.Channel.ID] and [channel.Message.ID].
-func (s *Channel) GetMessage(channelID, messageID string) (*channel.Message, error) {
+func (s *Channel) GetMessage(channelID, messageID uint64) (*channel.Message, error) {
 	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -253,7 +253,7 @@ func (s *Channel) GetMessage(channelID, messageID string) (*channel.Message, err
 }
 
 // OnThreadListSync syncs [guild.Guild] threads with provided ones.
-func (s *Channel) OnThreadListSync(guildID string, channelIDs []string, threads []*channel.Channel, members []*channel.ThreadMember) error {
+func (s *Channel) OnThreadListSync(guildID uint64, channelIDs []uint64, threads []*channel.Channel, members []*channel.ThreadMember) error {
 	g, err := s.GuildState().GetGuild(guildID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -266,11 +266,11 @@ func (s *Channel) OnThreadListSync(guildID string, channelIDs []string, threads 
 	defer s.mu.Unlock()
 
 	ths := make([]*channel.Channel, 0, len(g.Threads))
-	messages := make(map[string][]*channel.Message, len(g.Threads))
+	messages := make(map[uint64][]*channel.Message, len(g.Threads))
 	// converting channelIDs to map to have better perf
-	var channels map[string]struct{} // stored value is never used, we use it like a set
+	var channels map[uint64]struct{} // stored value is never used, we use it like a set
 	if len(channelIDs) > 0 {
-		channels = make(map[string]struct{}, len(channelIDs))
+		channels = make(map[uint64]struct{}, len(channelIDs))
 		for _, id := range channelIDs {
 			channels[id] = struct{}{}
 		}
@@ -315,7 +315,7 @@ func (s *Channel) OnThreadListSync(guildID string, channelIDs []string, threads 
 }
 
 // OnThreadMembersUpdate updates [channel.ThreadMember]s list.
-func (s *Channel) OnThreadMembersUpdate(id string, guildID string, count int, addedMembers []channel.AddedThreadMember, removedMembers []string) error {
+func (s *Channel) OnThreadMembersUpdate(id uint64, guildID uint64, count int, addedMembers []channel.AddedThreadMember, removedMembers []uint64) error {
 	thread, err := s.GetChannel(id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
@@ -363,7 +363,7 @@ func (s *Channel) ThreadMemberUpdate(tm *channel.ThreadMember) error {
 }
 
 // GetUserChannelPermissions returns the permission of a [user.User] in a [channel.Channel].
-func (s *Channel) GetUserChannelPermissions(userID, channelID string) (int64, error) {
+func (s *Channel) GetUserChannelPermissions(userID, channelID uint64) (int64, error) {
 	c, err := s.GetChannel(channelID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
