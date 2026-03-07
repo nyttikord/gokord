@@ -23,6 +23,7 @@ This release can be used in production, yay :D
 
 **BREAKING CHANGES EVERYWHERE**
 Introduce contexts everywhere.
+Replace snowflakes string by uint64.
 
 New higher-level interaction package using contexts:
 - easier to handle

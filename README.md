@@ -10,9 +10,9 @@ We have decided to remove the really outdated voice API, because our maintainers
 Feel free to open a PR to add it!
 
 <!--
-If you would like to help the Gokord package please use 
+If you would like to help the gokord package please use 
 [this link](https://discord.com/oauth2/authorize?client_id=173113690092994561&scope=bot)
-to add the official Gokord test bot **dgo** to your server. This provides 
+to add the official gokord test bot **dgo** to your server. This provides 
 indispensable help to this project.
 -->
 
@@ -123,9 +123,9 @@ Go reference (below) presents that information in a nice format.
 Below is a list of examples and other projects using gokord. 
 
 - [gokord examples](https://github.com/nyttikord/gokord/tree/main/examples) — A collection of example programs written with gokord (really outdated)
+- [Les Copaings Bot](https://git.anhgelus.world/anhgelus/les-copaings-bot) — Custom XP bot
 
-If you want real world example, you can check [our bots](https://github.com/nyttikord) or 
-[Les Copaings Bot](https://git.anhgelus.world/anhgelus/les-copaings-bot).
+Feel free to open a PR to add your project ;D
 
 <!--
 ## Troubleshooting
@@ -135,6 +135,7 @@ section of the project wiki.
 -->
 
 ## Contributing
+
 Contributions are very welcomed, however please follow the below guidelines.
 
 - First open an issue describing the bug or enhancement so it can be discussed.  
