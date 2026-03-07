@@ -1,12 +1,14 @@
 package guild
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/nyttikord/gokord/discord"
 	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
+	"github.com/nyttikord/gokord/internal/structs"
 )
 
 // OnboardingMode defines the criteria used to satisfy constraints that are required for enabling [Onboarding].
@@ -62,9 +64,9 @@ type OnboardingPrompt struct {
 type OnboardingPromptOption struct {
 	ID uint64 `json:"id,omitempty,string"`
 	// IDs for channels a [user.Member] is added to when the [OnboardingPromptOption] is selected.
-	ChannelIDs []uint64 `json:"channel_ids,string"`
+	ChannelIDs []uint64 `json:"-"`
 	// IDs for [Role]s assigned to a [user.Member] when the [OnboardingPromptOption] is selected.
-	RoleIDs []uint64 `json:"role_ids,string"`
+	RoleIDs []uint64 `json:"-"`
 	// [emoji.Emoji] of the option.
 	//
 	// NOTE: when creating or updating a [OnboardingPromptOption] EmojiID, EmojiName and EmojiAnimated should be used
@@ -78,6 +80,33 @@ type OnboardingPromptOption struct {
 	EmojiName string `json:"emoji_name,omitempty"`
 	// See [OnboardingPromptOption.Emoji].
 	EmojiAnimated *bool `json:"emoji_animated,omitempty"`
+}
+
+func (o *OnboardingPromptOption) MarshalJSON() ([]byte, error) {
+	type t OnboardingPromptOption
+	v := struct {
+		t
+		ChannelIDs []string `json:"channel_ids"`
+		RoleIDs    []string `json:"role_ids"`
+	}{t(*o), structs.UintsToSnowflakes(o.ChannelIDs), structs.UintsToSnowflakes(o.RoleIDs)}
+	return json.Marshal(v)
+}
+
+func (o *OnboardingPromptOption) UnmarshalJSON(data []byte) error {
+	type t OnboardingPromptOption
+	var v struct {
+		t
+		ChannelIDs []string `json:"channel_ids"`
+		RoleIDs    []string `json:"role_ids"`
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	*o = OnboardingPromptOption(v.t)
+	o.ChannelIDs = structs.SnowflakesToUints(v.ChannelIDs)
+	o.RoleIDs = structs.SnowflakesToUints(v.RoleIDs)
+	return nil
 }
 
 // GetOnboarding returns [Onboarding] configuration of a [Guild].

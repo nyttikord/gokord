@@ -2,12 +2,14 @@ package gokord
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"time"
 
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/internal/structs"
 	"github.com/nyttikord/gokord/user/status"
 )
 
@@ -89,10 +91,19 @@ func (s *wsAPI) UpdateStatusComplex(ctx context.Context, usd bot.UpdateStatusDat
 type requestGuildMembersData struct {
 	GuildID   uint64   `json:"guild_id,string"`
 	Query     *string  `json:"query,omitempty"`
-	UserIDs   []uint64 `json:"user_ids,omitempty,string"`
+	UserIDs   []uint64 `json:"-"`
 	Limit     int      `json:"limit"`
 	Nonce     string   `json:"nonce,omitempty"`
 	Presences bool     `json:"presences"`
+}
+
+func (r *requestGuildMembersData) MarshalJSON() ([]byte, error) {
+	type t requestGuildMembersData
+	v := struct {
+		t
+		UserIDs []string `json:"user_ids,omitempty"`
+	}{t(*r), structs.UintsToSnowflakes(r.UserIDs)}
+	return json.Marshal(v)
 }
 
 type requestGuildMembersOp struct {

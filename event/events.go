@@ -99,7 +99,7 @@ type ThreadListSync struct {
 	// The parent channel ids whose threads are being synced.
 	// If omitted, then threads were synced for the entire guild.
 	// This array may contain channel_ids that have no active threads as well, so you know to clear that data.
-	ChannelIDs []uint64 `json:"channel_ids,string"`
+	ChannelIDs []uint64 `json:"-"`
 	// All active threads in the given channels that the current user can access
 	Threads []*channel.Channel `json:"threads"`
 	// All thread member objects from the synced threads for the current user,
@@ -119,7 +119,7 @@ type ThreadMembersUpdate struct {
 	GuildID        uint64                      `json:"guild_id,string"`
 	MemberCount    int                         `json:"member_count"`
 	AddedMembers   []channel.AddedThreadMember `json:"added_members"`
-	RemovedMembers []uint64                    `json:"removed_member_ids,string"`
+	RemovedMembers []uint64                    `json:"-"`
 }
 
 // GuildCreate is the data for a GuildCreate event.
@@ -365,7 +365,7 @@ type VoiceStateUpdate struct {
 }
 
 type MessageDeleteBulk struct {
-	Messages  []uint64 `json:"ids,string"`
+	Messages  []uint64 `json:"-"`
 	ChannelID uint64   `json:"channel_id,string"`
 	GuildID   uint64   `json:"guild_id,string"`
 }

@@ -15,6 +15,7 @@ import (
 	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
+	"github.com/nyttikord/gokord/internal/structs"
 	"github.com/nyttikord/gokord/user"
 )
 
@@ -433,14 +434,9 @@ func DeleteMessages(channelID uint64, messages []uint64) Empty {
 		return WrapErrorAsEmpty(ErrTooMuchMessagesToDelete)
 	}
 
-	msg := make([]string, len(messages))
-	for i, m := range messages {
-		msg[i] = fmt.Sprintf("%d", m)
-	}
-
 	data := struct {
 		Messages []string `json:"messages"`
-	}{msg}
+	}{structs.UintsToSnowflakes(messages)}
 
 	req := NewSimple(http.MethodPost, discord.EndpointChannelMessagesBulkDelete(channelID)).WithData(data)
 	return WrapAsEmpty(req)

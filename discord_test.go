@@ -33,6 +33,9 @@ func init() {
 	var err error
 	envGuild, err = strconv.ParseUint(os.Getenv("DG_GUILD"), 10, 64)
 	if err != nil {
+		if len(os.Getenv("DG_GUILD")) == 0 {
+			return
+		}
 		panic(err)
 	}
 	envChannel, err = strconv.ParseUint(os.Getenv("DG_CHANNEL"), 10, 64)

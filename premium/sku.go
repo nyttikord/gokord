@@ -5,6 +5,7 @@
 package premium
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,6 +16,7 @@ import (
 	"github.com/nyttikord/gokord/discord"
 	. "github.com/nyttikord/gokord/discord/request"
 	"github.com/nyttikord/gokord/discord/types"
+	"github.com/nyttikord/gokord/internal/structs"
 )
 
 // SKUFlags is a bitfield of flags used to differentiate user and server subscriptions (see SKUFlag* consts)
@@ -51,11 +53,11 @@ type Subscription struct {
 	// ID of the [user.User] who is subscribed.
 	UserID uint64 `json:"user_id,string"`
 	// List of [SKU]s subscribed to.
-	SKUIDs []uint64 `json:"sku_ids,string"`
+	SKUIDs []uint64 `json:"-"`
 	// List of [Entitlement] granted for this [Subscription].
-	EntitlementIDs []uint64 `json:"entitlement_ids,string"`
+	EntitlementIDs []uint64 `json:"-"`
 	// List of [SKU]s that this [user.User] will be subscribed to at renewal.
-	RenewalSKUIDs []uint64 `json:"renewal_sku_ids,omitempty,string"`
+	RenewalSKUIDs []uint64 `json:"-"`
 	// Start of the current [Subscription] period.
 	CurrentPeriodStart time.Time `json:"current_period_start"`
 	// End of the current [Subscription] period.
@@ -68,6 +70,41 @@ type Subscription struct {
 	// ISO3166-1 alpha-2 Country code of the payment source used to purchase the [Subscription].
 	// Missing unless queried with a private OAuth scope.
 	Country string `json:"country,omitempty"`
+}
+
+func (s *Subscription) MarshalJSON() ([]byte, error) {
+	type t Subscription
+	v := struct {
+		t
+		SKUIDs         []string `json:"sku_ids"`
+		EntitlementIDs []string `json:"entitlement_ids"`
+		RenewalSKUIDs  []string `json:"renewal_sku_ids,omitempty"`
+	}{
+		t(*s),
+		structs.UintsToSnowflakes(s.SKUIDs),
+		structs.UintsToSnowflakes(s.EntitlementIDs),
+		structs.UintsToSnowflakes(s.RenewalSKUIDs),
+	}
+	return json.Marshal(v)
+}
+
+func (s *Subscription) UnmarshalJSON(data []byte) error {
+	type t Subscription
+	var v struct {
+		t
+		SKUIDs         []string `json:"sku_ids"`
+		EntitlementIDs []string `json:"entitlement_ids"`
+		RenewalSKUIDs  []string `json:"renewal_sku_ids,omitempty"`
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	*s = Subscription(v.t)
+	s.SKUIDs = structs.SnowflakesToUints(v.SKUIDs)
+	s.EntitlementIDs = structs.SnowflakesToUints(v.EntitlementIDs)
+	s.RenewalSKUIDs = structs.SnowflakesToUints(v.RenewalSKUIDs)
+	return nil
 }
 
 // SubscriptionStatus is the current status of a [Subscription].
@@ -157,12 +194,7 @@ func ListEntitlements(appID uint64, filterOptions *EntitlementFilterOptions) Req
 			queryParams.Set("user_id", fmt.Sprintf("%d", filterOptions.UserID))
 		}
 		if len(filterOptions.SkuIDs) > 0 {
-			var sb strings.Builder
-			sb.Grow(15 * len(filterOptions.SkuIDs))
-			for _, sk := range filterOptions.SkuIDs {
-				sb.WriteString(fmt.Sprintf("%d", sk))
-			}
-			queryParams.Set("sku_ids", sb.String())
+			queryParams.Set("sku_ids", strings.Join(structs.UintsToSnowflakes(filterOptions.SkuIDs), ","))
 		}
 		if filterOptions.Before != nil {
 			queryParams.Set("before", filterOptions.Before.Format(time.RFC3339))

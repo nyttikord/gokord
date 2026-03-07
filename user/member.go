@@ -1,10 +1,12 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/nyttikord/gokord/discord"
+	"github.com/nyttikord/gokord/internal/structs"
 )
 
 // MemberFlags represent flags of a [guild.Guild] [Member].
@@ -42,7 +44,7 @@ type Member struct {
 	// The underlying [user.User] on which the [Member] is based.
 	User *User `json:"user"`
 	// A list of IDs of the [guild.Role]s which are possessed by the [Member].
-	Roles []uint64 `json:"roles,string"`
+	Roles []uint64 `json:"-"`
 	// Time since the [Member] used their Nitro boost on the [guild.Guild].
 	PremiumSince *time.Time `json:"premium_since"`
 	// The flags of this [Member].
@@ -56,6 +58,30 @@ type Member struct {
 	// The time at which the [Member]'s timeout will expire.
 	// Time in the past or nil if the Member is not timed out.
 	CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
+}
+
+func (m *Member) MarshalJSON() ([]byte, error) {
+	type t Member
+	v := struct {
+		t
+		Roles []string `json:"roles"`
+	}{t(*m), structs.UintsToSnowflakes(m.Roles)}
+	return json.Marshal(v)
+}
+
+func (m *Member) UnmarshalJSON(data []byte) error {
+	type t Member
+	var v struct {
+		t
+		Roles []string `json:"roles"`
+	}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	*m = Member(v.t)
+	m.Roles = structs.SnowflakesToUints(v.Roles)
+	return nil
 }
 
 // Mention creates a [Member] mention.
