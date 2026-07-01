@@ -10,6 +10,7 @@ import (
 
 	"github.com/nyttikord/gokord"
 	"github.com/nyttikord/gokord/bot"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
 )
@@ -41,14 +42,14 @@ func main() {
 	}
 	dg := gokord.NewWithLogLevel("Bot "+token, slog.LevelDebug)
 	dg.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
-		bot.Logger(ctx).Info("bot ready")
+		discord.ContextLogger(ctx).Info("bot ready")
 		s.GatewayAPI().UpdateGameStatus(ctx, false, "testing!")
 		for _, g := range r.Guilds {
 			m, err := guild.GetMember(g.ID, r.User.ID).Do(ctx)
 			if err != nil {
 				panic(err)
 			}
-			bot.Logger(ctx).Info("Who am I?", "guild", g.ID, "nick", m.DisplayName())
+			discord.ContextLogger(ctx).Info("Who am I?", "guild", g.ID, "nick", m.DisplayName())
 		}
 	})
 	err := dg.OpenAndBlock(ctx)

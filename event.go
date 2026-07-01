@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/event"
 	"github.com/nyttikord/gokord/guild"
@@ -172,7 +171,7 @@ func (s *Session) onGatewayEvent(ctx context.Context, e *discord.Event) (*eventH
 		d = e
 	}
 	if e.Type != event.InteractionCreateType {
-		ctx = bot.SetLogger(ctx, bot.Logger(ctx).With("event", e.Type))
+		ctx = discord.SetContextLogger(ctx, discord.ContextLogger(ctx).With("event", e.Type))
 	}
 	s.eventManager.EmitEvent(ctx, s, typ, d)
 	return nil, nil

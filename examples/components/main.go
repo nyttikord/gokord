@@ -12,6 +12,7 @@ import (
 	"github.com/nyttikord/gokord/bot"
 	"github.com/nyttikord/gokord/channel"
 	"github.com/nyttikord/gokord/component"
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/discord/types"
 	"github.com/nyttikord/gokord/emoji"
 	"github.com/nyttikord/gokord/event"
@@ -40,7 +41,7 @@ func main() {
 	s.InteractionManager().HandleCommand("buttons", buttons)
 
 	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
-		bot.Logger(ctx).Info("Bot is up!")
+		discord.ContextLogger(ctx).Info("Bot is up!")
 	})
 
 	ctx := s.NewContext(context.Background())

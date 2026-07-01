@@ -226,7 +226,7 @@ func main() {
 	s := gokord.New("Bot " + *BotToken)
 
 	s.EventManager().AddHandler(func(ctx context.Context, s bot.Session, r *event.Ready) {
-		bot.Logger(ctx).Info("Bot connected", "as", s.SessionState().User().Username)
+		discord.ContextLogger(ctx).Info("Bot connected", "as", s.SessionState().User().Username)
 	})
 
 	s.InteractionManager().HandleCommand("basic-command", basicCommand)
@@ -408,10 +408,6 @@ func permissionOverview(ctx context.Context, s bot.Session, i *interaction.Appli
 		}).Do(ctx)
 		return
 	} else if err != nil {
-		panic(err)
-	}
-
-	if err != nil {
 		panic(err)
 	}
 	format := "- %s %s\n"
