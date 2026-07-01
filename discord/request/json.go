@@ -20,7 +20,7 @@ func newDo(method, endpoint string) Do {
 }
 
 func (r Do) do(ctx context.Context, cfg Config) ([]byte, error) {
-	req := getREST(ctx)
+	req := ContextREST(ctx)
 	if len(r.Bucket) == 0 {
 		return req.Request(ctx, r.Method, r.Endpoint, r.Data, cfg)
 	}

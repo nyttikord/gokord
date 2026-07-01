@@ -3,6 +3,7 @@ package request
 import (
 	"context"
 
+	"github.com/nyttikord/gokord/discord"
 	"github.com/nyttikord/gokord/logger"
 )
 
@@ -14,7 +15,10 @@ type warnRequest[T any] struct {
 }
 
 func (r warnRequest[T]) Do(ctx context.Context) (T, error) {
-	getLogger(ctx).WarnContext(logger.NewContext(context.Background(), 1+r.depth), r.warn, r.args...)
+	discord.ContextLogger(ctx).
+		WarnContext(
+			logger.NewContext(context.Background(), 1+r.depth),
+			r.warn, r.args...)
 	return r.Request.Do(ctx)
 }
 
@@ -49,7 +53,10 @@ type emptyWarnRequest struct {
 }
 
 func (r emptyWarnRequest) Do(ctx context.Context) error {
-	getLogger(ctx).WarnContext(logger.NewContext(context.Background(), 1+r.depth), r.warn, r.args...)
+	discord.ContextLogger(ctx).
+		WarnContext(
+			logger.NewContext(context.Background(), 1+r.depth),
+			r.warn, r.args...)
 	return r.Empty.Do(ctx)
 }
 

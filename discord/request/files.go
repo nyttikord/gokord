@@ -77,7 +77,7 @@ func (r Multipart[T]) Do(ctx context.Context) (T, error) {
 	if r.do.Bucket != "" {
 		bucket = r.do.Bucket
 	}
-	b, err := getREST(ctx).RequestRaw(
+	b, err := ContextREST(ctx).RequestRaw(
 		ctx, http.MethodPatch, r.do.Endpoint, contentType, body, bucket, 0, r.Config(),
 	)
 	if err != nil {

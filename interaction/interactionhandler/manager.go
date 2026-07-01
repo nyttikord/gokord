@@ -83,7 +83,7 @@ func (m *Manager) HandleModalSubmit(customID string, h Handler[*ModalSubmit]) fu
 	}
 }
 
-// Context returns the context associated with the [Manager].
+// setContext returns the [context.Context] associated with the [Manager].
 func (m *Manager) setContext(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, discord.ContextCommandHandlers, m.commandHandlers)
 	ctx = context.WithValue(ctx, discord.ContextMessageComponentHandlers, m.messageComponentHandlers)

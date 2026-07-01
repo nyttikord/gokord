@@ -7,8 +7,8 @@ import (
 	"github.com/nyttikord/gokord/discord/request"
 )
 
-// getResponseChannel returns a channel that must be called when a response is send.
-func getResponseChannel(ctx context.Context) chan<- struct{} {
+// getResponseChannel returns a channel that must be closed when a response is send.
+func contextResponseChannel(ctx context.Context) chan<- struct{} {
 	raw := ctx.Value(discord.ContextInteractionResponse)
 	if raw == nil {
 		return nil
@@ -29,7 +29,7 @@ func (r ResponseRequest[T]) Do(ctx context.Context) (T, error) {
 	if err != nil {
 		return v, err
 	}
-	responsec := getResponseChannel(ctx)
+	responsec := contextResponseChannel(ctx)
 	if responsec != nil {
 		close(responsec)
 	}
@@ -49,7 +49,7 @@ func (r ResponseEmptyRequest) Do(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	responsec := getResponseChannel(ctx)
+	responsec := contextResponseChannel(ctx)
 	if responsec != nil {
 		close(responsec)
 	}

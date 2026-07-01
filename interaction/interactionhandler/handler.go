@@ -24,28 +24,16 @@ import (
 type Handler[T any] func(context.Context, bot.Session, T)
 type handlers[T any] map[string]Handler[T]
 
-func getCommandHandlers(ctx context.Context) handlers[*ApplicationCommand] {
-	raw := ctx.Value(discord.ContextCommandHandlers)
-	if raw == nil {
-		return nil
-	}
-	return raw.(handlers[*ApplicationCommand])
+func contextCommandHandlers(ctx context.Context) handlers[*ApplicationCommand] {
+	return ctx.Value(discord.ContextCommandHandlers).(handlers[*ApplicationCommand])
 }
 
-func getMessageComponentHandlers(ctx context.Context) handlers[*MessageComponent] {
-	raw := ctx.Value(discord.ContextMessageComponentHandlers)
-	if raw == nil {
-		return nil
-	}
-	return raw.(handlers[*MessageComponent])
+func contextMessageComponentHandlers(ctx context.Context) handlers[*MessageComponent] {
+	return ctx.Value(discord.ContextMessageComponentHandlers).(handlers[*MessageComponent])
 }
 
-func getModalSubmitHandlers(ctx context.Context) handlers[*ModalSubmit] {
-	raw := ctx.Value(discord.ContextModalSubmitHandlers)
-	if raw == nil {
-		return nil
-	}
-	return raw.(handlers[*ModalSubmit])
+func contextModalSubmitHandlers(ctx context.Context) handlers[*ModalSubmit] {
+	return ctx.Value(discord.ContextModalSubmitHandlers).(handlers[*ModalSubmit])
 }
 
 // Handle handles event.InteractionCreate and redirects them.
@@ -53,11 +41,11 @@ func (m *Manager) Handle(ctx context.Context, s bot.Session, i *event.Interactio
 	ctx = m.setContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, DeadlineDeferred)
 	defer cancel()
-	logger := bot.Logger(ctx)
-	logger = logger.With("interaction_type", i.Type)
-	logger = logger.With("interaction_app", i.AppID)
-	logger = logger.With("interaction_guild", i.GuildID)
-	ctx = bot.SetLogger(ctx, logger)
+	logger := discord.ContextLogger(ctx)
+	logger = logger.With("interaction_type", i.Type,
+		"interaction_app", i.AppID,
+		"interaction_guild", i.GuildID)
+	ctx = discord.SetContextLogger(ctx, logger)
 	// using a buffered channel to avoid goroutines lock
 	// this shouldn't happened because when context is cancelled, nothing must be sent through this channel
 	responsec := make(chan struct{}, 1)
@@ -90,10 +78,10 @@ func (m *Manager) Handle(ctx context.Context, s bot.Session, i *event.Interactio
 
 func handleCommand(ctx context.Context, s bot.Session, i *Interaction) {
 	cmd := i.Command()
-	handlers := getCommandHandlers(ctx)
+	handlers := contextCommandHandlers(ctx)
 	h, ok := handlers[cmd.Data.Name]
 	if !ok {
-		bot.Logger(ctx).Debug("command not found in handlers", "name", cmd.Data.Name)
+		discord.ContextLogger(ctx).Debug("command not found in handlers", "name", cmd.Data.Name)
 		return
 	}
 	h(ctx, s, cmd)
@@ -101,10 +89,11 @@ func handleCommand(ctx context.Context, s bot.Session, i *Interaction) {
 
 func handleMessageComponent(ctx context.Context, s bot.Session, i *Interaction) {
 	msg := i.MessageComponent()
-	handlers := getMessageComponentHandlers(ctx)
+	handlers := contextMessageComponentHandlers(ctx)
 	h, ok := handlers[msg.Data.CustomID]
 	if !ok {
-		bot.Logger(ctx).Debug("message component not found in handlers", "custom_id", msg.Data.CustomID)
+		discord.ContextLogger(ctx).
+			Debug("message component not found in handlers", "custom_id", msg.Data.CustomID)
 		return
 	}
 	h(ctx, s, msg)
@@ -112,10 +101,11 @@ func handleMessageComponent(ctx context.Context, s bot.Session, i *Interaction) 
 
 func handleModalSubmit(ctx context.Context, s bot.Session, i *Interaction) {
 	modal := i.ModalSubmit()
-	handlers := getModalSubmitHandlers(ctx)
+	handlers := contextModalSubmitHandlers(ctx)
 	h, ok := handlers[modal.Data.CustomID]
 	if !ok {
-		bot.Logger(ctx).Debug("modal submit not found in handlers", "custom_id", modal.Data.CustomID)
+		discord.ContextLogger(ctx).
+			Debug("modal submit not found in handlers", "custom_id", modal.Data.CustomID)
 		return
 	}
 	h(ctx, s, modal)
